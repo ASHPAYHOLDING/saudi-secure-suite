@@ -606,6 +606,83 @@ export type Database = {
           },
         ]
       }
+      subscription_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_billing_cycle: string | null
+          new_plan_id: string | null
+          new_status: string | null
+          notes: string | null
+          old_billing_cycle: string | null
+          old_plan_id: string | null
+          old_status: string | null
+          performed_by: string
+          subscription_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_billing_cycle?: string | null
+          new_plan_id?: string | null
+          new_status?: string | null
+          notes?: string | null
+          old_billing_cycle?: string | null
+          old_plan_id?: string | null
+          old_status?: string | null
+          performed_by: string
+          subscription_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_billing_cycle?: string | null
+          new_plan_id?: string | null
+          new_status?: string | null
+          notes?: string | null
+          old_billing_cycle?: string | null
+          old_plan_id?: string | null
+          old_status?: string | null
+          performed_by?: string
+          subscription_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_logs_new_plan_id_fkey"
+            columns: ["new_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_logs_old_plan_id_fkey"
+            columns: ["old_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string
