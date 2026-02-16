@@ -12,6 +12,7 @@ import {
   Receipt,
   LayoutTemplate,
   Bot,
+  Cloud,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: Receipt, label: "المراقبة المالية", path: "/admin/finance" },
   { icon: LayoutTemplate, label: "إدارة القوالب", path: "/admin/templates" },
   { icon: Bot, label: "المستشار الذكي", path: "/admin/ai" },
+  { icon: Cloud, label: "البنية التحتية", path: "/admin/infrastructure" },
 ];
 
 interface AdminSidebarProps {
