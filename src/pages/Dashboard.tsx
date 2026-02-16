@@ -9,6 +9,7 @@ import StampManagement from "@/components/stamp/StampManagement";
 import InventoryPage from "@/components/inventory/InventoryPage";
 import QuotationsPage from "@/components/quotations/QuotationsPage";
 import SalesOrdersPage from "@/components/sales-orders/SalesOrdersPage";
+import ExpensesPage from "@/components/expenses/ExpensesPage";
 import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import BrandingSettings from "@/components/branding/BrandingSettings";
 import ComplianceSettings from "@/components/compliance/ComplianceSettings";
@@ -34,6 +35,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   contracts: "contracts",
   quotations: "quotations",
   "sales-orders": "sales-orders",
+  expenses: "expenses",
   inventory: "inventory",
   stamp: "stamp",
   audit: "audit",
@@ -79,6 +81,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/sales-orders") {
       return <SalesOrdersPage />;
+    }
+    if (path === "/dashboard/expenses") {
+      return <ExpensesPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;
