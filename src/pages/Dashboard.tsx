@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardHome from "@/components/dashboard/DashboardHome";
@@ -18,13 +18,43 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
+
+// Map path segments to module keys
+const PATH_MODULE_MAP: Record<string, Module> = {
+  billing: "billing",
+  invoices: "billing",
+  contracts: "contracts",
+  stamp: "stamp",
+  audit: "audit",
+  branding: "branding",
+  compliance: "compliance",
+  customers: "customers",
+  company: "company",
+  team: "team",
+  reports: "reports",
+  analytics: "analytics",
+  settings: "settings",
+  help: "help",
+};
 
 const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
+  const { tenantType } = useAuth();
 
   const renderContent = () => {
     const path = location.pathname;
+    // Extract the sub-path after /dashboard/
+    const segment = path.replace("/dashboard/", "").replace("/dashboard", "");
+    const module = PATH_MODULE_MAP[segment];
+
+    // If we have a module mapping and it's not allowed, redirect to dashboard home
+    if (module && !isModuleAllowed(tenantType, module)) {
+      return <Navigate to="/dashboard" replace />;
+    }
+
     if (path === "/dashboard/billing" || path === "/dashboard/invoices") {
       return <InvoicesPage />;
     }

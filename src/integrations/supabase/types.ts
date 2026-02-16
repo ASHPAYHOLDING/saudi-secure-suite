@@ -1097,6 +1097,7 @@ export type Database = {
           stamp_image_url: string | null
           stamp_vat_number: string | null
           status: string
+          tenant_type: Database["public"]["Enums"]["tenant_type"]
           updated_at: string
           vat_number: string | null
           vat_percentage: number
@@ -1130,6 +1131,7 @@ export type Database = {
           stamp_image_url?: string | null
           stamp_vat_number?: string | null
           status?: string
+          tenant_type?: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
           vat_number?: string | null
           vat_percentage?: number
@@ -1163,6 +1165,7 @@ export type Database = {
           stamp_image_url?: string | null
           stamp_vat_number?: string | null
           status?: string
+          tenant_type?: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
           vat_number?: string | null
           vat_percentage?: number
@@ -1203,6 +1206,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
+      tenant_type: "company" | "individual" | "freelancer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1331,6 +1335,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "manager", "hr", "accountant", "member"],
+      tenant_type: ["company", "individual", "freelancer"],
     },
   },
 } as const

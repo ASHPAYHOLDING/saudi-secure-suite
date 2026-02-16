@@ -23,26 +23,30 @@ import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 
-const mainMenu = [
-  { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
-  { icon: Users, label: "العملاء", path: "/dashboard/customers" },
-  { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing" },
-  { icon: FileSignature, label: "العقود", path: "/dashboard/contracts" },
-  { icon: FileText, label: "التقارير", path: "/dashboard/reports" },
-  { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics" },
-  { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team" },
+const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
+  { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard", module: "dashboard" },
+  { icon: Users, label: "العملاء", path: "/dashboard/customers", module: "customers" },
+  { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing", module: "billing" },
+  { icon: FileSignature, label: "العقود", path: "/dashboard/contracts", module: "contracts" },
+  { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
+  { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },
+  { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team", module: "team" },
 ];
 
-const settingsMenu = [
-  { icon: Building2, label: "إعدادات الشركة", path: "/dashboard/company" },
-  { icon: Palette, label: "هوية الشركة", path: "/dashboard/branding" },
-  { icon: ShieldCheck, label: "الامتثال والتنظيم", path: "/dashboard/compliance" },
-  { icon: Stamp, label: "الختم الإلكتروني", path: "/dashboard/stamp" },
-  { icon: Shield, label: "سجل المراجعة", path: "/dashboard/audit" },
-  { icon: Settings, label: "الإعدادات", path: "/dashboard/settings" },
-  { icon: HelpCircle, label: "المساعدة", path: "/dashboard/help" },
+const settingsMenu: { icon: any; label: string; path: string; module: Module }[] = [
+  { icon: Building2, label: "إعدادات الشركة", path: "/dashboard/company", module: "company" },
+  { icon: Palette, label: "هوية الشركة", path: "/dashboard/branding", module: "branding" },
+  { icon: ShieldCheck, label: "الامتثال والتنظيم", path: "/dashboard/compliance", module: "compliance" },
+  { icon: Stamp, label: "الختم الإلكتروني", path: "/dashboard/stamp", module: "stamp" },
+  { icon: Shield, label: "سجل المراجعة", path: "/dashboard/audit", module: "audit" },
+  { icon: Settings, label: "الإعدادات", path: "/dashboard/settings", module: "settings" },
+  { icon: HelpCircle, label: "المساعدة", path: "/dashboard/help", module: "help" },
 ];
+
+
+
 
 interface DashboardSidebarProps {
   collapsed: boolean;
@@ -51,7 +55,7 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, tenantType } = useAuth();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
@@ -111,7 +115,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-1">
-          {mainMenu.map((item) => (
+          {mainMenu.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
             <NavItem key={item.path} {...item} />
           ))}
         </div>
@@ -120,16 +124,21 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
           <div className="my-4 border-t border-sidebar-border" />
         )}
 
-        <div className="mt-4 space-y-1">
-          {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-              الإعدادات
-            </p>
-          )}
-          {settingsMenu.map((item) => (
-            <NavItem key={item.path} {...item} />
-          ))}
-        </div>
+        {(() => {
+          const filteredSettings = settingsMenu.filter((item) => isModuleAllowed(tenantType, item.module));
+          return filteredSettings.length > 0 ? (
+            <div className="mt-4 space-y-1">
+              {!collapsed && (
+                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                  الإعدادات
+                </p>
+              )}
+              {filteredSettings.map((item) => (
+                <NavItem key={item.path} {...item} />
+              ))}
+            </div>
+          ) : null;
+        })()}
       </div>
 
       {/* Admin + Logout */}
