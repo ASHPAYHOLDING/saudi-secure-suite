@@ -14,16 +14,351 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          manager_id: string | null
+          name: string
+          name_en: string | null
+          parent_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name?: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          full_name_en: string | null
+          id: string
+          is_active: boolean
+          job_title: string | null
+          language: string
+          last_login_at: string | null
+          phone: string | null
+          tenant_id: string | null
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          full_name_en?: string | null
+          id: string
+          is_active?: boolean
+          job_title?: string | null
+          language?: string
+          last_login_at?: string | null
+          phone?: string | null
+          tenant_id?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          full_name_en?: string | null
+          id?: string
+          is_active?: boolean
+          job_title?: string | null
+          language?: string
+          last_login_at?: string | null
+          phone?: string | null
+          tenant_id?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          max_employees: number | null
+          max_invoices: number | null
+          max_storage_gb: number | null
+          max_users: number | null
+          name_ar: string
+          name_en: string
+          price_monthly: number
+          price_quarterly: number | null
+          price_yearly: number | null
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_employees?: number | null
+          max_invoices?: number | null
+          max_storage_gb?: number | null
+          max_users?: number | null
+          name_ar: string
+          name_en: string
+          price_monthly?: number
+          price_quarterly?: number | null
+          price_yearly?: number | null
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_employees?: number | null
+          max_invoices?: number | null
+          max_storage_gb?: number | null
+          max_users?: number | null
+          name_ar?: string
+          name_en?: string
+          price_monthly?: number
+          price_quarterly?: number | null
+          price_yearly?: number | null
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: string
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tenant_id: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tenant_id?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_members: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          address_city: string | null
+          address_street: string | null
+          address_zip: string | null
+          cr_number: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          name: string
+          name_en: string | null
+          phone: string | null
+          slug: string
+          status: string
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          cr_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name: string
+          name_en?: string | null
+          phone?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          cr_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name?: string
+          name_en?: string | null
+          phone?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _tenant_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_user_tenant_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
+      is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
+      is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +485,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "manager", "hr", "accountant", "member"],
+    },
   },
 } as const
