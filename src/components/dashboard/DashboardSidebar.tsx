@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogOut,
   ChevronRight,
+  Stamp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const mainMenu = [
 
 const settingsMenu = [
   { icon: Building2, label: "إعدادات الشركة", path: "/dashboard/company" },
+  { icon: Stamp, label: "الختم الإلكتروني", path: "/dashboard/stamp" },
   { icon: Settings, label: "الإعدادات", path: "/dashboard/settings" },
   { icon: HelpCircle, label: "المساعدة", path: "/dashboard/help" },
 ];
