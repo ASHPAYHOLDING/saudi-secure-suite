@@ -8,6 +8,7 @@ import ContractsPage from "@/components/contracts/ContractsPage";
 import StampManagement from "@/components/stamp/StampManagement";
 import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import BrandingSettings from "@/components/branding/BrandingSettings";
+import ComplianceSettings from "@/components/compliance/ComplianceSettings";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/branding") {
       return <BrandingSettings />;
+    }
+    if (path === "/dashboard/compliance") {
+      return <ComplianceSettings />;
     }
     return <DashboardHome />;
   };
