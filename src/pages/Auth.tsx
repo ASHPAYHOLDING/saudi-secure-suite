@@ -5,14 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Mail, Lock, User, ArrowLeft, Loader2 } from "lucide-react";
+import { ShieldCheck, Mail, Lock, User, ArrowLeft, Loader2, Building2, UserCircle, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import type { TenantType } from "@/lib/tenant-modules";
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [tenantType, setTenantType] = useState<TenantType>("company");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,7 +28,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: fullName, tenant_type: tenantType },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -89,20 +90,49 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
-              <div>
-                <Label htmlFor="fullName" className="text-xs text-muted-foreground">
-                  الاسم الكامل
-                </Label>
-                <div className="relative mt-1.5">
-                  <User size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="أحمد محمد"
-                    className="pr-10"
-                    required
-                  />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="fullName" className="text-xs text-muted-foreground">
+                    الاسم الكامل
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <User size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="أحمد محمد"
+                      className="pr-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Tenant Type Selector */}
+                <div>
+                  <Label className="text-xs text-muted-foreground">نوع الحساب</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-1.5">
+                    {([
+                      { value: "company" as TenantType, label: "شركة", icon: Building2, desc: "نظام متكامل" },
+                      { value: "freelancer" as TenantType, label: "مستقل", icon: Briefcase, desc: "فواتير وعملاء" },
+                      { value: "individual" as TenantType, label: "فرد", icon: UserCircle, desc: "فواتير فقط" },
+                    ]).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setTenantType(opt.value)}
+                        className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 transition-all text-center ${
+                          tenantType === opt.value
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border bg-background text-muted-foreground hover:border-accent/40"
+                        }`}
+                      >
+                        <opt.icon size={20} />
+                        <span className="text-xs font-semibold">{opt.label}</span>
+                        <span className="text-[10px] opacity-70">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
