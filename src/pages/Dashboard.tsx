@@ -33,6 +33,7 @@ import PermissionsManagement from "@/components/permissions/PermissionsManagemen
 import ChatPage from "@/components/collaboration/ChatPage";
 import JournalEntriesPage from "@/components/journal/JournalEntriesPage";
 import AccountantDashboard from "@/components/productivity/AccountantDashboard";
+import SupplierInboxPage from "@/components/supplier-inbox/SupplierInboxPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -65,6 +66,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   analytics: "analytics",
   finance: "finance",
   "journal-entries": "journal-entries",
+  "supplier-inbox": "supplier-inbox",
   "productivity": "dashboard",
   "sheet-view": "sheet-view",
   branches: "branches",
@@ -120,6 +122,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
+    }
+    if (path === "/dashboard/supplier-inbox") {
+      return <SupplierInboxPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;

@@ -37,6 +37,7 @@ export type Module =
   | "branches"
   | "chat"
   | "settings"
+  | "supplier-inbox"
   | "help";
 
 const MODULE_ACCESS: Record<TenantType, Module[]> = {
@@ -55,6 +56,7 @@ const MODULE_ACCESS: Record<TenantType, Module[]> = {
     "inventory",
     "finance",
     "journal-entries",
+    "supplier-inbox",
     "reports",
     "analytics",
     "sheet-view",

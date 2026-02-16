@@ -3121,6 +3121,143 @@ export type Database = {
           },
         ]
       }
+      supplier_invoices: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          converted_expense_id: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          due_date: string | null
+          file_name: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          is_spam: boolean | null
+          notes: string | null
+          ocr_data: Json | null
+          ocr_error: string | null
+          ocr_status: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          spam_score: number | null
+          status: string
+          subtotal: number | null
+          supplier_id: string | null
+          supplier_name: string | null
+          supplier_vat_number: string | null
+          tenant_id: string
+          total_amount: number | null
+          updated_at: string
+          uploaded_by: string
+          vat_amount: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          converted_expense_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          is_spam?: boolean | null
+          notes?: string | null
+          ocr_data?: Json | null
+          ocr_error?: string | null
+          ocr_status?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          spam_score?: number | null
+          status?: string
+          subtotal?: number | null
+          supplier_id?: string | null
+          supplier_name?: string | null
+          supplier_vat_number?: string | null
+          tenant_id: string
+          total_amount?: number | null
+          updated_at?: string
+          uploaded_by: string
+          vat_amount?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          converted_expense_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          is_spam?: boolean | null
+          notes?: string | null
+          ocr_data?: Json | null
+          ocr_error?: string | null
+          ocr_status?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          spam_score?: number | null
+          status?: string
+          subtotal?: number | null
+          supplier_id?: string | null
+          supplier_name?: string | null
+          supplier_vat_number?: string | null
+          tenant_id?: string
+          total_amount?: number | null
+          updated_at?: string
+          uploaded_by?: string
+          vat_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_converted_expense_id_fkey"
+            columns: ["converted_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address_city: string | null
