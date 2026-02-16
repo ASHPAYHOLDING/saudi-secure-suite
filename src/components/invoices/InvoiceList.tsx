@@ -76,9 +76,9 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
   const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + i.amount_due, 0);
 
   return (
-    <div dir="rtl" className="space-y-6 p-6">
+    <div dir="rtl" className="space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">الفواتير</h1>
           <p className="text-sm text-muted-foreground mt-1">إدارة وتتبع فواتيرك الضريبية</p>
@@ -90,7 +90,7 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {[
           { label: "إجمالي المستحق", value: totalIssued, color: "text-info" },
           { label: "المدفوع", value: totalPaid, color: "text-success" },
@@ -104,9 +104,9 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
             className="rounded-xl border border-border bg-card p-5 shadow-card"
           >
             <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-            <p className={`text-xl font-bold font-english ${stat.color}`}>
+            <p className={`text-xl font-bold font-english ${stat.color}`} dir="ltr">
               {formatCurrency(stat.value)}
-              <span className="text-xs font-normal text-muted-foreground mr-1">ر.س</span>
+              <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
             </p>
           </motion.div>
         ))}
@@ -114,14 +114,14 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-md w-full">
           <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="ابحث برقم الفاتورة أو اسم العميل..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 w-full rounded-lg border border-input bg-background pr-10 pl-4 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="h-10 w-full rounded-lg border border-input bg-background pr-10 pl-4 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
           />
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -152,18 +152,41 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
           transition={{ delay: 0.2 }}
           className="rounded-xl border border-border bg-card shadow-card overflow-hidden"
         >
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {filteredInvoices.map((inv) => (
+              <div key={inv.id} className="p-4 hover:bg-secondary/10 transition-colors" onClick={() => onViewInvoice(inv.id)}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText size={14} className="text-accent shrink-0" />
+                    <span className="font-medium font-english text-foreground text-sm">{inv.invoice_number}</span>
+                  </div>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(inv.status)}`}>
+                    {getStatusLabel(inv.status)}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground mb-1">{inv.customers?.name || "—"}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{formatDateShort(inv.invoice_date)}</span>
+                  <span className="font-english font-semibold text-foreground" dir="ltr">{formatCurrency(inv.grand_total)} ر.س</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm" dir="rtl">
               <thead>
                 <tr className="border-b border-border bg-secondary/30">
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">رقم الفاتورة</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">العميل</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">تاريخ الإصدار</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">تاريخ الاستحقاق</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">المبلغ</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">المتبقي</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">الحالة</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground">إجراءات</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">رقم الفاتورة</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">العميل</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">تاريخ الإصدار</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">الاستحقاق</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المبلغ</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المتبقي</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">الحالة</th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">إجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,7 +195,7 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
                     key={inv.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.05 * i }}
+                    transition={{ delay: 0.03 * i }}
                     className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors"
                   >
                     <td className="px-4 py-3">
@@ -182,16 +205,16 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-foreground">{inv.customers?.name || "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDateShort(inv.invoice_date)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDateShort(inv.due_date)}</td>
-                    <td className="px-4 py-3 font-english font-medium text-foreground">
-                      {formatCurrency(inv.grand_total)} <span className="text-xs text-muted-foreground">ر.س</span>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{formatDateShort(inv.invoice_date)}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{formatDateShort(inv.due_date)}</td>
+                    <td className="px-4 py-3 font-english font-medium text-foreground" dir="ltr">
+                      {formatCurrency(inv.grand_total)} <span className="text-[10px] text-muted-foreground">ر.س</span>
                     </td>
-                    <td className="px-4 py-3 font-english font-medium text-foreground">
-                      {formatCurrency(inv.amount_due)} <span className="text-xs text-muted-foreground">ر.س</span>
+                    <td className="px-4 py-3 font-english font-medium text-foreground" dir="ltr">
+                      {formatCurrency(inv.amount_due)} <span className="text-[10px] text-muted-foreground">ر.س</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(inv.status)}`}>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(inv.status)}`}>
                         {getStatusLabel(inv.status)}
                       </span>
                     </td>
