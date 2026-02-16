@@ -504,6 +504,11 @@ export type Database = {
           name_en: string | null
           phone: string | null
           slug: string
+          stamp_company_name: string | null
+          stamp_cr_number: string | null
+          stamp_enabled: boolean
+          stamp_image_url: string | null
+          stamp_vat_number: string | null
           status: string
           updated_at: string
           vat_number: string | null
@@ -523,6 +528,11 @@ export type Database = {
           name_en?: string | null
           phone?: string | null
           slug: string
+          stamp_company_name?: string | null
+          stamp_cr_number?: string | null
+          stamp_enabled?: boolean
+          stamp_image_url?: string | null
+          stamp_vat_number?: string | null
           status?: string
           updated_at?: string
           vat_number?: string | null
@@ -542,6 +552,11 @@ export type Database = {
           name_en?: string | null
           phone?: string | null
           slug?: string
+          stamp_company_name?: string | null
+          stamp_cr_number?: string | null
+          stamp_enabled?: boolean
+          stamp_image_url?: string | null
+          stamp_vat_number?: string | null
           status?: string
           updated_at?: string
           vat_number?: string | null

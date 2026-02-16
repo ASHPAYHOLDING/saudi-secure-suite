@@ -4,6 +4,7 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardHome from "@/components/dashboard/DashboardHome";
 import InvoicesPage from "@/components/invoices/InvoicesPage";
+import StampManagement from "@/components/stamp/StampManagement";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
@@ -14,6 +15,9 @@ const Dashboard = () => {
     const path = location.pathname;
     if (path === "/dashboard/billing" || path === "/dashboard/invoices") {
       return <InvoicesPage />;
+    }
+    if (path === "/dashboard/stamp") {
+      return <StampManagement />;
     }
     return <DashboardHome />;
   };

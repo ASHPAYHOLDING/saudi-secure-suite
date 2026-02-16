@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Printer, Download, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
+import DigitalStamp from "@/components/stamp/DigitalStamp";
 
 interface InvoicePreviewProps {
   onBack: () => void;
@@ -240,8 +241,8 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
               </table>
             </div>
 
-            {/* QR Code & Notes */}
-            <div className="mt-8 grid grid-cols-2 gap-8">
+            {/* QR Code, Notes & Stamp */}
+            <div className="mt-8 grid grid-cols-3 gap-6">
               {/* QR Code */}
               <div className="flex items-start gap-4">
                 <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border bg-secondary/30 shrink-0">
@@ -262,6 +263,19 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
                   <p className="text-xs text-muted-foreground leading-relaxed">{invoiceData.notes}</p>
                 </div>
               )}
+
+              {/* Digital Stamp */}
+              <div className="flex justify-center items-start">
+                <DigitalStamp
+                  stamp={{
+                    companyName: company.name,
+                    crNumber: company.cr_number,
+                    vatNumber: company.vat_number,
+                    enabled: true,
+                  }}
+                  size="md"
+                />
+              </div>
             </div>
           </div>
 
