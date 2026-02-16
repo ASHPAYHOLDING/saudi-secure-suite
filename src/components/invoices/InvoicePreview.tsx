@@ -32,7 +32,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
     const [invRes, itemsRes, tenantRes] = await Promise.all([
       supabase.from("invoices").select("*, customers(name, name_en, vat_number, cr_number, address_street, address_city, phone, email)").eq("id", invoiceId).single(),
       supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("sort_order"),
-      supabase.from("tenants").select("name, name_en, cr_number, vat_number, address_street, address_city, phone, email, logo_url, zatca_phase2_ready").eq("id", tenantId).single(),
+      supabase.from("tenants").select("name, name_en, cr_number, vat_number, address_street, address_city, phone, email, logo_url, zatca_phase2_ready, stamp_enabled, stamp_company_name, stamp_cr_number, stamp_vat_number, stamp_image_url").eq("id", tenantId).single(),
     ]);
 
     if (invRes.data) {
@@ -292,7 +292,13 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
 
               {/* Digital Stamp */}
               <div className="flex justify-center sm:justify-end items-start">
-                <DigitalStamp stamp={{ companyName: company.name, crNumber: company.cr_number || "", vatNumber: company.vat_number || "", enabled: true }} size="md" />
+                <DigitalStamp stamp={{
+                  companyName: company.stamp_company_name || company.name,
+                  crNumber: company.stamp_cr_number || company.cr_number || "",
+                  vatNumber: company.stamp_vat_number || company.vat_number || "",
+                  imageUrl: company.stamp_image_url || undefined,
+                  enabled: !!company.stamp_enabled,
+                }} size="md" />
               </div>
             </div>
           </div>
