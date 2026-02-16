@@ -6,6 +6,7 @@ import DashboardHome from "@/components/dashboard/DashboardHome";
 import InvoicesPage from "@/components/invoices/InvoicesPage";
 import ContractsPage from "@/components/contracts/ContractsPage";
 import StampManagement from "@/components/stamp/StampManagement";
+import InventoryPage from "@/components/inventory/InventoryPage";
 import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import BrandingSettings from "@/components/branding/BrandingSettings";
 import ComplianceSettings from "@/components/compliance/ComplianceSettings";
@@ -29,6 +30,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   billing: "billing",
   invoices: "billing",
   contracts: "contracts",
+  inventory: "inventory",
   stamp: "stamp",
   audit: "audit",
   branding: "branding",
@@ -64,6 +66,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/contracts") {
       return <ContractsPage />;
+    }
+    if (path === "/dashboard/inventory") {
+      return <InventoryPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;

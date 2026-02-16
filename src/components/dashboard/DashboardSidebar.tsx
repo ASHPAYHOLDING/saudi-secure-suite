@@ -18,6 +18,7 @@ import {
   Palette,
   ShieldCheck,
   Crown,
+  Package,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
   { icon: Users, label: "العملاء", path: "/dashboard/customers", module: "customers" },
   { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing", module: "billing" },
   { icon: FileSignature, label: "العقود", path: "/dashboard/contracts", module: "contracts" },
+  { icon: Package, label: "المخزون", path: "/dashboard/inventory", module: "inventory" },
   { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },
   { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team", module: "team" },
