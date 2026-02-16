@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import VatTaxReport from "./VatTaxReport";
 
 interface MonthlyData {
   month: string;
@@ -172,6 +173,19 @@ const ReportsPage = () => {
             </table>
           </div>
         )}
+      </motion.div>
+
+      {/* VAT Tax Report */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+      >
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <FileText size={16} />
+          تقرير ضريبي شامل (جاهز لهيئة الزكاة)
+        </h3>
+        <VatTaxReport />
       </motion.div>
     </div>
   );
