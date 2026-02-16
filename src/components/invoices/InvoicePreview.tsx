@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Printer, Download, QrCode } from "lucide-react";
+import { ArrowRight, Printer, Download } from "lucide-react";
+import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
@@ -235,13 +236,21 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
             <div className="mt-8 grid grid-cols-3 gap-6">
               {/* QR Code */}
               <div className="flex items-start gap-4">
-                <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-dashed border-border bg-secondary/30 shrink-0">
-                  <QrCode size={40} className="text-muted-foreground/50" />
-                </div>
+                <ZatcaQRCode
+                  sellerName={company.name}
+                  vatNumber={company.vat_number}
+                  timestamp={new Date(invoiceData.invoice_date).toISOString()}
+                  invoiceTotal={invoiceData.grand_total}
+                  vatTotal={invoiceData.vat_total}
+                  size={96}
+                />
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground mb-1">رمز الاستجابة السريع</p>
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    متوافق مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) — المرحلة الثانية
+                    متوافق مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) — تشفير TLV
+                  </p>
+                  <p className="text-[9px] text-muted-foreground/60 font-english mt-1">
+                    Tags: Seller, VAT No., Date, Total, VAT
                   </p>
                 </div>
               </div>
