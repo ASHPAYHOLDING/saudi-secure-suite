@@ -11,6 +11,7 @@ import BrandingSettings from "@/components/branding/BrandingSettings";
 import ComplianceSettings from "@/components/compliance/ComplianceSettings";
 import CustomersPage from "@/components/customers/CustomersPage";
 import CompanySettings from "@/components/company/CompanySettings";
+import TeamMembersPage from "@/components/team/TeamMembersPage";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/company") {
       return <CompanySettings />;
+    }
+    if (path === "/dashboard/team") {
+      return <TeamMembersPage />;
     }
     return <DashboardHome />;
   };
