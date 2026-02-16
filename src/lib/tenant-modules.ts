@@ -31,12 +31,13 @@ export type Module =
   | "audit"
   | "integrations"
   | "subscription"
+  | "sheet-view"
   | "settings"
   | "help";
 
 const MODULE_ACCESS: Record<TenantType, Module[]> = {
-  individual: ["dashboard", "billing", "quotations", "expenses", "finance", "subscription", "settings", "help"],
-  freelancer: ["dashboard", "customers", "billing", "quotations", "expenses", "finance", "subscription", "settings", "help"],
+  individual: ["dashboard", "billing", "quotations", "expenses", "finance", "sheet-view", "subscription", "settings", "help"],
+  freelancer: ["dashboard", "customers", "billing", "quotations", "expenses", "finance", "sheet-view", "subscription", "settings", "help"],
   company: [
     "dashboard",
     "customers",
@@ -50,6 +51,7 @@ const MODULE_ACCESS: Record<TenantType, Module[]> = {
     "finance",
     "reports",
     "analytics",
+    "sheet-view",
     "team",
     "company",
     "branding",
