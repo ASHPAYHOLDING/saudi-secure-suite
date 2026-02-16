@@ -125,19 +125,29 @@ const SupplierInboxPage = () => {
   };
 
   const approve = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from("supplier_invoices")
       .update({ status: "approved", approved_by: user?.id, approved_at: new Date().toISOString() } as any)
-      .eq("id", id);
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
+    if (error) {
+      toast.error(isRTL ? "فشل الاعتماد" : "Approval failed");
+      return;
+    }
     toast.success(isRTL ? "تم الاعتماد" : "Approved");
     fetchInvoices();
   };
 
   const reject = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from("supplier_invoices")
       .update({ status: "rejected", rejection_reason: rejectReason } as any)
-      .eq("id", id);
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
+    if (error) {
+      toast.error(isRTL ? "فشل الرفض" : "Rejection failed");
+      return;
+    }
     setRejectingId(null);
     setRejectReason("");
     toast.success(isRTL ? "تم الرفض" : "Rejected");
@@ -154,7 +164,16 @@ const SupplierInboxPage = () => {
   };
 
   const deleteInvoice = async (id: string) => {
-    await supabase.from("supplier_invoices").delete().eq("id", id);
+    if (!tenantId) return;
+    const { error } = await supabase
+      .from("supplier_invoices")
+      .delete()
+      .eq("id", id)
+      .eq("tenant_id", tenantId);
+    if (error) {
+      toast.error(isRTL ? "فشل الحذف - قد لا تملك الصلاحية" : "Delete failed - you may not have permission");
+      return;
+    }
     toast.success(isRTL ? "تم الحذف" : "Deleted");
     fetchInvoices();
   };
