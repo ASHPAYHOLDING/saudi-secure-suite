@@ -4,7 +4,8 @@ import { FileText, TrendingUp, CreditCard, FileSignature, Users, Loader2 } from 
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface DashboardStats {
   totalInvoices: number;
@@ -29,6 +30,7 @@ interface AuditEntry {
 
 const DashboardHome = () => {
   const { tenantId, profile } = useAuth();
+  const { t, dir, currentLang } = useLanguage();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<AuditEntry[]>([]);
   const [tenantName, setTenantName] = useState("");
@@ -79,24 +81,26 @@ const DashboardHome = () => {
   };
 
   const actionLabel = (action: string, entityType: string) => {
-    const map: Record<string, string> = {
-      create: "أنشأ",
-      update: "حدّث",
-      delete: "حذف",
-      sign: "وقّع",
-      cancel: "ألغى",
-      mark_paid: "سدّد",
+    const actionMap: Record<string, string> = {
+      create: t("dashboard.actionCreate"),
+      update: t("dashboard.actionUpdate"),
+      delete: t("dashboard.actionDelete"),
+      sign: t("dashboard.actionSign"),
+      cancel: t("dashboard.actionCancel"),
+      mark_paid: t("dashboard.actionMarkPaid"),
     };
     const entityMap: Record<string, string> = {
-      invoice: "فاتورة",
-      contract: "عقد",
-      customer: "عميل",
-      stamp: "ختم",
+      invoice: t("dashboard.entityInvoice"),
+      contract: t("dashboard.entityContract"),
+      customer: t("dashboard.entityCustomer"),
+      stamp: t("dashboard.entityStamp"),
     };
-    return `${map[action] || action} ${entityMap[entityType] || entityType}`;
+    return `${actionMap[action] || action} ${entityMap[entityType] || entityType}`;
   };
 
-  const firstName = profile?.full_name?.split(" ")[0] || "مستخدم";
+  const firstName = profile?.full_name?.split(" ")[0] || t("common.user");
+  const sar = t("common.sar");
+  const dateLocale = currentLang === "ar" ? ar : enUS;
 
   if (loading) {
     return (
@@ -110,42 +114,42 @@ const DashboardHome = () => {
 
   const statCards = [
     {
-      label: "إجمالي الفواتير",
+      label: t("dashboard.totalInvoices"),
       value: s.totalInvoices.toString(),
-      sub: `${s.paidInvoices} مدفوعة · ${s.draftInvoices} مسودة`,
+      sub: t("dashboard.paidDraft", { paid: s.paidInvoices, draft: s.draftInvoices }),
       icon: CreditCard,
       color: "text-accent",
     },
     {
-      label: "الإيرادات المحصّلة",
-      value: s.totalRevenue.toLocaleString("ar-SA"),
-      suffix: "ر.س",
-      sub: `ضريبة: ${s.totalVat.toLocaleString("ar-SA")} ر.س`,
+      label: t("dashboard.collectedRevenue"),
+      value: s.totalRevenue.toLocaleString(currentLang === "ar" ? "ar-SA" : "en-US"),
+      suffix: sar,
+      sub: t("dashboard.taxLabel", { amount: s.totalVat.toLocaleString(currentLang === "ar" ? "ar-SA" : "en-US") }),
       icon: TrendingUp,
       color: "text-emerald-500",
     },
     {
-      label: "العقود",
+      label: t("dashboard.contracts"),
       value: s.totalContracts.toString(),
-      sub: `${s.activeContracts} سارية`,
+      sub: t("dashboard.activeContracts", { count: s.activeContracts }),
       icon: FileSignature,
       color: "text-blue-500",
     },
     {
-      label: "العملاء",
+      label: t("dashboard.customersLabel"),
       value: s.totalCustomers.toString(),
-      sub: s.overdueInvoices > 0 ? `${s.overdueInvoices} فاتورة متأخرة` : "لا متأخرات",
+      sub: s.overdueInvoices > 0 ? t("dashboard.overdueInvoices", { count: s.overdueInvoices }) : t("dashboard.noOverdue"),
       icon: Users,
       color: s.overdueInvoices > 0 ? "text-destructive" : "text-accent",
     },
   ];
 
   return (
-    <div dir="rtl" className="space-y-8 p-6">
+    <div dir={dir} className="space-y-8 p-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">مرحباً، {firstName} 👋</h1>
-        <p className="text-sm text-muted-foreground">إليك نظرة عامة على أداء منشأتك اليوم</p>
+        <h1 className="text-2xl font-bold text-foreground">{t("dashboard.welcome", { name: firstName })}</h1>
+        <p className="text-sm text-muted-foreground">{t("dashboard.overview")}</p>
       </div>
 
       {/* Stats Grid */}
@@ -165,7 +169,7 @@ const DashboardHome = () => {
             </div>
             <p className="text-2xl font-bold text-foreground font-english">
               {stat.value}
-              {stat.suffix && <span className="mr-1 text-sm font-normal text-muted-foreground">{stat.suffix}</span>}
+              {stat.suffix && <span className={`${dir === "rtl" ? "mr-1" : "ml-1"} text-sm font-normal text-muted-foreground`}>{stat.suffix}</span>}
             </p>
             <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
             <p className="text-[11px] text-muted-foreground/70 mt-0.5">{stat.sub}</p>
@@ -182,9 +186,9 @@ const DashboardHome = () => {
           transition={{ delay: 0.4 }}
           className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-card"
         >
-          <h3 className="mb-5 text-sm font-semibold text-foreground">آخر النشاطات</h3>
+          <h3 className="mb-5 text-sm font-semibold text-foreground">{t("dashboard.recentActivities")}</h3>
           {activities.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">لا توجد نشاطات بعد</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("dashboard.noActivities")}</p>
           ) : (
             <div className="space-y-4">
               {activities.map((item) => (
@@ -203,7 +207,7 @@ const DashboardHome = () => {
                     </div>
                   </div>
                   <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ar })}
+                    {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: dateLocale })}
                   </span>
                 </div>
               ))}
@@ -218,13 +222,13 @@ const DashboardHome = () => {
           transition={{ delay: 0.5 }}
           className="rounded-xl border border-border bg-card p-6 shadow-card"
         >
-          <h3 className="mb-5 text-sm font-semibold text-foreground">معلومات المنشأة</h3>
+          <h3 className="mb-5 text-sm font-semibold text-foreground">{t("dashboard.companyInfo")}</h3>
           <div className="space-y-4">
             {[
-              { label: "اسم المنشأة", value: tenantName },
-              { label: "عدد العملاء", value: s.totalCustomers.toString() },
-              { label: "الفواتير المتأخرة", value: s.overdueInvoices.toString(), accent: s.overdueInvoices > 0 },
-              { label: "إجمالي الضريبة", value: `${s.totalVat.toLocaleString("ar-SA")} ر.س` },
+              { label: t("dashboard.companyName"), value: tenantName },
+              { label: t("dashboard.customerCount"), value: s.totalCustomers.toString() },
+              { label: t("dashboard.overdueInvoicesLabel"), value: s.overdueInvoices.toString(), accent: s.overdueInvoices > 0 },
+              { label: t("dashboard.totalTax"), value: `${s.totalVat.toLocaleString(currentLang === "ar" ? "ar-SA" : "en-US")} ${sar}` },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">{item.label}</span>
