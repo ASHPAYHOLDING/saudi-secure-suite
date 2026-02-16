@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Plus, Trash2, Save, Eye, Loader2 } from "lucide-react";
+import { ArrowRight, Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
@@ -102,7 +102,6 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
       return;
     }
 
-    // Insert items
     const itemsPayload = items.filter(i => i.description.trim()).map((item, idx) => ({
       tenant_id: tenantId,
       invoice_id: invoice.id,
@@ -130,10 +129,13 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
 
   const unitOptions = ["وحدة", "ساعة", "يوم", "شهر", "صفحة", "قطعة", "كيلو", "متر", "خدمة"];
 
+  const inputClass = "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors";
+  const smallInputClass = "h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-center font-english focus:border-accent focus:outline-none transition-colors";
+
   return (
-    <div dir="rtl" className="space-y-6 p-6">
+    <div dir="rtl" className="space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack}><ArrowRight size={18} /></Button>
           <div>
@@ -150,51 +152,49 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Selection */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
             <h3 className="text-sm font-semibold text-foreground mb-4">بيانات العميل</h3>
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block">اختر العميل *</label>
-              <select
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              >
+              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className={inputClass}>
                 <option value="">— اختر عميل —</option>
                 {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               {customers.length === 0 && (
-                <p className="text-[10px] text-warning mt-1">لا يوجد عملاء. أضف عميل من صفحة العملاء أولاً.</p>
+                <p className="text-[10px] text-warning mt-1.5">لا يوجد عملاء. أضف عميل من صفحة العملاء أولاً.</p>
               )}
             </div>
           </motion.div>
 
-          {/* Items */}
+          {/* Items Table */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-            <div className="p-6 pb-4"><h3 className="text-sm font-semibold text-foreground">بنود الفاتورة</h3></div>
+            <div className="p-5 sm:p-6 pb-4"><h3 className="text-sm font-semibold text-foreground">بنود الفاتورة</h3></div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" dir="rtl">
                 <thead>
                   <tr className="border-y border-border bg-secondary/30">
                     <th className="px-3 py-2.5 text-right text-xs font-semibold text-muted-foreground" style={{ width: "30%" }}>الوصف</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "8%" }}>الكمية</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "10%" }}>الوحدة</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "12%" }}>السعر</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "10%" }}>الخصم</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "8%" }}>الضريبة</th>
+                    <th className="px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "8%" }}>الكمية</th>
+                    <th className="px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "10%" }}>الوحدة</th>
+                    <th className="px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "12%" }}>السعر</th>
+                    <th className="px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "10%" }}>الخصم</th>
+                    <th className="px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground" style={{ width: "8%" }}>الضريبة</th>
                     <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground" style={{ width: "14%" }}>الإجمالي</th>
-                    <th className="px-3 py-2.5" style={{ width: "5%" }}></th>
+                    <th className="px-2 py-2.5" style={{ width: "5%" }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item) => (
-                    <tr key={item.id} className="border-b border-border/50 last:border-0">
-                      <td className="px-3 py-2"><input type="text" value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} placeholder="وصف الخدمة أو المنتج" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none" /></td>
-                      <td className="px-2 py-2"><input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)} min="0" dir="ltr" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-center font-english focus:border-accent focus:outline-none" /></td>
-                      <td className="px-2 py-2"><select value={item.unit} onChange={(e) => updateItem(item.id, "unit", e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-1 text-xs focus:border-accent focus:outline-none">{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select></td>
-                      <td className="px-2 py-2"><input type="number" value={item.unit_price} onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)} min="0" step="0.01" dir="ltr" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-center font-english focus:border-accent focus:outline-none" /></td>
-                      <td className="px-2 py-2"><input type="number" value={item.discount} onChange={(e) => updateItem(item.id, "discount", parseFloat(e.target.value) || 0)} min="0" step="0.01" dir="ltr" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-center font-english focus:border-accent focus:outline-none" /></td>
+                    <tr key={item.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/10 transition-colors">
+                      <td className="px-3 py-2">
+                        <input type="text" value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} placeholder="وصف الخدمة أو المنتج" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none transition-colors" />
+                      </td>
+                      <td className="px-2 py-2"><input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)} min="0" dir="ltr" className={smallInputClass} /></td>
+                      <td className="px-2 py-2"><select value={item.unit} onChange={(e) => updateItem(item.id, "unit", e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-1 text-xs focus:border-accent focus:outline-none transition-colors">{unitOptions.map((u) => <option key={u} value={u}>{u}</option>)}</select></td>
+                      <td className="px-2 py-2"><input type="number" value={item.unit_price} onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)} min="0" step="0.01" dir="ltr" className={smallInputClass} /></td>
+                      <td className="px-2 py-2"><input type="number" value={item.discount} onChange={(e) => updateItem(item.id, "discount", parseFloat(e.target.value) || 0)} min="0" step="0.01" dir="ltr" className={smallInputClass} /></td>
                       <td className="px-2 py-2 text-center"><span className="text-xs font-english text-muted-foreground">{item.vat_rate}٪</span></td>
-                      <td className="px-3 py-2 text-left"><span className="text-sm font-semibold font-english text-foreground">{formatCurrency(item.line_total)}</span></td>
+                      <td className="px-3 py-2 text-left"><span className="text-sm font-semibold font-english text-foreground" dir="ltr">{formatCurrency(item.line_total)}</span></td>
                       <td className="px-2 py-2"><button onClick={() => removeItem(item.id)} disabled={items.length <= 1} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30 transition-colors"><Trash2 size={14} /></button></td>
                     </tr>
                   ))}
@@ -207,36 +207,50 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
           </motion.div>
 
           {/* Notes */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
             <label className="text-sm font-semibold text-foreground mb-2 block">ملاحظات</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="ملاحظات إضافية (اختياري)" className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="ملاحظات إضافية (اختياري)" className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none transition-colors" />
           </motion.div>
         </div>
 
-        {/* Left Column */}
+        {/* Sidebar */}
         <div className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
             <h3 className="text-sm font-semibold text-foreground mb-4">التواريخ</h3>
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">تاريخ الإصدار</label>
-                <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm font-english focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+                <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className={`${inputClass} font-english`} />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">تاريخ الاستحقاق</label>
-                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm font-english focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={`${inputClass} font-english`} />
               </div>
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-6 shadow-card sticky top-24">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card sticky top-24">
             <h3 className="text-sm font-semibold text-foreground mb-4">ملخص الفاتورة</h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">المجموع الفرعي</span><span className="font-english font-medium text-foreground">{formatCurrency(totals.subtotal)} ر.س</span></div>
-              {totals.discount_total > 0 && <div className="flex justify-between text-sm"><span className="text-muted-foreground">الخصم</span><span className="font-english font-medium text-destructive">- {formatCurrency(totals.discount_total)} ر.س</span></div>}
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">ضريبة القيمة المضافة (١٥٪)</span><span className="font-english font-medium text-foreground">{formatCurrency(totals.vat_total)} ر.س</span></div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">المجموع الفرعي</span>
+                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.subtotal)} ر.س</span>
+              </div>
+              {totals.discount_total > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">الخصم</span>
+                  <span className="font-english font-medium text-destructive" dir="ltr">- {formatCurrency(totals.discount_total)} ر.س</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">ضريبة القيمة المضافة (١٥٪)</span>
+                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.vat_total)} ر.س</span>
+              </div>
               <div className="border-t border-border pt-3 mt-3">
-                <div className="flex justify-between items-center"><span className="font-bold text-foreground">الإجمالي المستحق</span><span className="text-xl font-bold font-english text-accent">{formatCurrency(totals.grand_total)} ر.س</span></div>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-foreground">الإجمالي المستحق</span>
+                  <span className="text-xl font-bold font-english text-accent" dir="ltr">{formatCurrency(totals.grand_total)} ر.س</span>
+                </div>
               </div>
             </div>
           </motion.div>
