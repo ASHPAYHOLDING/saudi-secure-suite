@@ -135,15 +135,17 @@ const PricingSection = () => {
               <p className="mb-8 text-sm text-muted-foreground">{plan.description}</p>
 
               <Link to="/auth">
-                <Button
-                  className={`mb-8 w-full py-6 text-base ${
-                    plan.highlighted
-                      ? "gradient-accent text-accent-foreground shadow-accent-glow hover:opacity-90"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  }`}
-                >
-                  {plan.period ? "ابدأ تجربتك المجانية" : "تواصل مع المبيعات"}
-                </Button>
+                <motion.div whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+                  <Button
+                    className={`mb-8 w-full py-6 text-base transition-shadow duration-300 ${
+                      plan.highlighted
+                        ? "gradient-accent text-accent-foreground shadow-accent-glow hover:shadow-[0_8px_30px_-4px_hsl(172_66%_36%/0.5)]"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md"
+                    }`}
+                  >
+                    {plan.period ? "ابدأ تجربتك المجانية" : "تواصل مع المبيعات"}
+                  </Button>
+                </motion.div>
               </Link>
 
               <ul className="space-y-3">

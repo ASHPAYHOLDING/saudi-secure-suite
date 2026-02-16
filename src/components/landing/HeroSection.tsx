@@ -99,15 +99,19 @@ const HeroSection = () => {
           className="mb-16 flex flex-col items-center gap-4 sm:flex-row"
         >
           <Link to="/auth">
-            <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 text-base hover:opacity-90 transition-all duration-300 hover:scale-105">
-              ابدأ تجربتك المجانية — 14 يوم
-              <ArrowLeft className="mr-2 h-5 w-5" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+              <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 text-base transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_hsl(172_66%_36%/0.5)]">
+                ابدأ تجربتك المجانية — 14 يوم
+                <ArrowLeft className="mr-2 h-5 w-5" />
+              </Button>
+            </motion.div>
           </Link>
           <a href="#features">
-            <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm">
-              اكتشف المميزات
-            </Button>
+            <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+              <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.15)]">
+                اكتشف المميزات
+              </Button>
+            </motion.div>
           </a>
         </motion.div>
 
