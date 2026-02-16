@@ -89,7 +89,8 @@
     "chat": "Chat",
     "productivity": "Productivity",
     "supplierInbox": "Supplier Inbox",
-    "paymentReminders": "Payment Reminders"
+    "paymentReminders": "Payment Reminders",
+    "approvals": "Approval Workflows"
   },
   "landing": {
     "features": "Features",
