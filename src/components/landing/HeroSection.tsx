@@ -22,7 +22,7 @@ const HeroSection = () => {
         >
           <Zap size={14} className="text-accent" />
           <span className="text-xs font-medium text-accent">
-            منصة SaaS سعودية جديدة — Multi-Tenant
+            نيوماكسيو — منصة سحابية سعودية
           </span>
         </motion.div>
 

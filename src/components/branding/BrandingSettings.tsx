@@ -236,7 +236,7 @@ const BrandingSettings = () => {
               {/* Footer with secondary color */}
               <div className="px-4 py-2 text-[9px] text-white flex justify-between" style={{ background: secondary }}>
                 <span>مستند رسمي</span>
-                <span className="font-english">SaaS Plus</span>
+                <span className="font-english">Numaxio</span>
               </div>
             </div>
 
