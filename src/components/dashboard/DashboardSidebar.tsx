@@ -31,6 +31,7 @@ const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
   { icon: Users, label: "العملاء", path: "/dashboard/customers", module: "customers" },
   { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing", module: "billing" },
   { icon: FileSignature, label: "العقود", path: "/dashboard/contracts", module: "contracts" },
+  { icon: FileText, label: "عروض الأسعار", path: "/dashboard/quotations", module: "quotations" },
   { icon: Package, label: "المخزون", path: "/dashboard/inventory", module: "inventory" },
   { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },

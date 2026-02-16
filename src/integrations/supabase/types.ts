@@ -812,6 +812,160 @@ export type Database = {
           },
         ]
       }
+      quotation_items: {
+        Row: {
+          created_at: string
+          description: string
+          discount: number
+          id: string
+          line_total: number
+          product_id: string | null
+          quantity: number
+          quotation_id: string
+          sort_order: number
+          tenant_id: string
+          unit: string | null
+          unit_price: number
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discount?: number
+          id?: string
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          quotation_id: string
+          sort_order?: number
+          tenant_id: string
+          unit?: string | null
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discount?: number
+          id?: string
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          quotation_id?: string
+          sort_order?: number
+          tenant_id?: string
+          unit?: string | null
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotation_items_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotation_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          converted_invoice_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          customer_id: string | null
+          discount_total: number
+          grand_total: number
+          id: string
+          notes: string | null
+          quotation_number: string
+          status: string
+          subtotal: number
+          tenant_id: string
+          title: string
+          updated_at: string
+          valid_until: string | null
+          vat_total: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          customer_id?: string | null
+          discount_total?: number
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          quotation_number: string
+          status?: string
+          subtotal?: number
+          tenant_id: string
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+          vat_total?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          customer_id?: string | null
+          discount_total?: number
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          quotation_number?: string
+          status?: string
+          subtotal?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+          vat_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_events: {
         Row: {
           created_at: string
