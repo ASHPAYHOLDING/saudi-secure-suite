@@ -22,6 +22,7 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
 import SubscriptionPage from "@/components/subscription/SubscriptionPage";
 import IntegrationsPage from "@/components/integrations/IntegrationsPage";
+import FinancialOverview from "@/components/finance/FinancialOverview";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -47,6 +48,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   team: "team",
   reports: "reports",
   analytics: "analytics",
+  finance: "finance",
   integrations: "integrations",
   subscription: "subscription",
   settings: "settings",
@@ -116,6 +118,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;
+    }
+    if (path === "/dashboard/finance") {
+      return <FinancialOverview />;
     }
     if (path === "/dashboard/integrations") {
       return <IntegrationsPage />;
