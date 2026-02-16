@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.zatca-phase2]
 verify_jwt = false
+
+[functions.send-invoice]
+verify_jwt = false
