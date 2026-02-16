@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, Check, X, FileText, Package, Truck } from "lucide-react";
+import { ArrowRight, Loader2, Check, X, FileText, Package, Truck, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import DocumentLifecycleTimeline from "@/components/lifecycle/DocumentLifecycleTimeline";
 
 const statusLabels: Record<string, string> = {
   pending: "قيد الانتظار", confirmed: "مؤكد", partially_fulfilled: "مكتمل جزئياً", fulfilled: "مكتمل", cancelled: "ملغى",
@@ -18,9 +19,10 @@ interface SalesOrderPreviewProps {
   orderId?: string | null;
   onBack: () => void;
   onConvertedToInvoice: () => void;
+  onConvertToDeliveryNote?: (orderId: string) => void;
 }
 
-const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice }: SalesOrderPreviewProps) => {
+const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice, onConvertToDeliveryNote }: SalesOrderPreviewProps) => {
   const { tenantId, user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -187,6 +189,14 @@ const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice }: SalesOrder
               <FileText size={14} /> تحويل إلى فاتورة
             </Button>
           )}
+          {(order.status === "confirmed" || order.status === "partially_fulfilled" || order.status === "fulfilled") && !order.converted_delivery_note_id && onConvertToDeliveryNote && (
+            <Button size="sm" variant="outline" onClick={() => onConvertToDeliveryNote(orderId!)} disabled={actionLoading} className="gap-1.5">
+              <Truck size={14} /> إنشاء إشعار تسليم
+            </Button>
+          )}
+          {order.converted_delivery_note_id && (
+            <Badge className="bg-accent/10 text-accent" variant="outline">تم إنشاء إشعار تسليم</Badge>
+          )}
         </div>
       </div>
 
@@ -318,6 +328,8 @@ const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice }: SalesOrder
               </CardContent>
             </Card>
           </motion.div>
+          {/* Lifecycle */}
+          {orderId && <DocumentLifecycleTimeline documentType="sales_order" documentId={orderId} />}
         </div>
       </div>
     </div>

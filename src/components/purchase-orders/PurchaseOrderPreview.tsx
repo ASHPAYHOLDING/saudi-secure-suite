@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, X, Truck, Loader2, Pencil } from "lucide-react";
+import { ArrowRight, Check, X, Truck, Loader2, Pencil, ArrowDownToLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
+import DocumentLifecycleTimeline from "@/components/lifecycle/DocumentLifecycleTimeline";
 
 interface Props {
   orderId: string | null;
   onBack: () => void;
+  onConvertToGRN?: (orderId: string) => void;
 }
 
-const PurchaseOrderPreview = ({ orderId, onBack }: Props) => {
+const PurchaseOrderPreview = ({ orderId, onBack, onConvertToGRN }: Props) => {
   const { tenantId, user } = useAuth();
-  const { t, dir, currentLang } = useLanguage();
+  const { t, dir, currentLang, isRTL } = useLanguage();
   const [order, setOrder] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [supplier, setSupplier] = useState<any>(null);
@@ -126,6 +128,14 @@ const PurchaseOrderPreview = ({ orderId, onBack }: Props) => {
               {t("purchaseOrders.receiveGoods")}
             </Button>
           )}
+          {order.status === "approved" && !order.converted_grn_id && onConvertToGRN && (
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => onConvertToGRN(orderId!)} disabled={!!actionLoading}>
+              <ArrowDownToLine size={14} /> {isRTL ? "إنشاء إشعار استلام" : "Create GRN"}
+            </Button>
+          )}
+          {order.converted_grn_id && (
+            <Badge variant="outline" className="text-xs">{isRTL ? "تم إنشاء إشعار استلام" : "GRN Created"}</Badge>
+          )}
         </div>
       </div>
 
@@ -194,6 +204,7 @@ const PurchaseOrderPreview = ({ orderId, onBack }: Props) => {
           <p className="text-sm text-muted-foreground">{order.notes}</p>
         </div>
       )}
+      {orderId && <DocumentLifecycleTimeline documentType="purchase_order" documentId={orderId} />}
     </div>
   );
 };

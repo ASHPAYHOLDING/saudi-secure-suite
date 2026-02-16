@@ -84,6 +84,8 @@
     "superAdmin": "Super Admin",
     "settingsSection": "Settings",
     "purchaseOrders": "Purchase Orders",
+    "deliveryNotes": "Delivery Notes",
+    "journalEntries": "Journal Entries",
     "chat": "Chat"
   },
   "landing": {
