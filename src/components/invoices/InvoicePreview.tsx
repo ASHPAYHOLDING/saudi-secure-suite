@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Printer, Download, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
+import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 
 interface InvoicePreviewProps {
@@ -51,30 +52,10 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
-      <head>
-        <meta charset="utf-8" />
-        <title>فاتورة ${invoiceData.invoice_number}</title>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'IBM Plex Sans Arabic', sans-serif; direction: rtl; color: #1a1a2e; background: white; }
-          @page { size: A4; margin: 15mm; }
-          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-          ${content.querySelector('style')?.textContent || ''}
-        </style>
-      </head>
-      <body>${content.innerHTML}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 500);
+    printDocument(content, {
+      title: `فاتورة ${invoiceData.invoice_number}`,
+      extraStyles: INVOICE_PRINT_STYLES,
+    });
   };
 
   return (
@@ -110,12 +91,12 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
           <style>{`
             .inv-table { width: 100%; border-collapse: collapse; }
             .inv-table th, .inv-table td { padding: 10px 14px; text-align: right; font-size: 13px; }
-            .inv-table th { background: hsl(220 30% 14%); color: white; font-weight: 600; font-size: 12px; }
-            .inv-table td { border-bottom: 1px solid hsl(214 18% 92%); }
+            .inv-table th { background: #1a1f36; color: white; font-weight: 600; font-size: 12px; }
+            .inv-table td { border-bottom: 1px solid #e5e7eb; }
             .inv-table tbody tr:last-child td { border-bottom: none; }
-            .inv-table .num { font-family: 'IBM Plex Sans Arabic', monospace; direction: ltr; text-align: left; }
+            .inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; }
             .summary-row td { padding: 6px 14px; font-size: 13px; }
-            .total-row td { background: hsl(220 30% 14%); color: white; font-weight: 700; font-size: 15px; padding: 12px 14px; }
+            .total-row td { background: #1a1f36; color: white; font-weight: 700; font-size: 15px; padding: 12px 14px; }
           `}</style>
 
           {/* Header */}
