@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 const mainMenu = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
-  { icon: Users, label: "المستخدمين", path: "/dashboard/users" },
+  { icon: Users, label: "العملاء", path: "/dashboard/customers" },
   { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing" },
   { icon: FileSignature, label: "العقود", path: "/dashboard/contracts" },
   { icon: FileText, label: "التقارير", path: "/dashboard/reports" },
