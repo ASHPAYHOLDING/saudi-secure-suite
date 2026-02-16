@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
   { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
   { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
   { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
+  { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
   { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
   { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
   { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },

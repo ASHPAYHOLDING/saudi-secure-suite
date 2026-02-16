@@ -89,7 +89,8 @@
     "chat": "المحادثات",
     "productivity": "الإنتاجية",
     "supplierInbox": "صندوق فواتير الموردين",
-    "paymentReminders": "تذكيرات الدفع"
+    "paymentReminders": "تذكيرات الدفع",
+    "approvals": "تسلسل الموافقات"
   },
   "landing": {
     "features": "المميزات",
