@@ -42,15 +42,19 @@ const CTASection = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/auth">
-                <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 text-base hover:opacity-90 hover:scale-105 transition-all duration-300">
-                  ابدأ تجربتك المجانية الآن
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+                  <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 text-base transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_hsl(172_66%_36%/0.5)]">
+                    ابدأ تجربتك المجانية الآن
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
               </Link>
               <a href="#contact">
-                <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm">
-                  تواصل مع فريق المبيعات
-                </Button>
+                <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+                  <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.15)]">
+                    تواصل مع فريق المبيعات
+                  </Button>
+                </motion.div>
               </a>
             </div>
           </div>

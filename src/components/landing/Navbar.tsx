@@ -77,9 +77,11 @@ const Navbar = () => {
             </Button>
           </Link>
           <Link to="/auth">
-            <Button size="sm" className="gradient-accent text-accent-foreground shadow-accent-glow hover:opacity-90">
-              ابدأ مجاناً
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+              <Button size="sm" className="gradient-accent text-accent-foreground shadow-accent-glow transition-shadow duration-300 hover:shadow-[0_6px_24px_-4px_hsl(172_66%_36%/0.5)]">
+                ابدأ مجاناً
+              </Button>
+            </motion.div>
           </Link>
         </motion.div>
 
