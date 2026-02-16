@@ -673,6 +673,86 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          barcode: string | null
+          category: string | null
+          cost_price: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          low_stock_threshold: number | null
+          name: string
+          name_en: string | null
+          product_type: string
+          sku: string | null
+          stock_quantity: number
+          tenant_id: string
+          track_stock: boolean
+          unit: string | null
+          unit_price: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          low_stock_threshold?: number | null
+          name: string
+          name_en?: string | null
+          product_type?: string
+          sku?: string | null
+          stock_quantity?: number
+          tenant_id: string
+          track_stock?: boolean
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          low_stock_threshold?: number | null
+          name?: string
+          name_en?: string | null
+          product_type?: string
+          sku?: string | null
+          stock_quantity?: number
+          tenant_id?: string
+          track_stock?: boolean
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -787,6 +867,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "security_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          movement_type: string
+          new_quantity: number
+          notes: string | null
+          previous_quantity: number
+          product_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          movement_type: string
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          product_id: string
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          movement_type?: string
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          product_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1210,6 +1350,19 @@ export type Database = {
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       process_subscription_expiry: { Args: never; Returns: undefined }
+      record_stock_movement: {
+        Args: {
+          _created_by?: string
+          _movement_type: string
+          _notes?: string
+          _product_id: string
+          _quantity: number
+          _reference_id?: string
+          _reference_type?: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
