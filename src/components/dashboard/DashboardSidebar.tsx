@@ -34,6 +34,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
 
 const settingsMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
   { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
+  { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
   { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
   { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
   { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },

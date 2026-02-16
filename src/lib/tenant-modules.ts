@@ -32,6 +32,7 @@ export type Module =
   | "integrations"
   | "subscription"
   | "sheet-view"
+  | "branches"
   | "settings"
   | "help";
 
@@ -54,6 +55,7 @@ const MODULE_ACCESS: Record<TenantType, Module[]> = {
     "sheet-view",
     "team",
     "company",
+    "branches",
     "branding",
     "compliance",
     "stamp",

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import BranchSelector from "@/components/branches/BranchSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const DashboardTopbar = () => {
@@ -19,8 +20,9 @@ const DashboardTopbar = () => {
 
   return (
     <header dir={dir} className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-6">
-      {/* Search */}
+      {/* Search + Branch Selector */}
       <div className="flex items-center gap-3">
+        <BranchSelector />
         <div className="relative hidden md:block">
           <Search size={16} className={`absolute ${dir === "rtl" ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-muted-foreground`} />
           <input
