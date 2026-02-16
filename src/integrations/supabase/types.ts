@@ -14,6 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
+      contract_templates: {
+        Row: {
+          body_html: string
+          contract_type: string
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          name: string
+          placeholders: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string
+          contract_type?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          name: string
+          placeholders?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          placeholders?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_versions: {
+        Row: {
+          body_html: string
+          change_summary: string | null
+          changed_by: string
+          contract_id: string
+          created_at: string
+          id: string
+          tenant_id: string
+          version_number: number
+        }
+        Insert: {
+          body_html: string
+          change_summary?: string | null
+          changed_by: string
+          contract_id: string
+          created_at?: string
+          id?: string
+          tenant_id: string
+          version_number?: number
+        }
+        Update: {
+          body_html?: string
+          change_summary?: string | null
+          changed_by?: string
+          contract_id?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          body_html: string
+          contract_number: string
+          contract_type: string
+          created_at: string
+          created_by: string
+          currency: string
+          customer_id: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          signed_at: string | null
+          signed_by: string | null
+          start_date: string
+          status: string
+          template_id: string | null
+          tenant_id: string
+          title: string
+          total_value: number
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string
+          contract_number: string
+          contract_type?: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          customer_id?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          start_date?: string
+          status?: string
+          template_id?: string | null
+          tenant_id: string
+          title: string
+          total_value?: number
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          customer_id?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          start_date?: string
+          status?: string
+          template_id?: string | null
+          tenant_id?: string
+          title?: string
+          total_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address_city: string | null
