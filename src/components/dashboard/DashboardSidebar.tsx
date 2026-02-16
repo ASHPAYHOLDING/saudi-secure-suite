@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, UsersRound, FileText, Settings, BarChart3,
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
-  ShoppingCart, Receipt, Plug, Wallet,
+  ShoppingCart, Receipt, Plug, Wallet, Table2,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
   { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
   { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
   { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
+  { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },
   { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
   { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
   { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },

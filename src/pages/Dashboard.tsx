@@ -24,6 +24,7 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
 import SubscriptionPage from "@/components/subscription/SubscriptionPage";
 import IntegrationsPage from "@/components/integrations/IntegrationsPage";
+import SheetViewPage from "@/components/sheet-view/SheetViewPage";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -52,6 +53,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   reports: "reports",
   analytics: "analytics",
   finance: "finance",
+  "sheet-view": "sheet-view",
   integrations: "integrations",
   subscription: "subscription",
   settings: "settings",
@@ -130,6 +132,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/integrations") {
       return <IntegrationsPage />;
+    }
+    if (path === "/dashboard/sheet-view") {
+      return <SheetViewPage />;
     }
     if (path === "/dashboard/subscription") {
       return <SubscriptionPage />;
