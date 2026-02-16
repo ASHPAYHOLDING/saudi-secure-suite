@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -16,9 +17,12 @@ import {
   Shield,
   Palette,
   ShieldCheck,
+  Crown,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mainMenu = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
@@ -47,6 +51,18 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const location = useLocation();
+  const { user } = useAuth();
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("platform_admins")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsPlatformAdmin(!!data));
+  }, [user]);
 
   const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
     const isActive = location.pathname === path;
@@ -116,8 +132,17 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         </div>
       </div>
 
-      {/* User / Logout */}
-      <div className="border-t border-sidebar-border p-3">
+      {/* Admin + Logout */}
+      <div className="border-t border-sidebar-border p-3 space-y-1">
+        {isPlatformAdmin && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-amber-400 transition-colors hover:bg-sidebar-accent"
+          >
+            <Crown size={18} className="shrink-0" />
+            {!collapsed && <span>لوحة السوبر أدمن</span>}
+          </Link>
+        )}
         <Link
           to="/"
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
