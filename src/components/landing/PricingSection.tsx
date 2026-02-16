@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -9,12 +9,14 @@ const plans = [
     nameEn: "Starter",
     price: "199",
     period: "شهرياً",
-    description: "مثالي لرواد الأعمال والمشاريع الصغيرة",
+    description: "مثالي للمهنيين المستقلين والمشاريع الصغيرة",
     features: [
-      "حتى 5 مستخدمين",
+      "حتى 3 مستخدمين",
+      "100 فاتورة شهرياً",
+      "إدارة العملاء",
+      "QR Code متوافق مع ZATCA",
       "تقارير أساسية",
       "دعم عبر البريد",
-      "تخزين 5 جيجابايت",
     ],
     highlighted: false,
   },
@@ -25,12 +27,14 @@ const plans = [
     period: "شهرياً",
     description: "للشركات الصغيرة والمتوسطة",
     features: [
-      "حتى 25 مستخدم",
-      "تقارير متقدمة",
-      "دعم أولوية 24/7",
-      "تخزين 50 جيجابايت",
-      "API كامل",
-      "تكاملات خارجية",
+      "حتى 15 مستخدم",
+      "فواتير غير محدودة",
+      "إدارة العقود والعملاء",
+      "ختم إلكتروني رسمي",
+      "تقارير متقدمة وتحليلات",
+      "دعم أولوية عبر الهاتف",
+      "سجل مراجعة كامل",
+      "تخصيص هوية الشركة",
     ],
     highlighted: true,
   },
@@ -42,11 +46,12 @@ const plans = [
     description: "للمؤسسات الكبيرة والجهات الحكومية",
     features: [
       "مستخدمين غير محدود",
-      "تقارير مخصصة",
-      "مدير حساب خاص",
-      "تخزين غير محدود",
-      "SLA مضمون",
-      "تخصيص كامل",
+      "كل مميزات الاحترافي",
+      "مدير حساب مخصص",
+      "تكامل API كامل",
+      "SLA مضمون 99.9%",
+      "تدريب وتأهيل الفريق",
+      "بيئة مخصصة",
     ],
     highlighted: false,
   },
@@ -54,66 +59,73 @@ const plans = [
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="py-24 bg-secondary/30" dir="rtl">
+    <section id="pricing" className="py-28 bg-secondary/30" dir="rtl">
       <div className="container mx-auto px-4">
-        <div className="mb-16 text-center">
-          <motion.span
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+        <div className="mb-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="mb-4 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-semibold text-accent"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
           >
-            الأسعار
-          </motion.span>
+            <Sparkles size={14} className="text-accent" />
+            <span className="text-sm font-semibold text-accent">الأسعار</span>
+          </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-4 text-3xl font-bold text-foreground md:text-4xl"
+            className="mb-5 text-3xl font-bold text-foreground md:text-5xl"
           >
-            خطط تناسب جميع الأحجام
+            خطط تناسب حجم منشأتك
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-muted-foreground"
+            className="mx-auto max-w-xl text-lg text-muted-foreground"
           >
-            ابدأ مجاناً لمدة 14 يوم. لا حاجة لبطاقة ائتمان.
+            ابدأ مجاناً لمدة 14 يوم. بدون بطاقة ائتمان. بدون التزام.
           </motion.p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+        <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto items-start">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.12, duration: 0.5 }}
+              whileHover={{ y: -8 }}
               className={`relative rounded-2xl p-8 transition-all duration-300 ${
                 plan.highlighted
-                  ? "border-2 border-accent bg-card shadow-elevated scale-[1.03]"
-                  : "border border-border bg-card shadow-card hover:shadow-card-hover"
+                  ? "border-2 border-accent bg-card shadow-elevated scale-[1.04] z-10"
+                  : "border border-border bg-card shadow-card hover:shadow-elevated"
               }`}
             >
               {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-4 py-1 text-xs font-semibold text-accent-foreground">
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow"
+                >
                   الأكثر شيوعاً
-                </div>
+                </motion.div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground font-english">{plan.nameEn}</p>
+                <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
+                <p className="text-xs text-muted-foreground font-english mt-1">{plan.nameEn}</p>
               </div>
 
               <div className="mb-2 flex items-baseline gap-1">
                 {plan.period ? (
                   <>
-                    <span className="text-4xl font-bold text-foreground font-english">{plan.price}</span>
-                    <span className="text-sm text-muted-foreground">ر.س / {plan.period}</span>
+                    <span className="text-5xl font-bold text-foreground font-english">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground">﷼ / {plan.period}</span>
                   </>
                 ) : (
                   <span className="text-2xl font-bold text-foreground">{plan.price}</span>
@@ -122,15 +134,15 @@ const PricingSection = () => {
 
               <p className="mb-8 text-sm text-muted-foreground">{plan.description}</p>
 
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button
-                  className={`mb-8 w-full ${
+                  className={`mb-8 w-full py-6 text-base ${
                     plan.highlighted
                       ? "gradient-accent text-accent-foreground shadow-accent-glow hover:opacity-90"
                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   }`}
                 >
-                  {plan.period ? "ابدأ الآن" : "تواصل معنا"}
+                  {plan.period ? "ابدأ تجربتك المجانية" : "تواصل مع المبيعات"}
                 </Button>
               </Link>
 
