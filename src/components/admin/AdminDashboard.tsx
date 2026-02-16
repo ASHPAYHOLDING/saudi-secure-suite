@@ -72,141 +72,153 @@ const AdminDashboard = () => {
   const [companyGrowth, setCompanyGrowth] = useState<{ month: string; count: number }[]>([]);
   const [revenueByMonth, setRevenueByMonth] = useState<{ month: string; revenue: number }[]>([]);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const [
-          tenantsRes, subsActiveRes, profilesRes, trialRes,
-          invoicesRes, contractsRes, activeUsersRes, suspendedRes,
-          recentTenantsRes, notificationsRes, subsAllRes, plansRes, allTenantsRes,
-          allInvoicesRes,
-        ] = await Promise.all([
-          supabase.from("tenants").select("id", { count: "exact", head: true }),
-          supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
-          supabase.from("profiles").select("id", { count: "exact", head: true }),
-          supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "trial"),
-          supabase.from("invoices").select("id", { count: "exact", head: true }),
-          supabase.from("contracts").select("id", { count: "exact", head: true }),
-          supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-          supabase.from("tenants").select("id", { count: "exact", head: true }).eq("status", "suspended"),
-          supabase.from("tenants").select("id, name, created_at, status").order("created_at", { ascending: false }).limit(5),
-          supabase.from("platform_notifications").select("*").order("created_at", { ascending: false }).limit(8),
-          supabase.from("subscriptions").select("plan_id, billing_cycle"),
-          supabase.from("subscription_plans").select("id, name_ar, price_monthly, price_yearly"),
-          supabase.from("tenants").select("created_at"),
-          supabase.from("invoices").select("grand_total, invoice_date, status"),
-        ]);
+  const fetchAll = async () => {
+    try {
+      const [
+        tenantsRes, subsActiveRes, profilesRes, trialRes,
+        invoicesRes, contractsRes, activeUsersRes, suspendedRes,
+        recentTenantsRes, notificationsRes, subsAllRes, plansRes, allTenantsRes,
+        allInvoicesRes,
+      ] = await Promise.all([
+        supabase.from("tenants").select("id", { count: "exact", head: true }),
+        supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "trial"),
+        supabase.from("invoices").select("id", { count: "exact", head: true }),
+        supabase.from("contracts").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("tenants").select("id", { count: "exact", head: true }).eq("status", "suspended"),
+        supabase.from("tenants").select("id, name, created_at, status").order("created_at", { ascending: false }).limit(5),
+        supabase.from("platform_notifications").select("*").order("created_at", { ascending: false }).limit(8),
+        supabase.from("subscriptions").select("plan_id, billing_cycle"),
+        supabase.from("subscription_plans").select("id, name_ar, price_monthly, price_yearly"),
+        supabase.from("tenants").select("created_at"),
+        supabase.from("invoices").select("grand_total, invoice_date, status"),
+      ]);
 
-        // Calculate revenue from invoices
-        let totalRevenue = 0;
-        let monthlyRevenue = 0;
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        const revenueMonths: Record<string, number> = {};
+      // Calculate revenue from invoices
+      let totalRevenue = 0;
+      let monthlyRevenue = 0;
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const revenueMonths: Record<string, number> = {};
 
-        // Init last 6 months for revenue
+      // Init last 6 months for revenue
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(currentYear, currentMonth - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        revenueMonths[key] = 0;
+      }
+
+      if (allInvoicesRes.data) {
+        allInvoicesRes.data
+          .filter((inv) => inv.status !== "cancelled")
+          .forEach((inv) => {
+            totalRevenue += Number(inv.grand_total) || 0;
+            const d = new Date(inv.invoice_date);
+            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+              monthlyRevenue += Number(inv.grand_total) || 0;
+            }
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            if (key in revenueMonths) {
+              revenueMonths[key] += Number(inv.grand_total) || 0;
+            }
+          });
+      }
+
+      // Also add estimated revenue from active subscriptions
+      let estimatedMRR = 0;
+      if (subsAllRes.data && plansRes.data) {
+        const planPriceMap: Record<string, { monthly: number; yearly: number }> = {};
+        plansRes.data.forEach((p) => {
+          planPriceMap[p.id] = { monthly: p.price_monthly || 0, yearly: p.price_yearly || 0 };
+        });
+        subsAllRes.data.forEach((s) => {
+          const prices = planPriceMap[s.plan_id];
+          if (prices) {
+            estimatedMRR += s.billing_cycle === "yearly"
+              ? (prices.yearly || prices.monthly * 12) / 12
+              : prices.monthly;
+          }
+        });
+      }
+
+      const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+      setRevenueByMonth(
+        Object.entries(revenueMonths).map(([key, revenue]) => ({
+          month: months[parseInt(key.split("-")[1]) - 1],
+          revenue: Math.round(revenue),
+        }))
+      );
+
+      setStats({
+        totalCompanies: tenantsRes.count ?? 0,
+        activeSubscriptions: subsActiveRes.count ?? 0,
+        totalUsers: profilesRes.count ?? 0,
+        trialSubscriptions: trialRes.count ?? 0,
+        totalInvoices: invoicesRes.count ?? 0,
+        totalContracts: contractsRes.count ?? 0,
+        activeUsers: activeUsersRes.count ?? 0,
+        suspendedCompanies: suspendedRes.count ?? 0,
+        totalRevenue: Math.round(totalRevenue),
+        monthlyRevenue: Math.round(estimatedMRR || monthlyRevenue),
+      });
+
+      if (recentTenantsRes.data) setRecentTenants(recentTenantsRes.data);
+      if (notificationsRes.data) setRecentActivity(notificationsRes.data as Notification[]);
+
+      // Plan distribution
+      if (subsAllRes.data && plansRes.data) {
+        const planMap: Record<string, string> = {};
+        plansRes.data.forEach((p) => { planMap[p.id] = p.name_ar; });
+        const counts: Record<string, number> = {};
+        subsAllRes.data.forEach((s) => {
+          const name = planMap[s.plan_id] || "غير محدد";
+          counts[name] = (counts[name] || 0) + 1;
+        });
+        setPlanDistribution(Object.entries(counts).map(([name, value]) => ({ name, value })));
+      }
+
+      // Company growth
+      if (allTenantsRes.data) {
+        const monthCounts: Record<string, number> = {};
         for (let i = 5; i >= 0; i--) {
           const d = new Date(currentYear, currentMonth - i, 1);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-          revenueMonths[key] = 0;
+          monthCounts[key] = 0;
         }
-
-        if (allInvoicesRes.data) {
-          allInvoicesRes.data
-            .filter((inv) => inv.status !== "cancelled")
-            .forEach((inv) => {
-              totalRevenue += Number(inv.grand_total) || 0;
-              const d = new Date(inv.invoice_date);
-              if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                monthlyRevenue += Number(inv.grand_total) || 0;
-              }
-              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-              if (key in revenueMonths) {
-                revenueMonths[key] += Number(inv.grand_total) || 0;
-              }
-            });
-        }
-
-        // Also add estimated revenue from active subscriptions
-        let estimatedMRR = 0;
-        if (subsAllRes.data && plansRes.data) {
-          const planPriceMap: Record<string, { monthly: number; yearly: number }> = {};
-          plansRes.data.forEach((p) => {
-            planPriceMap[p.id] = { monthly: p.price_monthly || 0, yearly: p.price_yearly || 0 };
-          });
-          subsAllRes.data.forEach((s) => {
-            const prices = planPriceMap[s.plan_id];
-            if (prices) {
-              estimatedMRR += s.billing_cycle === "yearly"
-                ? (prices.yearly || prices.monthly * 12) / 12
-                : prices.monthly;
-            }
-          });
-        }
-
-        const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-
-        setRevenueByMonth(
-          Object.entries(revenueMonths).map(([key, revenue]) => ({
-            month: months[parseInt(key.split("-")[1]) - 1],
-            revenue: Math.round(revenue),
-          }))
-        );
-
-        setStats({
-          totalCompanies: tenantsRes.count ?? 0,
-          activeSubscriptions: subsActiveRes.count ?? 0,
-          totalUsers: profilesRes.count ?? 0,
-          trialSubscriptions: trialRes.count ?? 0,
-          totalInvoices: invoicesRes.count ?? 0,
-          totalContracts: contractsRes.count ?? 0,
-          activeUsers: activeUsersRes.count ?? 0,
-          suspendedCompanies: suspendedRes.count ?? 0,
-          totalRevenue: Math.round(totalRevenue),
-          monthlyRevenue: Math.round(estimatedMRR || monthlyRevenue),
+        allTenantsRes.data.forEach((t) => {
+          const d = new Date(t.created_at);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+          if (key in monthCounts) monthCounts[key]++;
         });
-
-        if (recentTenantsRes.data) setRecentTenants(recentTenantsRes.data);
-        if (notificationsRes.data) setRecentActivity(notificationsRes.data as Notification[]);
-
-        // Plan distribution
-        if (subsAllRes.data && plansRes.data) {
-          const planMap: Record<string, string> = {};
-          plansRes.data.forEach((p) => { planMap[p.id] = p.name_ar; });
-          const counts: Record<string, number> = {};
-          subsAllRes.data.forEach((s) => {
-            const name = planMap[s.plan_id] || "غير محدد";
-            counts[name] = (counts[name] || 0) + 1;
-          });
-          setPlanDistribution(Object.entries(counts).map(([name, value]) => ({ name, value })));
-        }
-
-        // Company growth
-        if (allTenantsRes.data) {
-          const monthCounts: Record<string, number> = {};
-          for (let i = 5; i >= 0; i--) {
-            const d = new Date(currentYear, currentMonth - i, 1);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-            monthCounts[key] = 0;
-          }
-          allTenantsRes.data.forEach((t) => {
-            const d = new Date(t.created_at);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-            if (key in monthCounts) monthCounts[key]++;
-          });
-          setCompanyGrowth(Object.entries(monthCounts).map(([key, count]) => ({
-            month: months[parseInt(key.split("-")[1]) - 1],
-            count,
-          })));
-        }
-      } catch (err) {
-        console.error("Error fetching admin stats:", err);
-      } finally {
-        setLoading(false);
+        setCompanyGrowth(Object.entries(monthCounts).map(([key, count]) => ({
+          month: months[parseInt(key.split("-")[1]) - 1],
+          count,
+        })));
       }
-    };
+    } catch (err) {
+      console.error("Error fetching admin stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAll();
+
+    const channel = supabase
+      .channel('admin-dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tenants' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => fetchAll())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const formatCurrency = (n: number) =>

@@ -46,30 +46,39 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
 
+  const fetchUsers = async () => {
+    const [profilesRes, tenantsRes, membersRes] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("tenants").select("id, name"),
+      supabase.from("tenant_members").select("user_id, tenant_id, role"),
+    ]);
+
+    const tenantMap: Record<string, string> = {};
+    tenantsRes.data?.forEach((t) => { tenantMap[t.id] = t.name; });
+
+    const memberMap: Record<string, { tenant_id: string; role: string }> = {};
+    membersRes.data?.forEach((m) => { memberMap[m.user_id] = { tenant_id: m.tenant_id, role: m.role }; });
+
+    if (profilesRes.data) {
+      setUsers(profilesRes.data.map((p) => ({
+        ...p,
+        tenant_name: p.tenant_id ? tenantMap[p.tenant_id] || "—" : "—",
+        role: memberMap[p.id]?.role || "—",
+      })));
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetch = async () => {
-      const [profilesRes, tenantsRes, membersRes] = await Promise.all([
-        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase.from("tenants").select("id, name"),
-        supabase.from("tenant_members").select("user_id, tenant_id, role"),
-      ]);
+    fetchUsers();
 
-      const tenantMap: Record<string, string> = {};
-      tenantsRes.data?.forEach((t) => { tenantMap[t.id] = t.name; });
+    const channel = supabase
+      .channel('admin-users-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchUsers())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tenant_members' }, () => fetchUsers())
+      .subscribe();
 
-      const memberMap: Record<string, { tenant_id: string; role: string }> = {};
-      membersRes.data?.forEach((m) => { memberMap[m.user_id] = { tenant_id: m.tenant_id, role: m.role }; });
-
-      if (profilesRes.data) {
-        setUsers(profilesRes.data.map((p) => ({
-          ...p,
-          tenant_name: p.tenant_id ? tenantMap[p.tenant_id] || "—" : "—",
-          role: memberMap[p.id]?.role || "—",
-        })));
-      }
-      setLoading(false);
-    };
-    fetch();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const toggleActive = async (user: UserProfile) => {

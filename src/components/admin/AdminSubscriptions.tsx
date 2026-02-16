@@ -93,32 +93,41 @@ const AdminSubscriptions = () => {
   const [logs, setLogs] = useState<SubLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
+  const fetchData = async () => {
+    const [subsRes, plansRes, tenantsRes] = await Promise.all([
+      supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
+      supabase.from("subscription_plans").select("id, name_ar, slug, price_monthly, price_yearly"),
+      supabase.from("tenants").select("id, name"),
+    ]);
+
+    const tenantMap: Record<string, string> = {};
+    tenantsRes.data?.forEach((t) => { tenantMap[t.id] = t.name; });
+
+    const planMap: Record<string, { name: string; price: number }> = {};
+    plansRes.data?.forEach((p) => { planMap[p.id] = { name: p.name_ar, price: p.price_monthly }; });
+
+    if (subsRes.data) {
+      setSubs(subsRes.data.map((s) => ({
+        ...s,
+        tenant_name: tenantMap[s.tenant_id] || "غير معروف",
+        plan_name: planMap[s.plan_id]?.name || "غير معروف",
+        plan_price: planMap[s.plan_id]?.price || 0,
+      })));
+    }
+    if (plansRes.data) setPlans(plansRes.data);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const [subsRes, plansRes, tenantsRes] = await Promise.all([
-        supabase.from("subscriptions").select("*").order("created_at", { ascending: false }),
-        supabase.from("subscription_plans").select("id, name_ar, slug, price_monthly, price_yearly"),
-        supabase.from("tenants").select("id, name"),
-      ]);
-
-      const tenantMap: Record<string, string> = {};
-      tenantsRes.data?.forEach((t) => { tenantMap[t.id] = t.name; });
-
-      const planMap: Record<string, { name: string; price: number }> = {};
-      plansRes.data?.forEach((p) => { planMap[p.id] = { name: p.name_ar, price: p.price_monthly }; });
-
-      if (subsRes.data) {
-        setSubs(subsRes.data.map((s) => ({
-          ...s,
-          tenant_name: tenantMap[s.tenant_id] || "غير معروف",
-          plan_name: planMap[s.plan_id]?.name || "غير معروف",
-          plan_price: planMap[s.plan_id]?.price || 0,
-        })));
-      }
-      if (plansRes.data) setPlans(plansRes.data);
-      setLoading(false);
-    };
     fetchData();
+
+    const channel = supabase
+      .channel('admin-subscriptions-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscription_plans' }, () => fetchData())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // === Edit ===
