@@ -27,6 +27,7 @@ const ContractsPage = () => {
             setPreviewHtml(html);
             setView("preview");
           }}
+          onSaved={() => setView("list")}
         />
       )}
       {view === "preview" && (

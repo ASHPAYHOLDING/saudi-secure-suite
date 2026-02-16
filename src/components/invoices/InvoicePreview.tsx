@@ -1,97 +1,86 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Printer, Download } from "lucide-react";
-import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
+import { ArrowRight, Printer, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
+import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
 import { useBranding } from "@/contexts/BrandingContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface InvoicePreviewProps {
+  invoiceId?: string | null;
   onBack: () => void;
 }
 
-// Demo company & invoice data
-const company = {
-  name: "شركة التقنية المتقدمة",
-  cr_number: "1010234567",
-  vat_number: "310123456700003",
-  address: "الرياض، حي العليا، شارع الأمير محمد بن عبدالعزيز",
-  phone: "011-1234567",
-  email: "info@advtech.sa",
-};
-
-const customer = {
-  name: "شركة النور للتجارة",
-  vat_number: "310987654300003",
-  cr_number: "1010876543",
-  address: "جدة، حي الروضة، شارع فلسطين",
-  phone: "012-7654321",
-};
-
-const invoiceData = {
-  invoice_number: "INV-202602-0001",
-  invoice_type: "فاتورة ضريبية",
-  invoice_date: "2026-02-10",
-  supply_date: "2026-02-10",
-  due_date: "2026-03-12",
-  items: [
-    { id: "1", description: "استشارات تقنية — تطوير نظام إدارة المحتوى", quantity: 40, unit: "ساعة", unit_price: 200, discount: 0, vat_rate: 15, vat_amount: 1200, line_total: 9200 },
-    { id: "2", description: "استضافة سحابية — باقة الأعمال الشهرية", quantity: 1, unit: "شهر", unit_price: 1500, discount: 0, vat_rate: 15, vat_amount: 225, line_total: 1725 },
-    { id: "3", description: "تصميم واجهة المستخدم — صفحات إضافية", quantity: 5, unit: "صفحة", unit_price: 500, discount: 500, vat_rate: 15, vat_amount: 337.5, line_total: 2337.5 },
-  ],
-  subtotal: 10500,
-  discount_total: 500,
-  vat_total: 1500,
-  grand_total: 11500,
-  notes: "الدفع خلال 30 يوماً من تاريخ الفاتورة. شكراً لتعاملكم معنا.",
-};
-
-const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
+const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const printRef = useRef<HTMLDivElement>(null);
   const { branding } = useBranding();
+  const { tenantId } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [invoice, setInvoice] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
+  const [company, setCompany] = useState<any>(null);
+  const [customer, setCustomer] = useState<any>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!invoiceId || !tenantId) { setLoading(false); return; }
+
+      const [invRes, itemsRes, tenantRes] = await Promise.all([
+        supabase.from("invoices").select("*, customers(name, vat_number, cr_number, address_street, phone)").eq("id", invoiceId).single(),
+        supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("sort_order"),
+        supabase.from("tenants").select("name, cr_number, vat_number, address_street, phone, email").eq("id", tenantId).single(),
+      ]);
+
+      if (invRes.data) {
+        setInvoice(invRes.data);
+        setCustomer(invRes.data.customers);
+      }
+      if (itemsRes.data) setItems(itemsRes.data);
+      if (tenantRes.data) setCompany(tenantRes.data);
+      setLoading(false);
+    };
+    load();
+  }, [invoiceId, tenantId]);
 
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
     printDocument(content, {
-      title: `فاتورة ${invoiceData.invoice_number}`,
+      title: `فاتورة ${invoice?.invoice_number || ""}`,
       extraStyles: INVOICE_PRINT_STYLES,
       brandFont: branding.font,
     });
   };
 
+  if (loading) {
+    return <div className="flex justify-center items-center py-32"><Loader2 className="h-8 w-8 animate-spin text-accent" /></div>;
+  }
+
+  if (!invoice || !company) {
+    return (
+      <div dir="rtl" className="p-6">
+        <Button variant="ghost" onClick={onBack} className="gap-2 text-muted-foreground hover:text-foreground mb-4"><ArrowRight size={18} />العودة</Button>
+        <p className="text-center text-muted-foreground py-16">لم يتم العثور على الفاتورة</p>
+      </div>
+    );
+  }
+
   return (
     <div dir="rtl" className="space-y-4 p-6">
-      {/* Actions Bar */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="gap-2 text-muted-foreground hover:text-foreground">
-          <ArrowRight size={18} />
-          العودة للقائمة
-        </Button>
+        <Button variant="ghost" onClick={onBack} className="gap-2 text-muted-foreground hover:text-foreground"><ArrowRight size={18} />العودة للقائمة</Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={handlePrint}>
-            <Printer size={16} />
-            طباعة
-          </Button>
-          <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}>
-            <Download size={16} />
-            تصدير PDF
-          </Button>
+          <Button variant="outline" className="gap-2" onClick={handlePrint}><Printer size={16} />طباعة</Button>
+          <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}><Download size={16} />تصدير PDF</Button>
         </div>
       </div>
 
-      {/* Invoice Document */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-auto max-w-[210mm]"
-      >
-        <div
-          ref={printRef}
-          className="rounded-xl border border-border bg-card shadow-elevated overflow-hidden"
-        >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-[210mm]">
+        <div ref={printRef} className="rounded-xl border border-border bg-card shadow-elevated overflow-hidden">
           <style>{`
             .inv-table { width: 100%; border-collapse: collapse; }
             .inv-table th, .inv-table td { padding: 10px 14px; text-align: right; font-size: 13px; }
@@ -106,66 +95,58 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
           {/* Header */}
           <div className="bg-primary p-8" style={{ background: branding.primaryColor, fontFamily: `'${branding.font}', sans-serif` }}>
             <div className="flex items-start justify-between">
-              {/* Company Info */}
-              <div className="text-primary-foreground" style={{ color: 'white' }}>
+              <div style={{ color: 'white' }}>
                 <div className="flex items-center gap-3 mb-3">
                   {branding.logoUrl ? (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 p-1.5">
-                      <img src={branding.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
-                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 p-1.5"><img src={branding.logoUrl} alt="" className="max-h-full max-w-full object-contain" /></div>
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: branding.secondaryColor }}>
-                      <span className="text-lg font-bold text-white font-english">S</span>
-                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: branding.secondaryColor }}><span className="text-lg font-bold text-white font-english">S</span></div>
                   )}
                   <div>
                     <h1 className="text-xl font-bold">{company.name}</h1>
-                    <p className="text-xs opacity-70 font-english">Advanced Technology Co.</p>
                   </div>
                 </div>
                 <div className="space-y-1 text-xs opacity-80 mt-4">
-                  <p>السجل التجاري: <span className="font-english">{company.cr_number}</span></p>
-                  <p>الرقم الضريبي: <span className="font-english">{company.vat_number}</span></p>
-                  <p>{company.address}</p>
-                  <p>هاتف: <span className="font-english" dir="ltr">{company.phone}</span> | بريد: <span className="font-english">{company.email}</span></p>
+                  {company.cr_number && <p>السجل التجاري: <span className="font-english">{company.cr_number}</span></p>}
+                  {company.vat_number && <p>الرقم الضريبي: <span className="font-english">{company.vat_number}</span></p>}
+                  {company.address_street && <p>{company.address_street}</p>}
+                  <p>
+                    {company.phone && <>هاتف: <span className="font-english" dir="ltr">{company.phone}</span></>}
+                    {company.email && <> | بريد: <span className="font-english">{company.email}</span></>}
+                  </p>
                 </div>
               </div>
-
-              {/* Invoice Title */}
               <div className="text-left">
-                <h2 className="text-2xl font-bold text-white mb-1">{invoiceData.invoice_type}</h2>
+                <h2 className="text-2xl font-bold text-white mb-1">فاتورة ضريبية</h2>
                 <p className="text-sm font-english opacity-70">Tax Invoice</p>
                 <div className="mt-4 rounded-lg px-4 py-2" style={{ background: `${branding.secondaryColor}33` }}>
                   <p className="text-xs opacity-70">رقم الفاتورة</p>
-                  <p className="text-lg font-bold font-english text-white">{invoiceData.invoice_number}</p>
+                  <p className="text-lg font-bold font-english text-white">{invoice.invoice_number}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Dates & Customer */}
+          {/* Content */}
           <div className="p-8">
             <div className="grid grid-cols-2 gap-8 mb-8">
-              {/* Customer */}
               <div className="rounded-xl border border-border p-5 bg-secondary/20">
                 <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">بيانات العميل</h3>
-                <p className="font-bold text-foreground text-base mb-2">{customer.name}</p>
+                <p className="font-bold text-foreground text-base mb-2">{customer?.name || "—"}</p>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
-                  <p>الرقم الضريبي: <span className="font-english text-foreground">{customer.vat_number}</span></p>
-                  <p>السجل التجاري: <span className="font-english text-foreground">{customer.cr_number}</span></p>
-                  <p>{customer.address}</p>
-                  <p>هاتف: <span className="font-english" dir="ltr">{customer.phone}</span></p>
+                  {customer?.vat_number && <p>الرقم الضريبي: <span className="font-english text-foreground">{customer.vat_number}</span></p>}
+                  {customer?.cr_number && <p>السجل التجاري: <span className="font-english text-foreground">{customer.cr_number}</span></p>}
+                  {customer?.address_street && <p>{customer.address_street}</p>}
+                  {customer?.phone && <p>هاتف: <span className="font-english" dir="ltr">{customer.phone}</span></p>}
                 </div>
               </div>
-
-              {/* Dates */}
               <div className="rounded-xl border border-border p-5 bg-secondary/20">
                 <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">تفاصيل الفاتورة</h3>
                 <div className="space-y-3">
                   {[
-                    { label: "تاريخ الإصدار", value: formatDateAr(invoiceData.invoice_date) },
-                    { label: "تاريخ التوريد", value: formatDateAr(invoiceData.supply_date) },
-                    { label: "تاريخ الاستحقاق", value: formatDateAr(invoiceData.due_date) },
+                    { label: "تاريخ الإصدار", value: formatDateAr(invoice.invoice_date) },
+                    { label: "تاريخ التوريد", value: formatDateAr(invoice.supply_date) },
+                    { label: "تاريخ الاستحقاق", value: formatDateAr(invoice.due_date) },
                   ].map((d) => (
                     <div key={d.label} className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{d.label}</span>
@@ -176,7 +157,7 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
               </div>
             </div>
 
-            {/* Items Table */}
+            {/* Items */}
             <table className="inv-table" dir="rtl">
               <thead>
                 <tr>
@@ -191,12 +172,12 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
                 </tr>
               </thead>
               <tbody>
-                {invoiceData.items.map((item, i) => (
+                {items.map((item, i) => (
                   <tr key={item.id}>
                     <td style={{ textAlign: "center" }} className="text-muted-foreground">{formatNumber(i + 1)}</td>
                     <td className="text-foreground font-medium">{item.description}</td>
                     <td style={{ textAlign: "center" }} className="font-english">{formatNumber(item.quantity)}</td>
-                    <td style={{ textAlign: "center" }}>{item.unit}</td>
+                    <td style={{ textAlign: "center" }}>{item.unit || "وحدة"}</td>
                     <td className="num font-english">{formatCurrency(item.unit_price)}</td>
                     <td className="num font-english">{formatCurrency(item.discount)}</td>
                     <td style={{ textAlign: "center" }} className="font-english">{formatNumber(item.vat_rate)}٪</td>
@@ -210,79 +191,46 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
             <div className="mt-0 flex justify-start">
               <table className="inv-table" style={{ width: "40%", minWidth: "280px" }}>
                 <tbody>
-                  <tr className="summary-row">
-                    <td className="text-muted-foreground">المجموع الفرعي</td>
-                    <td className="num font-english text-foreground">{formatCurrency(invoiceData.subtotal)} ر.س</td>
-                  </tr>
-                  {invoiceData.discount_total > 0 && (
-                    <tr className="summary-row">
-                      <td className="text-muted-foreground">الخصم</td>
-                      <td className="num font-english text-destructive">- {formatCurrency(invoiceData.discount_total)} ر.س</td>
-                    </tr>
-                  )}
-                  <tr className="summary-row">
-                    <td className="text-muted-foreground">ضريبة القيمة المضافة (١٥٪)</td>
-                    <td className="num font-english text-foreground">{formatCurrency(invoiceData.vat_total)} ر.س</td>
-                  </tr>
-                  <tr className="total-row">
-                    <td>الإجمالي المستحق</td>
-                    <td className="num font-english">{formatCurrency(invoiceData.grand_total)} ر.س</td>
-                  </tr>
+                  <tr className="summary-row"><td className="text-muted-foreground">المجموع الفرعي</td><td className="num font-english text-foreground">{formatCurrency(invoice.subtotal)} ر.س</td></tr>
+                  {invoice.discount_total > 0 && <tr className="summary-row"><td className="text-muted-foreground">الخصم</td><td className="num font-english text-destructive">- {formatCurrency(invoice.discount_total)} ر.س</td></tr>}
+                  <tr className="summary-row"><td className="text-muted-foreground">ضريبة القيمة المضافة</td><td className="num font-english text-foreground">{formatCurrency(invoice.vat_total)} ر.س</td></tr>
+                  <tr className="total-row"><td>الإجمالي المستحق</td><td className="num font-english">{formatCurrency(invoice.grand_total)} ر.س</td></tr>
                 </tbody>
               </table>
             </div>
 
-            {/* QR Code, Notes & Stamp */}
+            {/* QR, Notes, Stamp */}
             <div className="mt-8 grid grid-cols-3 gap-6">
-              {/* QR Code */}
               <div className="flex items-start gap-4">
                 <ZatcaQRCode
                   sellerName={company.name}
-                  vatNumber={company.vat_number}
-                  timestamp={new Date(invoiceData.invoice_date).toISOString()}
-                  invoiceTotal={invoiceData.grand_total}
-                  vatTotal={invoiceData.vat_total}
+                  vatNumber={company.vat_number || ""}
+                  timestamp={new Date(invoice.invoice_date).toISOString()}
+                  invoiceTotal={invoice.grand_total}
+                  vatTotal={invoice.vat_total}
                   size={96}
                 />
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground mb-1">رمز الاستجابة السريع</p>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    متوافق مع متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA) — تشفير TLV
-                  </p>
-                  <p className="text-[9px] text-muted-foreground/60 font-english mt-1">
-                    Tags: Seller, VAT No., Date, Total, VAT
-                  </p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">متوافق مع ZATCA — تشفير TLV</p>
                 </div>
               </div>
-
-              {/* Notes */}
-              {invoiceData.notes && (
+              {invoice.notes && (
                 <div className="rounded-lg border border-border p-4 bg-secondary/10">
                   <p className="text-xs font-semibold text-muted-foreground mb-1">ملاحظات</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{invoiceData.notes}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{invoice.notes}</p>
                 </div>
               )}
-
-              {/* Digital Stamp */}
               <div className="flex justify-center items-start">
-                <DigitalStamp
-                  stamp={{
-                    companyName: company.name,
-                    crNumber: company.cr_number,
-                    vatNumber: company.vat_number,
-                    enabled: true,
-                  }}
-                  size="md"
-                />
+                <DigitalStamp stamp={{ companyName: company.name, crNumber: company.cr_number || "", vatNumber: company.vat_number || "", enabled: true }} size="md" />
               </div>
             </div>
           </div>
 
-          {/* Footer */}
           <div className="border-t border-border px-8 py-4" style={{ background: 'hsl(210 20% 97%)' }}>
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <p>هذه الفاتورة صادرة إلكترونياً ولا تحتاج إلى توقيع أو ختم</p>
-              <p className="font-english">Generated by SaaS Plus — {invoiceData.invoice_number}</p>
+              <p className="font-english">Generated by SaaS Plus — {invoice.invoice_number}</p>
             </div>
           </div>
         </div>

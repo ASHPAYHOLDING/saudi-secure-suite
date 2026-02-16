@@ -23,11 +23,17 @@ const InvoicesPage = () => {
       {view === "create" && (
         <InvoiceCreate
           onBack={() => setView("list")}
-          onPreview={() => setView("preview")}
+          onSaved={(id) => {
+            setSelectedInvoiceId(id);
+            setView("preview");
+          }}
         />
       )}
       {view === "preview" && (
-        <InvoicePreview onBack={() => setView("list")} />
+        <InvoicePreview
+          invoiceId={selectedInvoiceId}
+          onBack={() => setView("list")}
+        />
       )}
     </>
   );
