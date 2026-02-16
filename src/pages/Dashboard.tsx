@@ -36,6 +36,7 @@ import AccountantDashboard from "@/components/productivity/AccountantDashboard";
 import SupplierInboxPage from "@/components/supplier-inbox/SupplierInboxPage";
 import PaymentRemindersPage from "@/components/reminders/PaymentRemindersPage";
 import ApprovalWorkflowsPage from "@/components/approvals/ApprovalWorkflowsPage";
+import NaturalLanguageQuery from "@/components/ai/NaturalLanguageQuery";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -76,6 +77,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   branches: "branches",
   chat: "chat",
   integrations: "integrations",
+  "smart-query": "analytics",
   subscription: "subscription",
   settings: "settings",
   help: "help",
@@ -165,6 +167,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/analytics") {
       return <AnalyticsPage />;
+    }
+    if (path === "/dashboard/smart-query") {
+      return <NaturalLanguageQuery />;
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;
