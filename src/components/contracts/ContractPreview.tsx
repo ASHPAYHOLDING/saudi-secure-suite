@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Printer, Download, Lock, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDateAr } from "@/lib/invoice-utils";
+import { printDocument, CONTRACT_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 
 interface ContractPreviewProps {
@@ -64,16 +65,10 @@ const ContractPreview = ({ onBack, bodyHtml }: ContractPreviewProps) => {
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`<!DOCTYPE html>
-<html dir="rtl" lang="ar"><head><meta charset="utf-8" />
-<title>عقد</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'IBM Plex Sans Arabic',sans-serif;direction:rtl;color:#1a1a2e;background:white;padding:40px;}@page{size:A4;margin:15mm;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>
-</head><body>${content.innerHTML}</body></html>`);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
+    printDocument(content, {
+      title: "عقد",
+      extraStyles: CONTRACT_PRINT_STYLES,
+    });
   };
 
   return (
