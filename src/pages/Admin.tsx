@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminCompanies from "@/components/admin/AdminCompanies";
@@ -65,7 +66,10 @@ const Admin = () => {
           sidebarCollapsed ? "mr-[68px]" : "mr-64"
         )}
       >
-        <DashboardTopbar />
+        <div className="flex items-center justify-between border-b bg-card px-6 py-3">
+          <h2 className="text-lg font-semibold text-foreground">لوحة إدارة المنصة</h2>
+          <AdminNotifications />
+        </div>
         {renderContent()}
       </div>
     </div>
