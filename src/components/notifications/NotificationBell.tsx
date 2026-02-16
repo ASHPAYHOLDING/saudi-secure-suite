@@ -42,7 +42,7 @@ const NotificationBell = () => {
     queryKey: ["tenant_notifications", tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("tenant_notifications")
         .select("*")
         .eq("tenant_id", tenantId)
@@ -71,7 +71,7 @@ const NotificationBell = () => {
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      await (supabase as any).from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
+      await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] }),
   });
@@ -79,7 +79,7 @@ const NotificationBell = () => {
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       if (!tenantId) return;
-      await (supabase as any).from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("tenant_id", tenantId).eq("is_read", false);
+      await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("tenant_id", tenantId).eq("is_read", false);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] }),
   });
