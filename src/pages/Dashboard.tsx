@@ -10,6 +10,7 @@ import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import BrandingSettings from "@/components/branding/BrandingSettings";
 import ComplianceSettings from "@/components/compliance/ComplianceSettings";
 import CustomersPage from "@/components/customers/CustomersPage";
+import CompanySettings from "@/components/company/CompanySettings";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/customers") {
       return <CustomersPage />;
+    }
+    if (path === "/dashboard/company") {
+      return <CompanySettings />;
     }
     return <DashboardHome />;
   };
