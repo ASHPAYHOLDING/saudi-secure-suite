@@ -42,7 +42,16 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
     setLoading(false);
   }, [tenantId]);
 
-  useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
+  useEffect(() => {
+    fetchInvoices();
+
+    const channel = supabase
+      .channel('invoice-list-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => fetchInvoices())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchInvoices]);
 
   const filteredInvoices = invoices.filter((inv) => {
     const customerName = inv.customers?.name || "";
