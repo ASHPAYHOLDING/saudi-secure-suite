@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardHome from "@/components/dashboard/DashboardHome";
@@ -59,7 +60,7 @@ const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const { tenantType } = useAuth();
-
+  const { isRTL } = useLanguage();
   const renderContent = () => {
     const path = location.pathname;
     // Extract the sub-path after /dashboard/
@@ -145,7 +146,9 @@ const Dashboard = () => {
           <div
             className={cn(
               "transition-all duration-300",
-              sidebarCollapsed ? "mr-[68px]" : "mr-64"
+              isRTL
+                ? (sidebarCollapsed ? "mr-[68px]" : "mr-64")
+                : (sidebarCollapsed ? "ml-[68px]" : "ml-64")
             )}
           >
             <DashboardTopbar />

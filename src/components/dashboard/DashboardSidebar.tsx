@@ -1,64 +1,44 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  Users,
-  UsersRound,
-  FileText,
-  Settings,
-  BarChart3,
-  Building2,
-  CreditCard,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
-  Stamp,
-  FileSignature,
-  Shield,
-  Palette,
-  ShieldCheck,
-  Crown,
-  Package,
-  ShoppingCart,
-  Receipt,
-  Plug,
-  Wallet,
+  LayoutDashboard, Users, UsersRound, FileText, Settings, BarChart3,
+  Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
+  Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
+  ShoppingCart, Receipt, Plug, Wallet,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
+import { useLanguage } from "@/hooks/useLanguage";
 
-const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
-  { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard", module: "dashboard" },
-  { icon: Users, label: "العملاء", path: "/dashboard/customers", module: "customers" },
-  { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing", module: "billing" },
-  { icon: FileSignature, label: "العقود", path: "/dashboard/contracts", module: "contracts" },
-  { icon: FileText, label: "عروض الأسعار", path: "/dashboard/quotations", module: "quotations" },
-  { icon: ShoppingCart, label: "أوامر البيع", path: "/dashboard/sales-orders", module: "sales-orders" },
-  { icon: Receipt, label: "المصروفات", path: "/dashboard/expenses", module: "expenses" },
-  { icon: Package, label: "المخزون", path: "/dashboard/inventory", module: "inventory" },
-  { icon: Wallet, label: "النظرة المالية", path: "/dashboard/finance", module: "finance" },
-  { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
-  { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },
-  { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team", module: "team" },
-  { icon: Plug, label: "التكاملات", path: "/dashboard/integrations", module: "integrations" },
-  { icon: Crown, label: "الاشتراك", path: "/dashboard/subscription", module: "subscription" },
+const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
+  { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
+  { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
+  { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
+  { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
+  { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
+  { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
+  { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
+  { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
+  { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
+  { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
+  { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
+  { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
+  { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
+  { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
 ];
 
-const settingsMenu: { icon: any; label: string; path: string; module: Module }[] = [
-  { icon: Building2, label: "إعدادات الشركة", path: "/dashboard/company", module: "company" },
-  { icon: Palette, label: "هوية الشركة", path: "/dashboard/branding", module: "branding" },
-  { icon: ShieldCheck, label: "الامتثال والتنظيم", path: "/dashboard/compliance", module: "compliance" },
-  { icon: Stamp, label: "الختم الإلكتروني", path: "/dashboard/stamp", module: "stamp" },
-  { icon: Shield, label: "سجل المراجعة", path: "/dashboard/audit", module: "audit" },
-  { icon: Settings, label: "الإعدادات", path: "/dashboard/settings", module: "settings" },
-  { icon: HelpCircle, label: "المساعدة", path: "/dashboard/help", module: "help" },
+const settingsMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
+  { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
+  { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
+  { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
+  { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
+  { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
+  { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
+  { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
 ];
-
-
-
 
 interface DashboardSidebarProps {
   collapsed: boolean;
@@ -68,6 +48,7 @@ interface DashboardSidebarProps {
 const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const location = useLocation();
   const { user, tenantType } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
@@ -79,6 +60,10 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       .maybeSingle()
       .then(({ data }) => setIsPlatformAdmin(!!data));
   }, [user]);
+
+  const CollapseIcon = isRTL
+    ? (collapsed ? ChevronLeft : ChevronRight)
+    : (collapsed ? ChevronRight : ChevronLeft);
 
   const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
     const isActive = location.pathname === path;
@@ -100,53 +85,49 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
 
   return (
     <aside
-      dir="rtl"
+      dir={isRTL ? "rtl" : "ltr"}
       className={cn(
-        "fixed right-0 top-0 z-40 flex h-screen flex-col border-l border-sidebar-border bg-sidebar transition-all duration-300",
+        "fixed top-0 z-40 flex h-screen flex-col border-sidebar-border bg-sidebar transition-all duration-300",
+        isRTL ? "right-0 border-l" : "left-0 border-r",
         collapsed ? "w-[68px]" : "w-64"
       )}
     >
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         {!collapsed ? (
-          <img src={numaxioLogo} alt="نيوماكسيو" className="h-7" />
+          <img src={numaxioLogo} alt="Numaxio" className="h-7" />
         ) : (
-          <img src={numaxioLogo} alt="نيوماكسيو" className="h-6 w-6 object-contain" />
+          <img src={numaxioLogo} alt="Numaxio" className="h-6 w-6 object-contain" />
         )}
         <button
           onClick={onToggle}
           className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
-          <ChevronRight
-            size={16}
-            className={cn("transition-transform", !collapsed && "rotate-180")}
-          />
+          <CollapseIcon size={16} className="transition-transform" />
         </button>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-1">
-          {mainMenu.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
-            <NavItem key={item.path} {...item} />
+          {mainMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
+            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
           ))}
         </div>
 
-        {!collapsed && (
-          <div className="my-4 border-t border-sidebar-border" />
-        )}
+        {!collapsed && <div className="my-4 border-t border-sidebar-border" />}
 
         {(() => {
-          const filteredSettings = settingsMenu.filter((item) => isModuleAllowed(tenantType, item.module));
+          const filteredSettings = settingsMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module));
           return filteredSettings.length > 0 ? (
             <div className="mt-4 space-y-1">
               {!collapsed && (
                 <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-                  الإعدادات
+                  {t("nav.settingsSection")}
                 </p>
               )}
               {filteredSettings.map((item) => (
-                <NavItem key={item.path} {...item} />
+                <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
               ))}
             </div>
           ) : null;
@@ -161,7 +142,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-amber-400 transition-colors hover:bg-sidebar-accent"
           >
             <Crown size={18} className="shrink-0" />
-            {!collapsed && <span>لوحة السوبر أدمن</span>}
+            {!collapsed && <span>{t("nav.superAdmin")}</span>}
           </Link>
         )}
         <Link
@@ -169,7 +150,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut size={18} className="shrink-0" />
-          {!collapsed && <span>تسجيل الخروج</span>}
+          {!collapsed && <span>{t("common.logout")}</span>}
         </Link>
       </div>
     </aside>
