@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Printer, Download, Loader2, Palette } from "lucide-react";
+import { ArrowRight, Printer, Download, Loader2, Palette, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { InvoiceTemplate, ColumnConfig } from "@/lib/invoice-template-types";
 import { defaultColumns } from "@/lib/invoice-template-types";
+import InvoiceDeliveryDialog from "@/components/invoices/InvoiceDeliveryDialog";
 
 interface InvoicePreviewProps {
   invoiceId?: string | null;
@@ -30,6 +31,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const [customer, setCustomer] = useState<any>(null);
   const [templates, setTemplates] = useState<InvoiceTemplate[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<InvoiceTemplate | null>(null);
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
 
   const loadInvoice = useCallback(async () => {
     if (!invoiceId || !tenantId) { setLoading(false); return; }
@@ -162,6 +164,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               </SelectContent>
             </Select>
           )}
+          <Button variant="outline" className="gap-2" onClick={() => setDeliveryOpen(true)}><Send size={16} />إرسال</Button>
           <Button variant="outline" className="gap-2" onClick={handlePrint}><Printer size={16} />طباعة</Button>
           <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}><Download size={16} />تصدير PDF</Button>
         </div>
@@ -402,6 +405,23 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
           </div>
         </div>
       </motion.div>
+
+      {invoice && (
+        <InvoiceDeliveryDialog
+          open={deliveryOpen}
+          onOpenChange={setDeliveryOpen}
+          invoice={{
+            id: invoice.id,
+            invoice_number: invoice.invoice_number,
+            grand_total: invoice.grand_total,
+            due_date: invoice.due_date,
+            currency: invoice.currency,
+            customer_name: customer?.name,
+            customer_phone: customer?.phone,
+            customer_email: customer?.email,
+          }}
+        />
+      )}
     </div>
   );
 };
