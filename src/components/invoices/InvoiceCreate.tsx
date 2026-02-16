@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { ArrowRight, Plus, Trash2, Save, Loader2, AlertCircle } from "lucide-react";
+import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
@@ -68,13 +69,23 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
   const removeItem = (id: string) => { if (items.length > 1) setItems((prev) => prev.filter((i) => i.id !== id)); };
   const totals = calculateInvoiceTotals(items);
 
+  // Validation state
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (!customerId) errs.customer = "يرجى اختيار العميل أولاً";
+    if (items.every(i => !i.description.trim())) errs.items = "أضف بند واحد على الأقل مع وصف";
+    if (items.some(i => i.description.trim() && i.unit_price <= 0)) errs.price = "تأكد من إدخال سعر لكل بند";
+    if (new Date(dueDate) < new Date(invoiceDate)) errs.dueDate = "تاريخ الاستحقاق يجب أن يكون بعد تاريخ الإصدار";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSave = async () => {
-    if (!tenantId || !user || !customerId) {
-      toast({ title: "خطأ", description: "يرجى اختيار العميل", variant: "destructive" });
-      return;
-    }
-    if (items.every(i => !i.description.trim())) {
-      toast({ title: "خطأ", description: "أضف بند واحد على الأقل", variant: "destructive" });
+    if (!tenantId || !user) return;
+    if (!validate()) {
+      toast({ title: "تنبيه", description: "يرجى مراجعة الحقول المطلوبة", variant: "destructive" });
       return;
     }
 
@@ -155,12 +166,13 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
             <h3 className="text-sm font-semibold text-foreground mb-4">بيانات العميل</h3>
             <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">اختر العميل *</label>
-              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className={inputClass}>
+              <FormLabel label="اختر العميل" required tooltip="حدد العميل الذي ستصدر له الفاتورة. إذا لم يكن موجوداً، أضفه أولاً من صفحة العملاء" />
+              <select value={customerId} onChange={(e) => { setCustomerId(e.target.value); setErrors(prev => { const { customer, ...rest } = prev; return rest; }); }} className={`${inputClass} ${errors.customer ? "border-destructive" : ""}`}>
                 <option value="">— اختر عميل —</option>
                 {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              {customers.length === 0 && (
+              {errors.customer && <p className="text-[10px] text-destructive mt-1.5 flex items-center gap-1"><AlertCircle size={10} />{errors.customer}</p>}
+              {!errors.customer && customers.length === 0 && (
                 <p className="text-[10px] text-warning mt-1.5">لا يوجد عملاء. أضف عميل من صفحة العملاء أولاً.</p>
               )}
             </div>
@@ -168,7 +180,12 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
 
           {/* Items Table */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-            <div className="p-5 sm:p-6 pb-4"><h3 className="text-sm font-semibold text-foreground">بنود الفاتورة</h3></div>
+            <div className="p-5 sm:p-6 pb-4">
+              <h3 className="text-sm font-semibold text-foreground">بنود الفاتورة</h3>
+              <p className="text-[10px] text-muted-foreground mt-1">أضف الخدمات أو المنتجات مع الكمية والسعر. يتم احتساب الضريبة تلقائياً بنسبة ١٥٪</p>
+              {errors.items && <p className="text-[10px] text-destructive mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.items}</p>}
+              {errors.price && <p className="text-[10px] text-destructive mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.price}</p>}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" dir="rtl">
                 <thead>
@@ -219,12 +236,13 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
             <h3 className="text-sm font-semibold text-foreground mb-4">التواريخ</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">تاريخ الإصدار</label>
+                <FormLabel label="تاريخ الإصدار" tooltip="تاريخ إصدار الفاتورة، يُستخدم في رمز ZATCA QR" />
                 <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className={`${inputClass} font-english`} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">تاريخ الاستحقاق</label>
-                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={`${inputClass} font-english`} />
+                <FormLabel label="تاريخ الاستحقاق" tooltip="الموعد النهائي لسداد الفاتورة. الافتراضي ٣٠ يوماً من تاريخ الإصدار" />
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={`${inputClass} font-english ${errors.dueDate ? "border-destructive" : ""}`} />
+                {errors.dueDate && <p className="text-[10px] text-destructive mt-1">{errors.dueDate}</p>}
               </div>
             </div>
           </motion.div>

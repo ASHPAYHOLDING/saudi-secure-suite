@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Plus, Trash2, Loader2, Save } from "lucide-react";
+import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -195,7 +196,7 @@ const PurchaseOrderCreate = ({ editId, onBack, onSaved }: PurchaseOrderCreatePro
         <h3 className="text-sm font-semibold text-foreground">{t("purchaseOrders.supplierInfo")}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium text-muted-foreground">{t("purchaseOrders.selectSupplier")}</label>
+            <FormLabel label={t("purchaseOrders.selectSupplier")} required tooltip="اختر المورد الذي ستشتري منه. يمكنك إضافة مورد جديد بالضغط على +" />
             <div className="flex gap-2">
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm focus:border-accent focus:outline-none">
                 <option value="">{t("purchaseOrders.chooseSupplier")}</option>
@@ -205,7 +206,7 @@ const PurchaseOrderCreate = ({ editId, onBack, onSaved }: PurchaseOrderCreatePro
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">{t("purchaseOrders.poTitle")}</label>
+            <FormLabel label={t("purchaseOrders.poTitle")} tooltip="عنوان وصفي لأمر الشراء مثل: طلب مستلزمات مكتبية - يناير ٢٠٢٥" />
             <input value={title} onChange={(e) => setTitle(e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus:border-accent focus:outline-none" />
           </div>
           <div>
@@ -213,7 +214,7 @@ const PurchaseOrderCreate = ({ editId, onBack, onSaved }: PurchaseOrderCreatePro
             <input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm font-english focus:border-accent focus:outline-none" />
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">{t("purchaseOrders.expectedDelivery")}</label>
+            <FormLabel label={t("purchaseOrders.expectedDelivery")} tooltip="التاريخ المتوقع لاستلام البضاعة من المورد" />
             <input type="date" value={expectedDelivery} onChange={(e) => setExpectedDelivery(e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm font-english focus:border-accent focus:outline-none" />
           </div>
         </div>

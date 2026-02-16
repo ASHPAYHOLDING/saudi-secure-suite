@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, FileText, Eye, Pencil, Trash2 } from "lucide-react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
 
@@ -94,7 +95,22 @@ const QuotationList = ({ onCreateNew, onView, onEdit }: QuotationListProps) => {
           {isLoading ? (
             <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">لا توجد عروض أسعار بعد</p>
+            quotations.length === 0 ? (
+              <SmartEmptyState
+                icon={FileText}
+                title="لا توجد عروض أسعار بعد"
+                description="أنشئ عروض أسعار احترافية وأرسلها لعملائك"
+                tips={[
+                  "أضف بيانات العميل والبنود المطلوبة",
+                  "حدد تاريخ صلاحية العرض",
+                  "بعد موافقة العميل يمكنك تحويله لفاتورة مباشرة",
+                ]}
+                actionLabel="إنشاء عرض سعر"
+                onAction={onCreateNew}
+              />
+            ) : (
+              <p className="text-center text-muted-foreground py-8">لا توجد عروض مطابقة للبحث</p>
+            )
           ) : (
             <div className="overflow-x-auto">
               <Table>

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -256,11 +257,11 @@ const QuotationCreate = ({ editId, onBack, onSaved }: QuotationCreateProps) => {
             <h3 className="text-sm font-semibold text-foreground mb-4">بيانات العرض</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">العنوان</label>
+                <FormLabel label="العنوان" tooltip="عنوان مختصر يصف العرض مثل: عرض سعر تصميم موقع إلكتروني" />
                 <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عرض سعر تصميم موقع" className={inputClass} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">العميل *</label>
+                <FormLabel label="العميل" required tooltip="العميل الذي سيتم إرسال عرض السعر له" />
                 <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className={inputClass}>
                   <option value="">— اختر عميل —</option>
                   {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -271,7 +272,10 @@ const QuotationCreate = ({ editId, onBack, onSaved }: QuotationCreateProps) => {
 
           {/* Items Table */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-            <div className="p-5 sm:p-6 pb-4"><h3 className="text-sm font-semibold text-foreground">بنود العرض</h3></div>
+            <div className="p-5 sm:p-6 pb-4">
+              <h3 className="text-sm font-semibold text-foreground">بنود العرض</h3>
+              <p className="text-[10px] text-muted-foreground mt-1">يمكنك اختيار منتج من المخزون أو كتابة الوصف يدوياً</p>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" dir="rtl">
                 <thead>
@@ -335,7 +339,7 @@ const QuotationCreate = ({ editId, onBack, onSaved }: QuotationCreateProps) => {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
             <h3 className="text-sm font-semibold text-foreground mb-4">الصلاحية</h3>
             <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">صالح حتى</label>
+              <FormLabel label="صالح حتى" tooltip="بعد هذا التاريخ يصبح العرض منتهي الصلاحية. الافتراضي ٣٠ يوماً" />
               <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={`${inputClass} font-english`} />
             </div>
           </motion.div>
