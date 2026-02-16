@@ -552,6 +552,66 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          details: Json | null
+          error_message: string | null
+          id: string
+          integration_id: string
+          records_failed: number
+          records_synced: number
+          started_at: string
+          status: string
+          sync_type: string
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          integration_id: string
+          records_failed?: number
+          records_synced?: number
+          started_at?: string
+          status?: string
+          sync_type: string
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          integration_id?: string
+          records_failed?: number
+          records_synced?: number
+          started_at?: string
+          status?: string
+          sync_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sync_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -1633,6 +1693,59 @@ export type Database = {
           },
           {
             foreignKeyName: "tenant_feature_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          display_name: string
+          id: string
+          integration_type: string
+          is_enabled: boolean
+          last_sync_at: string | null
+          last_sync_status: string | null
+          sync_inventory: boolean
+          sync_sales: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          display_name?: string
+          id?: string
+          integration_type: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          sync_inventory?: boolean
+          sync_sales?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          display_name?: string
+          id?: string
+          integration_type?: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          sync_inventory?: boolean
+          sync_sales?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_integrations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
