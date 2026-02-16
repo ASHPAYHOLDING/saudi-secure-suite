@@ -21,6 +21,7 @@ import {
   Package,
   ShoppingCart,
   Receipt,
+  Plug,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
   { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },
   { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team", module: "team" },
+  { icon: Plug, label: "التكاملات", path: "/dashboard/integrations", module: "integrations" },
   { icon: Crown, label: "الاشتراك", path: "/dashboard/subscription", module: "subscription" },
 ];
 
