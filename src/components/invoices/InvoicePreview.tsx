@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Printer, Download, Loader2 } from "lucide-react";
+import { ArrowRight, Printer, Download, Loader2, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
@@ -10,6 +11,8 @@ import ZatcaPhase2Status from "@/components/invoices/ZatcaPhase2Status";
 import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { InvoiceTemplate, ColumnConfig } from "@/lib/invoice-template-types";
+import { defaultColumns } from "@/lib/invoice-template-types";
 
 interface InvoicePreviewProps {
   invoiceId?: string | null;
@@ -25,14 +28,17 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const [items, setItems] = useState<any[]>([]);
   const [company, setCompany] = useState<any>(null);
   const [customer, setCustomer] = useState<any>(null);
+  const [templates, setTemplates] = useState<InvoiceTemplate[]>([]);
+  const [activeTemplate, setActiveTemplate] = useState<InvoiceTemplate | null>(null);
 
   const loadInvoice = useCallback(async () => {
     if (!invoiceId || !tenantId) { setLoading(false); return; }
 
-    const [invRes, itemsRes, tenantRes] = await Promise.all([
+    const [invRes, itemsRes, tenantRes, templatesRes] = await Promise.all([
       supabase.from("invoices").select("*, customers(name, name_en, vat_number, cr_number, address_street, address_city, phone, email)").eq("id", invoiceId).single(),
       supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("sort_order"),
       supabase.from("tenants").select("name, name_en, cr_number, vat_number, address_street, address_city, phone, email, logo_url, zatca_phase2_ready, stamp_enabled, stamp_company_name, stamp_cr_number, stamp_vat_number, stamp_image_url").eq("id", tenantId).single(),
+      supabase.from("invoice_templates").select("*").eq("tenant_id", tenantId).order("created_at"),
     ]);
 
     if (invRes.data) {
@@ -41,10 +47,30 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
     }
     if (itemsRes.data) setItems(itemsRes.data);
     if (tenantRes.data) setCompany(tenantRes.data);
+    if (templatesRes.data && templatesRes.data.length > 0) {
+      const tpls = templatesRes.data as unknown as InvoiceTemplate[];
+      setTemplates(tpls);
+      const defaultTpl = tpls.find(t => t.is_default) || tpls[0];
+      setActiveTemplate(defaultTpl);
+    }
     setLoading(false);
   }, [invoiceId, tenantId]);
 
   useEffect(() => { loadInvoice(); }, [loadInvoice]);
+
+  // Template-driven values
+  const tpl = activeTemplate;
+  const primaryColor = tpl?.primary_color || branding.primaryColor || '#1a1f36';
+  const secondaryColor = tpl?.secondary_color || branding.secondaryColor || '#1a9b8a';
+  const headerTextColor = tpl?.header_text_color || '#ffffff';
+  const fontFamily = tpl?.font_family || branding.font || 'IBM Plex Sans Arabic';
+  const showLogo = tpl?.show_logo ?? true;
+  const showStamp = tpl?.show_stamp ?? true;
+  const showQR = tpl?.show_qr_code ?? true;
+  const showNotes = tpl?.show_notes ?? true;
+  const footerText = tpl?.footer_text || null;
+  const columnsConfig: ColumnConfig[] = (tpl?.columns_config as ColumnConfig[]) || defaultColumns();
+  const visibleColumns = [...columnsConfig].filter(c => c.visible).sort((a, b) => a.order - b.order);
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -52,8 +78,51 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
     printDocument(content, {
       title: `فاتورة ضريبية - ${invoice?.invoice_number || ""}`,
       extraStyles: INVOICE_PRINT_STYLES,
-      brandFont: branding.font,
+      brandFont: fontFamily,
     });
+  };
+
+  const renderCellValue = (col: ColumnConfig, item: any, index: number) => {
+    switch (col.key) {
+      case 'index': return formatNumber(index + 1);
+      case 'description': return item.description;
+      case 'quantity': return formatNumber(item.quantity);
+      case 'unit': return item.unit || 'وحدة';
+      case 'unit_price': return formatCurrency(item.unit_price);
+      case 'discount': return item.discount > 0 ? formatCurrency(item.discount) : '—';
+      case 'vat_rate': return `${formatNumber(item.vat_rate)}٪`;
+      case 'line_total': return formatCurrency(item.line_total);
+      default: return '';
+    }
+  };
+
+  const getCellStyle = (col: ColumnConfig): React.CSSProperties => {
+    const isNumeric = ['unit_price', 'discount', 'line_total'].includes(col.key);
+    const isCenter = ['index', 'quantity', 'unit', 'vat_rate'].includes(col.key);
+    return {
+      textAlign: isNumeric ? 'left' : isCenter ? 'center' : 'right',
+      padding: '11px 14px',
+      fontSize: col.key === 'description' ? '13px' : '12px',
+      fontFamily: isNumeric ? "'Inter', sans-serif" : undefined,
+      direction: isNumeric ? 'ltr' as const : undefined,
+      fontWeight: col.key === 'line_total' ? 600 : col.key === 'description' ? 500 : undefined,
+      color: col.key === 'discount' ? undefined : col.key === 'index' || col.key === 'unit' ? '#6b7280' : '#1a1a2e',
+    };
+  };
+
+  const getHeaderStyle = (col: ColumnConfig): React.CSSProperties => {
+    const isNumeric = ['unit_price', 'discount', 'line_total'].includes(col.key);
+    const isCenter = ['index', 'quantity', 'unit', 'vat_rate'].includes(col.key);
+    return {
+      textAlign: isNumeric ? 'left' : isCenter ? 'center' : 'right',
+      padding: '12px 14px',
+      background: primaryColor,
+      color: headerTextColor,
+      fontSize: '11px',
+      fontWeight: 600,
+      fontFamily: isNumeric ? "'Inter', sans-serif" : undefined,
+      direction: isNumeric ? 'ltr' as const : undefined,
+    };
   };
 
   if (loading) {
@@ -69,38 +138,53 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
     );
   }
 
-  const primaryColor = branding.primaryColor || '#1a1f36';
-  const secondaryColor = branding.secondaryColor || '#1a9b8a';
-
   return (
     <div dir="rtl" className="space-y-4 p-4 sm:p-6">
       {/* Action Bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <Button variant="ghost" onClick={onBack} className="gap-2 text-muted-foreground hover:text-foreground"><ArrowRight size={18} />العودة للقائمة</Button>
         <div className="flex items-center gap-2">
+          {templates.length > 0 && (
+            <Select value={activeTemplate?.id || ''} onValueChange={id => setActiveTemplate(templates.find(t => t.id === id) || null)}>
+              <SelectTrigger className="w-40 h-9 text-xs gap-1">
+                <Palette size={14} className="text-muted-foreground shrink-0" />
+                <SelectValue placeholder="اختر قالب" />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.map(t => (
+                  <SelectItem key={t.id} value={t.id} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full shrink-0" style={{ background: t.primary_color }} />
+                      {t.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button variant="outline" className="gap-2" onClick={handlePrint}><Printer size={16} />طباعة</Button>
           <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}><Download size={16} />تصدير PDF</Button>
         </div>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-[210mm]">
-        <div ref={printRef} className="rounded-xl border border-border bg-white shadow-elevated overflow-hidden" style={{ fontFamily: `'${branding.font || 'IBM Plex Sans Arabic'}', sans-serif` }}>
+        <div ref={printRef} className="rounded-xl border border-border bg-white shadow-elevated overflow-hidden" style={{ fontFamily: `'${fontFamily}', sans-serif` }}>
           
           {/* ===== HEADER SECTION ===== */}
           <div style={{ background: primaryColor }} className="p-6 sm:p-8">
             <div className="flex items-start justify-between gap-4">
               {/* Company Info - Right */}
-              <div style={{ color: 'white' }} className="flex-1">
+              <div style={{ color: headerTextColor }} className="flex-1">
                 <div className="flex items-center gap-3 mb-4">
-                  {company.logo_url ? (
+                  {showLogo && company.logo_url ? (
                     <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/15 p-1.5 shrink-0">
                       <img src={company.logo_url} alt={company.name} className="max-h-full max-w-full object-contain" />
                     </div>
-                  ) : (
+                  ) : showLogo ? (
                     <div className="flex h-14 w-14 items-center justify-center rounded-xl shrink-0" style={{ background: secondaryColor }}>
-                      <span className="text-xl font-bold text-white">{company.name?.charAt(0) || 'ن'}</span>
+                      <span className="text-xl font-bold" style={{ color: headerTextColor }}>{company.name?.charAt(0) || 'ن'}</span>
                     </div>
-                  )}
+                  ) : null}
                   <div>
                     <h1 className="text-lg sm:text-xl font-bold leading-tight">{company.name}</h1>
                     {company.name_en && <p className="text-xs font-english opacity-70 mt-0.5">{company.name_en}</p>}
@@ -143,11 +227,11 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               {/* Invoice Badge - Left */}
               <div className="text-left shrink-0">
                 <div className="rounded-xl px-5 py-4" style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
-                  <h2 className="text-lg sm:text-xl font-bold text-white mb-0.5">فاتورة ضريبية</h2>
-                  <p className="text-[11px] font-english opacity-60 mb-3">Tax Invoice</p>
+                  <h2 className="text-lg sm:text-xl font-bold mb-0.5" style={{ color: headerTextColor }}>فاتورة ضريبية</h2>
+                  <p className="text-[11px] font-english opacity-60 mb-3" style={{ color: headerTextColor }}>Tax Invoice</p>
                   <div className="border-t border-white/20 pt-3">
-                    <p className="text-[10px] opacity-60 mb-0.5">رقم الفاتورة</p>
-                    <p className="text-lg font-bold font-english text-white tracking-wide">{invoice.invoice_number}</p>
+                    <p className="text-[10px] opacity-60 mb-0.5" style={{ color: headerTextColor }}>رقم الفاتورة</p>
+                    <p className="text-lg font-bold font-english tracking-wide" style={{ color: headerTextColor }}>{invoice.invoice_number}</p>
                   </div>
                 </div>
               </div>
@@ -210,27 +294,22 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               <table className="inv-table" dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={{ width: "5%", textAlign: "center", padding: '12px 10px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600 }}>#</th>
-                    <th style={{ width: "33%", textAlign: "right", padding: '12px 14px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600 }}>الوصف</th>
-                    <th style={{ width: "8%", textAlign: "center", padding: '12px 10px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600 }}>الكمية</th>
-                    <th style={{ width: "8%", textAlign: "center", padding: '12px 10px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600 }}>الوحدة</th>
-                    <th style={{ width: "13%", textAlign: "left", padding: '12px 14px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600, fontFamily: "'Inter', sans-serif", direction: 'ltr' as const }}>سعر الوحدة</th>
-                    <th style={{ width: "10%", textAlign: "left", padding: '12px 14px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600, fontFamily: "'Inter', sans-serif", direction: 'ltr' as const }}>الخصم</th>
-                    <th style={{ width: "8%", textAlign: "center", padding: '12px 10px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600 }}>الضريبة</th>
-                    <th style={{ width: "15%", textAlign: "left", padding: '12px 14px', background: primaryColor, color: 'white', fontSize: '11px', fontWeight: 600, fontFamily: "'Inter', sans-serif", direction: 'ltr' as const }}>الإجمالي</th>
+                    {visibleColumns.map(col => (
+                      <th key={col.key} style={getHeaderStyle(col)}>{col.label}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item, i) => (
                     <tr key={item.id} style={{ borderBottom: i < items.length - 1 ? '1px solid #e5e7eb' : 'none', background: i % 2 === 1 ? 'hsl(210 20% 98%)' : 'white' }}>
-                      <td style={{ textAlign: 'center', padding: '11px 10px', fontSize: '12px', color: '#6b7280' }}>{formatNumber(i + 1)}</td>
-                      <td style={{ textAlign: 'right', padding: '11px 14px', fontSize: '13px', fontWeight: 500, color: '#1a1a2e' }}>{item.description}</td>
-                      <td style={{ textAlign: 'center', padding: '11px 10px', fontSize: '12px', fontFamily: "'Inter', sans-serif" }}>{formatNumber(item.quantity)}</td>
-                      <td style={{ textAlign: 'center', padding: '11px 10px', fontSize: '11px', color: '#6b7280' }}>{item.unit || "وحدة"}</td>
-                      <td style={{ textAlign: 'left', padding: '11px 14px', fontSize: '12px', fontFamily: "'Inter', sans-serif", direction: 'ltr' as const }}>{formatCurrency(item.unit_price)}</td>
-                      <td style={{ textAlign: 'left', padding: '11px 14px', fontSize: '12px', fontFamily: "'Inter', sans-serif", direction: 'ltr' as const, color: item.discount > 0 ? '#dc2626' : '#9ca3af' }}>{item.discount > 0 ? formatCurrency(item.discount) : '—'}</td>
-                      <td style={{ textAlign: 'center', padding: '11px 10px', fontSize: '11px', fontFamily: "'Inter', sans-serif" }}>{formatNumber(item.vat_rate)}٪</td>
-                      <td style={{ textAlign: 'left', padding: '11px 14px', fontSize: '13px', fontFamily: "'Inter', sans-serif", fontWeight: 600, direction: 'ltr' as const, color: '#1a1a2e' }}>{formatCurrency(item.line_total)}</td>
+                      {visibleColumns.map(col => (
+                        <td key={col.key} style={{
+                          ...getCellStyle(col),
+                          color: col.key === 'discount' ? (item.discount > 0 ? '#dc2626' : '#9ca3af') : getCellStyle(col).color,
+                        }}>
+                          {renderCellValue(col, item, i)}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
@@ -256,8 +335,8 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
                     <span className="text-sm font-english font-medium text-foreground" dir="ltr">{formatCurrency(invoice.vat_total)} ر.س</span>
                   </div>
                   <div className="flex items-center justify-between px-5 py-4" style={{ background: primaryColor }}>
-                    <span className="text-sm font-bold text-white">الإجمالي المستحق</span>
-                    <span className="text-lg font-bold font-english text-white" dir="ltr">{formatCurrency(invoice.grand_total)} ر.س</span>
+                    <span className="text-sm font-bold" style={{ color: headerTextColor }}>الإجمالي المستحق</span>
+                    <span className="text-lg font-bold font-english" style={{ color: headerTextColor }} dir="ltr">{formatCurrency(invoice.grand_total)} ر.س</span>
                   </div>
                 </div>
               </div>
@@ -266,24 +345,26 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
             {/* ===== FOOTER: QR + Notes + Stamp ===== */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-start">
               {/* ZATCA QR Code */}
-              <div className="flex items-start gap-3">
-                <ZatcaQRCode
-                  sellerName={company.name}
-                  vatNumber={company.vat_number || ""}
-                  timestamp={new Date(invoice.invoice_date).toISOString()}
-                  invoiceTotal={invoice.grand_total}
-                  vatTotal={invoice.vat_total}
-                  size={100}
-                />
-                <div className="pt-1">
-                  <p className="text-[10px] font-bold text-muted-foreground mb-1">رمز الاستجابة السريع</p>
-                  <p className="text-[9px] text-muted-foreground leading-relaxed">متوافق مع متطلبات هيئة الزكاة والضريبة والجمارك</p>
-                  <p className="text-[9px] font-english text-muted-foreground mt-0.5">ZATCA Phase 1 — TLV Encoded</p>
+              {showQR && (
+                <div className="flex items-start gap-3">
+                  <ZatcaQRCode
+                    sellerName={company.name}
+                    vatNumber={company.vat_number || ""}
+                    timestamp={new Date(invoice.invoice_date).toISOString()}
+                    invoiceTotal={invoice.grand_total}
+                    vatTotal={invoice.vat_total}
+                    size={100}
+                  />
+                  <div className="pt-1">
+                    <p className="text-[10px] font-bold text-muted-foreground mb-1">رمز الاستجابة السريع</p>
+                    <p className="text-[9px] text-muted-foreground leading-relaxed">متوافق مع متطلبات هيئة الزكاة والضريبة والجمارك</p>
+                    <p className="text-[9px] font-english text-muted-foreground mt-0.5">ZATCA Phase 1 — TLV Encoded</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Notes */}
-              {invoice.notes && (
+              {showNotes && invoice.notes && (
                 <div className="rounded-lg border border-border p-4" style={{ background: 'hsl(210 20% 97%)' }}>
                   <p className="text-[10px] font-bold text-muted-foreground mb-1.5">ملاحظات</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">{invoice.notes}</p>
@@ -291,15 +372,17 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               )}
 
               {/* Digital Stamp */}
-              <div className="flex justify-center sm:justify-end items-start">
-                <DigitalStamp stamp={{
-                  companyName: company.stamp_company_name || company.name,
-                  crNumber: company.stamp_cr_number || company.cr_number || "",
-                  vatNumber: company.stamp_vat_number || company.vat_number || "",
-                  imageUrl: company.stamp_image_url || undefined,
-                  enabled: !!company.stamp_enabled,
-                }} size="md" />
-              </div>
+              {showStamp && (
+                <div className="flex justify-center sm:justify-end items-start">
+                  <DigitalStamp stamp={{
+                    companyName: company.stamp_company_name || company.name,
+                    crNumber: company.stamp_cr_number || company.cr_number || "",
+                    vatNumber: company.stamp_vat_number || company.vat_number || "",
+                    imageUrl: company.stamp_image_url || undefined,
+                    enabled: !!company.stamp_enabled,
+                  }} size="md" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -313,7 +396,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
           {/* ===== DOCUMENT FOOTER ===== */}
           <div className="border-t border-border px-6 sm:px-8 py-3" style={{ background: 'hsl(210 20% 97%)' }}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-[10px] text-muted-foreground">
-              <p>هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم</p>
+              <p>{footerText || 'هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم'}</p>
               <p className="font-english">Powered by Numaxio — {invoice.invoice_number}</p>
             </div>
           </div>

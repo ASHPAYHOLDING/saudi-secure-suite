@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, FileText, Eye, Filter, Loader2, ScanLine } from "lucide-react";
+import { Plus, Search, FileText, Eye, Filter, Loader2, ScanLine, Palette } from "lucide-react";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateShort, getStatusLabel, getStatusColor } from "@/lib/invoice-utils";
@@ -22,10 +22,11 @@ interface InvoiceRow {
 interface InvoiceListProps {
   onCreateNew: () => void;
   onOcrImport?: () => void;
+  onManageTemplates?: () => void;
   onViewInvoice: (id: string) => void;
 }
 
-const InvoiceList = ({ onCreateNew, onOcrImport, onViewInvoice }: InvoiceListProps) => {
+const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoice }: InvoiceListProps) => {
   const { tenantId } = useAuth();
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +87,12 @@ const InvoiceList = ({ onCreateNew, onOcrImport, onViewInvoice }: InvoiceListPro
           <p className="text-sm text-muted-foreground mt-1">إدارة وتتبع فواتيرك الضريبية</p>
         </div>
         <div className="flex items-center gap-2">
+          {onManageTemplates && (
+            <Button variant="outline" onClick={onManageTemplates} className="gap-2">
+              <Palette size={18} />
+              القوالب
+            </Button>
+          )}
           {onOcrImport && (
             <Button variant="outline" onClick={onOcrImport} className="gap-2">
               <ScanLine size={18} />

@@ -726,6 +726,77 @@ export type Database = {
           },
         ]
       }
+      invoice_templates: {
+        Row: {
+          columns_config: Json
+          created_at: string
+          created_by: string
+          font_family: string
+          footer_text: string | null
+          header_text_color: string
+          id: string
+          is_default: boolean
+          layout_style: string
+          name: string
+          primary_color: string
+          secondary_color: string
+          show_logo: boolean
+          show_notes: boolean
+          show_qr_code: boolean
+          show_stamp: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          columns_config?: Json
+          created_at?: string
+          created_by: string
+          font_family?: string
+          footer_text?: string | null
+          header_text_color?: string
+          id?: string
+          is_default?: boolean
+          layout_style?: string
+          name?: string
+          primary_color?: string
+          secondary_color?: string
+          show_logo?: boolean
+          show_notes?: boolean
+          show_qr_code?: boolean
+          show_stamp?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          columns_config?: Json
+          created_at?: string
+          created_by?: string
+          font_family?: string
+          footer_text?: string | null
+          header_text_color?: string
+          id?: string
+          is_default?: boolean
+          layout_style?: string
+          name?: string
+          primary_color?: string
+          secondary_color?: string
+          show_logo?: boolean
+          show_notes?: boolean
+          show_qr_code?: boolean
+          show_stamp?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount_due: number
