@@ -718,6 +718,7 @@ export type Database = {
           brand_font: string | null
           brand_primary_color: string | null
           brand_secondary_color: string | null
+          compliance_verified_at: string | null
           cr_number: string | null
           created_at: string
           created_by: string | null
@@ -737,6 +738,11 @@ export type Database = {
           status: string
           updated_at: string
           vat_number: string | null
+          vat_percentage: number
+          vat_registered: boolean
+          zatca_integration_id: string | null
+          zatca_phase1_enabled: boolean
+          zatca_phase2_ready: boolean
         }
         Insert: {
           address_city?: string | null
@@ -745,6 +751,7 @@ export type Database = {
           brand_font?: string | null
           brand_primary_color?: string | null
           brand_secondary_color?: string | null
+          compliance_verified_at?: string | null
           cr_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -764,6 +771,11 @@ export type Database = {
           status?: string
           updated_at?: string
           vat_number?: string | null
+          vat_percentage?: number
+          vat_registered?: boolean
+          zatca_integration_id?: string | null
+          zatca_phase1_enabled?: boolean
+          zatca_phase2_ready?: boolean
         }
         Update: {
           address_city?: string | null
@@ -772,6 +784,7 @@ export type Database = {
           brand_font?: string | null
           brand_primary_color?: string | null
           brand_secondary_color?: string | null
+          compliance_verified_at?: string | null
           cr_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -791,6 +804,11 @@ export type Database = {
           status?: string
           updated_at?: string
           vat_number?: string | null
+          vat_percentage?: number
+          vat_registered?: boolean
+          zatca_integration_id?: string | null
+          zatca_phase1_enabled?: boolean
+          zatca_phase2_ready?: boolean
         }
         Relationships: []
       }
