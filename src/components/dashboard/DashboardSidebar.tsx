@@ -16,6 +16,7 @@ import {
   Palette,
   ShieldCheck,
 } from "lucide-react";
+import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
 
 const mainMenu = [
@@ -73,13 +74,10 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
     >
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-              <span className="text-xs font-bold text-sidebar-primary-foreground font-english">S</span>
-            </div>
-            <span className="text-sm font-bold text-sidebar-foreground">ساس بلس</span>
-          </div>
+        {!collapsed ? (
+          <img src={numaxioLogo} alt="نيوماكسيو" className="h-7" />
+        ) : (
+          <img src={numaxioLogo} alt="نيوماكسيو" className="h-6 w-6 object-contain" />
         )}
         <button
           onClick={onToggle}
