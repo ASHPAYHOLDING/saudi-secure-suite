@@ -25,6 +25,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
   { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
   { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
   { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
+  { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
   { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
   { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },
   { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },

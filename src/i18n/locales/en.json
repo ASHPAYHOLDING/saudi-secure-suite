@@ -66,6 +66,7 @@
     "inventory": "Inventory",
     "finance": "Financial Overview",
     "reports": "Reports",
+    "vatReturn": "VAT Return",
     "analytics": "Analytics",
     "sheetView": "Sheet View",
     "team": "Team Management",
