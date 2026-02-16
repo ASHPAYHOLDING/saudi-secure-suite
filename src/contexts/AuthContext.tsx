@@ -7,7 +7,7 @@ interface AuthContextValue {
   session: Session | null;
   loading: boolean;
   tenantId: string | null;
-  profile: { full_name: string; email: string } | null;
+  profile: { full_name: string; full_name_en: string | null; email: string; phone: string | null; job_title: string | null; language: string; timezone: string } | null;
   signOut: () => Promise<void>;
 }
 
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; full_name_en: string | null; email: string; phone: string | null; job_title: string | null; language: string; timezone: string } | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -40,12 +40,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from("profiles")
-              .select("full_name, email, tenant_id")
+              .select("full_name, full_name_en, email, phone, job_title, language, timezone, tenant_id")
               .eq("id", session.user.id)
               .single();
 
             if (profileData) {
-              setProfile({ full_name: profileData.full_name, email: profileData.email });
+              setProfile({ full_name: profileData.full_name, full_name_en: profileData.full_name_en, email: profileData.email, phone: profileData.phone, job_title: profileData.job_title, language: profileData.language, timezone: profileData.timezone });
               setTenantId(profileData.tenant_id);
             }
           }, 0);

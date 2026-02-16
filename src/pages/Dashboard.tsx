@@ -12,6 +12,10 @@ import ComplianceSettings from "@/components/compliance/ComplianceSettings";
 import CustomersPage from "@/components/customers/CustomersPage";
 import CompanySettings from "@/components/company/CompanySettings";
 import TeamMembersPage from "@/components/team/TeamMembersPage";
+import ReportsPage from "@/components/reports/ReportsPage";
+import AnalyticsPage from "@/components/analytics/AnalyticsPage";
+import SettingsPage from "@/components/settings/SettingsPage";
+import HelpPage from "@/components/help/HelpPage";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +51,18 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/team") {
       return <TeamMembersPage />;
+    }
+    if (path === "/dashboard/reports") {
+      return <ReportsPage />;
+    }
+    if (path === "/dashboard/analytics") {
+      return <AnalyticsPage />;
+    }
+    if (path === "/dashboard/settings") {
+      return <SettingsPage />;
+    }
+    if (path === "/dashboard/help") {
+      return <HelpPage />;
     }
     return <DashboardHome />;
   };
