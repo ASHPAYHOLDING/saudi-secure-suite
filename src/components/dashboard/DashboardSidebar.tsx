@@ -20,6 +20,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
   { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
   { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
   { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
+  { icon: Package, key: "nav.purchaseOrders", path: "/dashboard/purchase-orders", module: "purchase-orders" },
   { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
   { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
   { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
