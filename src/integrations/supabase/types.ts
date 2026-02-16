@@ -2390,6 +2390,75 @@ export type Database = {
         }
         Relationships: []
       }
+      product_batches: {
+        Row: {
+          batch_number: string
+          cost_price: number | null
+          created_at: string
+          created_by: string
+          expiry_date: string | null
+          id: string
+          initial_quantity: number
+          notes: string | null
+          product_id: string
+          production_date: string | null
+          quantity: number
+          status: string
+          supplier_name: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_number: string
+          cost_price?: number | null
+          created_at?: string
+          created_by: string
+          expiry_date?: string | null
+          id?: string
+          initial_quantity?: number
+          notes?: string | null
+          product_id: string
+          production_date?: string | null
+          quantity?: number
+          status?: string
+          supplier_name?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_number?: string
+          cost_price?: number | null
+          created_at?: string
+          created_by?: string
+          expiry_date?: string | null
+          id?: string
+          initial_quantity?: number
+          notes?: string | null
+          product_id?: string
+          production_date?: string | null
+          quantity?: number
+          status?: string
+          supplier_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_batches_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_batches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           barcode: string | null
