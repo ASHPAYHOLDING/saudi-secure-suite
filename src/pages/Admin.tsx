@@ -8,6 +8,7 @@ import AdminCompanies from "@/components/admin/AdminCompanies";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminFeatureToggles from "@/components/admin/AdminFeatureToggles";
+import AdminSecurityCenter from "@/components/admin/AdminSecurityCenter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,7 @@ const Admin = () => {
     if (path === "/admin/subscriptions") return <AdminSubscriptions />;
     if (path === "/admin/users") return <AdminUsers />;
     if (path === "/admin/features") return <AdminFeatureToggles />;
+    if (path === "/admin/security") return <AdminSecurityCenter />;
     return <AdminDashboard />;
   };
 

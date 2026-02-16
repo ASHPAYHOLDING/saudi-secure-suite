@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_locks: {
+        Row: {
+          id: string
+          is_active: boolean
+          locked_at: string
+          locked_by: string
+          reason: string
+          unlocked_at: string | null
+          unlocked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          locked_at?: string
+          locked_by: string
+          reason?: string
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          locked_at?: string
+          locked_by?: string
+          reason?: string
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -638,6 +671,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          description: string
+          device_info: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          is_resolved: boolean
+          metadata: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          device_info?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          device_info?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean
+          metadata?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

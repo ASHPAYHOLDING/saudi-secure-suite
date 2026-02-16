@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Shield,
   ToggleRight,
+  ShieldAlert,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ const menuItems = [
   { icon: CreditCard, label: "الاشتراكات", path: "/admin/subscriptions" },
   { icon: Users, label: "المستخدمين", path: "/admin/users" },
   { icon: ToggleRight, label: "المميزات", path: "/admin/features" },
+  { icon: ShieldAlert, label: "الأمان والتدقيق", path: "/admin/security" },
 ];
 
 interface AdminSidebarProps {
