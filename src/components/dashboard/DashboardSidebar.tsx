@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, UsersRound, FileText, Settings, BarChart3,
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
-  ShoppingCart, Receipt, Plug, Wallet, Table2,
+  ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ const settingsMenuKeys: { icon: any; key: string; path: string; module: Module }
   { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
   { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
   { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
+  { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
   { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
   { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
 ];
