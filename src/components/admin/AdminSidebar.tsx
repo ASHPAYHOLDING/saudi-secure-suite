@@ -10,6 +10,7 @@ import {
   ToggleRight,
   ShieldAlert,
   Receipt,
+  LayoutTemplate,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: ToggleRight, label: "المميزات", path: "/admin/features" },
   { icon: ShieldAlert, label: "الأمان والتدقيق", path: "/admin/security" },
   { icon: Receipt, label: "المراقبة المالية", path: "/admin/finance" },
+  { icon: LayoutTemplate, label: "إدارة القوالب", path: "/admin/templates" },
 ];
 
 interface AdminSidebarProps {
