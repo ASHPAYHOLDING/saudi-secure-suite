@@ -7,6 +7,8 @@ import InvoicesPage from "@/components/invoices/InvoicesPage";
 import ContractsPage from "@/components/contracts/ContractsPage";
 import StampManagement from "@/components/stamp/StampManagement";
 import AuditLogViewer from "@/components/audit/AuditLogViewer";
+import BrandingSettings from "@/components/branding/BrandingSettings";
+import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
@@ -27,25 +29,30 @@ const Dashboard = () => {
     if (path === "/dashboard/audit") {
       return <AuditLogViewer />;
     }
+    if (path === "/dashboard/branding") {
+      return <BrandingSettings />;
+    }
     return <DashboardHome />;
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardSidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-      <div
-        className={cn(
-          "transition-all duration-300",
-          sidebarCollapsed ? "mr-[68px]" : "mr-64"
-        )}
-      >
-        <DashboardTopbar />
-        {renderContent()}
+    <BrandingProvider>
+      <div className="min-h-screen bg-background">
+        <DashboardSidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+        <div
+          className={cn(
+            "transition-all duration-300",
+            sidebarCollapsed ? "mr-[68px]" : "mr-64"
+          )}
+        >
+          <DashboardTopbar />
+          {renderContent()}
+        </div>
       </div>
-    </div>
+    </BrandingProvider>
   );
 };
 
