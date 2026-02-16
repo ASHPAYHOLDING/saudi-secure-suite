@@ -28,6 +28,7 @@ import SheetViewPage from "@/components/sheet-view/SheetViewPage";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import BranchManagement from "@/components/branches/BranchManagement";
 import PermissionsManagement from "@/components/permissions/PermissionsManagement";
+import ChatPage from "@/components/collaboration/ChatPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -58,6 +59,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   finance: "finance",
   "sheet-view": "sheet-view",
   branches: "branches",
+  chat: "chat",
   integrations: "integrations",
   subscription: "subscription",
   settings: "settings",
@@ -145,6 +147,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/permissions") {
       return <PermissionsManagement />;
+    }
+    if (path === "/dashboard/chat") {
+      return <ChatPage />;
     }
     if (path === "/dashboard/subscription") {
       return <SubscriptionPage />;

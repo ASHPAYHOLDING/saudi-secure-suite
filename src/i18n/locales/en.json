@@ -82,7 +82,8 @@
     "help": "Help",
     "superAdmin": "Super Admin",
     "settingsSection": "Settings",
-    "purchaseOrders": "Purchase Orders"
+    "purchaseOrders": "Purchase Orders",
+    "chat": "Chat"
   },
   "landing": {
     "features": "Features",
