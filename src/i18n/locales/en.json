@@ -86,7 +86,8 @@
     "purchaseOrders": "Purchase Orders",
     "deliveryNotes": "Delivery Notes",
     "journalEntries": "Journal Entries",
-    "chat": "Chat"
+    "chat": "Chat",
+    "productivity": "Productivity"
   },
   "landing": {
     "features": "Features",
