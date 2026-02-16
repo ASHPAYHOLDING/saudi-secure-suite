@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ARABIC_SAFE_FONTS = [
   { value: "IBM Plex Sans Arabic", label: "IBM Plex Sans Arabic", import: "IBM+Plex+Sans+Arabic" },
@@ -13,8 +15,8 @@ export const ARABIC_SAFE_FONTS = [
 
 export interface TenantBranding {
   logoUrl: string | null;
-  primaryColor: string;  // hex
-  secondaryColor: string; // hex
+  primaryColor: string;
+  secondaryColor: string;
   font: string;
   companyName: string;
 }
@@ -30,16 +32,17 @@ const DEFAULT_BRANDING: TenantBranding = {
 interface BrandingContextValue {
   branding: TenantBranding;
   updateBranding: (partial: Partial<TenantBranding>) => void;
+  saving: boolean;
 }
 
 const BrandingContext = createContext<BrandingContextValue>({
   branding: DEFAULT_BRANDING,
   updateBranding: () => {},
+  saving: false,
 });
 
 export const useBranding = () => useContext(BrandingContext);
 
-/** Convert hex to HSL string (e.g. "220 30% 14%") */
 const hexToHsl = (hex: string): string => {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -60,18 +63,52 @@ const hexToHsl = (hex: string): string => {
 };
 
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
-  const [branding, setBranding] = useState<TenantBranding>(() => {
-    const saved = localStorage.getItem("tenant_branding");
-    return saved ? { ...DEFAULT_BRANDING, ...JSON.parse(saved) } : DEFAULT_BRANDING;
-  });
+  const { tenantId } = useAuth();
+  const [branding, setBranding] = useState<TenantBranding>(DEFAULT_BRANDING);
+  const [saving, setSaving] = useState(false);
 
-  const updateBranding = (partial: Partial<TenantBranding>) => {
-    setBranding((prev) => {
-      const next = { ...prev, ...partial };
-      localStorage.setItem("tenant_branding", JSON.stringify(next));
-      return next;
-    });
-  };
+  // Load branding from database
+  useEffect(() => {
+    if (!tenantId) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("tenants")
+        .select("name, logo_url, brand_primary_color, brand_secondary_color, brand_font")
+        .eq("id", tenantId)
+        .single();
+      if (data) {
+        setBranding({
+          companyName: data.name || DEFAULT_BRANDING.companyName,
+          logoUrl: data.logo_url,
+          primaryColor: data.brand_primary_color || DEFAULT_BRANDING.primaryColor,
+          secondaryColor: data.brand_secondary_color || DEFAULT_BRANDING.secondaryColor,
+          font: data.brand_font || DEFAULT_BRANDING.font,
+        });
+      }
+    };
+    load();
+  }, [tenantId]);
+
+  const updateBranding = useCallback(
+    async (partial: Partial<TenantBranding>) => {
+      setBranding((prev) => ({ ...prev, ...partial }));
+
+      if (!tenantId) return;
+      setSaving(true);
+      const updates: Record<string, any> = {};
+      if (partial.primaryColor !== undefined) updates.brand_primary_color = partial.primaryColor;
+      if (partial.secondaryColor !== undefined) updates.brand_secondary_color = partial.secondaryColor;
+      if (partial.font !== undefined) updates.brand_font = partial.font;
+      if (partial.logoUrl !== undefined) updates.logo_url = partial.logoUrl;
+      if (partial.companyName !== undefined) updates.name = partial.companyName;
+
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("tenants").update(updates).eq("id", tenantId);
+      }
+      setSaving(false);
+    },
+    [tenantId]
+  );
 
   // Load Google Font dynamically
   useEffect(() => {
@@ -99,7 +136,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   }, [branding.primaryColor, branding.secondaryColor, branding.font]);
 
   return (
-    <BrandingContext.Provider value={{ branding, updateBranding }}>
+    <BrandingContext.Provider value={{ branding, updateBranding, saving }}>
       {children}
     </BrandingContext.Provider>
   );
