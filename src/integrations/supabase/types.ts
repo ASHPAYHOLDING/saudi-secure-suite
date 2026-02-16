@@ -966,6 +966,182 @@ export type Database = {
           },
         ]
       }
+      sales_order_items: {
+        Row: {
+          created_at: string
+          description: string
+          discount: number
+          fulfilled_quantity: number
+          id: string
+          line_total: number
+          product_id: string | null
+          quantity: number
+          reserved_quantity: number
+          sales_order_id: string
+          sort_order: number
+          tenant_id: string
+          unit: string | null
+          unit_price: number
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discount?: number
+          fulfilled_quantity?: number
+          id?: string
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          reserved_quantity?: number
+          sales_order_id: string
+          sort_order?: number
+          tenant_id: string
+          unit?: string | null
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discount?: number
+          fulfilled_quantity?: number
+          id?: string
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          reserved_quantity?: number
+          sales_order_id?: string
+          sort_order?: number
+          tenant_id?: string
+          unit?: string | null
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_order_items_sales_order_id_fkey"
+            columns: ["sales_order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_order_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_orders: {
+        Row: {
+          cancelled_at: string | null
+          converted_invoice_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          customer_id: string | null
+          discount_total: number
+          expected_delivery_date: string | null
+          fulfilled_at: string | null
+          fulfillment_status: string
+          grand_total: number
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          quotation_id: string | null
+          status: string
+          subtotal: number
+          tenant_id: string
+          title: string
+          updated_at: string
+          vat_total: number
+        }
+        Insert: {
+          cancelled_at?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          customer_id?: string | null
+          discount_total?: number
+          expected_delivery_date?: string | null
+          fulfilled_at?: string | null
+          fulfillment_status?: string
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          quotation_id?: string | null
+          status?: string
+          subtotal?: number
+          tenant_id: string
+          title?: string
+          updated_at?: string
+          vat_total?: number
+        }
+        Update: {
+          cancelled_at?: string | null
+          converted_invoice_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          customer_id?: string | null
+          discount_total?: number
+          expected_delivery_date?: string | null
+          fulfilled_at?: string | null
+          fulfillment_status?: string
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          quotation_id?: string | null
+          status?: string
+          subtotal?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          vat_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_orders_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_events: {
         Row: {
           created_at: string
@@ -1515,6 +1691,14 @@ export type Database = {
           _reference_type?: string
           _tenant_id: string
         }
+        Returns: undefined
+      }
+      release_stock_reservation: {
+        Args: { _sales_order_id: string; _tenant_id: string }
+        Returns: undefined
+      }
+      reserve_stock_for_order: {
+        Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
       }
     }
