@@ -3,8 +3,9 @@ import InvoiceList from "./InvoiceList";
 import InvoiceCreate from "./InvoiceCreate";
 import InvoicePreview from "./InvoicePreview";
 import OcrInvoiceUpload from "./OcrInvoiceUpload";
+import InvoiceTemplateManager from "./InvoiceTemplateManager";
 
-type View = "list" | "create" | "preview" | "ocr";
+type View = "list" | "create" | "preview" | "ocr" | "templates";
 
 const InvoicesPage = () => {
   const [view, setView] = useState<View>("list");
@@ -16,6 +17,7 @@ const InvoicesPage = () => {
         <InvoiceList
           onCreateNew={() => setView("create")}
           onOcrImport={() => setView("ocr")}
+          onManageTemplates={() => setView("templates")}
           onViewInvoice={(id) => {
             setSelectedInvoiceId(id);
             setView("preview");
@@ -45,6 +47,9 @@ const InvoicesPage = () => {
           invoiceId={selectedInvoiceId}
           onBack={() => setView("list")}
         />
+      )}
+      {view === "templates" && (
+        <InvoiceTemplateManager onBack={() => setView("list")} />
       )}
     </>
   );
