@@ -1,0 +1,137 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Settings, User, Bell, Lock, Globe, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+
+const SettingsPage = () => {
+  const { profile, user } = useAuth();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [fullNameEn, setFullNameEn] = useState(profile?.full_name_en || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
+  const [jobTitle, setJobTitle] = useState(profile?.job_title || "");
+  const [language, setLanguage] = useState(profile?.language || "ar");
+  const [timezone, setTimezone] = useState(profile?.timezone || "Asia/Riyadh");
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({
+      full_name: fullName,
+      full_name_en: fullNameEn,
+      phone,
+      job_title: jobTitle,
+      language,
+      timezone,
+    }).eq("id", user.id);
+
+    if (error) {
+      toast({ title: "خطأ", description: "فشل في حفظ الإعدادات", variant: "destructive" });
+    } else {
+      toast({ title: "تم الحفظ", description: "تم تحديث الإعدادات بنجاح" });
+    }
+    setSaving(false);
+  };
+
+  const sections = [
+    {
+      title: "الملف الشخصي",
+      icon: User,
+      content: (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>الاسم الكامل (عربي)</Label>
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>الاسم الكامل (إنجليزي)</Label>
+            <Input value={fullNameEn} onChange={(e) => setFullNameEn(e.target.value)} dir="ltr" />
+          </div>
+          <div className="space-y-2">
+            <Label>البريد الإلكتروني</Label>
+            <Input value={profile?.email || ""} disabled className="bg-muted/50" />
+          </div>
+          <div className="space-y-2">
+            <Label>رقم الجوال</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" />
+          </div>
+          <div className="space-y-2">
+            <Label>المسمى الوظيفي</Label>
+            <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "اللغة والمنطقة الزمنية",
+      icon: Globe,
+      content: (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>اللغة</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ar">العربية</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>المنطقة الزمنية</Label>
+            <Select value={timezone} onValueChange={setTimezone}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Asia/Riyadh">الرياض (GMT+3)</SelectItem>
+                <SelectItem value="Asia/Dubai">دبي (GMT+4)</SelectItem>
+                <SelectItem value="Asia/Kuwait">الكويت (GMT+3)</SelectItem>
+                <SelectItem value="Europe/London">لندن (GMT+0)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div dir="rtl" className="space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">الإعدادات</h1>
+        <p className="text-sm text-muted-foreground">إدارة حسابك الشخصي وتفضيلاتك</p>
+      </div>
+
+      {sections.map((section, i) => (
+        <motion.div
+          key={section.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1 }}
+          className="rounded-xl border border-border bg-card p-6 shadow-card"
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <section.icon size={18} className="text-accent" />
+            <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
+          </div>
+          {section.content}
+        </motion.div>
+      ))}
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} className="min-w-[120px]">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "حفظ التغييرات"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPage;
