@@ -715,6 +715,9 @@ export type Database = {
           address_city: string | null
           address_street: string | null
           address_zip: string | null
+          brand_font: string | null
+          brand_primary_color: string | null
+          brand_secondary_color: string | null
           cr_number: string | null
           created_at: string
           created_by: string | null
@@ -739,6 +742,9 @@ export type Database = {
           address_city?: string | null
           address_street?: string | null
           address_zip?: string | null
+          brand_font?: string | null
+          brand_primary_color?: string | null
+          brand_secondary_color?: string | null
           cr_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -763,6 +769,9 @@ export type Database = {
           address_city?: string | null
           address_street?: string | null
           address_zip?: string | null
+          brand_font?: string | null
+          brand_primary_color?: string | null
+          brand_secondary_color?: string | null
           cr_number?: string | null
           created_at?: string
           created_by?: string | null

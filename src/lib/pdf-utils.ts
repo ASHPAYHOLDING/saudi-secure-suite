@@ -114,6 +114,8 @@ interface PrintDocumentOptions {
   title: string;
   /** Additional CSS to inject */
   extraStyles?: string;
+  /** Custom Arabic font family name */
+  brandFont?: string;
   /** Callback after print dialog closes */
   onAfterPrint?: () => void;
 }
@@ -126,8 +128,8 @@ export const printDocument = (
   contentEl: HTMLElement,
   options: PrintDocumentOptions
 ): void => {
-  const { title, extraStyles = "", onAfterPrint } = options;
-
+  const { title, extraStyles = "", brandFont, onAfterPrint } = options;
+  const fontFamily = brandFont || "IBM Plex Sans Arabic";
   // Clone content to avoid modifying the original
   const clonedContent = contentEl.cloneNode(true) as HTMLElement;
 
@@ -166,8 +168,8 @@ export const printDocument = (
 <title>${title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>${PDF_STYLES}\n${extraStyles}</style>
+<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily).replace(/%20/g, '+')}:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${PDF_STYLES.replace(/IBM Plex Sans Arabic/g, fontFamily)}\n${extraStyles}</style>
 </head>
 <body>${clonedContent.innerHTML}</body>
 </html>`;

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateAr } from "@/lib/invoice-utils";
 import { printDocument, CONTRACT_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
+import { useBranding } from "@/contexts/BrandingContext";
 
 interface ContractPreviewProps {
   onBack: () => void;
@@ -59,6 +60,7 @@ const defaultBody = `<div style="text-align:center;margin-bottom:24px;">
 
 const ContractPreview = ({ onBack, bodyHtml }: ContractPreviewProps) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const { branding } = useBranding();
   const html = bodyHtml || defaultBody;
   const isSigned = !bodyHtml; // demo: default view is signed
 
@@ -68,6 +70,7 @@ const ContractPreview = ({ onBack, bodyHtml }: ContractPreviewProps) => {
     printDocument(content, {
       title: "عقد",
       extraStyles: CONTRACT_PRINT_STYLES,
+      brandFont: branding.font,
     });
   };
 
@@ -116,15 +119,18 @@ const ContractPreview = ({ onBack, bodyHtml }: ContractPreviewProps) => {
             className="rounded-xl border border-border bg-white shadow-elevated overflow-hidden"
           >
             {/* Header Bar */}
-            <div className="px-8 py-5" style={{ background: "hsl(220 30% 14%)" }}>
+            <div className="px-8 py-5" style={{ background: branding.primaryColor, fontFamily: `'${branding.font}', sans-serif` }}>
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-lg"
-                    style={{ background: "hsl(172 66% 36%)" }}
-                  >
-                    <span className="text-sm font-bold font-english">S</span>
-                  </div>
+                  {branding.logoUrl ? (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 p-1.5">
+                      <img src={branding.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: branding.secondaryColor }}>
+                      <span className="text-sm font-bold font-english">S</span>
+                    </div>
+                  )}
                   <div>
                     <p className="font-bold text-sm">{company.name}</p>
                     <p className="text-[10px] opacity-70 font-english">Advanced Technology Co.</p>

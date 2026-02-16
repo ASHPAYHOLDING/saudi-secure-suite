@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
+import { useBranding } from "@/contexts/BrandingContext";
 
 interface InvoicePreviewProps {
   onBack: () => void;
@@ -48,6 +49,7 @@ const invoiceData = {
 
 const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const { branding } = useBranding();
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -55,6 +57,7 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
     printDocument(content, {
       title: `فاتورة ${invoiceData.invoice_number}`,
       extraStyles: INVOICE_PRINT_STYLES,
+      brandFont: branding.font,
     });
   };
 
@@ -91,23 +94,29 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
           <style>{`
             .inv-table { width: 100%; border-collapse: collapse; }
             .inv-table th, .inv-table td { padding: 10px 14px; text-align: right; font-size: 13px; }
-            .inv-table th { background: #1a1f36; color: white; font-weight: 600; font-size: 12px; }
+            .inv-table th { background: ${branding.primaryColor}; color: white; font-weight: 600; font-size: 12px; }
             .inv-table td { border-bottom: 1px solid #e5e7eb; }
             .inv-table tbody tr:last-child td { border-bottom: none; }
             .inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; }
             .summary-row td { padding: 6px 14px; font-size: 13px; }
-            .total-row td { background: #1a1f36; color: white; font-weight: 700; font-size: 15px; padding: 12px 14px; }
+            .total-row td { background: ${branding.primaryColor}; color: white; font-weight: 700; font-size: 15px; padding: 12px 14px; }
           `}</style>
 
           {/* Header */}
-          <div className="bg-primary p-8" style={{ background: 'hsl(220 30% 14%)' }}>
+          <div className="bg-primary p-8" style={{ background: branding.primaryColor, fontFamily: `'${branding.font}', sans-serif` }}>
             <div className="flex items-start justify-between">
               {/* Company Info */}
-              <div className="text-primary-foreground">
+              <div className="text-primary-foreground" style={{ color: 'white' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: 'hsl(172 66% 36%)' }}>
-                    <span className="text-lg font-bold text-white font-english">S</span>
-                  </div>
+                  {branding.logoUrl ? (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 p-1.5">
+                      <img src={branding.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: branding.secondaryColor }}>
+                      <span className="text-lg font-bold text-white font-english">S</span>
+                    </div>
+                  )}
                   <div>
                     <h1 className="text-xl font-bold">{company.name}</h1>
                     <p className="text-xs opacity-70 font-english">Advanced Technology Co.</p>
@@ -125,7 +134,7 @@ const InvoicePreview = ({ onBack }: InvoicePreviewProps) => {
               <div className="text-left">
                 <h2 className="text-2xl font-bold text-white mb-1">{invoiceData.invoice_type}</h2>
                 <p className="text-sm font-english opacity-70">Tax Invoice</p>
-                <div className="mt-4 rounded-lg px-4 py-2" style={{ background: 'hsl(172 66% 36% / 0.2)' }}>
+                <div className="mt-4 rounded-lg px-4 py-2" style={{ background: `${branding.secondaryColor}33` }}>
                   <p className="text-xs opacity-70">رقم الفاتورة</p>
                   <p className="text-lg font-bold font-english text-white">{invoiceData.invoice_number}</p>
                 </div>
