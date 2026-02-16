@@ -1838,6 +1838,139 @@ export type Database = {
           },
         ]
       }
+      payment_reminder_logs: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          customer_id: string
+          error_message: string | null
+          id: string
+          invoice_id: string
+          recipient: string
+          schedule_id: string | null
+          sent_at: string
+          status: string
+          subject: string
+          tenant_id: string
+        }
+        Insert: {
+          body?: string
+          channel?: string
+          created_at?: string
+          customer_id: string
+          error_message?: string | null
+          id?: string
+          invoice_id: string
+          recipient?: string
+          schedule_id?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          customer_id?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string
+          recipient?: string
+          schedule_id?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminder_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminder_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminder_logs_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "payment_reminder_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminder_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminder_schedules: {
+        Row: {
+          body_template: string
+          channel: string
+          created_at: string
+          created_by: string
+          days_offset: number
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          name_en: string | null
+          subject_template: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_template?: string
+          channel?: string
+          created_at?: string
+          created_by: string
+          days_offset?: number
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          name_en?: string | null
+          subject_template?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_template?: string
+          channel?: string
+          created_at?: string
+          created_by?: string
+          days_offset?: number
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          name_en?: string | null
+          subject_template?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminder_schedules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permission_definitions: {
         Row: {
           category: string

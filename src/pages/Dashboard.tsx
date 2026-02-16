@@ -34,6 +34,7 @@ import ChatPage from "@/components/collaboration/ChatPage";
 import JournalEntriesPage from "@/components/journal/JournalEntriesPage";
 import AccountantDashboard from "@/components/productivity/AccountantDashboard";
 import SupplierInboxPage from "@/components/supplier-inbox/SupplierInboxPage";
+import PaymentRemindersPage from "@/components/reminders/PaymentRemindersPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -67,6 +68,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   finance: "finance",
   "journal-entries": "journal-entries",
   "supplier-inbox": "supplier-inbox",
+  "payment-reminders": "payment-reminders",
   "productivity": "dashboard",
   "sheet-view": "sheet-view",
   branches: "branches",
@@ -125,6 +127,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/supplier-inbox") {
       return <SupplierInboxPage />;
+    }
+    if (path === "/dashboard/payment-reminders") {
+      return <PaymentRemindersPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;
