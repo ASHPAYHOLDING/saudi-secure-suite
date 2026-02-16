@@ -1,0 +1,45 @@
+import { Bell, Search, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const DashboardTopbar = () => {
+  return (
+    <header dir="rtl" className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-6">
+      {/* Search */}
+      <div className="flex items-center gap-3">
+        <div className="relative hidden md:block">
+          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="ابحث في النظام..."
+            className="h-9 w-72 rounded-lg border border-input bg-secondary/50 pr-9 pl-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3">
+        {/* Notifications */}
+        <Button variant="ghost" size="icon" className="relative h-9 w-9 text-muted-foreground hover:text-foreground">
+          <Bell size={18} />
+          <span className="absolute -top-0.5 -left-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
+            3
+          </span>
+        </Button>
+
+        {/* User */}
+        <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 cursor-pointer hover:bg-secondary/50 transition-colors">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <span className="text-xs font-bold">أ</span>
+          </div>
+          <div className="hidden md:block">
+            <p className="text-xs font-medium text-foreground">أحمد الخالد</p>
+            <p className="text-[10px] text-muted-foreground font-english">Owner</p>
+          </div>
+          <ChevronDown size={14} className="text-muted-foreground" />
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default DashboardTopbar;
