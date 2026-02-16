@@ -11,6 +11,7 @@ import InventoryPage from "@/components/inventory/InventoryPage";
 import QuotationsPage from "@/components/quotations/QuotationsPage";
 import SalesOrdersPage from "@/components/sales-orders/SalesOrdersPage";
 import PurchaseOrdersPage from "@/components/purchase-orders/PurchaseOrdersPage";
+import DeliveryNotesPage from "@/components/delivery-notes/DeliveryNotesPage";
 import ExpensesPage from "@/components/expenses/ExpensesPage";
 import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import BrandingSettings from "@/components/branding/BrandingSettings";
@@ -30,6 +31,7 @@ import FinancialOverview from "@/components/finance/FinancialOverview";
 import BranchManagement from "@/components/branches/BranchManagement";
 import PermissionsManagement from "@/components/permissions/PermissionsManagement";
 import ChatPage from "@/components/collaboration/ChatPage";
+import JournalEntriesPage from "@/components/journal/JournalEntriesPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -46,6 +48,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   quotations: "quotations",
   "sales-orders": "sales-orders",
   "purchase-orders": "purchase-orders",
+  "delivery-notes": "delivery-notes",
   expenses: "expenses",
   inventory: "inventory",
   stamp: "stamp",
@@ -59,6 +62,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   "vat-return": "reports",
   analytics: "analytics",
   finance: "finance",
+  "journal-entries": "journal-entries",
   "sheet-view": "sheet-view",
   branches: "branches",
   chat: "chat",
@@ -104,6 +108,12 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/expenses") {
       return <ExpensesPage />;
+    }
+    if (path === "/dashboard/delivery-notes") {
+      return <DeliveryNotesPage />;
+    }
+    if (path === "/dashboard/journal-entries") {
+      return <JournalEntriesPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;

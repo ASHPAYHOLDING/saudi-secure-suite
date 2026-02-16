@@ -720,6 +720,147 @@ export type Database = {
           },
         ]
       }
+      delivery_note_items: {
+        Row: {
+          created_at: string
+          delivery_note_id: string
+          description: string
+          id: string
+          product_id: string | null
+          quantity: number
+          sort_order: number
+          tenant_id: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_note_id: string
+          description: string
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sort_order?: number
+          tenant_id: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_note_id?: string
+          description?: string
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sort_order?: number
+          tenant_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_note_items_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_note_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_note_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_notes: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          delivery_date: string
+          id: string
+          note_number: string
+          note_type: string
+          notes: string | null
+          source_id: string | null
+          source_type: string | null
+          status: string
+          supplier_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          delivery_date?: string
+          id?: string
+          note_number: string
+          note_type?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          supplier_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          delivery_date?: string
+          id?: string
+          note_number?: string
+          note_type?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_notes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
@@ -764,6 +905,53 @@ export type Database = {
           },
           {
             foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_lifecycle: {
+        Row: {
+          change_reason: string | null
+          changed_by: string
+          created_at: string
+          document_id: string
+          document_type: string
+          from_status: string | null
+          id: string
+          metadata: Json | null
+          tenant_id: string
+          to_status: string
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by: string
+          created_at?: string
+          document_id: string
+          document_type: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          tenant_id: string
+          to_status: string
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string
+          created_at?: string
+          document_id?: string
+          document_type?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          tenant_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_lifecycle_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1439,6 +1627,129 @@ export type Database = {
           },
         ]
       }
+      journal_entries: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          entry_date: string
+          entry_number: string
+          id: string
+          posted_at: string | null
+          posted_by: string | null
+          source_id: string | null
+          source_type: string | null
+          status: string
+          tenant_id: string
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          entry_date?: string
+          entry_number: string
+          id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          tenant_id: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          entry_date?: string
+          entry_number?: string
+          id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          tenant_id?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entry_lines: {
+        Row: {
+          account_name: string
+          created_at: string
+          credit: number
+          debit: number
+          description: string | null
+          id: string
+          journal_entry_id: string
+          sort_order: number
+          tenant_id: string
+        }
+        Insert: {
+          account_name: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          journal_entry_id: string
+          sort_order?: number
+          tenant_id: string
+        }
+        Update: {
+          account_name?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          journal_entry_id?: string
+          sort_order?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -1936,6 +2247,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           branch_id: string | null
+          converted_grn_id: string | null
           created_at: string
           created_by: string
           currency: string
@@ -1961,6 +2273,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           branch_id?: string | null
+          converted_grn_id?: string | null
           created_at?: string
           created_by: string
           currency?: string
@@ -1986,6 +2299,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           branch_id?: string | null
+          converted_grn_id?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -2013,6 +2327,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_converted_grn_id_fkey"
+            columns: ["converted_grn_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
             referencedColumns: ["id"]
           },
           {
@@ -2365,6 +2686,7 @@ export type Database = {
         Row: {
           branch_id: string | null
           cancelled_at: string | null
+          converted_delivery_note_id: string | null
           converted_invoice_id: string | null
           created_at: string
           created_by: string
@@ -2390,6 +2712,7 @@ export type Database = {
         Insert: {
           branch_id?: string | null
           cancelled_at?: string | null
+          converted_delivery_note_id?: string | null
           converted_invoice_id?: string | null
           created_at?: string
           created_by: string
@@ -2415,6 +2738,7 @@ export type Database = {
         Update: {
           branch_id?: string | null
           cancelled_at?: string | null
+          converted_delivery_note_id?: string | null
           converted_invoice_id?: string | null
           created_at?: string
           created_by?: string
@@ -2443,6 +2767,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_orders_converted_delivery_note_id_fkey"
+            columns: ["converted_delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
             referencedColumns: ["id"]
           },
           {
