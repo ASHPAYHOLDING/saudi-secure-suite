@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   ShieldCheck,
@@ -11,8 +11,12 @@ import {
   FileText,
   Lock,
   Info,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ComplianceState {
   vatRegistered: boolean;
@@ -24,17 +28,68 @@ interface ComplianceState {
 }
 
 const ComplianceSettings = () => {
+  const { tenantId } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [state, setState] = useState<ComplianceState>({
-    vatRegistered: true,
+    vatRegistered: false,
     vatPercentage: 15,
-    crNumber: "1010234567",
-    vatNumber: "310123456700003",
-    zatcaPhase1: true,
+    crNumber: "",
+    vatNumber: "",
+    zatcaPhase1: false,
     zatcaPhase2Ready: false,
   });
 
+  const fetchTenant = useCallback(async () => {
+    if (!tenantId) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("tenants")
+      .select("vat_registered, vat_percentage, cr_number, vat_number, zatca_phase1_enabled, zatca_phase2_ready")
+      .eq("id", tenantId)
+      .single();
+    if (data) {
+      setState({
+        vatRegistered: data.vat_registered,
+        vatPercentage: data.vat_percentage,
+        crNumber: data.cr_number || "",
+        vatNumber: data.vat_number || "",
+        zatcaPhase1: data.zatca_phase1_enabled,
+        zatcaPhase2Ready: data.zatca_phase2_ready,
+      });
+    }
+    setLoading(false);
+  }, [tenantId]);
+
+  useEffect(() => { fetchTenant(); }, [fetchTenant]);
+
   const update = (partial: Partial<ComplianceState>) => {
     setState((prev) => ({ ...prev, ...partial }));
+  };
+
+  const handleSave = async () => {
+    if (!tenantId) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("tenants")
+      .update({
+        vat_registered: state.vatRegistered,
+        vat_percentage: state.vatPercentage,
+        cr_number: state.crNumber || null,
+        vat_number: state.vatNumber || null,
+        zatca_phase1_enabled: state.zatcaPhase1,
+        zatca_phase2_ready: state.zatcaPhase2Ready,
+        compliance_verified_at: new Date().toISOString(),
+      })
+      .eq("id", tenantId);
+
+    if (error) {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "تم حفظ إعدادات الامتثال بنجاح" });
+    }
+    setSaving(false);
   };
 
   // Validation checks
@@ -75,6 +130,10 @@ const ComplianceSettings = () => {
   const requiredTotal = checks.filter((c) => c.required).length;
   const allRequiredPassed = requiredPassed === requiredTotal;
 
+  if (loading) {
+    return <div className="flex justify-center items-center py-32"><Loader2 className="h-8 w-8 animate-spin text-accent" /></div>;
+  }
+
   return (
     <div dir="rtl" className="space-y-6 p-6">
       {/* Header */}
@@ -88,8 +147,8 @@ const ComplianceSettings = () => {
             إعدادات ضريبة القيمة المضافة ومتطلبات هيئة الزكاة والضريبة والجمارك (ZATCA)
           </p>
         </div>
-        <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Save size={16} />
+        <Button onClick={handleSave} disabled={saving} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           حفظ الإعدادات
         </Button>
       </div>
@@ -385,50 +444,28 @@ const ComplianceSettings = () => {
                     <p className="text-[10px] text-muted-foreground font-english">{check.detail}</p>
                   </div>
                   {check.required && (
-                    <span className="text-[9px] text-muted-foreground shrink-0">إلزامي</span>
+                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${check.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                      {check.passed ? "✓" : "إلزامي"}
+                    </span>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* Enforcement Notice */}
-            <div className="mt-6 rounded-lg border border-accent/20 bg-accent/5 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Lock size={14} className="text-accent" />
-                <span className="text-xs font-semibold text-foreground">حماية إلزامية</span>
-              </div>
-              <div className="space-y-1.5 text-[10px] text-muted-foreground leading-relaxed">
-                <p>• لا يمكن إصدار فاتورة بدون ضريبة إذا كانت المنشأة مسجّلة</p>
-                <p>• لا يمكن إصدار فاتورة بدون سجل تجاري ورقم ضريبي عند تفعيل ZATCA</p>
-                <p>• جميع القيود تُطبّق على مستوى قاعدة البيانات (لا يمكن تجاوزها)</p>
-                <p>• يتم تسجيل جميع التغييرات في سجل المراجعة تلقائياً</p>
-              </div>
-            </div>
-
-            {/* ZATCA Architecture Info */}
-            <div className="mt-4 rounded-lg border border-border p-4">
-              <h4 className="text-xs font-semibold text-foreground mb-2">البنية التقنية للمرحلة الثانية</h4>
-              <div className="space-y-2 text-[10px] text-muted-foreground">
-                <div className="flex items-center justify-between py-1 border-b border-border/50">
-                  <span>XML Schema (UBL 2.1)</span>
-                  <span className="text-success font-english">Ready ✓</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-border/50">
-                  <span>QR Code (TLV Encoding)</span>
-                  <span className="text-success font-english">Ready ✓</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-border/50">
-                  <span>API Integration Endpoints</span>
-                  <span className="text-success font-english">Ready ✓</span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-border/50">
-                  <span>Digital Signature (X.509)</span>
-                  <span className="text-warning font-english">Pending</span>
-                </div>
-                <div className="flex items-center justify-between py-1">
-                  <span>ZATCA Sandbox Testing</span>
-                  <span className="text-warning font-english">Pending</span>
-                </div>
+            {/* Legal References */}
+            <div className="mt-6 pt-4 border-t border-border">
+              <h4 className="text-[10px] font-semibold text-muted-foreground mb-2">المراجع النظامية</h4>
+              <div className="space-y-1.5">
+                {[
+                  "نظام ضريبة القيمة المضافة — المادة 53",
+                  "لائحة الفوترة الإلكترونية — ZATCA",
+                  "نظام حماية البيانات الشخصية — PDPL",
+                ].map((ref) => (
+                  <p key={ref} className="text-[9px] text-muted-foreground flex items-center gap-1.5">
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground/30 shrink-0" />
+                    {ref}
+                  </p>
+                ))}
               </div>
             </div>
           </motion.div>
