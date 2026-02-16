@@ -132,6 +132,18 @@ const AdminCompanies = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Realtime subscription for tenants, members, invoices, contracts, subscriptions
+    const channel = supabase
+      .channel('admin-companies-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tenants' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tenant_members' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, () => fetchData())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const fetchData = async () => {
