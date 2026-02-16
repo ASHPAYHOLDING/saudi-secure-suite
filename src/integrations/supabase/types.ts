@@ -269,6 +269,54 @@ export type Database = {
           },
         ]
       }
+      customer_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string
+          customer_id: string
+          description: string | null
+          id: string
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          tenant_id: string
+          title?: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_activities_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_activities_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address_city: string | null
@@ -284,6 +332,7 @@ export type Database = {
           name_en: string | null
           notes: string | null
           phone: string | null
+          tags: string[] | null
           tenant_id: string
           updated_at: string
           vat_number: string | null
@@ -302,6 +351,7 @@ export type Database = {
           name_en?: string | null
           notes?: string | null
           phone?: string | null
+          tags?: string[] | null
           tenant_id: string
           updated_at?: string
           vat_number?: string | null
@@ -320,6 +370,7 @@ export type Database = {
           name_en?: string | null
           notes?: string | null
           phone?: string | null
+          tags?: string[] | null
           tenant_id?: string
           updated_at?: string
           vat_number?: string | null
