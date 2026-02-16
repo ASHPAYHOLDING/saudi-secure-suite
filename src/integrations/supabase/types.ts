@@ -1071,6 +1071,63 @@ export type Database = {
           },
         ]
       }
+      invoice_delivery_log: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          invoice_id: string
+          message_body: string | null
+          metadata: Json | null
+          recipient: string
+          sent_at: string
+          sent_by: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          message_body?: string | null
+          metadata?: Json | null
+          recipient?: string
+          sent_at?: string
+          sent_by: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          message_body?: string | null
+          metadata?: Json | null
+          recipient?: string
+          sent_at?: string
+          sent_by?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_delivery_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_delivery_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -1127,6 +1184,53 @@ export type Database = {
           },
           {
             foreignKeyName: "invoice_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_message_templates: {
+        Row: {
+          body_template: string
+          channel: string
+          created_at: string
+          created_by: string
+          id: string
+          is_default: boolean
+          name: string
+          subject: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_template?: string
+          channel?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          subject?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_template?: string
+          channel?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          subject?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_message_templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
