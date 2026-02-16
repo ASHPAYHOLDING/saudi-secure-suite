@@ -27,6 +27,7 @@ import IntegrationsPage from "@/components/integrations/IntegrationsPage";
 import SheetViewPage from "@/components/sheet-view/SheetViewPage";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import BranchManagement from "@/components/branches/BranchManagement";
+import PermissionsManagement from "@/components/permissions/PermissionsManagement";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -141,6 +142,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/branches") {
       return <BranchManagement />;
+    }
+    if (path === "/dashboard/permissions") {
+      return <PermissionsManagement />;
     }
     if (path === "/dashboard/subscription") {
       return <SubscriptionPage />;
