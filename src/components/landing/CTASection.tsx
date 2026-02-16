@@ -48,7 +48,7 @@ const CTASection = () => {
                 </Button>
               </Link>
               <a href="#contact">
-                <Button variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 px-8 py-6 text-base">
+                <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm">
                   تواصل مع فريق المبيعات
                 </Button>
               </a>
