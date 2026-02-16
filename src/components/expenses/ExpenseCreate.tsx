@@ -102,8 +102,8 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
     setUploadingReceipt(true);
     const { error } = await supabase.storage.from("expense-receipts").upload(path, file);
     if (error) { toast({ title: "خطأ في رفع الملف", description: error.message, variant: "destructive" }); setUploadingReceipt(false); return; }
-    const { data: urlData } = supabase.storage.from("expense-receipts").getPublicUrl(path);
-    setReceiptUrl(urlData.publicUrl);
+    const { data: urlData } = await supabase.storage.from("expense-receipts").createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year
+    setReceiptUrl(urlData?.signedUrl || null);
     setReceiptFilename(file.name);
     setUploadingReceipt(false);
   };

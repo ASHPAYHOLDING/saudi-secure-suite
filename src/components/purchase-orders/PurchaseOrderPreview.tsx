@@ -47,12 +47,17 @@ const PurchaseOrderPreview = ({ orderId, onBack }: Props) => {
 
   const handleReceive = async () => {
     setActionLoading("receive");
+    
+    // Re-fetch fresh items to avoid stale state
+    const { data: freshItems } = await supabase.from("purchase_order_items").select("*, products(name)").eq("purchase_order_id", orderId!).order("sort_order");
+    const currentItems = freshItems || items;
+    
     // Update delivery status
     const { error: poErr } = await supabase.from("purchase_orders").update({ delivery_status: "delivered", delivered_at: new Date().toISOString() }).eq("id", orderId!);
     if (poErr) { toast.error(poErr.message); setActionLoading(""); return; }
 
     // Update inventory for each item with a product_id
-    for (const item of items) {
+    for (const item of currentItems) {
       if (item.product_id) {
         const { error } = await supabase.rpc("record_stock_movement", {
           _product_id: item.product_id,
