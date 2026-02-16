@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Printer, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils"
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
+import ZatcaPhase2Status from "@/components/invoices/ZatcaPhase2Status";
 import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,26 +26,25 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const [company, setCompany] = useState<any>(null);
   const [customer, setCustomer] = useState<any>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!invoiceId || !tenantId) { setLoading(false); return; }
+  const loadInvoice = useCallback(async () => {
+    if (!invoiceId || !tenantId) { setLoading(false); return; }
 
-      const [invRes, itemsRes, tenantRes] = await Promise.all([
-        supabase.from("invoices").select("*, customers(name, name_en, vat_number, cr_number, address_street, address_city, phone, email)").eq("id", invoiceId).single(),
-        supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("sort_order"),
-        supabase.from("tenants").select("name, name_en, cr_number, vat_number, address_street, address_city, phone, email, logo_url").eq("id", tenantId).single(),
-      ]);
+    const [invRes, itemsRes, tenantRes] = await Promise.all([
+      supabase.from("invoices").select("*, customers(name, name_en, vat_number, cr_number, address_street, address_city, phone, email)").eq("id", invoiceId).single(),
+      supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("sort_order"),
+      supabase.from("tenants").select("name, name_en, cr_number, vat_number, address_street, address_city, phone, email, logo_url, zatca_phase2_ready").eq("id", tenantId).single(),
+    ]);
 
-      if (invRes.data) {
-        setInvoice(invRes.data);
-        setCustomer(invRes.data.customers);
-      }
-      if (itemsRes.data) setItems(itemsRes.data);
-      if (tenantRes.data) setCompany(tenantRes.data);
-      setLoading(false);
-    };
-    load();
+    if (invRes.data) {
+      setInvoice(invRes.data);
+      setCustomer(invRes.data.customers);
+    }
+    if (itemsRes.data) setItems(itemsRes.data);
+    if (tenantRes.data) setCompany(tenantRes.data);
+    setLoading(false);
   }, [invoiceId, tenantId]);
+
+  useEffect(() => { loadInvoice(); }, [loadInvoice]);
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -296,6 +296,13 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               </div>
             </div>
           </div>
+
+          {/* ===== ZATCA Phase 2 Status ===== */}
+          {company?.zatca_phase2_ready && (
+            <div className="px-6 sm:px-8 pb-4">
+              <ZatcaPhase2Status invoice={invoice} onUpdate={loadInvoice} />
+            </div>
+          )}
 
           {/* ===== DOCUMENT FOOTER ===== */}
           <div className="border-t border-border px-6 sm:px-8 py-3" style={{ background: 'hsl(210 20% 97%)' }}>

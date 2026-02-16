@@ -25,6 +25,10 @@ interface ComplianceState {
   vatNumber: string;
   zatcaPhase1: boolean;
   zatcaPhase2Ready: boolean;
+  zatcaEnvironment: string;
+  zatcaComplianceCsid: string;
+  zatcaProductionCsid: string;
+  zatcaOtp: string;
 }
 
 const ComplianceSettings = () => {
@@ -39,6 +43,10 @@ const ComplianceSettings = () => {
     vatNumber: "",
     zatcaPhase1: false,
     zatcaPhase2Ready: false,
+    zatcaEnvironment: "sandbox",
+    zatcaComplianceCsid: "",
+    zatcaProductionCsid: "",
+    zatcaOtp: "",
   });
 
   const fetchTenant = useCallback(async () => {
@@ -46,7 +54,7 @@ const ComplianceSettings = () => {
     setLoading(true);
     const { data } = await supabase
       .from("tenants")
-      .select("vat_registered, vat_percentage, cr_number, vat_number, zatca_phase1_enabled, zatca_phase2_ready")
+      .select("vat_registered, vat_percentage, cr_number, vat_number, zatca_phase1_enabled, zatca_phase2_ready, zatca_environment, zatca_compliance_csid, zatca_production_csid, zatca_otp")
       .eq("id", tenantId)
       .single();
     if (data) {
@@ -57,6 +65,10 @@ const ComplianceSettings = () => {
         vatNumber: data.vat_number || "",
         zatcaPhase1: data.zatca_phase1_enabled,
         zatcaPhase2Ready: data.zatca_phase2_ready,
+        zatcaEnvironment: data.zatca_environment || "sandbox",
+        zatcaComplianceCsid: data.zatca_compliance_csid || "",
+        zatcaProductionCsid: data.zatca_production_csid || "",
+        zatcaOtp: data.zatca_otp || "",
       });
     }
     setLoading(false);
@@ -80,6 +92,10 @@ const ComplianceSettings = () => {
         vat_number: state.vatNumber || null,
         zatca_phase1_enabled: state.zatcaPhase1,
         zatca_phase2_ready: state.zatcaPhase2Ready,
+        zatca_environment: state.zatcaEnvironment,
+        zatca_compliance_csid: state.zatcaComplianceCsid || null,
+        zatca_production_csid: state.zatcaProductionCsid || null,
+        zatca_otp: state.zatcaOtp || null,
         compliance_verified_at: new Date().toISOString(),
       })
       .eq("id", tenantId);
@@ -373,34 +389,125 @@ const ComplianceSettings = () => {
                   <div className="flex items-center gap-2">
                     <div className={`h-2 w-2 rounded-full ${state.zatcaPhase2Ready ? "bg-success" : "bg-warning animate-pulse"}`} />
                     <p className="text-sm font-semibold text-foreground">المرحلة الثانية — التكامل والربط</p>
-                    <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[9px] font-medium text-warning">قيد التجهيز</span>
                   </div>
+                  <button
+                    onClick={() => update({ zatcaPhase2Ready: !state.zatcaPhase2Ready })}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                      state.zatcaPhase2Ready ? "bg-accent" : "bg-muted"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition-transform ${
+                        state.zatcaPhase2Ready ? "-translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                 </div>
                 <div className="space-y-1.5 text-[10px] text-muted-foreground mr-4">
                   <div className="flex items-center gap-1.5">
-                    <Lock size={10} className="text-muted-foreground/50 shrink-0" />
+                    <CheckCircle2 size={10} className={state.zatcaPhase2Ready ? "text-success" : "text-muted-foreground/50"} />
                     <span>ربط API مع منصة فاتورة (ZATCA)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Lock size={10} className="text-muted-foreground/50 shrink-0" />
-                    <span>إصدار XML موقّع رقمياً</span>
+                    <CheckCircle2 size={10} className={state.zatcaPhase2Ready ? "text-success" : "text-muted-foreground/50"} />
+                    <span>إصدار XML موقّع رقمياً (UBL 2.1)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Lock size={10} className="text-muted-foreground/50 shrink-0" />
-                    <span>رمز QR بتشفير TLV متوافق</span>
+                    <CheckCircle2 size={10} className={state.zatcaPhase2Ready ? "text-success" : "text-muted-foreground/50"} />
+                    <span>UUID فريد لكل فاتورة + Hash تسلسلي</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Lock size={10} className="text-muted-foreground/50 shrink-0" />
+                    <CheckCircle2 size={10} className={state.zatcaPhase2Ready ? "text-success" : "text-muted-foreground/50"} />
                     <span>ختم التشفير (Cryptographic Stamp)</span>
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-start gap-2 rounded-lg bg-info/5 border border-info/20 p-2.5">
-                  <Info size={12} className="text-info shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    البنية التحتية للمرحلة الثانية جاهزة (API endpoints، XML schema، QR TLV encoding). سيتم تفعيلها عند اكتمال التكامل مع بوابة ZATCA.
-                  </p>
-                </div>
+                {state.zatcaPhase2Ready && (
+                  <div className="mt-4 space-y-3 border-t border-border pt-4">
+                    <h4 className="text-xs font-semibold text-foreground flex items-center gap-2">
+                      <Lock size={12} className="text-accent" />
+                      بيانات اعتماد ZATCA
+                    </h4>
+
+                    {/* Environment */}
+                    <div>
+                      <label className="text-[10px] text-muted-foreground mb-1 block">البيئة</label>
+                      <div className="flex gap-2">
+                        {[
+                          { value: "sandbox", label: "تجريبي (Sandbox)" },
+                          { value: "production", label: "إنتاج (Production)" },
+                        ].map((env) => (
+                          <button
+                            key={env.value}
+                            onClick={() => update({ zatcaEnvironment: env.value })}
+                            className={`px-3 py-1.5 text-[10px] rounded-lg border font-medium transition-colors ${
+                              state.zatcaEnvironment === env.value
+                                ? "bg-accent text-accent-foreground border-accent"
+                                : "bg-background text-muted-foreground border-border hover:border-accent/50"
+                            }`}
+                          >
+                            {env.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* OTP */}
+                    <div>
+                      <label className="text-[10px] text-muted-foreground mb-1 block">رمز OTP (من بوابة ZATCA)</label>
+                      <input
+                        type="text"
+                        value={state.zatcaOtp}
+                        onChange={(e) => update({ zatcaOtp: e.target.value })}
+                        placeholder="123456"
+                        dir="ltr"
+                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-xs font-english text-left focus:outline-none focus:ring-1 focus:ring-accent"
+                      />
+                    </div>
+
+                    {/* Compliance CSID */}
+                    <div>
+                      <label className="text-[10px] text-muted-foreground mb-1 block">
+                        Compliance CSID {state.zatcaEnvironment === "sandbox" ? "(تجريبي)" : ""}
+                      </label>
+                      <textarea
+                        value={state.zatcaComplianceCsid}
+                        onChange={(e) => update({ zatcaComplianceCsid: e.target.value })}
+                        placeholder="أدخل CSID من بوابة فاتورة..."
+                        dir="ltr"
+                        rows={2}
+                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-[10px] font-english text-left focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                      />
+                    </div>
+
+                    {/* Production CSID */}
+                    <div>
+                      <label className="text-[10px] text-muted-foreground mb-1 block">Production CSID</label>
+                      <textarea
+                        value={state.zatcaProductionCsid}
+                        onChange={(e) => update({ zatcaProductionCsid: e.target.value })}
+                        placeholder="أدخل Production CSID بعد اعتماد المرحلة..."
+                        dir="ltr"
+                        rows={2}
+                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-[10px] font-english text-left focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                      />
+                    </div>
+
+                    <div className="flex items-start gap-2 rounded-lg bg-accent/5 border border-accent/20 p-2.5">
+                      <Info size={12} className="text-accent shrink-0 mt-0.5" />
+                      <div className="text-[10px] text-muted-foreground leading-relaxed">
+                        <p className="font-semibold text-foreground mb-1">خطوات الربط مع بوابة فاتورة:</p>
+                        <ol className="list-decimal mr-3 space-y-0.5">
+                          <li>توليد CSR من النظام أو من جهاز التوقيع</li>
+                          <li>تسجيل الدخول لبوابة فاتورة والحصول على OTP</li>
+                          <li>إرسال CSR + OTP للحصول على Compliance CSID</li>
+                          <li>اختبار الفواتير في البيئة التجريبية</li>
+                          <li>الحصول على Production CSID للإنتاج</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

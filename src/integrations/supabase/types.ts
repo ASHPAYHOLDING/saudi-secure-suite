@@ -739,15 +739,27 @@ export type Database = {
           grand_total: number
           id: string
           invoice_date: string
+          invoice_hash: string | null
           invoice_number: string
           invoice_type: string
+          invoice_uuid: string | null
           notes: string | null
+          previous_invoice_hash: string | null
           status: string
           subtotal: number
           supply_date: string
           tenant_id: string
           updated_at: string
           vat_total: number
+          zatca_clearance_status: string | null
+          zatca_errors: Json | null
+          zatca_reporting_status: string | null
+          zatca_response: Json | null
+          zatca_signed_xml: string | null
+          zatca_status: string | null
+          zatca_submitted_at: string | null
+          zatca_warnings: Json | null
+          zatca_xml: string | null
         }
         Insert: {
           amount_due?: number
@@ -761,15 +773,27 @@ export type Database = {
           grand_total?: number
           id?: string
           invoice_date?: string
+          invoice_hash?: string | null
           invoice_number: string
           invoice_type?: string
+          invoice_uuid?: string | null
           notes?: string | null
+          previous_invoice_hash?: string | null
           status?: string
           subtotal?: number
           supply_date?: string
           tenant_id: string
           updated_at?: string
           vat_total?: number
+          zatca_clearance_status?: string | null
+          zatca_errors?: Json | null
+          zatca_reporting_status?: string | null
+          zatca_response?: Json | null
+          zatca_signed_xml?: string | null
+          zatca_status?: string | null
+          zatca_submitted_at?: string | null
+          zatca_warnings?: Json | null
+          zatca_xml?: string | null
         }
         Update: {
           amount_due?: number
@@ -783,15 +807,27 @@ export type Database = {
           grand_total?: number
           id?: string
           invoice_date?: string
+          invoice_hash?: string | null
           invoice_number?: string
           invoice_type?: string
+          invoice_uuid?: string | null
           notes?: string | null
+          previous_invoice_hash?: string | null
           status?: string
           subtotal?: number
           supply_date?: string
           tenant_id?: string
           updated_at?: string
           vat_total?: number
+          zatca_clearance_status?: string | null
+          zatca_errors?: Json | null
+          zatca_reporting_status?: string | null
+          zatca_response?: Json | null
+          zatca_signed_xml?: string | null
+          zatca_status?: string | null
+          zatca_submitted_at?: string | null
+          zatca_warnings?: Json | null
+          zatca_xml?: string | null
         }
         Relationships: [
           {
@@ -2192,9 +2228,14 @@ export type Database = {
           vat_number: string | null
           vat_percentage: number
           vat_registered: boolean
+          zatca_compliance_csid: string | null
+          zatca_environment: string | null
           zatca_integration_id: string | null
+          zatca_otp: string | null
           zatca_phase1_enabled: boolean
           zatca_phase2_ready: boolean
+          zatca_production_csid: string | null
+          zatca_request_id: string | null
         }
         Insert: {
           address_city?: string | null
@@ -2226,9 +2267,14 @@ export type Database = {
           vat_number?: string | null
           vat_percentage?: number
           vat_registered?: boolean
+          zatca_compliance_csid?: string | null
+          zatca_environment?: string | null
           zatca_integration_id?: string | null
+          zatca_otp?: string | null
           zatca_phase1_enabled?: boolean
           zatca_phase2_ready?: boolean
+          zatca_production_csid?: string | null
+          zatca_request_id?: string | null
         }
         Update: {
           address_city?: string | null
@@ -2260,9 +2306,14 @@ export type Database = {
           vat_number?: string | null
           vat_percentage?: number
           vat_registered?: boolean
+          zatca_compliance_csid?: string | null
+          zatca_environment?: string | null
           zatca_integration_id?: string | null
+          zatca_otp?: string | null
           zatca_phase1_enabled?: boolean
           zatca_phase2_ready?: boolean
+          zatca_production_csid?: string | null
+          zatca_request_id?: string | null
         }
         Relationships: []
       }

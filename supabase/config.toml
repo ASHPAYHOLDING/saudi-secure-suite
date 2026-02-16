@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.admin-ai-chat]
 verify_jwt = false
+
+[functions.zatca-phase2]
+verify_jwt = false
