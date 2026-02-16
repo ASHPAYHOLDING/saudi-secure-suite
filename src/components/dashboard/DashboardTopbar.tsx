@@ -1,7 +1,8 @@
-import { Bell, Search, ChevronDown, LogOut } from "lucide-react";
+import { Search, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const DashboardTopbar = () => {
   const { profile, signOut } = useAuth();
@@ -31,12 +32,7 @@ const DashboardTopbar = () => {
       {/* Actions */}
       <div className="flex items-center gap-3">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 text-muted-foreground hover:text-foreground">
-          <Bell size={18} />
-          <span className="absolute -top-0.5 -left-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-            3
-          </span>
-        </Button>
+        <NotificationBell />
 
         {/* Sign Out */}
         <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={handleSignOut}>
