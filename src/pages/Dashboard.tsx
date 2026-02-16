@@ -32,6 +32,8 @@ import BranchManagement from "@/components/branches/BranchManagement";
 import PermissionsManagement from "@/components/permissions/PermissionsManagement";
 import ChatPage from "@/components/collaboration/ChatPage";
 import JournalEntriesPage from "@/components/journal/JournalEntriesPage";
+import AccountantDashboard from "@/components/productivity/AccountantDashboard";
+import CommandPalette from "@/components/productivity/CommandPalette";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -63,6 +65,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   analytics: "analytics",
   finance: "finance",
   "journal-entries": "journal-entries",
+  "productivity": "dashboard",
   "sheet-view": "sheet-view",
   branches: "branches",
   chat: "chat",
@@ -114,6 +117,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/journal-entries") {
       return <JournalEntriesPage />;
+    }
+    if (path === "/dashboard/productivity") {
+      return <AccountantDashboard />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;
@@ -193,6 +199,7 @@ const Dashboard = () => {
               )}
             >
               <DashboardTopbar />
+              <CommandPalette />
               <UpgradeBanner />
               {renderContent()}
             </div>

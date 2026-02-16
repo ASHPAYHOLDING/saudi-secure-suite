@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen,
+  Truck, BookOpen, Zap,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
+  { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
   { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
   { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
