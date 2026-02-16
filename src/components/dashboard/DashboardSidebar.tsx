@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
+  UsersRound,
   FileText,
   Settings,
   BarChart3,
@@ -26,6 +27,7 @@ const mainMenu = [
   { icon: FileSignature, label: "العقود", path: "/dashboard/contracts" },
   { icon: FileText, label: "التقارير", path: "/dashboard/reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics" },
+  { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team" },
 ];
 
 const settingsMenu = [
