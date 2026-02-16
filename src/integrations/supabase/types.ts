@@ -1785,6 +1785,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_smart_notifications: { Args: never; Returns: undefined }
       get_user_role: {
         Args: { _tenant_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

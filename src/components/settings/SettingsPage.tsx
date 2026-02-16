@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, User, Bell, Lock, Globe, Loader2 } from "lucide-react";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -124,6 +125,15 @@ const SettingsPage = () => {
           {section.content}
         </motion.div>
       ))}
+
+      {/* Notification Preferences */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: sections.length * 0.1 }}
+      >
+        <NotificationPreferences />
+      </motion.div>
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="min-w-[120px]">
