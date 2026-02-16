@@ -1,8 +1,16 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import type { TenantType } from "@/lib/tenant-modules";
 import type { AppRole } from "@/lib/roles";
+
+export interface TenantInfo {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  logoUrl: string | null;
+  role: AppRole;
+}
 
 interface AuthContextValue {
   user: User | null;
@@ -12,6 +20,10 @@ interface AuthContextValue {
   tenantType: TenantType | null;
   userRole: AppRole | null;
   profile: { full_name: string; full_name_en: string | null; email: string; phone: string | null; job_title: string | null; language: string; timezone: string } | null;
+  /** All tenants the current user belongs to */
+  userTenants: TenantInfo[];
+  /** Switch to a different tenant without logging out */
+  switchTenant: (tenantId: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -23,6 +35,8 @@ const AuthContext = createContext<AuthContextValue>({
   tenantType: null,
   userRole: null,
   profile: null,
+  userTenants: [],
+  switchTenant: async () => {},
   signOut: async () => {},
 });
 
@@ -36,6 +50,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [tenantType, setTenantType] = useState<TenantType | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [profile, setProfile] = useState<{ full_name: string; full_name_en: string | null; email: string; phone: string | null; job_title: string | null; language: string; timezone: string } | null>(null);
+  const [userTenants, setUserTenants] = useState<TenantInfo[]>([]);
+
+  // Load tenant-specific data (type + role)
+  const loadTenantData = useCallback(async (tid: string, userId: string) => {
+    const [tenantRes, memberRes] = await Promise.all([
+      supabase.from("tenants").select("tenant_type").eq("id", tid).single(),
+      supabase.from("tenant_members").select("role").eq("tenant_id", tid).eq("user_id", userId).single(),
+    ]);
+    setTenantType((tenantRes.data?.tenant_type as TenantType) ?? "company");
+    setUserRole((memberRes.data?.role as AppRole) ?? null);
+  }, []);
+
+  // Load all tenants the user belongs to
+  const loadUserTenants = useCallback(async (userId: string) => {
+    const { data: memberships } = await supabase
+      .from("tenant_members")
+      .select("tenant_id, role, tenants:tenant_id(id, name, name_en, logo_url)")
+      .eq("user_id", userId);
+
+    if (memberships) {
+      const tenants: TenantInfo[] = memberships
+        .filter((m: any) => m.tenants)
+        .map((m: any) => ({
+          id: m.tenants.id,
+          name: m.tenants.name,
+          nameEn: m.tenants.name_en,
+          logoUrl: m.tenants.logo_url,
+          role: m.role as AppRole,
+        }));
+      setUserTenants(tenants);
+    }
+  }, []);
+
+  // Switch tenant
+  const switchTenant = useCallback(async (newTenantId: string) => {
+    if (!user || newTenantId === tenantId) return;
+
+    // Verify user has access
+    const target = userTenants.find((t) => t.id === newTenantId);
+    if (!target) return;
+
+    setTenantId(newTenantId);
+    setUserRole(target.role);
+
+    // Update profile.tenant_id so the rest of the app picks up
+    await supabase.from("profiles").update({ tenant_id: newTenantId }).eq("id", user.id);
+
+    // Load tenant type
+    const { data: tenantData } = await supabase.from("tenants").select("tenant_type").eq("id", newTenantId).single();
+    setTenantType((tenantData?.tenant_type as TenantType) ?? "company");
+  }, [user, tenantId, userTenants]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -44,7 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch profile & tenant in a deferred way to avoid deadlocks
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from("profiles")
@@ -56,14 +120,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setProfile({ full_name: profileData.full_name, full_name_en: profileData.full_name_en, email: profileData.email, phone: profileData.phone, job_title: profileData.job_title, language: profileData.language, timezone: profileData.timezone });
               setTenantId(profileData.tenant_id);
 
-              // Fetch tenant type
+              // Load all user tenants + current tenant data
+              await loadUserTenants(session.user.id);
               if (profileData.tenant_id) {
-                const [tenantRes, memberRes] = await Promise.all([
-                  supabase.from("tenants").select("tenant_type").eq("id", profileData.tenant_id).single(),
-                  supabase.from("tenant_members").select("role").eq("tenant_id", profileData.tenant_id).eq("user_id", session.user.id).single(),
-                ]);
-                setTenantType((tenantRes.data?.tenant_type as TenantType) ?? "company");
-                setUserRole((memberRes.data?.role as AppRole) ?? null);
+                await loadTenantData(profileData.tenant_id, session.user.id);
               }
             }
           }, 0);
@@ -72,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTenantId(null);
           setTenantType(null);
           setUserRole(null);
+          setUserTenants([]);
         }
 
         setLoading(false);
@@ -95,10 +156,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setTenantType(null);
     setUserRole(null);
     setProfile(null);
+    setUserTenants([]);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, tenantId, tenantType, userRole, profile, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, tenantId, tenantType, userRole, profile, userTenants, switchTenant, signOut }}>
       {children}
     </AuthContext.Provider>
   );

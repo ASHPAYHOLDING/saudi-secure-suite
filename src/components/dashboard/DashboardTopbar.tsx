@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import CollaborationNotifications from "@/components/collaboration/CollaborationNotifications";
 import BranchSelector from "@/components/branches/BranchSelector";
+import TenantSwitcher from "@/components/dashboard/TenantSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const DashboardTopbar = () => {
@@ -23,6 +24,7 @@ const DashboardTopbar = () => {
     <header dir={dir} className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-6">
       {/* Search + Branch Selector */}
       <div className="flex items-center gap-3">
+        <TenantSwitcher />
         <BranchSelector />
         <div className="relative hidden md:block">
           <Search size={16} className={`absolute ${dir === "rtl" ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-muted-foreground`} />
