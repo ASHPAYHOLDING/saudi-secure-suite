@@ -17,6 +17,8 @@ import AnalyticsPage from "@/components/analytics/AnalyticsPage";
 import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
 import SubscriptionPage from "@/components/subscription/SubscriptionPage";
+import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
+import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -104,21 +106,24 @@ const Dashboard = () => {
 
   return (
     <BrandingProvider>
-      <div className="min-h-screen bg-background">
-        <DashboardSidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        <div
-          className={cn(
-            "transition-all duration-300",
-            sidebarCollapsed ? "mr-[68px]" : "mr-64"
-          )}
-        >
-          <DashboardTopbar />
-          {renderContent()}
+      <SubscriptionGuard>
+        <div className="min-h-screen bg-background">
+          <DashboardSidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+          <div
+            className={cn(
+              "transition-all duration-300",
+              sidebarCollapsed ? "mr-[68px]" : "mr-64"
+            )}
+          >
+            <DashboardTopbar />
+            <UpgradeBanner />
+            {renderContent()}
+          </div>
         </div>
-      </div>
+      </SubscriptionGuard>
     </BrandingProvider>
   );
 };
