@@ -11,15 +11,17 @@ import {
   LogOut,
   ChevronRight,
   Stamp,
+  FileSignature,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mainMenu = [
   { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard" },
   { icon: Users, label: "المستخدمين", path: "/dashboard/users" },
+  { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing" },
+  { icon: FileSignature, label: "العقود", path: "/dashboard/contracts" },
   { icon: FileText, label: "التقارير", path: "/dashboard/reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics" },
-  { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing" },
 ];
 
 const settingsMenu = [
