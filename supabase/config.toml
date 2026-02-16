@@ -1,1 +1,7 @@
 project_id = "izuyfgzwzszanjpenbmx"
+
+[functions.invite-member]
+verify_jwt = false
+
+[functions.admin-ai-chat]
+verify_jwt = false

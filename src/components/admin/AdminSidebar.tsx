@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   Receipt,
   LayoutTemplate,
+  Bot,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const menuItems = [
   { icon: ShieldAlert, label: "الأمان والتدقيق", path: "/admin/security" },
   { icon: Receipt, label: "المراقبة المالية", path: "/admin/finance" },
   { icon: LayoutTemplate, label: "إدارة القوالب", path: "/admin/templates" },
+  { icon: Bot, label: "المستشار الذكي", path: "/admin/ai" },
 ];
 
 interface AdminSidebarProps {
