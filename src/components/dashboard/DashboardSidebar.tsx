@@ -33,6 +33,7 @@ const mainMenu: { icon: any; label: string; path: string; module: Module }[] = [
   { icon: FileText, label: "التقارير", path: "/dashboard/reports", module: "reports" },
   { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", module: "analytics" },
   { icon: UsersRound, label: "إدارة الفريق", path: "/dashboard/team", module: "team" },
+  { icon: Crown, label: "الاشتراك", path: "/dashboard/subscription", module: "subscription" },
 ];
 
 const settingsMenu: { icon: any; label: string; path: string; module: Module }[] = [

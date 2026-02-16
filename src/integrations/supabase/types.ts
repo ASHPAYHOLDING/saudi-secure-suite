@@ -875,6 +875,7 @@ export type Database = {
         Row: {
           created_at: string
           features: Json
+          grace_period_days: number
           id: string
           is_active: boolean
           max_employees: number | null
@@ -892,6 +893,7 @@ export type Database = {
         Insert: {
           created_at?: string
           features?: Json
+          grace_period_days?: number
           id?: string
           is_active?: boolean
           max_employees?: number | null
@@ -909,6 +911,7 @@ export type Database = {
         Update: {
           created_at?: string
           features?: Json
+          grace_period_days?: number
           id?: string
           is_active?: boolean
           max_employees?: number | null
@@ -932,6 +935,7 @@ export type Database = {
           created_at: string
           current_period_end: string
           current_period_start: string
+          grace_ends_at: string | null
           id: string
           plan_id: string
           status: string
@@ -947,6 +951,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          grace_ends_at?: string | null
           id?: string
           plan_id: string
           status?: string
@@ -962,6 +967,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          grace_ends_at?: string | null
           id?: string
           plan_id?: string
           status?: string
@@ -1203,6 +1209,7 @@ export type Database = {
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      process_subscription_expiry: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"

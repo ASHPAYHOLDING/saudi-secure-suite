@@ -16,6 +16,7 @@ import ReportsPage from "@/components/reports/ReportsPage";
 import AnalyticsPage from "@/components/analytics/AnalyticsPage";
 import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
+import SubscriptionPage from "@/components/subscription/SubscriptionPage";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +36,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   team: "team",
   reports: "reports",
   analytics: "analytics",
+  subscription: "subscription",
   settings: "settings",
   help: "help",
 };
@@ -90,6 +92,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;
+    }
+    if (path === "/dashboard/subscription") {
+      return <SubscriptionPage />;
     }
     if (path === "/dashboard/help") {
       return <HelpPage />;
