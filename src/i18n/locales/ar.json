@@ -82,7 +82,8 @@
     "help": "المساعدة",
     "superAdmin": "لوحة السوبر أدمن",
     "settingsSection": "الإعدادات",
-    "purchaseOrders": "أوامر الشراء"
+    "purchaseOrders": "أوامر الشراء",
+    "chat": "المحادثات"
   },
   "landing": {
     "features": "المميزات",

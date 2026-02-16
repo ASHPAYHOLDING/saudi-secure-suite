@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import CollaborationNotifications from "@/components/collaboration/CollaborationNotifications";
 import BranchSelector from "@/components/branches/BranchSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -48,6 +49,7 @@ const DashboardTopbar = () => {
 
         {/* Notifications */}
         <NotificationBell />
+        <CollaborationNotifications />
 
         {/* Sign Out */}
         <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={handleSignOut}>
