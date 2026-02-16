@@ -884,6 +884,56 @@ export type Database = {
           },
         ]
       }
+      ocr_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          extracted_data: Json | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          model_used: string
+          processing_time_ms: number | null
+          status: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          model_used?: string
+          processing_time_ms?: number | null
+          status?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          model_used?: string
+          processing_time_ms?: number | null
+          status?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_usage_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           created_at: string

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, FileText, Eye, Filter, Loader2 } from "lucide-react";
+import { Plus, Search, FileText, Eye, Filter, Loader2, ScanLine } from "lucide-react";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateShort, getStatusLabel, getStatusColor } from "@/lib/invoice-utils";
@@ -21,10 +21,11 @@ interface InvoiceRow {
 
 interface InvoiceListProps {
   onCreateNew: () => void;
+  onOcrImport?: () => void;
   onViewInvoice: (id: string) => void;
 }
 
-const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
+const InvoiceList = ({ onCreateNew, onOcrImport, onViewInvoice }: InvoiceListProps) => {
   const { tenantId } = useAuth();
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,10 +85,18 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
           <h1 className="text-2xl font-bold text-foreground">الفواتير</h1>
           <p className="text-sm text-muted-foreground mt-1">إدارة وتتبع فواتيرك الضريبية</p>
         </div>
-        <Button onClick={onCreateNew} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-          <Plus size={18} />
-          إنشاء فاتورة
-        </Button>
+        <div className="flex items-center gap-2">
+          {onOcrImport && (
+            <Button variant="outline" onClick={onOcrImport} className="gap-2">
+              <ScanLine size={18} />
+              استيراد OCR
+            </Button>
+          )}
+          <Button onClick={onCreateNew} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
+            <Plus size={18} />
+            إنشاء فاتورة
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

@@ -2,8 +2,9 @@ import { useState } from "react";
 import InvoiceList from "./InvoiceList";
 import InvoiceCreate from "./InvoiceCreate";
 import InvoicePreview from "./InvoicePreview";
+import OcrInvoiceUpload from "./OcrInvoiceUpload";
 
-type View = "list" | "create" | "preview";
+type View = "list" | "create" | "preview" | "ocr";
 
 const InvoicesPage = () => {
   const [view, setView] = useState<View>("list");
@@ -14,6 +15,7 @@ const InvoicesPage = () => {
       {view === "list" && (
         <InvoiceList
           onCreateNew={() => setView("create")}
+          onOcrImport={() => setView("ocr")}
           onViewInvoice={(id) => {
             setSelectedInvoiceId(id);
             setView("preview");
@@ -22,6 +24,15 @@ const InvoicesPage = () => {
       )}
       {view === "create" && (
         <InvoiceCreate
+          onBack={() => setView("list")}
+          onSaved={(id) => {
+            setSelectedInvoiceId(id);
+            setView("preview");
+          }}
+        />
+      )}
+      {view === "ocr" && (
+        <OcrInvoiceUpload
           onBack={() => setView("list")}
           onSaved={(id) => {
             setSelectedInvoiceId(id);
