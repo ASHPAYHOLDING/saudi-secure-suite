@@ -619,6 +619,60 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_templates: {
+        Row: {
+          allow_tenant_customization: boolean
+          body_html: string
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_default: boolean
+          is_locked: boolean
+          name_ar: string
+          name_en: string
+          placeholders: Json
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allow_tenant_customization?: boolean
+          body_html?: string
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          is_locked?: boolean
+          name_ar: string
+          name_en?: string
+          placeholders?: Json
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allow_tenant_customization?: boolean
+          body_html?: string
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          is_locked?: boolean
+          name_ar?: string
+          name_en?: string
+          placeholders?: Json
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
