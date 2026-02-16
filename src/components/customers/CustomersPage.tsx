@@ -16,6 +16,7 @@ import {
   Save,
   Loader2,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
+import CustomerProfile from "./CustomerProfile";
 
 type Customer = Tables<"customers">;
 
@@ -66,6 +68,7 @@ const CustomersPage = () => {
   const [form, setForm] = useState<CustomerForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewingCustomerId, setViewingCustomerId] = useState<string | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     if (!tenantId) return;
@@ -181,6 +184,10 @@ const CustomersPage = () => {
   const updateField = (key: keyof CustomerForm, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  if (viewingCustomerId) {
+    return <CustomerProfile customerId={viewingCustomerId} onBack={() => setViewingCustomerId(null)} />;
+  }
+
   return (
     <div dir="rtl" className="space-y-6 p-6">
       {/* Header */}
@@ -247,8 +254,10 @@ const CustomersPage = () => {
                     className="border-b border-border/50 hover:bg-secondary/20 transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{c.name}</p>
-                      {c.name_en && <p className="text-[10px] text-muted-foreground font-english">{c.name_en}</p>}
+                      <button onClick={() => setViewingCustomerId(c.id)} className="text-right hover:underline">
+                        <p className="font-medium text-foreground">{c.name}</p>
+                        {c.name_en && <p className="text-[10px] text-muted-foreground font-english">{c.name_en}</p>}
+                      </button>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
@@ -270,6 +279,9 @@ const CustomersPage = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => setViewingCustomerId(c.id)}>
+                          <Eye size={14} />
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-accent" onClick={() => openEdit(c)}>
                           <Edit2 size={14} />
                         </Button>
