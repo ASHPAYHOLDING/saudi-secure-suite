@@ -26,9 +26,11 @@ import SubscriptionPage from "@/components/subscription/SubscriptionPage";
 import IntegrationsPage from "@/components/integrations/IntegrationsPage";
 import SheetViewPage from "@/components/sheet-view/SheetViewPage";
 import FinancialOverview from "@/components/finance/FinancialOverview";
+import BranchManagement from "@/components/branches/BranchManagement";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
+import { BranchProvider } from "@/contexts/BranchContext";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
@@ -54,6 +56,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   analytics: "analytics",
   finance: "finance",
   "sheet-view": "sheet-view",
+  branches: "branches",
   integrations: "integrations",
   subscription: "subscription",
   settings: "settings",
@@ -136,6 +139,9 @@ const Dashboard = () => {
     if (path === "/dashboard/sheet-view") {
       return <SheetViewPage />;
     }
+    if (path === "/dashboard/branches") {
+      return <BranchManagement />;
+    }
     if (path === "/dashboard/subscription") {
       return <SubscriptionPage />;
     }
@@ -147,26 +153,28 @@ const Dashboard = () => {
 
   return (
     <BrandingProvider>
-      <SubscriptionGuard>
-        <div className="min-h-screen bg-background">
-          <DashboardSidebar
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          />
-          <div
-            className={cn(
-              "transition-all duration-300",
-              isRTL
-                ? (sidebarCollapsed ? "mr-[68px]" : "mr-64")
-                : (sidebarCollapsed ? "ml-[68px]" : "ml-64")
-            )}
-          >
-            <DashboardTopbar />
-            <UpgradeBanner />
-            {renderContent()}
+      <BranchProvider>
+        <SubscriptionGuard>
+          <div className="min-h-screen bg-background">
+            <DashboardSidebar
+              collapsed={sidebarCollapsed}
+              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            />
+            <div
+              className={cn(
+                "transition-all duration-300",
+                isRTL
+                  ? (sidebarCollapsed ? "mr-[68px]" : "mr-64")
+                  : (sidebarCollapsed ? "ml-[68px]" : "ml-64")
+              )}
+            >
+              <DashboardTopbar />
+              <UpgradeBanner />
+              {renderContent()}
+            </div>
           </div>
-        </div>
-      </SubscriptionGuard>
+        </SubscriptionGuard>
+      </BranchProvider>
     </BrandingProvider>
   );
 };
