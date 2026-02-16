@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contract_templates: {
         Row: {
           body_html: string
@@ -763,6 +802,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_authorized_contracts: {
+        Args: { _tenant_id: string }
+        Returns: boolean
+      }
+      is_authorized_finance: { Args: { _tenant_id: string }; Returns: boolean }
+      is_authorized_hr: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }

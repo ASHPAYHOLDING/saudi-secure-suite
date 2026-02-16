@@ -6,6 +6,7 @@ import DashboardHome from "@/components/dashboard/DashboardHome";
 import InvoicesPage from "@/components/invoices/InvoicesPage";
 import ContractsPage from "@/components/contracts/ContractsPage";
 import StampManagement from "@/components/stamp/StampManagement";
+import AuditLogViewer from "@/components/audit/AuditLogViewer";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
@@ -22,6 +23,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;
+    }
+    if (path === "/dashboard/audit") {
+      return <AuditLogViewer />;
     }
     return <DashboardHome />;
   };
