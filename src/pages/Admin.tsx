@@ -7,6 +7,7 @@ import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminCompanies from "@/components/admin/AdminCompanies";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminUsers from "@/components/admin/AdminUsers";
+import AdminFeatureToggles from "@/components/admin/AdminFeatureToggles";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ const Admin = () => {
     if (path === "/admin/companies") return <AdminCompanies />;
     if (path === "/admin/subscriptions") return <AdminSubscriptions />;
     if (path === "/admin/users") return <AdminUsers />;
+    if (path === "/admin/features") return <AdminFeatureToggles />;
     return <AdminDashboard />;
   };
 

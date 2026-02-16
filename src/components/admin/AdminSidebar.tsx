@@ -7,6 +7,7 @@ import {
   LogOut,
   ChevronRight,
   Shield,
+  ToggleRight,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const menuItems = [
   { icon: Building2, label: "الشركات", path: "/admin/companies" },
   { icon: CreditCard, label: "الاشتراكات", path: "/admin/subscriptions" },
   { icon: Users, label: "المستخدمين", path: "/admin/users" },
+  { icon: ToggleRight, label: "المميزات", path: "/admin/features" },
 ];
 
 interface AdminSidebarProps {
