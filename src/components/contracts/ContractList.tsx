@@ -45,7 +45,16 @@ const ContractList = ({ onCreateNew, onViewContract }: ContractListProps) => {
     setLoading(false);
   }, [tenantId]);
 
-  useEffect(() => { fetchContracts(); }, [fetchContracts]);
+  useEffect(() => {
+    fetchContracts();
+
+    const channel = supabase
+      .channel('contract-list-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => fetchContracts())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchContracts]);
 
   const filtered = contracts.filter((c) => {
     const customerName = c.customers?.name || "";

@@ -35,7 +35,17 @@ const DashboardHome = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (tenantId) fetchAll();
+    if (!tenantId) return;
+    fetchAll();
+
+    const channel = supabase
+      .channel('dashboard-home-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => fetchAll())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [tenantId]);
 
   const fetchAll = async () => {

@@ -81,6 +81,13 @@ const CustomersPage = () => {
 
   useEffect(() => {
     fetchCustomers();
+
+    const channel = supabase
+      .channel('customers-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => fetchCustomers())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [fetchCustomers]);
 
   const filtered = customers.filter(
