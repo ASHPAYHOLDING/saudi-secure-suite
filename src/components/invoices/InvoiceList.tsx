@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, FileText, Eye, Filter, Loader2 } from "lucide-react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateShort, getStatusLabel, getStatusColor } from "@/lib/invoice-utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -233,8 +234,23 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
                 ))}
                 {filteredInvoices.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
-                      {invoices.length === 0 ? "لا توجد فواتير بعد. أنشئ أول فاتورة!" : "لا توجد فواتير مطابقة للبحث"}
+                    <td colSpan={8}>
+                      {invoices.length === 0 ? (
+                        <SmartEmptyState
+                          icon={FileText}
+                          title="لا توجد فواتير بعد"
+                          description="أنشئ أول فاتورة ضريبية متوافقة مع هيئة الزكاة والدخل"
+                          tips={[
+                            "أضف عميلاً أولاً من صفحة العملاء",
+                            "أنشئ فاتورة وأضف البنود والكميات",
+                            "يتم احتساب الضريبة ١٥٪ ورمز QR تلقائياً",
+                          ]}
+                          actionLabel="إنشاء أول فاتورة"
+                          onAction={onCreateNew}
+                        />
+                      ) : (
+                        <p className="py-12 text-center text-muted-foreground">لا توجد فواتير مطابقة للبحث</p>
+                      )}
                     </td>
                   </tr>
                 )}

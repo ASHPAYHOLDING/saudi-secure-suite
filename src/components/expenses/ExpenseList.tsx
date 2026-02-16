@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Receipt, Eye, Pencil, Trash2 } from "lucide-react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
 
@@ -143,7 +144,22 @@ const ExpenseList = ({ onCreateNew, onView, onEdit }: ExpenseListProps) => {
           {isLoading ? (
             <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">لا توجد مصروفات بعد</p>
+            expenses.length === 0 ? (
+              <SmartEmptyState
+                icon={Receipt}
+                title="لا توجد مصروفات بعد"
+                description="سجّل مصروفاتك لتتبع النفقات وإعداد التقارير المالية"
+                tips={[
+                  "أضف عنوان المصروف والمبلغ وطريقة الدفع",
+                  "ارفق إيصال الدفع أو فاتورة المورد",
+                  "أرسل للاعتماد من المدير المسؤول",
+                ]}
+                actionLabel="إضافة أول مصروف"
+                onAction={onCreateNew}
+              />
+            ) : (
+              <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مطابقة للبحث</p>
+            )
           ) : (
             <div className="overflow-x-auto">
               <Table>

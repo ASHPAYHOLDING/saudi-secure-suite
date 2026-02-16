@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Save, Loader2, Upload, X, Receipt } from "lucide-react";
+import { ArrowRight, Save, Loader2, Upload, X, Receipt, AlertCircle } from "lucide-react";
+import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,11 +169,11 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
             <h3 className="text-sm font-semibold text-foreground mb-4">بيانات المصروف</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">العنوان *</label>
+                <FormLabel label="العنوان" required tooltip="وصف مختصر للمصروف مثل: شراء مستلزمات مكتبية، اشتراك برنامج، صيانة مكيفات" />
                 <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="مثال: شراء مستلزمات مكتبية" className={inputClass} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">الفئة</label>
+                <FormLabel label="الفئة" tooltip="تصنيف المصروف يساعد في التقارير المالية. يمكنك إضافة فئة جديدة أدناه" />
                 <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
                   <option value="">— بدون فئة —</option>
                   {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -195,11 +196,11 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
             <h3 className="text-sm font-semibold text-foreground mb-4">البيانات المالية</h3>
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">المبلغ (قبل الضريبة) *</label>
+                <FormLabel label="المبلغ (قبل الضريبة)" required tooltip="أدخل المبلغ الصافي بدون ضريبة القيمة المضافة. سيتم حساب الضريبة تلقائياً" />
                 <input type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} min="0" step="0.01" dir="ltr" className={`${inputClass} text-center font-english`} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">نسبة الضريبة ٪</label>
+                <FormLabel label="نسبة الضريبة ٪" tooltip="١٥٪ هي نسبة ضريبة القيمة المضافة القياسية في السعودية. اختر ٠٪ للمصروفات المعفاة" />
                 <select value={vatRate} onChange={(e) => setVatRate(parseFloat(e.target.value))} className={inputClass}>
                   <option value="0">0٪ (معفى)</option>
                   <option value="5">5٪</option>
@@ -207,7 +208,7 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">طريقة الدفع</label>
+                <FormLabel label="طريقة الدفع" tooltip="حدد كيف تم دفع هذا المصروف لتسهيل المطابقة البنكية" />
                 <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className={inputClass}>
                   {paymentMethods.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>

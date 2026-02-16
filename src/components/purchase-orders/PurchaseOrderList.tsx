@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, Loader2, Eye, Pencil, Truck, DollarSign, Clock, Package } from "lucide-react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,10 +136,24 @@ const PurchaseOrderList = ({ onCreateNew, onView, onEdit }: PurchaseOrderListPro
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <Package size={48} className="mx-auto text-muted-foreground/30 mb-4" />
-          <p className="text-sm text-muted-foreground">{orders.length === 0 ? t("purchaseOrders.noOrders") : t("purchaseOrders.noMatch")}</p>
-        </div>
+        orders.length === 0 ? (
+          <SmartEmptyState
+            icon={Package}
+            title={t("purchaseOrders.noOrders")}
+            description={t("purchaseOrders.subtitle")}
+            tips={[
+              "أضف بيانات المورد أو أنشئ مورد جديد",
+              "أضف بنود الطلب مع الكميات والأسعار",
+              "أرسل للاعتماد ثم تتبع التسليم واستلم البضاعة",
+            ]}
+            actionLabel={t("purchaseOrders.createOrder")}
+            onAction={onCreateNew}
+          />
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-sm text-muted-foreground">{t("purchaseOrders.noMatch")}</p>
+          </div>
+        )
       ) : (
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <div className="overflow-x-auto">
