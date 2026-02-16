@@ -87,7 +87,8 @@
     "deliveryNotes": "إشعارات التسليم",
     "journalEntries": "قيود اليومية",
     "chat": "المحادثات",
-    "productivity": "الإنتاجية"
+    "productivity": "الإنتاجية",
+    "supplierInbox": "صندوق فواتير الموردين"
   },
   "landing": {
     "features": "المميزات",
