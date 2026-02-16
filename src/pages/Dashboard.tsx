@@ -19,6 +19,7 @@ import CustomersPage from "@/components/customers/CustomersPage";
 import CompanySettings from "@/components/company/CompanySettings";
 import TeamMembersPage from "@/components/team/TeamMembersPage";
 import ReportsPage from "@/components/reports/ReportsPage";
+import VatReturnGenerator from "@/components/reports/VatReturnGenerator";
 import AnalyticsPage from "@/components/analytics/AnalyticsPage";
 import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
@@ -55,6 +56,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   company: "company",
   team: "team",
   reports: "reports",
+  "vat-return": "reports",
   analytics: "analytics",
   finance: "finance",
   "sheet-view": "sheet-view",
@@ -126,6 +128,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/reports") {
       return <ReportsPage />;
+    }
+    if (path === "/dashboard/vat-return") {
+      return <VatReturnGenerator />;
     }
     if (path === "/dashboard/analytics") {
       return <AnalyticsPage />;
