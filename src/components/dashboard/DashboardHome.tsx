@@ -4,7 +4,7 @@ import {
   FileText, TrendingUp, CreditCard, FileSignature, Users, Loader2,
   ArrowUpRight, ArrowDownRight, Receipt, Wallet, BarChart3,
   Plus, Eye, Clock, CheckCircle2, AlertTriangle, Zap,
-  PieChart, Target, Sparkles, Activity
+  PieChart, Target, Sparkles, Activity, Lightbulb
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,78 @@ const AnimatedCounter = ({ value, duration = 1.2 }: { value: number; duration?: 
   }, [value, duration]);
 
   return <>{display.toLocaleString("ar-SA")}</>;
+};
+
+// حكمة اليوم المالية - تتغير يومياً
+const FINANCIAL_WISDOMS = [
+  { text: "الميزانية ليست مجرد أرقام، بل هي خارطة طريق لأهدافك المالية", author: "بيتر دراكر", category: "الميزانية" },
+  { text: "لا تنفق ما تبقى بعد الادخار، بل ادخر ما تبقى بعد الإنفاق", author: "وارن بافت", category: "الادخار" },
+  { text: "المحاسبة هي لغة الأعمال", author: "وارن بافت", category: "المحاسبة" },
+  { text: "الإيرادات تأتي من المبيعات، لكن الأرباح تأتي من التحكم بالتكاليف", author: "حكمة إدارية", category: "الربحية" },
+  { text: "التدفق النقدي هو شريان الحياة لأي مشروع تجاري ناجح", author: "ريتشارد برانسون", category: "السيولة" },
+  { text: "في عالم المال، الشفافية هي أساس الثقة بين الشركاء والعملاء", author: "حكمة مالية", category: "الشفافية" },
+  { text: "أفضل استثمار يمكنك القيام به هو الاستثمار في نفسك وفريقك", author: "بنجامين فرانكلين", category: "الاستثمار" },
+  { text: "الفاتورة المنظمة تعكس شركة محترفة وتبني ثقة العميل", author: "حكمة تجارية", category: "الفوترة" },
+  { text: "من يتابع أرقامه يومياً لن تفاجئه النتائج السنوية", author: "حكمة محاسبية", category: "المتابعة" },
+  { text: "الضرائب ليست عبئاً بل مسؤولية وطنية تعزز الاقتصاد", author: "حكمة ضريبية", category: "الالتزام" },
+  { text: "القرار المالي الجيد يعتمد على بيانات دقيقة وليس على الحدس", author: "حكمة إدارية", category: "اتخاذ القرار" },
+  { text: "كل ريال تدخره اليوم هو ريالان في المستقبل", author: "حكمة استثمارية", category: "الادخار" },
+  { text: "النجاح المالي يبدأ بفهم الفرق بين الأصول والخصوم", author: "روبرت كيوساكي", category: "الأساسيات" },
+  { text: "المراجعة الدورية للحسابات تمنع المفاجآت غير السارة", author: "حكمة محاسبية", category: "التدقيق" },
+  { text: "العميل الراضي هو أفضل مصدر للإيرادات المتكررة", author: "حكمة تجارية", category: "العملاء" },
+  { text: "الأرباح ليست فقط ما تكسبه، بل ما تحافظ عليه", author: "حكمة مالية", category: "إدارة الأرباح" },
+  { text: "التخطيط المالي الجيد يحول الأحلام إلى أهداف قابلة للتحقيق", author: "حكمة إدارية", category: "التخطيط" },
+  { text: "إدارة المخزون بذكاء توفر رأس المال وتقلل الهدر", author: "حكمة لوجستية", category: "المخزون" },
+  { text: "الاستثمار في التقنية المالية يوفر الوقت ويقلل الأخطاء", author: "حكمة تقنية", category: "التحول الرقمي" },
+  { text: "لا تؤجل ما يمكن فوترته اليوم إلى الغد", author: "حكمة محاسبية", category: "الفوترة" },
+  { text: "التنويع في مصادر الدخل هو أفضل تأمين ضد المخاطر", author: "حكمة استثمارية", category: "إدارة المخاطر" },
+  { text: "الشركة الناجحة هي التي تعرف تكلفة كل منتج وخدمة تقدمها", author: "حكمة إدارية", category: "محاسبة التكاليف" },
+  { text: "سجّل كل شيء، فالذاكرة تخون لكن الدفاتر لا تكذب", author: "حكمة محاسبية", category: "التوثيق" },
+  { text: "الثقة تُبنى بالتزام المواعيد: مواعيد التسليم ومواعيد السداد", author: "حكمة تجارية", category: "الالتزام" },
+  { text: "رأس المال العامل هو الفرق بين البقاء والازدهار", author: "حكمة مالية", category: "السيولة" },
+  { text: "أفضل وقت للتخطيط الضريبي هو بداية السنة وليس نهايتها", author: "حكمة ضريبية", category: "التخطيط الضريبي" },
+  { text: "العقد الواضح يحمي الطرفين ويبني علاقة مهنية طويلة", author: "حكمة قانونية", category: "العقود" },
+  { text: "تقرير مالي واحد دقيق خير من عشرة تقارير مبهمة", author: "حكمة محاسبية", category: "التقارير" },
+  { text: "في إدارة الأعمال: ما لا يُقاس لا يُدار", author: "بيتر دراكر", category: "القياس" },
+  { text: "الامتثال للأنظمة ليس خياراً بل ضرورة لاستدامة الأعمال", author: "حكمة تنظيمية", category: "الامتثال" },
+];
+
+const DailyWisdom = () => {
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const wisdom = FINANCIAL_WISDOMS[dayOfYear % FINANCIAL_WISDOMS.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+    >
+      <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-l from-accent/5 via-accent/[0.02] to-transparent p-5 sm:p-6">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-accent/5 rounded-full -translate-x-16 -translate-y-16" />
+        <div className="absolute bottom-0 right-0 w-24 h-24 bg-accent/5 rounded-full translate-x-12 translate-y-12" />
+        
+        <div className="relative flex items-start gap-4">
+          <div className="shrink-0 w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[11px] font-semibold text-accent tracking-wide">حكمة اليوم</span>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-accent/20 text-accent/70">
+                {wisdom.category}
+              </Badge>
+            </div>
+            <blockquote className="text-sm sm:text-base font-medium text-foreground leading-relaxed font-[IBM_Plex_Sans_Arabic]">
+              "{wisdom.text}"
+            </blockquote>
+            <p className="text-[11px] text-muted-foreground mt-2">— {wisdom.author}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 const DashboardHome = () => {
@@ -302,6 +374,9 @@ const DashboardHome = () => {
           </Button>
         </div>
       </motion.div>
+
+      {/* حكمة اليوم المالية */}
+      <DailyWisdom />
 
       {/* KPI Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
