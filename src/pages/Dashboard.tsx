@@ -44,6 +44,7 @@ import CreateTicketPage from "@/components/support/CreateTicketPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import NumaxioPay from "@/pages/NumaxioPay";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
+import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
@@ -132,7 +133,7 @@ const Dashboard = () => {
       return <DeliveryNotesPage />;
     }
     if (path === "/dashboard/journal-entries") {
-      return <JournalEntriesPage />;
+      return <AdvancedAccountingGate><JournalEntriesPage /></AdvancedAccountingGate>;
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
@@ -171,16 +172,16 @@ const Dashboard = () => {
       return <TeamMembersPage />;
     }
     if (path === "/dashboard/reports") {
-      return <ReportsPage />;
+      return <AdvancedAccountingGate><ReportsPage /></AdvancedAccountingGate>;
     }
     if (path === "/dashboard/vat-return") {
-      return <VatReturnGenerator />;
+      return <AdvancedAccountingGate><VatReturnGenerator /></AdvancedAccountingGate>;
     }
     if (path === "/dashboard/analytics") {
-      return <AnalyticsPage />;
+      return <AdvancedAccountingGate><AnalyticsPage /></AdvancedAccountingGate>;
     }
     if (path === "/dashboard/smart-query") {
-      return <NaturalLanguageQuery />;
+      return <AdvancedAccountingGate><NaturalLanguageQuery /></AdvancedAccountingGate>;
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;
