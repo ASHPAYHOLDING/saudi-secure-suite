@@ -108,21 +108,37 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
     }
 
     setUploadingDoc(true);
-    const path = `${tenantId}/${Date.now()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from("kyc-documents")
-      .upload(path, file);
+    try {
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${tenantId}/${Date.now()}-${sanitizedName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("kyc-documents")
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-    if (uploadError) {
-      toast.error("فشل رفع الملف");
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast.error(`فشل رفع الملف: ${uploadError.message}`);
+        setUploadingDoc(false);
+        return;
+      }
+
+      // Use signed URL since bucket is private
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("kyc-documents")
+        .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year
+
+      const fileUrl = signedUrlError ? path : signedUrlData.signedUrl;
+      setDocuments(prev => [...prev, { type: docType, name: file.name, url: fileUrl, size: file.size }]);
       setUploadingDoc(false);
-      return;
+      toast.success("تم رفع الملف بنجاح");
+    } catch (err: any) {
+      console.error("Upload exception:", err);
+      toast.error("فشل رفع الملف: خطأ غير متوقع");
+      setUploadingDoc(false);
     }
-
-    const { data: urlData } = supabase.storage.from("kyc-documents").getPublicUrl(path);
-    setDocuments(prev => [...prev, { type: docType, name: file.name, url: urlData.publicUrl, size: file.size }]);
-    setUploadingDoc(false);
-    toast.success("تم رفع الملف بنجاح");
   };
 
   const removeDoc = (index: number) => {
