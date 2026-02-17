@@ -4952,6 +4952,7 @@ export type Database = {
         Row: {
           activated_at: string
           activated_by: string
+          activation_source: string
           api_key_encrypted: string | null
           cancelled_at: string | null
           config: Json | null
@@ -4959,6 +4960,7 @@ export type Database = {
           expires_at: string | null
           id: string
           integration_id: string
+          purchased_at: string | null
           status: string
           tenant_id: string
           updated_at: string
@@ -4966,6 +4968,7 @@ export type Database = {
         Insert: {
           activated_at?: string
           activated_by: string
+          activation_source?: string
           api_key_encrypted?: string | null
           cancelled_at?: string | null
           config?: Json | null
@@ -4973,6 +4976,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           integration_id: string
+          purchased_at?: string | null
           status?: string
           tenant_id: string
           updated_at?: string
@@ -4980,6 +4984,7 @@ export type Database = {
         Update: {
           activated_at?: string
           activated_by?: string
+          activation_source?: string
           api_key_encrypted?: string | null
           cancelled_at?: string | null
           config?: Json | null
@@ -4987,6 +4992,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           integration_id?: string
+          purchased_at?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string

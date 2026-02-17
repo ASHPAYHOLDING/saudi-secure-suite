@@ -46,7 +46,7 @@ const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amo
       setLoadingGateways(true);
       const { data } = await supabase
         .from("tenant_paid_integrations")
-        .select("integration_id, status, paid_integrations!inner(key, name_ar, name_en, icon_name, category)")
+        .select("integration_id, status, paid_integrations!inner(key, name_ar, name_en, icon_name, integration_type)")
         .eq("tenant_id", tenantId)
         .eq("status", "active");
 
