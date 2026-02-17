@@ -14,6 +14,10 @@ import {
   ArrowUpRight, ArrowDownRight, TrendingUp, Activity,
   Download, MoreHorizontal, CircleDollarSign,
 } from "lucide-react";
+import {
+  WalletBalanceIcon, WalletTopupIcon, WalletActivityIcon,
+  WalletShieldIcon, WalletFreezeIcon, MicroIcon,
+} from "@/components/wallet/WalletIcons";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -82,15 +86,9 @@ const RippleButton = ({ children, onClick, disabled, className = "", ...props }:
   );
 };
 
-// ── Icon with hover motion ──
+// HoverIcon now delegates to MicroIcon system
 const HoverIcon = ({ icon: Icon, className = "", size = 16 }: { icon: React.ElementType; className?: string; size?: number }) => (
-  <motion.div
-    whileHover={{ scale: 1.05, rotate: 3 }}
-    transition={{ type: "spring", stiffness: 400, damping: 12, duration: 0.12 }}
-    className="inline-flex"
-  >
-    <Icon size={size} className={className} />
-  </motion.div>
+  <MicroIcon icon={Icon as any} size={size} className={className} />
 );
 
 interface WalletData {
@@ -404,12 +402,7 @@ const WalletPage = () => {
               تصدير كشف
             </Button>
             <RippleButton onClick={() => setShowTopup(true)} className="gap-2">
-              <motion.div
-                animate={{ y: [0, -1, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-              >
-                <Plus size={16} />
-              </motion.div>
+              <WalletTopupIcon size={16} className="text-primary-foreground" />
               إضافة رصيد
             </RippleButton>
           </div>
@@ -424,7 +417,7 @@ const WalletPage = () => {
           <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground">الرصيد المتاح</p>
-              <HoverIcon icon={CircleDollarSign} size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
+              <WalletBalanceIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
             </div>
             <p className="text-2xl font-bold text-foreground tabular-nums" dir="ltr">
               {formatAmount(animatedBalance)}
@@ -450,7 +443,7 @@ const WalletPage = () => {
           <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground">الرصيد المحجوز</p>
-              <HoverIcon icon={Clock} size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
+              <MicroIcon icon={Clock} size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" rotateDir={-1} />
             </div>
             <p className="text-2xl font-bold text-foreground tabular-nums" dir="ltr">
               {formatAmount(animatedPending)}
@@ -462,7 +455,10 @@ const WalletPage = () => {
           <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground">حالة المحفظة</p>
-              <HoverIcon icon={Activity} size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
+              {wallet.status === "frozen" || wallet.status === "suspended" 
+                ? <WalletFreezeIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
+                : <WalletShieldIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
+              }
             </div>
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${statusInfo.dotColor} animate-pulse`} />
@@ -526,7 +522,10 @@ const WalletPage = () => {
           style={{ transitionDelay: "160ms" }}
         >
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <h3 className="text-sm font-semibold text-foreground">سجل الحركات المالية</h3>
+            <div className="flex items-center gap-2">
+              <WalletActivityIcon size={16} className="text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-foreground">سجل الحركات المالية</h3>
+            </div>
             <div className="flex items-center gap-1.5 flex-wrap ms-auto">
               <Filter size={14} className="text-muted-foreground ml-1" />
               {txFilterOptions.map((f) => (
@@ -772,6 +771,10 @@ const WalletPage = () => {
         @keyframes ripple {
           0% { transform: scale(1); opacity: 0.4; }
           100% { transform: scale(12); opacity: 0; }
+        }
+        @keyframes wallet-ripple {
+          0% { transform: scale(1); opacity: 0.15; }
+          100% { transform: scale(8); opacity: 0; }
         }
       `}</style>
     </div>
