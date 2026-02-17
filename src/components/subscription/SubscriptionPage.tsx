@@ -192,10 +192,10 @@ const SubscriptionPage = () => {
   }
 
   return (
-    <div dir="rtl" className="p-6 space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">إدارة الاشتراك</h1>
-        <p className="text-sm text-muted-foreground">عرض وإدارة خطة اشتراكك الحالية</p>
+    <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
+      <div className="text-right">
+        <h1 className="text-2xl font-bold text-foreground text-right">إدارة الاشتراك</h1>
+        <p className="text-sm text-muted-foreground text-right">عرض وإدارة خطة اشتراكك الحالية</p>
       </div>
 
       {/* Current Subscription Card */}
@@ -303,7 +303,7 @@ const SubscriptionPage = () => {
             ))}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
             {plans.map((plan, i) => {
               const isCurrent = plan.id === subscription?.plan_id;
               const price = getPlanPrice(plan, selectedCycle);
@@ -317,15 +317,15 @@ const SubscriptionPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Card className={`relative h-full flex flex-col ${isCurrent ? "border-accent ring-1 ring-accent/30" : ""}`}>
+                  <Card className={`relative h-full flex flex-col ${isCurrent ? "border-accent ring-1 ring-accent/30" : ""}`} dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
                     {isCurrent && (
                       <div className="absolute -top-3 right-4">
                         <Badge className="bg-accent text-accent-foreground">خطتك الحالية</Badge>
                       </div>
                     )}
-                    <CardHeader className="pb-3 text-start">
-                      <CardTitle className="text-lg text-start">{plan.name_ar}</CardTitle>
-                      <div className="mt-2 text-start">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-right">{plan.name_ar}</CardTitle>
+                      <div className="mt-2 text-right">
                         <span className="text-3xl font-bold text-foreground">{price.toLocaleString("ar-SA")}</span>
                         <span className="text-sm text-muted-foreground me-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
                         {selectedCycle !== "monthly" && (
@@ -335,33 +335,33 @@ const SubscriptionPage = () => {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-3 text-start">
-                      <div className="space-y-2 text-sm">
+                    <CardContent className="flex-1 space-y-3">
+                      <div className="space-y-2 text-sm text-right">
                         {plan.max_users && (
-                          <div className="flex items-center gap-2 flex-row">
+                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_users} مستخدم</span>
                           </div>
                         )}
                         {plan.max_invoices && (
-                          <div className="flex items-center gap-2 flex-row">
+                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_invoices} فاتورة/شهر</span>
                           </div>
                         )}
                         {plan.max_storage_gb && (
-                          <div className="flex items-center gap-2 flex-row">
+                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_storage_gb} GB تخزين</span>
                           </div>
                         )}
                         {features.map((f: string, fi: number) => (
-                          <div key={fi} className="flex items-center gap-2 flex-row">
+                          <div key={fi} className="flex items-center gap-2" style={{ direction: "rtl" }}>
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{f}</span>
                           </div>
                         ))}
-                        <div className="flex items-center gap-2 flex-row text-muted-foreground">
+                        <div className="flex items-center gap-2 text-muted-foreground" style={{ direction: "rtl" }}>
                           <Shield size={14} className="shrink-0" />
                           <span>فترة سماح {plan.grace_period_days} يوم</span>
                         </div>
