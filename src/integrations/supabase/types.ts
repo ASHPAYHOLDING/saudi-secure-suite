@@ -5702,6 +5702,131 @@ export type Database = {
           },
         ]
       }
+      zatca_certificates: {
+        Row: {
+          certificate: string | null
+          certificate_type: string
+          created_at: string
+          created_by: string
+          csid: string
+          environment: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          issued_at: string | null
+          private_key: string | null
+          request_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          certificate?: string | null
+          certificate_type: string
+          created_at?: string
+          created_by: string
+          csid: string
+          environment?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          issued_at?: string | null
+          private_key?: string | null
+          request_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          certificate?: string | null
+          certificate_type?: string
+          created_at?: string
+          created_by?: string
+          csid?: string
+          environment?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          issued_at?: string | null
+          private_key?: string | null
+          request_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_certificates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zatca_submission_log: {
+        Row: {
+          errors: Json | null
+          http_status: number | null
+          id: string
+          invoice_hash: string
+          invoice_id: string
+          invoice_uuid: string
+          request_payload: Json | null
+          response_payload: Json | null
+          submission_type: string
+          submitted_at: string
+          submitted_by: string
+          tenant_id: string
+          warnings: Json | null
+          zatca_status: string | null
+        }
+        Insert: {
+          errors?: Json | null
+          http_status?: number | null
+          id?: string
+          invoice_hash: string
+          invoice_id: string
+          invoice_uuid: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          submission_type: string
+          submitted_at?: string
+          submitted_by: string
+          tenant_id: string
+          warnings?: Json | null
+          zatca_status?: string | null
+        }
+        Update: {
+          errors?: Json | null
+          http_status?: number | null
+          id?: string
+          invoice_hash?: string
+          invoice_id?: string
+          invoice_uuid?: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          submission_type?: string
+          submitted_at?: string
+          submitted_by?: string
+          tenant_id?: string
+          warnings?: Json | null
+          zatca_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_submission_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zatca_submission_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

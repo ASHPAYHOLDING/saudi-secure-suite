@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import ZatcaOnboardingWizard from "@/components/compliance/ZatcaOnboardingWizard";
 
 interface ComplianceState {
   vatRegistered: boolean;
@@ -423,89 +424,8 @@ const ComplianceSettings = () => {
                 </div>
 
                 {state.zatcaPhase2Ready && (
-                  <div className="mt-4 space-y-3 border-t border-border pt-4">
-                    <h4 className="text-xs font-semibold text-foreground flex items-center gap-2">
-                      <Lock size={12} className="text-accent" />
-                      بيانات اعتماد ZATCA
-                    </h4>
-
-                    {/* Environment */}
-                    <div>
-                      <label className="text-[10px] text-muted-foreground mb-1 block">البيئة</label>
-                      <div className="flex gap-2">
-                        {[
-                          { value: "sandbox", label: "تجريبي (Sandbox)" },
-                          { value: "production", label: "إنتاج (Production)" },
-                        ].map((env) => (
-                          <button
-                            key={env.value}
-                            onClick={() => update({ zatcaEnvironment: env.value })}
-                            className={`px-3 py-1.5 text-[10px] rounded-lg border font-medium transition-colors ${
-                              state.zatcaEnvironment === env.value
-                                ? "bg-accent text-accent-foreground border-accent"
-                                : "bg-background text-muted-foreground border-border hover:border-accent/50"
-                            }`}
-                          >
-                            {env.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* OTP */}
-                    <div>
-                      <label className="text-[10px] text-muted-foreground mb-1 block">رمز OTP (من بوابة ZATCA)</label>
-                      <input
-                        type="text"
-                        value={state.zatcaOtp}
-                        onChange={(e) => update({ zatcaOtp: e.target.value })}
-                        placeholder="123456"
-                        dir="ltr"
-                        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-xs font-english text-left focus:outline-none focus:ring-1 focus:ring-accent"
-                      />
-                    </div>
-
-                    {/* Compliance CSID */}
-                    <div>
-                      <label className="text-[10px] text-muted-foreground mb-1 block">
-                        Compliance CSID {state.zatcaEnvironment === "sandbox" ? "(تجريبي)" : ""}
-                      </label>
-                      <textarea
-                        value={state.zatcaComplianceCsid}
-                        onChange={(e) => update({ zatcaComplianceCsid: e.target.value })}
-                        placeholder="أدخل CSID من بوابة فاتورة..."
-                        dir="ltr"
-                        rows={2}
-                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-[10px] font-english text-left focus:outline-none focus:ring-1 focus:ring-accent resize-none"
-                      />
-                    </div>
-
-                    {/* Production CSID */}
-                    <div>
-                      <label className="text-[10px] text-muted-foreground mb-1 block">Production CSID</label>
-                      <textarea
-                        value={state.zatcaProductionCsid}
-                        onChange={(e) => update({ zatcaProductionCsid: e.target.value })}
-                        placeholder="أدخل Production CSID بعد اعتماد المرحلة..."
-                        dir="ltr"
-                        rows={2}
-                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-[10px] font-english text-left focus:outline-none focus:ring-1 focus:ring-accent resize-none"
-                      />
-                    </div>
-
-                    <div className="flex items-start gap-2 rounded-lg bg-accent/5 border border-accent/20 p-2.5">
-                      <Info size={12} className="text-accent shrink-0 mt-0.5" />
-                      <div className="text-[10px] text-muted-foreground leading-relaxed">
-                        <p className="font-semibold text-foreground mb-1">خطوات الربط مع بوابة فاتورة:</p>
-                        <ol className="list-decimal mr-3 space-y-0.5">
-                          <li>توليد CSR من النظام أو من جهاز التوقيع</li>
-                          <li>تسجيل الدخول لبوابة فاتورة والحصول على OTP</li>
-                          <li>إرسال CSR + OTP للحصول على Compliance CSID</li>
-                          <li>اختبار الفواتير في البيئة التجريبية</li>
-                          <li>الحصول على Production CSID للإنتاج</li>
-                        </ol>
-                      </div>
-                    </div>
+                  <div className="mt-4 border-t border-border pt-4">
+                    <ZatcaOnboardingWizard />
                   </div>
                 )}
               </div>

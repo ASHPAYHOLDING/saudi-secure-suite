@@ -172,10 +172,22 @@ async function hashInvoice(xml: string): Promise<string> {
   return btoa(String.fromCharCode(...hashArray));
 }
 
-async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: any, invoiceType: string): Promise<any> {
+async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: any, invoiceType: string, supabaseClient: any): Promise<any> {
   const isProduction = tenant.zatca_environment === "production";
   const baseUrl = isProduction ? ZATCA_PRODUCTION_URL : ZATCA_SANDBOX_URL;
-  const csid = isProduction ? tenant.zatca_production_csid : tenant.zatca_compliance_csid;
+  
+  // ✅ Read CSID from secure zatca_certificates table
+  const certType = isProduction ? "production" : "compliance";
+  const { data: cert } = await supabaseClient
+    .from("zatca_certificates")
+    .select("csid")
+    .eq("tenant_id", tenant.id)
+    .eq("certificate_type", certType)
+    .eq("is_active", true)
+    .single();
+
+  // Fallback to tenant columns for backward compatibility
+  const csid = cert?.csid || (isProduction ? tenant.zatca_production_csid : tenant.zatca_compliance_csid);
 
   if (!csid) {
     return { status: "error", message: "لم يتم تكوين شهادة ZATCA (CSID). يرجى إعدادها في صفحة الامتثال." };
@@ -211,6 +223,7 @@ async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: an
     return {
       status: response.ok ? "success" : "error",
       httpStatus: response.status,
+      submissionType: isSimplified ? "reporting" : "clearance",
       reportingStatus: result.reportingStatus || null,
       clearanceStatus: result.clearanceStatus || null,
       validationResults: result.validationResults || null,
@@ -221,6 +234,85 @@ async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: an
   } catch (err: any) {
     return { status: "error", message: err.message || "فشل الاتصال ببوابة ZATCA" };
   }
+}
+
+// ✅ Credit Note UBL XML generator
+function generateCreditNoteXML(data: { creditNote: any; items: any[]; tenant: any; customer: any; originalInvoice: any }): string {
+  const { creditNote, items, tenant, customer, originalInvoice } = data;
+  const uuid = crypto.randomUUID();
+  const issueDate = creditNote.credit_date;
+
+  const lineItems = items.map((item: any, idx: number) => `
+    <cac:CreditNoteLine>
+      <cbc:ID>${idx + 1}</cbc:ID>
+      <cbc:CreditedQuantity unitCode="PCE">${item.quantity}</cbc:CreditedQuantity>
+      <cbc:LineExtensionAmount currencyID="SAR">${(item.unit_price * item.quantity - (item.discount || 0)).toFixed(2)}</cbc:LineExtensionAmount>
+      <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="SAR">${(item.vat_amount || 0).toFixed(2)}</cbc:TaxAmount>
+      </cac:TaxTotal>
+      <cac:Item>
+        <cbc:Name>${escapeXml(item.description)}</cbc:Name>
+        <cac:ClassifiedTaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Percent>${item.vat_rate || 15}</cbc:Percent>
+          <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+        </cac:ClassifiedTaxCategory>
+      </cac:Item>
+      <cac:Price>
+        <cbc:PriceAmount currencyID="SAR">${(item.unit_price || 0).toFixed(2)}</cbc:PriceAmount>
+      </cac:Price>
+    </cac:CreditNoteLine>`).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<CreditNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2"
+            xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+            xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+  <cbc:ID>${escapeXml(creditNote.credit_note_number)}</cbc:ID>
+  <cbc:UUID>${uuid}</cbc:UUID>
+  <cbc:IssueDate>${issueDate}</cbc:IssueDate>
+  <cbc:IssueTime>00:00:00</cbc:IssueTime>
+  <cbc:CreditNoteTypeCode name="0100000">381</cbc:CreditNoteTypeCode>
+  <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  ${originalInvoice ? `
+  <cac:BillingReference>
+    <cac:InvoiceDocumentReference>
+      <cbc:ID>${escapeXml(originalInvoice.invoice_number)}</cbc:ID>
+    </cac:InvoiceDocumentReference>
+  </cac:BillingReference>` : ''}
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification><cbc:ID schemeID="CRN">${escapeXml(tenant.cr_number || '')}</cbc:ID></cac:PartyIdentification>
+      <cac:PostalAddress>
+        <cbc:StreetName>${escapeXml(tenant.address_street || '')}</cbc:StreetName>
+        <cbc:CityName>${escapeXml(tenant.address_city || '')}</cbc:CityName>
+        <cbc:PostalZone>${escapeXml(tenant.address_zip || '00000')}</cbc:PostalZone>
+        <cac:Country><cbc:IdentificationCode>SA</cbc:IdentificationCode></cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>${escapeXml(tenant.vat_number || '')}</cbc:CompanyID>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity><cbc:RegistrationName>${escapeXml(tenant.name)}</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      ${customer?.vat_number ? `<cac:PartyTaxScheme><cbc:CompanyID>${escapeXml(customer.vat_number)}</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>` : ''}
+      <cac:PartyLegalEntity><cbc:RegistrationName>${escapeXml(customer?.name || '')}</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">${(creditNote.vat_total || 0).toFixed(2)}</cbc:TaxAmount>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SAR">${(creditNote.subtotal || 0).toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">${(creditNote.subtotal || 0).toFixed(2)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">${(creditNote.grand_total || 0).toFixed(2)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="SAR">${(creditNote.grand_total || 0).toFixed(2)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  ${lineItems}
+</CreditNote>`;
 }
 
 serve(async (req: Request) => {
@@ -359,13 +451,14 @@ serve(async (req: Request) => {
         .eq("id", invoice.tenant_id)
         .single();
 
-      // ✅ Fixed: Route to correct endpoint based on invoice type
+      // ✅ Fixed: Route to correct endpoint based on invoice type + read CSID from certificates
       const result = await submitToZATCA(
         invoice.zatca_xml,
         invoice.invoice_hash,
         invoice.invoice_uuid,
         tenant,
-        invoice.invoice_type
+        invoice.invoice_type,
+        supabase
       );
 
       // Determine final status based on invoice type and result
@@ -374,6 +467,22 @@ serve(async (req: Request) => {
         const isSimplified = invoice.invoice_type === "simplified";
         finalStatus = isSimplified ? "reported" : "cleared";
       }
+
+      // ✅ Log submission to immutable zatca_submission_log
+      await supabase.from("zatca_submission_log").insert({
+        tenant_id: invoice.tenant_id,
+        invoice_id: invoiceId,
+        submission_type: result.submissionType || (invoice.invoice_type === "simplified" ? "reporting" : "clearance"),
+        invoice_hash: invoice.invoice_hash,
+        invoice_uuid: invoice.invoice_uuid,
+        request_payload: { invoiceHash: invoice.invoice_hash, uuid: invoice.invoice_uuid },
+        response_payload: result.raw || null,
+        http_status: result.httpStatus || null,
+        zatca_status: finalStatus,
+        warnings: result.warnings || [],
+        errors: result.errors || [],
+        submitted_by: user.id,
+      });
 
       // Update invoice with ZATCA response
       await supabase.from("invoices").update({
@@ -389,6 +498,62 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({
         success: result.status === "success",
         result,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ✅ NEW: Credit Note XML generation
+    if (action === "generate-credit-note-xml") {
+      const { creditNoteId } = await req.json().catch(() => ({ creditNoteId: null }));
+      const cnId = creditNoteId || invoiceId; // support both param names
+
+      const { data: creditNote, error: cnErr } = await supabase
+        .from("credit_notes")
+        .select("*, customers(name, vat_number, cr_number, address_street, address_city)")
+        .eq("id", cnId)
+        .single();
+
+      if (cnErr || !creditNote) {
+        return new Response(JSON.stringify({ error: "Credit note not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const { data: cnItems } = await supabase
+        .from("credit_note_items")
+        .select("*")
+        .eq("credit_note_id", cnId)
+        .order("sort_order");
+
+      const { data: tenant } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("id", creditNote.tenant_id)
+        .single();
+
+      // Get original invoice if linked
+      let originalInvoice = null;
+      if (creditNote.invoice_id) {
+        const { data: inv } = await supabase
+          .from("invoices")
+          .select("invoice_number")
+          .eq("id", creditNote.invoice_id)
+          .single();
+        originalInvoice = inv;
+      }
+
+      const xml = generateCreditNoteXML({
+        creditNote,
+        items: cnItems || [],
+        tenant,
+        customer: creditNote.customers,
+        originalInvoice,
+      });
+
+      const cnHash = await hashInvoice(xml);
+
+      return new Response(JSON.stringify({
+        success: true,
+        xml,
+        hash: cnHash,
+        creditNoteNumber: creditNote.credit_note_number,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
