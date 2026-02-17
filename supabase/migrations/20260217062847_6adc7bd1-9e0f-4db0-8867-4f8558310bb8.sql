@@ -1,0 +1,4 @@
+
+ALTER TABLE public.wallet_transactions
+ADD COLUMN IF NOT EXISTS balance_before NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS balance_after NUMERIC DEFAULT 0;
