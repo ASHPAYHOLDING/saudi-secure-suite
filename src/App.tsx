@@ -49,7 +49,7 @@ const App = () => (
             <Route path="/terms" element={<TermsConditions />} />
             <Route path="/sla" element={<SLA />} />
             <Route path="/numaxio-pay" element={<ProtectedRoute><NumaxioPay /></ProtectedRoute>} />
-            <Route path="/numaxio-pay/dashboard" element={<ProtectedRoute><NumaxioPayDashboard /></ProtectedRoute>} />
+            <Route path="/numaxio-pay/dashboard" element={<Navigate to="/numaxio-pay" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />

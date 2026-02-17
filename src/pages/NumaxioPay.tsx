@@ -1,435 +1,448 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { 
-  CreditCard, Shield, CheckCircle2, ArrowRight, 
-  Building2, KeyRound, Eye, EyeOff, Loader2, 
-  Sparkles, ChevronLeft, CircleDot, BadgeCheck,
-  AlertCircle, Wallet
+import {
+  Wallet, TrendingUp, Clock, CheckCircle2, XCircle,
+  ArrowDownToLine, Receipt, ChevronLeft, DollarSign, Percent,
+  Loader2, BanknoteIcon, Sparkles, Shield, CreditCard,
+  Download, Send
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePaylinkData } from "@/hooks/usePaylinkData";
+import { supabase } from "@/integrations/supabase/client";
+import PayoutSettings from "@/components/paylink/PayoutSettings";
 
 const NumaxioPay = () => {
   const navigate = useNavigate();
-  const [apiKey, setApiKey] = useState("");
-  const [secretKey, setSecretKey] = useState("");
-  const [merchantName, setMerchantName] = useState("");
-  const [iban, setIban] = useState("");
-  const [showSecret, setShowSecret] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isLinking, setIsLinking] = useState(false);
-  const [isLinked, setIsLinked] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const { tenantId, user } = useAuth();
+  const { transactions, stats, loading: dataLoading, refetch, feeConfig } = usePaylinkData(tenantId ?? undefined);
 
-  const handleVerify = async () => {
-    if (!apiKey.trim() || !secretKey.trim()) {
-      toast.error("يرجى إدخال مفتاح API والمفتاح السري");
-      return;
+  const [isActivating, setIsActivating] = useState(false);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [filterType, setFilterType] = useState<"all" | "deposit" | "withdrawal">("all");
+  const [activeTab, setActiveTab] = useState<"overview" | "payouts">("overview");
+
+  // Check if paylink is enabled for this tenant
+  const checkStatus = useCallback(async () => {
+    if (!tenantId) return;
+    setCheckingStatus(true);
+    const { data } = await supabase
+      .from("tenants")
+      .select("paylink_enabled")
+      .eq("id", tenantId)
+      .single();
+    setIsEnabled(data?.paylink_enabled ?? false);
+    setCheckingStatus(false);
+  }, [tenantId]);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  const handleActivate = async () => {
+    if (!tenantId) return;
+    setIsActivating(true);
+    const { error } = await supabase
+      .from("tenants")
+      .update({ paylink_enabled: true, paylink_enabled_at: new Date().toISOString() })
+      .eq("id", tenantId);
+    setIsActivating(false);
+    if (error) {
+      toast.error("حدث خطأ أثناء التفعيل، حاول مرة أخرى");
+    } else {
+      setIsEnabled(true);
+      toast.success("🎉 تم تفعيل بوابة الدفع بنجاح!");
+      refetch();
     }
-    setIsVerifying(true);
-    // Simulate verification
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsVerifying(false);
-    setIsVerified(true);
-    setCurrentStep(3);
-    toast.success("تم التحقق من صلاحية الحساب بنجاح ✓");
   };
 
-  const handleLink = async () => {
-    if (!merchantName.trim()) {
-      toast.error("يرجى إدخال اسم التاجر");
+  const handleWithdraw = async () => {
+    const amount = parseFloat(withdrawAmount);
+    if (!amount || amount <= 0) {
+      toast.error("يرجى إدخال مبلغ صحيح");
       return;
     }
-    setIsLinking(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsLinking(false);
-    setIsLinked(true);
-    setCurrentStep(4);
-    toast.success("🎉 تم ربط بوابة الدفع Paylink بنجاح!");
+    if (amount > stats.availableBalance) {
+      toast.error("المبلغ المطلوب يتجاوز الرصيد المتاح");
+      return;
+    }
+    if (!tenantId) return;
+
+    setIsWithdrawing(true);
+    const txNum = `TXN-W${Date.now().toString().slice(-6)}`;
+    const { error } = await supabase.from("paylink_transactions").insert({
+      tenant_id: tenantId,
+      transaction_number: txNum,
+      transaction_type: "withdrawal",
+      description: "سحب إلى الحساب البنكي",
+      gross_amount: amount,
+      fee_amount: 0,
+      net_amount: amount,
+      status: "completed",
+      payment_method: "تحويل بنكي",
+      created_by: user?.id,
+    });
+    setIsWithdrawing(false);
+    if (error) {
+      toast.error("حدث خطأ أثناء السحب");
+    } else {
+      setShowWithdrawDialog(false);
+      setWithdrawAmount("");
+      toast.success(`✅ تم طلب سحب ${amount.toLocaleString("ar-SA")} ر.س بنجاح.`);
+      refetch();
+    }
   };
 
-  const steps = [
-    { number: 1, title: "إنشاء حساب Paylink", description: "سجّل في بوابة Paylink واحصل على بيانات API" },
-    { number: 2, title: "إدخال بيانات الربط", description: "أدخل مفاتيح API والمفتاح السري" },
-    { number: 3, title: "التحقق والتأكيد", description: "تحقق من صلاحية البيانات وأكمل الربط" },
-    { number: 4, title: "جاهز للاستخدام", description: "ابدأ بتحصيل المدفوعات إلكترونياً" },
+  const filteredTransactions = transactions.filter(
+    (t) => filterType === "all" || t.transaction_type === filterType
+  );
+
+  const formatCurrency = (n: number) =>
+    n.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ر.س";
+
+  if (checkingStatus) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      </div>
+    );
+  }
+
+  const kpis = [
+    { label: "إجمالي المبيعات", value: stats.totalSales, icon: TrendingUp, color: "text-accent", bg: "bg-accent/10" },
+    { label: "المبالغ المعلّقة", value: stats.pendingAmount, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
+    { label: "إجمالي الرسوم", value: stats.totalFees, icon: Percent, color: "text-destructive", bg: "bg-destructive/10" },
+    { label: "صافي المبلغ", value: stats.netAmount, icon: DollarSign, color: "text-success", bg: "bg-success/10" },
   ];
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
               <Wallet className="w-5 h-5 text-accent-foreground" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">نيوماكسيو باي</h1>
-              <p className="text-xs text-muted-foreground">ربط بوابة الدفع الإلكتروني</p>
+              <p className="text-xs text-muted-foreground">
+                {isEnabled ? "لوحة تحكم المدفوعات" : "تفعيل بوابة الدفع"}
+              </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-1">
             رجوع
             <ChevronLeft className="w-4 h-4" />
           </Button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Hero Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
-        >
-          <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
-            <Sparkles className="w-4 h-4" />
-            بوابة دفع متكاملة مع Paylink
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-            حصّل مدفوعاتك بسهولة
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-base">
-            اربط حسابك في Paylink مع نيوماكسيو لتفعيل الدفع الإلكتروني عبر مدى، Apple Pay، وبطاقات الائتمان.
-          </p>
-        </motion.div>
-
-        {/* Steps Progress */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="border-border/60">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-0 justify-between">
-                {steps.map((step, i) => (
-                  <div key={step.number} className="flex items-center gap-3 md:flex-col md:text-center flex-1">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300
-                      ${currentStep > step.number 
-                        ? "bg-accent text-accent-foreground" 
-                        : currentStep === step.number 
-                          ? "bg-primary text-primary-foreground ring-4 ring-primary/20" 
-                          : "bg-muted text-muted-foreground"}
-                    `}>
-                      {currentStep > step.number ? <CheckCircle2 className="w-5 h-5" /> : step.number}
-                    </div>
-                    <div className="md:mt-2">
-                      <p className={`text-sm font-semibold ${currentStep >= step.number ? "text-foreground" : "text-muted-foreground"}`}>
-                        {step.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground hidden md:block">{step.description}</p>
-                    </div>
-                    {i < steps.length - 1 && (
-                      <div className="hidden md:block w-full h-px bg-border mx-4" />
-                    )}
-                  </div>
-                ))}
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* === ACTIVATION STATE === */}
+        {!isEnabled && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-8">
+            {/* Hero */}
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
+                <Sparkles className="w-4 h-4" />
+                بوابة دفع متكاملة
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
+                استقبل مدفوعاتك بسهولة
+              </h2>
+              <p className="text-muted-foreground max-w-lg mx-auto text-base">
+                فعّل بوابة الدفع لاستقبال المدفوعات إلكترونياً عبر مدى، Apple Pay، وبطاقات الائتمان. البوابة مربوطة مباشرة بإدارة النظام.
+              </p>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
-          <motion.div 
-            className="lg:col-span-2 space-y-6"
-            initial={{ opacity: 0, x: 20 }} 
-            animate={{ opacity: 1, x: 0 }} 
-            transition={{ delay: 0.2 }}
-          >
-            {/* Step 1: Instructions */}
+            {/* Info Card */}
             <Card className="border-border/60">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-info" />
-                  </div>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-info/5 border border-info/20">
+                  <Shield className="w-5 h-5 text-info mt-0.5 shrink-0" />
                   <div>
-                    <CardTitle className="text-base">الخطوة ١: إنشاء حساب Paylink</CardTitle>
-                    <CardDescription>إذا لم يكن لديك حساب بعد</CardDescription>
+                    <p className="text-sm font-semibold text-foreground">بوابة مُدارة بالكامل</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      عند التفعيل، يتم ربط حسابك تلقائياً ببوابة الدفع المركزية. جميع المدفوعات تصل مباشرة إلى النظام ويتم تسويتها تلقائياً حسب الجدول المحدد.
+                    </p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-sm">
-                  <div className="flex items-start gap-3">
-                    <CircleDot className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <p>قم بزيارة موقع <a href="https://paylink.sa" target="_blank" rel="noopener noreferrer" className="text-accent font-medium underline underline-offset-2">paylink.sa</a> وأنشئ حساب تاجر جديد.</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CircleDot className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <p>أكمل عملية التحقق من الهوية وربط الحساب البنكي.</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CircleDot className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <p>من لوحة تحكم Paylink، انتقل إلى <strong>الإعدادات → API Keys</strong> للحصول على مفاتيح الربط.</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CircleDot className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <p>انسخ <strong>App ID</strong> و <strong>Secret Key</strong> واستخدمهما في النموذج أدناه.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Step 2: API Credentials */}
-            <Card className={`border-border/60 transition-all ${isLinked ? "opacity-60 pointer-events-none" : ""}`}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
-                    <KeyRound className="w-4 h-4 text-warning" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">الخطوة ٢: بيانات الربط</CardTitle>
-                    <CardDescription>أدخل مفاتيح API الخاصة بحسابك في Paylink</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="merchantName">اسم التاجر / المنشأة</Label>
-                  <Input
-                    id="merchantName"
-                    placeholder="مثال: شركة التقنية المتقدمة"
-                    value={merchantName}
-                    onChange={(e) => setMerchantName(e.target.value)}
-                    disabled={isLinked}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="apiKey">مفتاح API (App ID)</Label>
-                  <Input
-                    id="apiKey"
-                    placeholder="أدخل App ID من Paylink"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    className="font-mono dir-ltr text-left"
-                    dir="ltr"
-                    disabled={isVerified}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secretKey">المفتاح السري (Secret Key)</Label>
-                  <div className="relative">
-                    <Input
-                      id="secretKey"
-                      type={showSecret ? "text" : "password"}
-                      placeholder="أدخل Secret Key من Paylink"
-                      value={secretKey}
-                      onChange={(e) => setSecretKey(e.target.value)}
-                      className="font-mono dir-ltr text-left pe-10"
-                      dir="ltr"
-                      disabled={isVerified}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSecret(!showSecret)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="iban">رقم الآيبان (اختياري)</Label>
-                  <Input
-                    id="iban"
-                    placeholder="SA0000000000000000000000"
-                    value={iban}
-                    onChange={(e) => setIban(e.target.value)}
-                    className="font-mono dir-ltr text-left"
-                    dir="ltr"
-                    disabled={isLinked}
-                  />
-                  <p className="text-xs text-muted-foreground">رقم الحساب البنكي الدولي المرتبط بحساب Paylink</p>
+                {/* Features */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { icon: CreditCard, title: "مدى & Apple Pay", desc: "استقبل المدفوعات بجميع الطرق" },
+                    { icon: Shield, title: "آمن ومشفّر", desc: "حماية كاملة للبيانات المالية" },
+                    { icon: Receipt, title: "تقارير فورية", desc: "تتبع كل عملية لحظة بلحظة" },
+                    { icon: BanknoteIcon, title: "سحب سهل", desc: "اسحب أرباحك في أي وقت" },
+                  ].map((f) => (
+                    <div key={f.title} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                        <f.icon className="w-4 h-4 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{f.title}</p>
+                        <p className="text-xs text-muted-foreground">{f.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <Separator />
 
-                {/* Verify Button */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                {/* Activate Button */}
+                <div className="text-center">
                   <Button
-                    onClick={handleVerify}
-                    disabled={isVerifying || isVerified || !apiKey.trim() || !secretKey.trim()}
-                    variant={isVerified ? "outline" : "default"}
-                    className="gap-2 flex-1"
+                    onClick={handleActivate}
+                    disabled={isActivating}
+                    size="lg"
+                    className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base"
                   >
-                    {isVerifying ? (
+                    {isActivating ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        جارٍ التحقق...
-                      </>
-                    ) : isVerified ? (
-                      <>
-                        <BadgeCheck className="w-4 h-4 text-accent" />
-                        تم التحقق بنجاح
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        جارٍ التفعيل...
                       </>
                     ) : (
                       <>
-                        <Shield className="w-4 h-4" />
-                        تحقق من البيانات
+                        <CreditCard className="w-5 h-5" />
+                        تفعيل بوابة الدفع
                       </>
                     )}
                   </Button>
-
-                  <AnimatePresence>
-                    {isVerified && !isLinked && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex-1"
-                      >
-                        <Button
-                          onClick={handleLink}
-                          disabled={isLinking}
-                          className="w-full gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
-                        >
-                          {isLinking ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              جارٍ الربط...
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="w-4 h-4" />
-                              تفعيل بوابة الدفع
-                            </>
-                          )}
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    بالتفعيل، أنت توافق على شروط استخدام بوابة الدفع ورسوم العمليات المحددة من الإدارة.
+                  </p>
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        )}
 
-            {/* Success State */}
-            <AnimatePresence>
-              {isLinked && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Card className="border-accent/30 bg-accent/5">
+        {/* === DASHBOARD STATE === */}
+        {isEnabled && (
+          <div className="space-y-6">
+            {/* Admin-linked message */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20">
+                <CheckCircle2 className="w-5 h-5 text-accent mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">بوابة الدفع مفعّلة ومربوطة بإدارة النظام</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    كل المدفوعات الواردة تصل مباشرة إلى النظام ويتم خصم الرسوم تلقائياً. يمكنك سحب رصيدك في أي وقت.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Tabs */}
+            <div className="flex items-center gap-2 bg-muted rounded-lg p-0.5 w-fit">
+              {([
+                { key: "overview" as const, label: "نظرة عامة", icon: Receipt },
+                { key: "payouts" as const, label: "التحويلات والإعدادات", icon: Send },
+              ]).map((t) => (
+                <button key={t.key} onClick={() => setActiveTab(t.key)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                    activeTab === t.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  <t.icon className="w-4 h-4" /> {t.label}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === "payouts" && <PayoutSettings />}
+
+            {activeTab === "overview" && (
+              <>
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {kpis.map((kpi, i) => (
+                    <motion.div key={kpi.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                      <Card className="border-border/60 hover:shadow-md transition-shadow">
+                        <CardContent className="pt-5 pb-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-muted-foreground font-medium">{kpi.label}</span>
+                            <div className={`w-8 h-8 rounded-lg ${kpi.bg} flex items-center justify-center`}>
+                              <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+                            </div>
+                          </div>
+                          <p className="text-xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">{formatCurrency(kpi.value)}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Balance + Withdraw */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+                  <Card className="border-accent/20 bg-gradient-to-l from-accent/5 to-transparent">
                     <CardContent className="pt-6">
-                      <div className="text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                          <CheckCircle2 className="w-8 h-8 text-accent" />
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
+                            <BanknoteIcon className="w-7 h-7 text-accent" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">الرصيد المتاح للسحب</p>
+                            <p className="text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">{formatCurrency(stats.availableBalance)}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                نوع الرسوم: {feeConfig?.fee_type === "fixed" ? "مبلغ ثابت" : feeConfig?.fee_type === "combined" ? "مشترك" : "نسبة مئوية"}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {feeConfig?.fee_type === "fixed"
+                                  ? `${feeConfig.fee_fixed_amount} ر.س لكل عملية`
+                                  : `${stats.feeRate}% لكل عملية`}
+                                {feeConfig?.fee_type === "combined" && ` + ${feeConfig.fee_fixed_amount} ر.س`}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-foreground">تم الربط بنجاح! 🎉</h3>
-                          <p className="text-muted-foreground mt-1">
-                            بوابة الدفع Paylink مفعّلة الآن. يمكنك البدء بإرسال روابط الدفع لعملائك.
-                          </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button onClick={() => navigate("/numaxio-pay/dashboard")} className="gap-2">
-                            <ArrowRight className="w-4 h-4" />
-                            الذهاب للوحة التحكم
-                          </Button>
-                          <Button variant="outline" onClick={() => {
-                            setIsVerified(false);
-                            setIsLinked(false);
-                            setApiKey("");
-                            setSecretKey("");
-                            setMerchantName("");
-                            setIban("");
-                            setCurrentStep(1);
-                          }}>
-                            ربط حساب آخر
-                          </Button>
-                        </div>
+                        <Button onClick={() => setShowWithdrawDialog(true)} className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-6" size="lg">
+                          <ArrowDownToLine className="w-5 h-5" /> سحب مبلغ
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
 
-          {/* Sidebar Info */}
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }} 
-            transition={{ delay: 0.3 }}
-          >
-            {/* Supported Methods */}
-            <Card className="border-border/60">
-              <CardHeader>
-                <CardTitle className="text-sm">طرق الدفع المدعومة</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {[
-                  { name: "مدى", icon: "💳" },
-                  { name: "Apple Pay", icon: "🍎" },
-                  { name: "بطاقات Visa / Mastercard", icon: "💳" },
-                  { name: "STC Pay", icon: "📱" },
-                ].map((method) => (
-                  <div key={method.name} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                    <span className="text-lg">{method.icon}</span>
-                    <span className="text-sm font-medium">{method.name}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Security Info */}
-            <Card className="border-border/60">
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-accent" />
-                  الأمان والحماية
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                  <p>تشفير البيانات بمعيار AES-256</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                  <p>متوافق مع PCI DSS</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                  <p>مرخص من البنك المركزي السعودي</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                  <p>لا يتم تخزين بيانات البطاقات</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Note */}
-            <Card className="border-warning/30 bg-warning/5">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-semibold text-foreground">ملاحظة مهمة</p>
-                    <p className="text-muted-foreground mt-1">
-                      تأكد من تفعيل حسابك في Paylink وإكمال التحقق من الهوية قبل الربط. 
-                      الحسابات غير المفعّلة لن تتمكن من استقبال المدفوعات.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+                {/* Transactions Table */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+                  <Card className="border-border/60">
+                    <CardHeader>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Receipt className="w-4 h-4 text-accent" /> سجل المعاملات
+                          </CardTitle>
+                          <CardDescription>جميع عمليات الإيداع والسحب مع تفاصيل الرسوم</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex bg-muted rounded-lg p-0.5">
+                            {([
+                              { key: "all" as const, label: "الكل" },
+                              { key: "deposit" as const, label: "إيداع" },
+                              { key: "withdrawal" as const, label: "سحب" },
+                            ]).map((f) => (
+                              <button key={f.key} onClick={() => setFilterType(f.key)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                                  filterType === f.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                }`}>{f.label}</button>
+                            ))}
+                          </div>
+                          <Button variant="outline" size="sm" className="gap-1"><Download className="w-3.5 h-3.5" /> تصدير</Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="rounded-lg border border-border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead className="text-right font-semibold">رقم العملية</TableHead>
+                              <TableHead className="text-right font-semibold">التاريخ</TableHead>
+                              <TableHead className="text-right font-semibold">النوع</TableHead>
+                              <TableHead className="text-right font-semibold">الوصف</TableHead>
+                              <TableHead className="text-right font-semibold">المبلغ</TableHead>
+                              <TableHead className="text-right font-semibold">الرسوم</TableHead>
+                              <TableHead className="text-right font-semibold">الصافي</TableHead>
+                              <TableHead className="text-right font-semibold">الحالة</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredTransactions.map((tx) => (
+                              <TableRow key={tx.id} className="hover:bg-muted/30">
+                                <TableCell className="font-mono text-xs text-muted-foreground">{tx.transaction_number}</TableCell>
+                                <TableCell className="text-sm">{new Date(tx.created_at).toLocaleDateString("ar-SA")}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className={`text-xs ${
+                                    tx.transaction_type === "deposit" ? "bg-success/10 text-success border-success/20" : "bg-info/10 text-info border-info/20"
+                                  }`}>{tx.transaction_type === "deposit" ? "إيداع" : "سحب"}</Badge>
+                                </TableCell>
+                                <TableCell className="text-sm">{tx.description}</TableCell>
+                                <TableCell className="text-sm font-semibold">{formatCurrency(tx.gross_amount)}</TableCell>
+                                <TableCell className="text-sm text-destructive">{tx.fee_amount > 0 ? `-${formatCurrency(tx.fee_amount)}` : "—"}</TableCell>
+                                <TableCell className="text-sm font-semibold text-accent">{formatCurrency(tx.net_amount)}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={`text-xs ${
+                                    tx.status === "completed" ? "text-success border-success/30" :
+                                    tx.status === "pending" ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
+                                  }`}>
+                                    {tx.status === "completed" ? <><CheckCircle2 className="w-3 h-3 ml-1" /> مكتمل</> :
+                                     tx.status === "pending" ? <><Clock className="w-3 h-3 ml-1" /> معلّق</> :
+                                     <><XCircle className="w-3 h-3 ml-1" /> فشل</>}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {filteredTransactions.length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <Receipt className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                          <p>لا توجد معاملات{filterType !== "all" ? " بهذا الفلتر" : " بعد"}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </>
+            )}
+          </div>
+        )}
       </main>
+
+      {/* Withdraw Dialog */}
+      <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowDownToLine className="w-5 h-5 text-accent" /> طلب سحب
+            </DialogTitle>
+            <DialogDescription>أدخل المبلغ المراد سحبه إلى حسابك البنكي</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">الرصيد المتاح</p>
+              <p className="text-2xl font-bold text-accent font-[IBM_Plex_Sans_Arabic]">{formatCurrency(stats.availableBalance)}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="withdraw-amount">مبلغ السحب (ر.س)</Label>
+              <Input
+                id="withdraw-amount"
+                type="number"
+                placeholder="0.00"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                className="text-lg font-semibold text-center"
+                dir="ltr"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowWithdrawDialog(false)}>إلغاء</Button>
+            <Button onClick={handleWithdraw} disabled={isWithdrawing} className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground">
+              {isWithdrawing ? <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ السحب...</> : "تأكيد السحب"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
