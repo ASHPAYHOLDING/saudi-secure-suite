@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "Numaxio <onboarding@resend.dev>",
+              from: "Numaxio <noreply@numaxio.com>",
               to: [customer.email],
               subject,
               html: buildEmailHtml(body, invoice, customer, isOverdue),

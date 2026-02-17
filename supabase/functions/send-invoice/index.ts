@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Numaxio <onboarding@resend.dev>",
+          from: "Numaxio <noreply@numaxio.com>",
           to: [recipient],
           subject: subject || `فاتورة ضريبية - ${invoice?.invoice_number || ""}`,
           html: `
