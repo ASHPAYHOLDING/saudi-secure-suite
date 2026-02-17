@@ -368,6 +368,49 @@ function getEmailTemplate(
   }
 }
 
+// ─── Replace {{variables}} in template ───
+function replaceVars(template: string, data: Record<string, unknown>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const val = data[key];
+    return val !== undefined && val !== null ? String(val) : `{{${key}}}`;
+  });
+}
+
+// ─── Resolve template from DB (with tenant override) or fall back to hardcoded ───
+async function resolveTemplate(
+  serviceClient: ReturnType<typeof createClient>,
+  emailType: string,
+  tenantId: string | null,
+  data: Record<string, unknown>
+): Promise<{ subject: string; html: string; senderKey: string }> {
+  try {
+    const { data: rows } = await serviceClient.rpc("resolve_email_template", {
+      _email_type: emailType,
+      _tenant_id: tenantId,
+    });
+
+    if (rows && rows.length > 0) {
+      const row = rows[0];
+      const subject = replaceVars(row.subject_template, data);
+      const bodyHtml = replaceVars(row.body_html, data);
+      
+      // Wrap in formal layout
+      const companyName = data.company_name as string || "";
+      const vatNumber = data.vat_number as string || "";
+      const html = formalWrap(subject, bodyHtml, companyName, vatNumber);
+      
+      return { subject, html, senderKey: row.sender_key || "no-reply" };
+    }
+  } catch (err) {
+    console.error("DB template resolution failed, using hardcoded:", err);
+  }
+
+  // Fallback to hardcoded templates
+  const tpl = getEmailTemplate(emailType, data);
+  const senderKey = TYPE_SENDER[emailType] || "no-reply";
+  return { subject: tpl.subject, html: tpl.html, senderKey };
+}
+
 // ─── Send via Resend ───
 async function sendViaResend(
   from: string,
@@ -395,7 +438,7 @@ async function sendViaResend(
   }
 }
 
-// ─── Process Queued Emails (called by triggers via DB → Edge Function) ───
+// ─── Process Queued Emails ───
 async function processQueuedEmails(serviceClient: ReturnType<typeof createClient>) {
   const { data: queued, error } = await serviceClient
     .from("email_logs")
@@ -408,11 +451,11 @@ async function processQueuedEmails(serviceClient: ReturnType<typeof createClient
 
   let processed = 0;
   for (const log of queued) {
-    const senderKey = TYPE_SENDER[log.email_type] || "no-reply";
-    const fromAddress = SENDERS[senderKey];
-    const tpl = getEmailTemplate(log.email_type, (log.metadata || {}) as Record<string, unknown>);
+    const meta = (log.metadata || {}) as Record<string, unknown>;
+    const resolved = await resolveTemplate(serviceClient, log.email_type, log.tenant_id, meta);
+    const fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
 
-    const result = await sendViaResend(fromAddress, log.recipient_email, tpl.subject, tpl.html);
+    const result = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html);
 
     await serviceClient
       .from("email_logs")
@@ -432,7 +475,7 @@ async function processQueuedEmails(serviceClient: ReturnType<typeof createClient
         .update({ status: "retrying", retry_count: 1, last_retry_at: new Date().toISOString() })
         .eq("id", log.id);
 
-      const retry = await sendViaResend(fromAddress, log.recipient_email, tpl.subject, tpl.html);
+      const retry = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html);
       await serviceClient
         .from("email_logs")
         .update({
@@ -513,11 +556,10 @@ Deno.serve(async (req) => {
       }
 
       const meta = logEntry.metadata || {};
-      const tpl = getEmailTemplate(logEntry.email_type, meta as Record<string, unknown>);
-      const senderKey = TYPE_SENDER[logEntry.email_type] || "no-reply";
-      const fromAddr = SENDERS[senderKey];
+      const resolved = await resolveTemplate(serviceClient, logEntry.email_type, logEntry.tenant_id, meta as Record<string, unknown>);
+      const fromAddr = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
 
-      const result = await sendViaResend(fromAddr, logEntry.recipient_email, tpl.subject, tpl.html);
+      const result = await sendViaResend(fromAddr, logEntry.recipient_email, resolved.subject, resolved.html);
 
       await serviceClient
         .from("email_logs")
@@ -556,11 +598,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const senderKey = TYPE_SENDER[email_type] || "no-reply";
-    const fromAddress = SENDERS[senderKey];
+    const resolved = await resolveTemplate(serviceClient, email_type, tenant_id, templateData || {});
+    const fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
     const senderEmail = fromAddress.match(/<(.+)>/)?.[1] || "no-reply@numaxio.com";
-
-    const tpl = getEmailTemplate(email_type, templateData || {});
 
     // Insert log entry (pending)
     const { data: logRow, error: insertErr } = await serviceClient
@@ -571,7 +611,7 @@ Deno.serve(async (req) => {
         email_type,
         sender_address: senderEmail,
         recipient_email,
-        subject: tpl.subject,
+        subject: resolved.subject,
         status: "pending",
         metadata: templateData || {},
         entity_type: entity_type || null,
@@ -584,7 +624,7 @@ Deno.serve(async (req) => {
       console.error("Failed to create email log:", insertErr);
     }
 
-    const result = await sendViaResend(fromAddress, recipient_email, tpl.subject, tpl.html);
+    const result = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html);
 
     if (logRow) {
       await serviceClient

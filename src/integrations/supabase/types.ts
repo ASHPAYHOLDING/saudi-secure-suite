@@ -1513,6 +1513,116 @@ export type Database = {
           },
         ]
       }
+      email_template_definitions: {
+        Row: {
+          allow_tenant_override: boolean
+          body_html: string
+          body_text: string
+          category: string
+          created_at: string
+          created_by: string | null
+          current_version: number
+          description: string | null
+          email_type: string
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name_ar: string
+          name_en: string
+          sender_key: string
+          subject_template: string
+          updated_at: string
+          updated_by: string | null
+          variables: Json
+        }
+        Insert: {
+          allow_tenant_override?: boolean
+          body_html?: string
+          body_text?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          current_version?: number
+          description?: string | null
+          email_type: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name_ar: string
+          name_en?: string
+          sender_key?: string
+          subject_template?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: Json
+        }
+        Update: {
+          allow_tenant_override?: boolean
+          body_html?: string
+          body_text?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          current_version?: number
+          description?: string | null
+          email_type?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name_ar?: string
+          name_en?: string
+          sender_key?: string
+          subject_template?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: Json
+        }
+        Relationships: []
+      }
+      email_template_versions: {
+        Row: {
+          body_html: string
+          body_text: string
+          change_summary: string | null
+          changed_by: string | null
+          created_at: string
+          id: string
+          subject_template: string
+          template_id: string
+          version_number: number
+        }
+        Insert: {
+          body_html?: string
+          body_text?: string
+          change_summary?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          subject_template?: string
+          template_id: string
+          version_number?: number
+        }
+        Update: {
+          body_html?: string
+          body_text?: string
+          change_summary?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          subject_template?: string
+          template_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_comments: {
         Row: {
           attachment_name: string | null
@@ -4895,6 +5005,63 @@ export type Database = {
           },
         ]
       }
+      tenant_email_templates: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          subject_template: string | null
+          template_id: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          subject_template?: string | null
+          template_id: string
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          subject_template?: string | null
+          template_id?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_email_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_email_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_feature_overrides: {
         Row: {
           created_at: string
@@ -5619,6 +5786,16 @@ export type Database = {
       reserve_stock_for_order: {
         Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
+      }
+      resolve_email_template: {
+        Args: { _email_type: string; _tenant_id?: string }
+        Returns: {
+          body_html: string
+          body_text: string
+          sender_key: string
+          subject_template: string
+          variables: Json
+        }[]
       }
       user_has_permission: {
         Args: { _permission_key: string }
