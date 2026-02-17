@@ -331,10 +331,10 @@ const WalletPage = () => {
             <FileSpreadsheet className="w-4 h-4" />
             <span className="hidden sm:inline">تصدير كشف</span>
           </Button>
-          <RippleButton size="sm" className="gap-1.5" onClick={() => setShowTopup(true)}>
+          <Button size="sm" className="gap-1.5" onClick={() => setShowTopup(true)}>
             <Plus className="w-4 h-4" />
             إضافة رصيد
-          </RippleButton>
+          </Button>
         </div>
       </motion.div>
 
