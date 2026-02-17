@@ -5026,6 +5026,7 @@ export type Database = {
           id: string
           status: string
           tenant_id: string
+          updated_at: string | null
         }
         Insert: {
           balance_available?: number
@@ -5035,6 +5036,7 @@ export type Database = {
           id?: string
           status?: string
           tenant_id: string
+          updated_at?: string | null
         }
         Update: {
           balance_available?: number
@@ -5044,6 +5046,7 @@ export type Database = {
           id?: string
           status?: string
           tenant_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
