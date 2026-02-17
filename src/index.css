@@ -5,6 +5,15 @@
 @tailwind utilities;
 
 @layer base {
+  /* Global RTL support */
+  html[dir="rtl"] {
+    text-align: right;
+  }
+
+  html[dir="rtl"] body {
+    direction: rtl;
+  }
+
   :root {
     /* === Saudi Enterprise Palette === */
     --background: 210 20% 98%;
