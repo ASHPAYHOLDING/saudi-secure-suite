@@ -1,0 +1,2 @@
+ALTER TABLE public.wallet_transactions DROP CONSTRAINT wallet_transactions_reference_type_check;
+ALTER TABLE public.wallet_transactions ADD CONSTRAINT wallet_transactions_reference_type_check CHECK (reference_type = ANY (ARRAY['invoice','subscription','integration','topup','payout','manual']));
