@@ -104,7 +104,7 @@ const WalletMock = () => (
     <div className="space-y-2">
       {[
         { label: "شحن رصيد", amount: "+٥,٠٠٠ ﷼", type: "credit" },
-        { label: "شراء تكامل Stripe", amount: "-٢٩٩ ﷼", type: "debit" },
+        { label: "شراء تكامل نوماكسيو باي", amount: "-٢٩٩ ﷼", type: "debit" },
         { label: "شحن رصيد", amount: "+١٠,٠٠٠ ﷼", type: "credit" },
       ].map((tx, i) => (
         <div key={i} className="flex items-center justify-between rounded-lg bg-white/60 dark:bg-white/5 px-3 py-2.5 border border-border/50 text-xs">
