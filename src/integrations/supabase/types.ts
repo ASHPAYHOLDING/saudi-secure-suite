@@ -1389,6 +1389,80 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          email_type: string
+          entity_id: string | null
+          entity_type: string | null
+          failure_reason: string | null
+          id: string
+          last_retry_at: string | null
+          max_retries: number
+          metadata: Json | null
+          provider_id: string | null
+          provider_response: Json | null
+          recipient_email: string
+          retry_count: number
+          sender_address: string
+          sent_at: string | null
+          status: string
+          subject: string
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          entity_id?: string | null
+          entity_type?: string | null
+          failure_reason?: string | null
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number
+          metadata?: Json | null
+          provider_id?: string | null
+          provider_response?: Json | null
+          recipient_email: string
+          retry_count?: number
+          sender_address?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          failure_reason?: string | null
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number
+          metadata?: Json | null
+          provider_id?: string | null
+          provider_response?: Json | null
+          recipient_email?: string
+          retry_count?: number
+          sender_address?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_comments: {
         Row: {
           attachment_name: string | null
