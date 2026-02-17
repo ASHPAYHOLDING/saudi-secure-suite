@@ -79,7 +79,7 @@ const CertifiedApprovalStamp = ({
         </div>
 
         {/* Center content */}
-        <div className="flex flex-col items-center justify-center text-center" style={{ padding: s.outer * 0.15, paddingTop: s.outer * 0.2 }}>
+        <div className="flex flex-col items-center justify-center text-center" style={{ padding: s.outer * 0.15, paddingTop: s.outer * 0.28 }}>
           <ShieldCheck
             className="text-[hsl(160_50%_35%)]"
             style={{ width: s.fontSize * 2, height: s.fontSize * 2 }}
