@@ -22,8 +22,11 @@ function generateUBL21XML(data: InvoiceData): string {
   const invoiceUUID = invoice.invoice_uuid;
   const issueDate = invoice.invoice_date;
   const issueTime = "00:00:00";
-  const invoiceTypeCode = invoice.invoice_type === "simplified" ? "388" : "388";
-  const subTypeCode = invoice.invoice_type === "simplified" ? "0200000" : "0100000";
+
+  // Standard = 388 (tax invoice), Simplified = 388 (simplified tax invoice)
+  const isSimplified = invoice.invoice_type === "simplified";
+  const invoiceTypeCode = "388";
+  const subTypeCode = isSimplified ? "0200000" : "0100000";
 
   const lineItems = items.map((item: any, idx: number) => `
     <cac:InvoiceLine>
@@ -169,7 +172,7 @@ async function hashInvoice(xml: string): Promise<string> {
   return btoa(String.fromCharCode(...hashArray));
 }
 
-async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: any): Promise<any> {
+async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: any, invoiceType: string): Promise<any> {
   const isProduction = tenant.zatca_environment === "production";
   const baseUrl = isProduction ? ZATCA_PRODUCTION_URL : ZATCA_SANDBOX_URL;
   const csid = isProduction ? tenant.zatca_production_csid : tenant.zatca_compliance_csid;
@@ -180,8 +183,14 @@ async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: an
 
   const invoiceBody = btoa(xml);
 
+  // Standard invoices → clearance, Simplified → reporting
+  const isSimplified = invoiceType === "simplified";
+  const endpoint = isSimplified
+    ? `${baseUrl}/invoices/reporting/single`
+    : `${baseUrl}/invoices/clearance/single`;
+
   try {
-    const response = await fetch(`${baseUrl}/invoices/reporting/single`, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -189,6 +198,7 @@ async function submitToZATCA(xml: string, hash: string, uuid: string, tenant: an
         "Accept-Language": "ar",
         "Accept-Version": "V2",
         "Authorization": `Basic ${csid}`,
+        ...(isSimplified ? {} : { "Clearance-Status": "1" }),
       },
       body: JSON.stringify({
         invoiceHash: hash,
@@ -230,9 +240,9 @@ serve(async (req: Request) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: authError } = await supabase.auth.getClaims(token);
-    if (authError || !claims?.claims) {
+    // ✅ Fixed: Use getUser() instead of deprecated getClaims()
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -303,6 +313,7 @@ serve(async (req: Request) => {
     }
 
     if (action === "submit-to-zatca") {
+      // ✅ Mutex: Check if already submitted or in-progress
       const { data: invoice } = await supabase
         .from("invoices")
         .select("*")
@@ -313,22 +324,60 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: "يجب إنشاء XML أولاً" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
+      // ✅ Prevent duplicate submission — only allow from xml_generated or failed
+      if (invoice.zatca_status === "reported" || invoice.zatca_status === "cleared") {
+        return new Response(JSON.stringify({ 
+          error: "تم إرسال هذه الفاتورة مسبقاً لبوابة ZATCA ولا يمكن إعادة الإرسال",
+          zatca_status: invoice.zatca_status 
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if (invoice.zatca_status !== "xml_generated" && invoice.zatca_status !== "failed") {
+        return new Response(JSON.stringify({ 
+          error: "حالة الفاتورة لا تسمح بالإرسال. يجب توليد XML أولاً." 
+        }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // ✅ Optimistic lock: set status to "submitting" to prevent race conditions
+      const { data: locked, error: lockErr } = await supabase
+        .from("invoices")
+        .update({ zatca_status: "submitting" })
+        .eq("id", invoiceId)
+        .in("zatca_status", ["xml_generated", "failed"])
+        .select("id")
+        .single();
+
+      if (lockErr || !locked) {
+        return new Response(JSON.stringify({ 
+          error: "الفاتورة قيد الإرسال حالياً من مستخدم آخر" 
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       const { data: tenant } = await supabase
         .from("tenants")
         .select("*")
         .eq("id", invoice.tenant_id)
         .single();
 
+      // ✅ Fixed: Route to correct endpoint based on invoice type
       const result = await submitToZATCA(
         invoice.zatca_xml,
         invoice.invoice_hash,
         invoice.invoice_uuid,
-        tenant
+        tenant,
+        invoice.invoice_type
       );
+
+      // Determine final status based on invoice type and result
+      let finalStatus = "failed";
+      if (result.status === "success") {
+        const isSimplified = invoice.invoice_type === "simplified";
+        finalStatus = isSimplified ? "reported" : "cleared";
+      }
 
       // Update invoice with ZATCA response
       await supabase.from("invoices").update({
-        zatca_status: result.status === "success" ? "reported" : "failed",
+        zatca_status: finalStatus,
         zatca_clearance_status: result.clearanceStatus || null,
         zatca_reporting_status: result.reportingStatus || null,
         zatca_warnings: result.warnings || [],

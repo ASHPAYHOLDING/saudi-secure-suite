@@ -12,6 +12,7 @@ interface ZatcaPhase2StatusProps {
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "بانتظار التوليد", color: "text-muted-foreground", icon: Shield },
   xml_generated: { label: "تم توليد XML", color: "text-blue-600", icon: FileCode },
+  submitting: { label: "جارٍ الإرسال...", color: "text-yellow-600", icon: Loader2 },
   reported: { label: "تم الإبلاغ بنجاح", color: "text-emerald-600", icon: CheckCircle2 },
   cleared: { label: "تم الاعتماد", color: "text-emerald-600", icon: CheckCircle2 },
   failed: { label: "فشل الإرسال", color: "text-destructive", icon: XCircle },
