@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.paid-gateway]
 verify_jwt = false
+
+[functions.wallet-purchase]
+verify_jwt = false
