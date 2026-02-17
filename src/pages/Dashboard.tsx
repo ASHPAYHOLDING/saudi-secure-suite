@@ -43,6 +43,7 @@ import SupportTicketsPage from "@/components/support/SupportTicketsPage";
 import CreateTicketPage from "@/components/support/CreateTicketPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import NumaxioPay from "@/pages/NumaxioPay";
+import WalletPage from "@/components/wallet/WalletPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -86,6 +87,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   integrations: "integrations",
   "paid-integrations": "integrations",
   "smart-query": "analytics",
+  wallet: "finance",
   subscription: "subscription",
   settings: "settings",
   help: "help",
@@ -212,6 +214,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/help") {
       return <HelpPage />;
+    }
+    if (path === "/dashboard/wallet") {
+      return <WalletPage />;
     }
     if (path === "/dashboard/numaxio-pay") {
       return <NumaxioPay embedded />;
