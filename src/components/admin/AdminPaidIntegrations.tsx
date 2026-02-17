@@ -15,7 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import {
   Plug, Plus, Pencil, Trash2, Monitor, ShoppingBag, Users, CreditCard, Package,
-  DollarSign, TrendingUp, Clock, BarChart3, BookOpen, Crown, Loader2,
+  DollarSign, TrendingUp, Clock, BarChart3, BookOpen, Crown, Loader2, MessageSquare, Radio,
+  CheckCircle2, XCircle,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -29,12 +30,13 @@ interface PaidIntegration {
   name_en: string;
   description_ar: string;
   description_en: string;
-  category: string;
+  integration_type: string;
   icon_name: string;
-  monthly_price: number;
+  price_once: number;
   currency: string;
-  is_available: boolean;
-  requires_api_key: boolean;
+  is_listed: boolean;
+  is_ready: boolean;
+  requires_api_keys: boolean;
   api_key_label: string;
   sort_order: number;
   trial_days: number;
@@ -48,11 +50,13 @@ interface SubPlan {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any }> = {
+  payment: { label: "بوابات دفع", icon: CreditCard },
+  whatsapp: { label: "واتساب", icon: MessageSquare },
+  accounting: { label: "محاسبة", icon: BookOpen },
+  sms: { label: "رسائل SMS", icon: Radio },
   pos: { label: "نقاط البيع", icon: Monitor },
   ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag },
   hr_payroll: { label: "موارد بشرية", icon: Users },
-  payment_gateway: { label: "بوابات دفع", icon: CreditCard },
-  accounting: { label: "محاسبة", icon: BookOpen },
   other: { label: "أخرى", icon: Package },
 };
 
@@ -78,9 +82,9 @@ const AdminPaidIntegrations = () => {
 
   const [formData, setFormData] = useState({
     key: "", name_ar: "", name_en: "", description_ar: "", description_en: "",
-    category: "other", monthly_price: 0, is_available: true, requires_api_key: false,
-    api_key_label: "", sort_order: 0, icon_name: "Plug", trial_days: 0,
-    included_in_plans: [] as string[],
+    integration_type: "other", price_once: 0, is_listed: true, is_ready: false,
+    requires_api_keys: false, api_key_label: "", sort_order: 0, icon_name: "Plug",
+    trial_days: 0, included_in_plans: [] as string[],
   });
 
   useEffect(() => {
@@ -114,12 +118,11 @@ const AdminPaidIntegrations = () => {
   const metrics = useMemo(() => {
     const totalSubs = Object.values(subscriberCounts).reduce((a, b) => a + b, 0);
     const totalTrials = Object.values(trialCounts).reduce((a, b) => a + b, 0);
-    const mrr = integrations.reduce((sum, i) => sum + (subscriberCounts[i.id] || 0) * i.monthly_price, 0);
-    const arr = mrr * 12;
+    const totalRevenue = integrations.reduce((sum, i) => sum + (subscriberCounts[i.id] || 0) * i.price_once, 0);
 
     const byCategoryData = Object.entries(CATEGORY_MAP).map(([key, { label }]) => {
-      const catIntegrations = integrations.filter((i) => i.category === key);
-      const revenue = catIntegrations.reduce((s, i) => s + (subscriberCounts[i.id] || 0) * i.monthly_price, 0);
+      const catIntegrations = integrations.filter((i) => i.integration_type === key);
+      const revenue = catIntegrations.reduce((s, i) => s + (subscriberCounts[i.id] || 0) * i.price_once, 0);
       const subs = catIntegrations.reduce((s, i) => s + (subscriberCounts[i.id] || 0), 0);
       return { name: label, revenue, subscribers: subs };
     }).filter((d) => d.subscribers > 0);
@@ -129,21 +132,21 @@ const AdminPaidIntegrations = () => {
         name: i.name_ar,
         subscribers: subscriberCounts[i.id] || 0,
         trials: trialCounts[i.id] || 0,
-        revenue: (subscriberCounts[i.id] || 0) * i.monthly_price,
+        revenue: (subscriberCounts[i.id] || 0) * i.price_once,
       }))
       .filter((d) => d.subscribers > 0 || d.trials > 0)
       .sort((a, b) => b.revenue - a.revenue);
 
-    return { totalSubs, totalTrials, mrr, arr, byCategoryData, perIntegrationData };
+    return { totalSubs, totalTrials, totalRevenue, byCategoryData, perIntegrationData };
   }, [integrations, subscriberCounts, trialCounts]);
 
   // ─── Form Handlers ───
   const openCreate = () => {
     setFormData({
       key: "", name_ar: "", name_en: "", description_ar: "", description_en: "",
-      category: "other", monthly_price: 0, is_available: true, requires_api_key: false,
-      api_key_label: "", sort_order: integrations.length + 1, icon_name: "Plug",
-      trial_days: 0, included_in_plans: [],
+      integration_type: "other", price_once: 0, is_listed: true, is_ready: false,
+      requires_api_keys: false, api_key_label: "", sort_order: integrations.length + 1,
+      icon_name: "Plug", trial_days: 0, included_in_plans: [],
     });
     setCreateDialog(true);
   };
@@ -152,8 +155,9 @@ const AdminPaidIntegrations = () => {
     setFormData({
       key: item.key, name_ar: item.name_ar, name_en: item.name_en,
       description_ar: item.description_ar || "", description_en: item.description_en || "",
-      category: item.category, monthly_price: item.monthly_price, is_available: item.is_available,
-      requires_api_key: item.requires_api_key, api_key_label: item.api_key_label || "",
+      integration_type: item.integration_type, price_once: item.price_once,
+      is_listed: item.is_listed, is_ready: item.is_ready,
+      requires_api_keys: item.requires_api_keys, api_key_label: item.api_key_label || "",
       sort_order: item.sort_order, icon_name: item.icon_name || "Plug",
       trial_days: item.trial_days || 0, included_in_plans: item.included_in_plans || [],
     });
@@ -169,11 +173,11 @@ const AdminPaidIntegrations = () => {
     const payload = {
       name_ar: formData.name_ar, name_en: formData.name_en,
       description_ar: formData.description_ar, description_en: formData.description_en,
-      category: formData.category, monthly_price: formData.monthly_price,
-      is_available: formData.is_available, requires_api_key: formData.requires_api_key,
-      api_key_label: formData.api_key_label, sort_order: formData.sort_order,
-      icon_name: formData.icon_name, trial_days: formData.trial_days,
-      included_in_plans: formData.included_in_plans,
+      integration_type: formData.integration_type, price_once: formData.price_once,
+      is_listed: formData.is_listed, is_ready: formData.is_ready,
+      requires_api_keys: formData.requires_api_keys, api_key_label: formData.api_key_label,
+      sort_order: formData.sort_order, icon_name: formData.icon_name,
+      trial_days: formData.trial_days, included_in_plans: formData.included_in_plans,
     };
 
     if (editDialog) {
@@ -196,8 +200,13 @@ const AdminPaidIntegrations = () => {
     fetchAll();
   };
 
-  const toggleAvailability = async (id: string, val: boolean) => {
-    await supabase.from("paid_integrations").update({ is_available: val } as any).eq("id", id);
+  const toggleListed = async (id: string, val: boolean) => {
+    await supabase.from("paid_integrations").update({ is_listed: val } as any).eq("id", id);
+    fetchAll();
+  };
+
+  const toggleReady = async (id: string, val: boolean) => {
+    await supabase.from("paid_integrations").update({ is_ready: val } as any).eq("id", id);
     fetchAll();
   };
 
@@ -225,8 +234,8 @@ const AdminPaidIntegrations = () => {
               <Input value={formData.key} onChange={(e) => setFormData({ ...formData, key: e.target.value })} placeholder="pos_foodics" disabled={!!editDialog} />
             </div>
             <div>
-              <Label>التصنيف</Label>
-              <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+              <Label>نوع التكامل</Label>
+              <Select value={formData.integration_type} onValueChange={(v) => setFormData({ ...formData, integration_type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(CATEGORY_MAP).map(([k, v]) => (
@@ -254,8 +263,8 @@ const AdminPaidIntegrations = () => {
           {/* Pricing & Trial */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label>السعر الشهري (ر.س)</Label>
-              <Input type="number" value={formData.monthly_price} onChange={(e) => setFormData({ ...formData, monthly_price: Number(e.target.value) })} />
+              <Label>السعر (مرة واحدة) ر.س</Label>
+              <Input type="number" value={formData.price_once} onChange={(e) => setFormData({ ...formData, price_once: Number(e.target.value) })} />
             </div>
             <div>
               <Label>فترة تجربة (أيام)</Label>
@@ -287,17 +296,21 @@ const AdminPaidIntegrations = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={formData.is_available} onCheckedChange={(v) => setFormData({ ...formData, is_available: v })} />
-              متاح للاشتراك
+              <Switch checked={formData.is_ready} onCheckedChange={(v) => setFormData({ ...formData, is_ready: v })} />
+              جاهز تقنياً 🔥
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={formData.requires_api_key} onCheckedChange={(v) => setFormData({ ...formData, requires_api_key: v })} />
-              يتطلب مفتاح API
+              <Switch checked={formData.is_listed} onCheckedChange={(v) => setFormData({ ...formData, is_listed: v })} />
+              يظهر للبيع
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={formData.requires_api_keys} onCheckedChange={(v) => setFormData({ ...formData, requires_api_keys: v })} />
+              يتطلب مفاتيح API
             </label>
           </div>
-          {formData.requires_api_key && (
+          {formData.requires_api_keys && (
             <div>
               <Label>تسمية مفتاح API</Label>
               <Input value={formData.api_key_label} onChange={(e) => setFormData({ ...formData, api_key_label: e.target.value })} placeholder="مثال: مفتاح API فودكس" />
@@ -331,7 +344,7 @@ const AdminPaidIntegrations = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-1">
@@ -363,18 +376,9 @@ const AdminPaidIntegrations = () => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign size={16} className="text-accent" />
-              <span className="text-xs text-muted-foreground">MRR</span>
+              <span className="text-xs text-muted-foreground">إجمالي الإيرادات</span>
             </div>
-            <p className="text-2xl font-bold text-accent">{metrics.mrr.toLocaleString()} <span className="text-sm font-normal">ر.س</span></p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={16} className="text-primary" />
-              <span className="text-xs text-muted-foreground">ARR</span>
-            </div>
-            <p className="text-2xl font-bold text-primary">{metrics.arr.toLocaleString()} <span className="text-sm font-normal">ر.س</span></p>
+            <p className="text-2xl font-bold text-accent">{metrics.totalRevenue.toLocaleString()} <span className="text-sm font-normal">ر.س</span></p>
           </CardContent>
         </Card>
       </div>
@@ -396,18 +400,19 @@ const AdminPaidIntegrations = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>التكامل</TableHead>
-                    <TableHead>التصنيف</TableHead>
+                    <TableHead>النوع</TableHead>
                     <TableHead>السعر</TableHead>
                     <TableHead>تجربة</TableHead>
                     <TableHead>مضمّن في</TableHead>
                     <TableHead>المشتركين</TableHead>
-                    <TableHead>الحالة</TableHead>
+                    <TableHead>جاهز 🔥</TableHead>
+                    <TableHead>يظهر للبيع</TableHead>
                     <TableHead>إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {integrations.map((item) => {
-                    const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                    const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                     const CatIcon = cat.icon;
                     const includedPlans = (item.included_in_plans || [])
                       .map((slug) => plans.find((p) => p.slug === slug)?.name_ar)
@@ -426,7 +431,7 @@ const AdminPaidIntegrations = () => {
                           </div>
                         </TableCell>
                         <TableCell><Badge variant="secondary">{cat.label}</Badge></TableCell>
-                        <TableCell className="font-medium">{item.monthly_price} ر.س</TableCell>
+                        <TableCell className="font-medium">{item.price_once} ر.س</TableCell>
                         <TableCell>
                           {item.trial_days > 0 ? (
                             <Badge className="bg-accent/10 text-accent border-accent/20">{item.trial_days} يوم</Badge>
@@ -454,7 +459,17 @@ const AdminPaidIntegrations = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Switch checked={item.is_available} onCheckedChange={(v) => toggleAvailability(item.id, v)} />
+                          <div className="flex items-center gap-1">
+                            <Switch checked={item.is_ready} onCheckedChange={(v) => toggleReady(item.id, v)} />
+                            {item.is_ready ? (
+                              <CheckCircle2 size={14} className="text-green-500" />
+                            ) : (
+                              <XCircle size={14} className="text-muted-foreground" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Switch checked={item.is_listed} onCheckedChange={(v) => toggleListed(item.id, v)} />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -479,7 +494,7 @@ const AdminPaidIntegrations = () => {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <BarChart3 size={16} className="text-primary" />
-                  الإيراد الشهري حسب التكامل
+                  الإيراد حسب التكامل
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -512,7 +527,7 @@ const AdminPaidIntegrations = () => {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp size={16} className="text-accent" />
-                  التوزيع حسب التصنيف
+                  التوزيع حسب النوع
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -554,8 +569,7 @@ const AdminPaidIntegrations = () => {
                     <TableHead>التكامل</TableHead>
                     <TableHead>مشتركين فعّالين</TableHead>
                     <TableHead>تجارب مجانية</TableHead>
-                    <TableHead>إيراد شهري</TableHead>
-                    <TableHead>إيراد سنوي</TableHead>
+                    <TableHead>الإيراد</TableHead>
                     <TableHead>معدل التحويل</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -563,7 +577,7 @@ const AdminPaidIntegrations = () => {
                   {integrations.map((item) => {
                     const subs = subscriberCounts[item.id] || 0;
                     const trials = trialCounts[item.id] || 0;
-                    const monthlyRev = subs * item.monthly_price;
+                    const revenue = subs * item.price_once;
                     const convRate = (subs + trials) > 0 ? ((subs / (subs + trials)) * 100).toFixed(0) : "—";
                     return (
                       <TableRow key={item.id}>
@@ -572,8 +586,7 @@ const AdminPaidIntegrations = () => {
                         <TableCell>
                           {trials > 0 ? <Badge className="bg-accent/10 text-accent">{trials}</Badge> : "—"}
                         </TableCell>
-                        <TableCell className="font-medium">{monthlyRev.toLocaleString()} ر.س</TableCell>
-                        <TableCell>{(monthlyRev * 12).toLocaleString()} ر.س</TableCell>
+                        <TableCell className="font-medium">{revenue.toLocaleString()} ر.س</TableCell>
                         <TableCell>
                           {convRate !== "—" ? <Badge variant="secondary">{convRate}%</Badge> : "—"}
                         </TableCell>

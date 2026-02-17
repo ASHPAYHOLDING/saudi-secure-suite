@@ -25,12 +25,11 @@ export const usePaidIntegration = (integrationKey: string) => {
       // Check 1: Explicit activation
       const { data: explicit } = await supabase
         .from("tenant_paid_integrations")
-        .select("status, paid_integrations!inner(key)")
+        .select("status, paid_integrations!inner(key, is_ready)")
         .eq("tenant_id", tenantId)
         .eq("paid_integrations.key", integrationKey)
         .eq("status", "active")
         .maybeSingle();
-
       if (explicit) {
         setActive(true);
         setLoading(false);

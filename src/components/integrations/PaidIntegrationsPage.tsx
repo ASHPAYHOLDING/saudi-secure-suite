@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Plug, CheckCircle2, Monitor, ShoppingBag, Users, CreditCard, Package, Power, PowerOff, Key } from "lucide-react";
+import { Plug, CheckCircle2, Monitor, ShoppingBag, Users, CreditCard, Package, Power, PowerOff, Key, BookOpen, MessageSquare, Radio } from "lucide-react";
 
 interface PaidIntegration {
   id: string;
@@ -17,10 +17,11 @@ interface PaidIntegration {
   name_ar: string;
   name_en: string;
   description_ar: string;
-  category: string;
-  monthly_price: number;
-  is_available: boolean;
-  requires_api_key: boolean;
+  integration_type: string;
+  price_once: number;
+  is_listed: boolean;
+  is_ready: boolean;
+  requires_api_keys: boolean;
   api_key_label: string;
 }
 
@@ -33,11 +34,13 @@ interface TenantSubscription {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
-  pos: { label: "نقاط البيع", icon: Monitor, color: "bg-blue-500/10 text-blue-600" },
-  ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag, color: "bg-purple-500/10 text-purple-600" },
+  payment: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
+  whatsapp: { label: "واتساب", icon: MessageSquare, color: "bg-green-500/10 text-green-600" },
+  accounting: { label: "محاسبة", icon: BookOpen, color: "bg-accent/10 text-accent" },
+  sms: { label: "رسائل SMS", icon: Radio, color: "bg-blue-500/10 text-blue-600" },
+  pos: { label: "نقاط البيع", icon: Monitor, color: "bg-purple-500/10 text-purple-600" },
+  ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag, color: "bg-indigo-500/10 text-indigo-600" },
   hr_payroll: { label: "موارد بشرية", icon: Users, color: "bg-emerald-500/10 text-emerald-600" },
-  payment_gateway: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
-  accounting: { label: "محاسبة", icon: Package, color: "bg-accent/10 text-accent" },
   other: { label: "أخرى", icon: Package, color: "bg-muted text-muted-foreground" },
 };
 
@@ -57,7 +60,7 @@ const PaidIntegrationsPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     const [{ data: catalog }, { data: subs }] = await Promise.all([
-      supabase.from("paid_integrations").select("*").eq("is_available", true).order("sort_order"),
+      supabase.from("paid_integrations").select("*").eq("is_listed", true).order("sort_order"),
       supabase.from("tenant_paid_integrations").select("*").eq("tenant_id", tenantId!),
     ]);
     setIntegrations((catalog as any[]) || []);
@@ -70,7 +73,7 @@ const PaidIntegrationsPage = () => {
 
   const handleActivate = async () => {
     if (!activateDialog || !tenantId || !user) return;
-    if (activateDialog.requires_api_key && !apiKeyValue.trim()) {
+    if (activateDialog.requires_api_keys && !apiKeyValue.trim()) {
       toast({ title: "يرجى إدخال مفتاح API", variant: "destructive" });
       return;
     }
@@ -107,12 +110,12 @@ const PaidIntegrationsPage = () => {
   };
 
   const activeSubscriptions = subscriptions.filter((s) => s.status === "active");
-  const monthlyCost = activeSubscriptions.reduce((sum, sub) => {
+  const totalCost = activeSubscriptions.reduce((sum, sub) => {
     const integration = integrations.find((i) => i.id === sub.integration_id);
-    return sum + (integration?.monthly_price || 0);
+    return sum + (integration?.price_once || 0);
   }, 0);
 
-  const categories = [...new Set(integrations.map((i) => i.category))];
+  const categories = [...new Set(integrations.map((i) => i.integration_type))];
 
   if (loading) {
     return (
@@ -134,9 +137,9 @@ const PaidIntegrationsPage = () => {
             <Plug size={14} />
             {activeSubscriptions.length} تكامل نشط
           </Badge>
-          {monthlyCost > 0 && (
+          {totalCost > 0 && (
             <Badge className="gap-1 text-sm py-1.5 px-3 bg-primary/10 text-primary border-primary/20">
-              {monthlyCost} ر.س/شهرياً
+              {totalCost} ر.س
             </Badge>
           )}
         </div>
@@ -155,10 +158,10 @@ const PaidIntegrationsPage = () => {
           <TabsContent key={tab} value={tab} className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {integrations
-                .filter((i) => tab === "all" || i.category === tab)
+                .filter((i) => tab === "all" || i.integration_type === tab)
                 .map((item) => {
                   const sub = getSubscription(item.id);
-                  const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                  const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                   const CatIcon = cat.icon;
                   return (
                     <Card key={item.id} className={sub ? "border-primary/30 bg-primary/[0.02]" : ""}>
@@ -185,8 +188,8 @@ const PaidIntegrationsPage = () => {
                         
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div>
-                            <span className="text-lg font-bold text-foreground">{item.monthly_price}</span>
-                            <span className="text-sm text-muted-foreground mr-1">ر.س/شهرياً</span>
+                            <span className="text-lg font-bold text-foreground">{item.price_once}</span>
+                            <span className="text-sm text-muted-foreground mr-1">ر.س</span>
                           </div>
                           {sub ? (
                             <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDeactivate(item.id)}>
@@ -220,7 +223,7 @@ const PaidIntegrationsPage = () => {
               {activeSubscriptions.map((sub) => {
                 const item = integrations.find((i) => i.id === sub.integration_id);
                 if (!item) return null;
-                const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                 const CatIcon = cat.icon;
                 return (
                   <Card key={sub.id} className="border-primary/30">
@@ -231,7 +234,7 @@ const PaidIntegrationsPage = () => {
                         </div>
                         <div>
                           <p className="font-semibold">{item.name_ar}</p>
-                          <p className="text-xs text-muted-foreground">{item.monthly_price} ر.س/شهرياً</p>
+                          <p className="text-xs text-muted-foreground">{item.price_once} ر.س</p>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
@@ -257,10 +260,10 @@ const PaidIntegrationsPage = () => {
           <DialogHeader>
             <DialogTitle>تفعيل {activateDialog?.name_ar}</DialogTitle>
             <DialogDescription>
-              سيتم تفعيل هذا التكامل بتكلفة {activateDialog?.monthly_price} ر.س/شهرياً.
+              سيتم تفعيل هذا التكامل بتكلفة {activateDialog?.price_once} ر.س.
             </DialogDescription>
           </DialogHeader>
-          {activateDialog?.requires_api_key && (
+          {activateDialog?.requires_api_keys && (
             <div className="space-y-3 py-4">
               <div>
                 <Label className="flex items-center gap-1">
@@ -281,7 +284,7 @@ const PaidIntegrationsPage = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setActivateDialog(null)}>إلغاء</Button>
             <Button onClick={handleActivate} disabled={saving}>
-              {saving ? "جاري التفعيل..." : `تفعيل - ${activateDialog?.monthly_price} ر.س/شهرياً`}
+              {saving ? "جاري التفعيل..." : `تفعيل - ${activateDialog?.price_once} ر.س`}
             </Button>
           </DialogFooter>
         </DialogContent>
