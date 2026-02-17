@@ -30,6 +30,7 @@ const menuItems = [
   { icon: Bot, label: "المستشار الذكي", path: "/admin/ai" },
   { icon: Cloud, label: "البنية التحتية", path: "/admin/infrastructure" },
   { icon: Wallet, label: "رسوم الدفع", path: "/admin/paylink-fees" },
+  { icon: CreditCard, label: "إدارة نيوماكسيو باي", path: "/admin/paylink-management" },
 ];
 
 interface AdminSidebarProps {
