@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
-import numaxioLogo from "@/assets/numaxio-logo-new.png";
+import NumaxioLogo from "@/components/landing/NumaxioLogo";
 
 const floatingIcons = [
   { Icon: BarChart3, x: "10%", y: "15%", delay: 0, size: 28 },
@@ -221,14 +221,14 @@ const Auth = () => {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center max-w-md"
         >
-          <motion.img 
-            src={numaxioLogo} 
-            alt="Numaxio" 
-            className="h-14 mx-auto mb-8 brightness-0 invert"
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-          />
+            className="mb-8 flex justify-center"
+          >
+            <NumaxioLogo variant="light" size="lg" />
+          </motion.div>
           <h2 className="text-3xl font-bold text-white mb-4 leading-relaxed">
             نظام محاسبي سحابي متكامل
           </h2>
@@ -264,7 +264,7 @@ const Auth = () => {
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             <span>العودة للرئيسية</span>
           </button>
-          <img src={numaxioLogo} alt="Numaxio" className="h-8 lg:hidden" />
+          <div className="lg:hidden"><NumaxioLogo variant="dark" size="sm" /></div>
         </div>
 
         {/* Form container */}
