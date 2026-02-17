@@ -174,6 +174,24 @@ const WalletPage = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Handle redirect from Paylink callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const topupStatus = params.get("topup");
+    if (topupStatus === "success") {
+      toast.success("تم شحن المحفظة بنجاح ✅");
+      fetchData();
+    } else if (topupStatus === "failed") {
+      toast.error("فشلت عملية الدفع أو تم إلغاؤها");
+    }
+    if (topupStatus) {
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("topup");
+      window.history.replaceState({}, "", url.pathname);
+    }
+  }, []);
+
   useEffect(() => {
     if (!tenantId) return;
     const channel = supabase
