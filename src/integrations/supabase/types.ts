@@ -4555,6 +4555,71 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          priority: string
+          resolved_at: string | null
+          scope: string
+          status: string
+          subject: string
+          tenant_id: string
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          scope?: string
+          status?: string
+          subject: string
+          tenant_id: string
+          ticket_number: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          scope?: string
+          status?: string
+          subject?: string
+          tenant_id?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_feature_overrides: {
         Row: {
           created_at: string
@@ -4866,6 +4931,56 @@ export type Database = {
           zatca_request_id?: string | null
         }
         Relationships: []
+      }
+      ticket_replies: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          content: string
+          created_at: string
+          id: string
+          is_internal_note: boolean
+          sender_email: string | null
+          sender_name: string | null
+          sender_type: string
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type?: string
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type?: string
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
