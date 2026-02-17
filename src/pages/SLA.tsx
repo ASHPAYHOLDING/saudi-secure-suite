@@ -99,7 +99,7 @@ const SLA = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold text-white mb-4"
+            className="text-4xl md:text-6xl font-bold text-white mb-4 text-center"
           >
             اتفاقية مستوى الخدمة
           </motion.h1>
@@ -108,7 +108,7 @@ const SLA = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-white/60 text-lg max-w-2xl mx-auto mb-10"
+            className="text-white/60 text-lg max-w-2xl mx-auto mb-10 text-center"
           >
             نلتزم بتقديم خدمة موثوقة وعالية الأداء مع ضمانات واضحة وشفافة
           </motion.p>

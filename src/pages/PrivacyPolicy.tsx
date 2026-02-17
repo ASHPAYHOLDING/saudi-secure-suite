@@ -128,7 +128,7 @@ const PrivacyPolicy = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold text-white mb-4"
+            className="text-4xl md:text-6xl font-bold text-white mb-4 text-center"
           >
             سياسة الخصوصية
           </motion.h1>
@@ -137,7 +137,7 @@ const PrivacyPolicy = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-white/60 text-lg max-w-2xl mx-auto mb-6"
+            className="text-white/60 text-lg max-w-2xl mx-auto mb-6 text-center"
           >
             نلتزم بحماية خصوصيتك وبياناتك وفقاً لأعلى المعايير الدولية والأنظمة السعودية
           </motion.p>

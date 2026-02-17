@@ -128,7 +128,7 @@ const TermsConditions = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold text-white mb-4"
+            className="text-4xl md:text-6xl font-bold text-white mb-4 text-center"
           >
             الشروط والأحكام
           </motion.h1>
@@ -137,7 +137,7 @@ const TermsConditions = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-white/60 text-lg max-w-2xl mx-auto mb-6"
+            className="text-white/60 text-lg max-w-2xl mx-auto mb-6 text-center"
           >
             يرجى قراءة هذه الشروط بعناية قبل استخدام منصة نيوماكسيو المحاسبية
           </motion.p>
