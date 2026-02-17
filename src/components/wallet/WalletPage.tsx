@@ -513,7 +513,8 @@ const WalletPage = () => {
                       className="text-5xl md:text-7xl font-black tabular-nums tracking-tighter"
                       style={balanceHidden ? {
                         color: "rgba(255,255,255,0.5)",
-                        letterSpacing: "0.15em",
+                        letterSpacing: "0.1em",
+                        fontSize: "2rem",
                       } : {
                         background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 100%)",
                         WebkitBackgroundClip: "text",
@@ -521,7 +522,7 @@ const WalletPage = () => {
                         letterSpacing: "-0.04em",
                       }}
                     >
-                      {balanceHidden ? "★ ★ ★ ★ ★" : animatedBalance.toLocaleString("ar-SA")}
+                      {balanceHidden ? "●●●●●●" : animatedBalance.toLocaleString("ar-SA")}
                     </motion.span>
                     <span className="text-lg font-medium text-white/25">{wallet.currency}</span>
                   </div>
