@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import CertifiedSignaturePad from "@/components/paylink/CertifiedSignaturePad";
+import CertifiedApprovalStamp from "@/components/paylink/CertifiedApprovalStamp";
 import {
   Shield, ShieldCheck, CheckCircle2, XCircle, Clock, Loader2, Eye,
   FileText, Download, Search, AlertTriangle, Building2, User
@@ -383,27 +384,41 @@ const AdminKycReview = () => {
                 </div>
               </div>
 
-              {/* Admin Signature (if already approved) */}
+              {/* Admin Signature & Stamp (if already approved) */}
               {reviewRequest.admin_signature_data && (
                 <div>
-                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-success" /> التوقيع الرقمي المعتمد
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-success" /> التوقيع والختم الرقمي المعتمد
                   </h4>
-                  <div className="bg-success/5 rounded-xl p-4 space-y-3 border border-success/20 relative overflow-hidden">
+                  <div className="bg-success/5 rounded-xl p-5 border border-success/20 relative overflow-hidden">
                     <div className="absolute top-2 left-2">
                       <Badge className="text-[9px] bg-success/10 text-success border-success/20 gap-1">
                         <ShieldCheck className="w-2.5 h-2.5" /> معتمد رسمياً
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm pt-4">
+                    <div className="grid grid-cols-2 gap-2 text-sm pt-4 mb-4">
                       <p><span className="text-muted-foreground">المسؤول:</span> <span className="font-bold mr-1">{reviewRequest.admin_full_name}</span></p>
                       <p><span className="text-muted-foreground">الصفة:</span> <span className="font-semibold mr-1 text-accent">مدير الامتثال المالي</span></p>
-                      <p className="col-span-2"><span className="text-muted-foreground">تاريخ التوقيع:</span> <span className="font-semibold mr-1 font-mono">{reviewRequest.admin_signed_at ? new Date(reviewRequest.admin_signed_at).toLocaleString("ar-SA") : "—"}</span></p>
+                      <p className="col-span-2"><span className="text-muted-foreground">تاريخ الاعتماد:</span> <span className="font-semibold mr-1 font-mono">{reviewRequest.admin_signed_at ? new Date(reviewRequest.admin_signed_at).toLocaleString("ar-SA") : "—"}</span></p>
                     </div>
-                    <div className="border-2 border-success/20 rounded-lg overflow-hidden bg-white inline-block shadow-sm">
-                      <img src={reviewRequest.admin_signature_data} alt="التوقيع الرقمي المعتمد" className="max-h-28" />
+                    <div className="flex flex-wrap items-end gap-6">
+                      {/* Signature */}
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground font-semibold">التوقيع الإلكتروني</p>
+                        <div className="border-2 border-success/20 rounded-lg overflow-hidden bg-white shadow-sm">
+                          <img src={reviewRequest.admin_signature_data} alt="التوقيع الرقمي المعتمد" className="max-h-28" />
+                        </div>
+                      </div>
+                      {/* Certified Stamp */}
+                      <CertifiedApprovalStamp
+                        approverName={reviewRequest.admin_full_name || "مسؤول المنصة"}
+                        approverTitle="مدير الامتثال المالي"
+                        approvalDate={reviewRequest.admin_signed_at || undefined}
+                        contractNumber={reviewRequest.contract_number}
+                        size="md"
+                      />
                     </div>
-                    <p className="text-[9px] text-muted-foreground">توقيع رقمي مشفّر ومعتمد وفقاً لنظام التعاملات الإلكترونية م/18</p>
+                    <p className="text-[9px] text-muted-foreground mt-3">توقيع وختم رقمي مشفّر ومعتمد وفقاً لنظام التعاملات الإلكترونية م/18</p>
                   </div>
                 </div>
               )}
