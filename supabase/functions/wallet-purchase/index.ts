@@ -425,7 +425,7 @@ async function handlePaylinkCallback(
       p_reference_type: "topup",
       p_reference_id: topupReq.id,
       p_actor_id: "00000000-0000-0000-0000-000000000000",
-      p_source: "paylink",
+      p_source: "payment_gateway",
     });
 
     await supabase
