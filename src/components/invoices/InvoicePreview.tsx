@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Printer, Download, Loader2, Palette, Send } from "lucide-react";
+import { ArrowRight, Printer, Download, Loader2, Palette, Send, Banknote, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
@@ -8,6 +8,9 @@ import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
 import ZatcaPhase2Status from "@/components/invoices/ZatcaPhase2Status";
+import RecordPaymentDialog from "@/components/invoices/RecordPaymentDialog";
+import PaymentHistory from "@/components/invoices/PaymentHistory";
+import PaymentGatewayPanel from "@/components/payments/PaymentGatewayPanel";
 import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +35,8 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const [templates, setTemplates] = useState<InvoiceTemplate[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<InvoiceTemplate | null>(null);
   const [deliveryOpen, setDeliveryOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [gatewayOpen, setGatewayOpen] = useState(false);
 
   const loadInvoice = useCallback(async () => {
     if (!invoiceId || !tenantId) { setLoading(false); return; }
@@ -165,6 +170,12 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
             </Select>
           )}
           <Button variant="outline" className="gap-2" onClick={() => setDeliveryOpen(true)}><Send size={16} />إرسال</Button>
+          {invoice && invoice.status !== 'paid' && invoice.status !== 'draft' && invoice.status !== 'cancelled' && (
+            <>
+              <Button variant="outline" className="gap-2" onClick={() => setPaymentDialogOpen(true)}><Banknote size={16} />تسجيل دفعة</Button>
+              <Button variant="outline" className="gap-2" onClick={() => setGatewayOpen(true)}><CreditCard size={16} />بوابة دفع</Button>
+            </>
+          )}
           <Button variant="outline" className="gap-2" onClick={handlePrint}><Printer size={16} />طباعة</Button>
           <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}><Download size={16} />تصدير PDF</Button>
         </div>
@@ -406,6 +417,13 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
         </div>
       </motion.div>
 
+      {/* Payment History */}
+      {invoice && invoice.status !== 'draft' && (
+        <div className="mx-auto max-w-[210mm] mt-4">
+          <PaymentHistory invoiceId={invoice.id} onUpdate={loadInvoice} />
+        </div>
+      )}
+
       {invoice && (
         <InvoiceDeliveryDialog
           open={deliveryOpen}
@@ -420,6 +438,27 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
             customer_phone: customer?.phone,
             customer_email: customer?.email,
           }}
+        />
+      )}
+
+      {invoice && (
+        <RecordPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          invoiceId={invoice.id}
+          amountDue={invoice.amount_due}
+          onPaymentRecorded={loadInvoice}
+        />
+      )}
+
+      {invoice && (
+        <PaymentGatewayPanel
+          open={gatewayOpen}
+          onOpenChange={setGatewayOpen}
+          invoiceId={invoice.id}
+          invoiceNumber={invoice.invoice_number}
+          amount={invoice.amount_due}
+          currency={invoice.currency}
         />
       )}
     </div>

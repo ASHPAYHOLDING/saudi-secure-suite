@@ -36,6 +36,7 @@ import AccountantDashboard from "@/components/productivity/AccountantDashboard";
 import SupplierInboxPage from "@/components/supplier-inbox/SupplierInboxPage";
 import PaymentRemindersPage from "@/components/reminders/PaymentRemindersPage";
 import ApprovalWorkflowsPage from "@/components/approvals/ApprovalWorkflowsPage";
+import CreditNotesPage from "@/components/credit-notes/CreditNotesPage";
 import NaturalLanguageQuery from "@/components/ai/NaturalLanguageQuery";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
@@ -72,6 +73,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   "supplier-inbox": "supplier-inbox",
   "payment-reminders": "payment-reminders",
   approvals: "billing",
+  "credit-notes": "billing",
   "productivity": "dashboard",
   "sheet-view": "sheet-view",
   branches: "branches",
@@ -137,6 +139,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/approvals") {
       return <ApprovalWorkflowsPage />;
+    }
+    if (path === "/dashboard/credit-notes") {
+      return <CreditNotesPage />;
     }
     if (path === "/dashboard/stamp") {
       return <StampManagement />;

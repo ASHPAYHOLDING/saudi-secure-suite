@@ -19,6 +19,7 @@ const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] =
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
   { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
   { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
+  { icon: FileText, key: "nav.creditNotes", path: "/dashboard/credit-notes", module: "billing" },
   { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
   { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
   { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
