@@ -49,6 +49,7 @@ type FlowStep = "preview" | "payment" | "paying" | "api_keys" | "testing" | "don
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
   payment: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
+  payment_gateway: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
   whatsapp: { label: "واتساب", icon: MessageSquare, color: "bg-green-500/10 text-green-600" },
   accounting: { label: "محاسبة", icon: BookOpen, color: "bg-accent/10 text-accent" },
   sms: { label: "رسائل SMS", icon: Radio, color: "bg-blue-500/10 text-blue-600" },
@@ -318,24 +319,40 @@ const PaidIntegrationsPage = () => {
   const runConnectionTest = async () => {
     setTestResult("testing");
 
-    // Simulate connection test (2s)
-    await new Promise((r) => setTimeout(r, 2000));
-
-    // Activate the integration
     if (flowItem && tenantId) {
-      await supabase
-        .from("tenant_paid_integrations")
-        .update({
-          status: "active",
-          activated_at: new Date().toISOString(),
-        } as any)
-        .eq("tenant_id", tenantId)
-        .eq("integration_id", flowItem.id);
-    }
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paid-gateway?action=test-connection`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              gatewayKey: flowItem.key,
+              apiKey: apiKeyValue,
+            }),
+          }
+        );
 
-    setTestResult("success");
-    setFlowStep("done");
-    fetchAll();
+        const result = await res.json();
+
+        if (result.success) {
+          setTestResult("success");
+          setFlowStep("done");
+          toast({ title: result.message });
+          fetchAll();
+        } else {
+          setTestResult("fail");
+          toast({ title: "فشل الاتصال", description: result.message || result.error, variant: "destructive" });
+        }
+      } catch (err: any) {
+        setTestResult("fail");
+        toast({ title: "خطأ في الاختبار", description: err.message, variant: "destructive" });
+      }
+    }
   };
 
   const handleDeactivate = async (integrationId: string) => {
@@ -683,16 +700,28 @@ const PaidIntegrationsPage = () => {
             )}
 
             {/* Testing Connection */}
-            {flowStep === "testing" && (
+            {flowStep === "testing" && testResult === "testing" && (
               <div className="flex flex-col items-center justify-center gap-4 py-6">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
                   <Wifi size={32} className="text-primary" />
                 </div>
                 <div className="text-center">
                   <p className="font-medium text-foreground">جاري اختبار الاتصال...</p>
-                  <p className="text-xs text-muted-foreground mt-1">يتم التحقق من صلاحية المفاتيح والربط</p>
+                  <p className="text-xs text-muted-foreground mt-1">يتم التحقق من صلاحية المفاتيح والربط مع البوابة</p>
                 </div>
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            )}
+
+            {flowStep === "testing" && testResult === "fail" && (
+              <div className="flex flex-col items-center justify-center gap-4 py-6">
+                <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
+                  <WifiOff size={32} className="text-destructive" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium text-foreground">فشل اختبار الاتصال</p>
+                  <p className="text-xs text-muted-foreground mt-1">تحقق من مفتاح API وحاول مجدداً</p>
+                </div>
               </div>
             )}
 
@@ -753,11 +782,19 @@ const PaidIntegrationsPage = () => {
                 </Button>
               </>
             )}
-            {flowStep === "testing" && (
+            {flowStep === "testing" && testResult === "testing" && (
               <Button variant="outline" disabled>
                 <Loader2 size={14} className="animate-spin ml-2" />
                 جاري الاختبار...
               </Button>
+            )}
+            {flowStep === "testing" && testResult === "fail" && (
+              <>
+                <Button variant="outline" onClick={() => setFlowStep("api_keys")}>تعديل المفتاح</Button>
+                <Button onClick={() => runConnectionTest()} className="gap-2">
+                  <Wifi size={14} /> إعادة الاختبار
+                </Button>
+              </>
             )}
             {flowStep === "done" && (
               <Button onClick={closeFlow} className="gap-2 w-full">
