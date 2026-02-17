@@ -14,6 +14,7 @@ import {
   User, Download, AlertTriangle, FileDown
 } from "lucide-react";
 import { downloadKycContractPdf } from "@/lib/kyc-contract-pdf";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,94 +239,237 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
 
   // Show existing request status
   if (existingRequest && existingRequest.status !== "requires_update") {
+    const statusConfig = {
+      pending: {
+        icon: Clock,
+        color: "text-warning",
+        bg: "bg-warning/10",
+        border: "border-warning/30",
+        title: "في انتظار المراجعة",
+        desc: "طلبك قيد المراجعة من قبل إدارة المنصة. سيتم إخطارك فور اتخاذ القرار.",
+      },
+      under_review: {
+        icon: Shield,
+        color: "text-info",
+        bg: "bg-info/10",
+        border: "border-info/30",
+        title: "جاري التحقق من المستندات",
+        desc: "يتم التحقق من المستندات والمعلومات المقدّمة من قبل فريق الامتثال.",
+      },
+      rejected: {
+        icon: XCircle,
+        color: "text-destructive",
+        bg: "bg-destructive/10",
+        border: "border-destructive/30",
+        title: "تم رفض الطلب",
+        desc: existingRequest.rejection_reason || "يرجى التواصل مع الإدارة لمعرفة السبب.",
+      },
+    };
+
+    const currentStatus = statusConfig[existingRequest.status as keyof typeof statusConfig] || statusConfig.pending;
+    const StatusIcon = currentStatus.icon;
+
+    const timelineSteps = [
+      { label: "تقديم الطلب", icon: FileText, done: true, date: existingRequest.created_at },
+      { label: "مراجعة المستندات", icon: Shield, done: existingRequest.status === "under_review" || existingRequest.status === "approved", active: existingRequest.status === "pending" },
+      { label: "التحقق من الهوية", icon: User, done: existingRequest.status === "approved", active: existingRequest.status === "under_review" },
+      { label: "تفعيل البوابة", icon: CheckCircle2, done: existingRequest.status === "approved" },
+    ];
+
+    const infoCards = [
+      { icon: Building2, label: "الاسم التجاري", value: existingRequest.business_name },
+      { icon: User, label: "النوع", value: existingRequest.applicant_type === "company" ? "شركة / مؤسسة" : existingRequest.applicant_type === "freelancer" ? "عمل حر" : "فرد" },
+      { icon: CreditCard, label: "رقم العقد", value: existingRequest.contract_number },
+      { icon: Clock, label: "تاريخ التقديم", value: new Date(existingRequest.created_at).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) },
+      { icon: BanknoteIcon, label: "الآيبان", value: existingRequest.iban ? `****${existingRequest.iban.slice(-4)}` : "—" },
+      { icon: Shield, label: "الموقّع", value: existingRequest.subscriber_full_name },
+    ];
+
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
-        <div className="text-center space-y-3">
-          <h2 className="text-2xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">حالة طلب التحقق</h2>
-          <p className="text-muted-foreground">رقم العقد: {existingRequest.contract_number}</p>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-6">
+        {/* Page Header */}
+        <div className="text-center space-y-2">
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ delay: 0.1 }}>
+            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-3">
+              <Sparkles className="w-4 h-4" /> حالة طلب التحقق
+            </div>
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">نيوماكسيو باي — التحقق من الهوية</h2>
+          <p className="text-muted-foreground text-sm">رقم العقد: <span className="font-mono text-foreground">{existingRequest.contract_number}</span></p>
         </div>
 
-        <Card className="border-border/60">
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center justify-center gap-3 p-6 rounded-xl bg-muted/50">
-              {existingRequest.status === "pending" && (
-                <>
-                  <Clock className="w-10 h-10 text-warning" />
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-warning">في انتظار المراجعة</p>
-                    <p className="text-sm text-muted-foreground mt-1">طلبك قيد المراجعة من قبل إدارة المنصة. سيتم إخطارك فور اتخاذ القرار.</p>
+        {/* Status Banner */}
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+          <Card className={`border-2 ${currentStatus.border} overflow-hidden`}>
+            <CardContent className="p-0">
+              <div className={`${currentStatus.bg} p-6`}>
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    animate={existingRequest.status === "pending" ? { rotate: [0, 15, -15, 0] } : {}}
+                    transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                    className={`w-16 h-16 rounded-2xl ${currentStatus.bg} border ${currentStatus.border} flex items-center justify-center`}
+                  >
+                    <StatusIcon className={`w-8 h-8 ${currentStatus.color}`} />
+                  </motion.div>
+                  <div className="flex-1">
+                    <h3 className={`text-xl font-bold ${currentStatus.color} font-[IBM_Plex_Sans_Arabic]`}>{currentStatus.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{currentStatus.desc}</p>
                   </div>
-                </>
-              )}
-              {existingRequest.status === "under_review" && (
-                <>
-                  <Loader2 className="w-10 h-10 text-info animate-spin" />
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-info">جاري التحقق</p>
-                    <p className="text-sm text-muted-foreground mt-1">يتم التحقق من المستندات والمعلومات المقدّمة.</p>
-                  </div>
-                </>
-              )}
-              {existingRequest.status === "rejected" && (
-                <>
-                  <XCircle className="w-10 h-10 text-destructive" />
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-destructive">تم رفض الطلب</p>
-                    <p className="text-sm text-muted-foreground mt-1">{existingRequest.rejection_reason || "يرجى التواصل مع الإدارة لمعرفة السبب."}</p>
-                  </div>
-                </>
-              )}
-            </div>
+                  <Badge variant="outline" className={`${currentStatus.color} ${currentStatus.border} text-xs px-3 py-1`}>
+                    {existingRequest.status === "pending" ? "قيد الانتظار" : existingRequest.status === "under_review" ? "تحت المراجعة" : "مرفوض"}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-            <Separator />
+        {/* Timeline */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" /> مراحل التحقق
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between relative">
+                {/* Progress line */}
+                <div className="absolute top-5 right-10 left-10 h-0.5 bg-border" />
+                <div
+                  className="absolute top-5 right-10 h-0.5 bg-accent transition-all duration-700"
+                  style={{
+                    width: `${(timelineSteps.filter(s => s.done).length / timelineSteps.length) * 100}%`,
+                    maxWidth: "calc(100% - 80px)"
+                  }}
+                />
+                {timelineSteps.map((step, i) => (
+                  <motion.div
+                    key={step.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="flex flex-col items-center gap-2 relative z-10"
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                      step.done ? "bg-accent border-accent text-accent-foreground" :
+                      step.active ? "bg-warning/10 border-warning text-warning animate-pulse" :
+                      "bg-muted border-border text-muted-foreground"
+                    )}>
+                      <step.icon className="w-4 h-4" />
+                    </div>
+                    <span className={cn(
+                      "text-xs font-medium text-center max-w-[80px]",
+                      step.done ? "text-accent" : step.active ? "text-warning" : "text-muted-foreground"
+                    )}>
+                      {step.label}
+                    </span>
+                    {step.done && step.date && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(step.date).toLocaleDateString("ar-SA", { month: "short", day: "numeric" })}
+                      </span>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">الاسم التجاري</p>
-                <p className="font-semibold text-foreground">{existingRequest.business_name}</p>
+        {/* Info Cards Grid */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="w-4 h-4 text-accent" /> بيانات الطلب
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {infoCards.map((card, i) => (
+                  <motion.div
+                    key={card.label}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.45 + i * 0.05 }}
+                    className="p-3 rounded-xl bg-muted/40 border border-border/50 hover:border-accent/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <card.icon className="w-3.5 h-3.5 text-accent" />
+                      <span className="text-xs text-muted-foreground">{card.label}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground truncate">{card.value}</p>
+                  </motion.div>
+                ))}
               </div>
-              <div>
-                <p className="text-muted-foreground">النوع</p>
-                <p className="font-semibold text-foreground">
-                  {existingRequest.applicant_type === "company" ? "شركة/مؤسسة" : existingRequest.applicant_type === "freelancer" ? "مستقل" : "فرد"}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">تاريخ التقديم</p>
-                <p className="font-semibold text-foreground">{new Date(existingRequest.created_at).toLocaleDateString("ar-SA")}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">الموقّع</p>
-                <p className="font-semibold text-foreground">{existingRequest.subscriber_full_name}</p>
-              </div>
-            </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-            {/* Download contract as PDF */}
-            <Button variant="outline" className="w-full gap-2" onClick={() => {
-              downloadKycContractPdf({
-                contractNumber: existingRequest.contract_number,
-                businessName: existingRequest.business_name,
-                businessNameEn: existingRequest.business_name_en,
-                applicantType: existingRequest.applicant_type,
-                crNumber: existingRequest.cr_number,
-                vatNumber: existingRequest.vat_number,
-                nationalId: existingRequest.national_id,
-                phone: existingRequest.phone,
-                email: existingRequest.email,
-                iban: existingRequest.iban,
-                bankName: existingRequest.bank_name,
-                subscriberFullName: existingRequest.subscriber_full_name,
-                subscriberSignedAt: existingRequest.subscriber_signed_at,
-                subscriberSignatureData: existingRequest.subscriber_signature_data,
-                agreementHtml: existingRequest.agreement_html,
-                createdAt: existingRequest.created_at,
-                status: existingRequest.status,
-              });
-            }}>
-              <FileDown className="w-4 h-4" /> تحميل العقد الرسمي (PDF)
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Tips & Download */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Tips */}
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-warning" /> ملاحظات مهمة
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                "مدة المراجعة من ١ إلى ٣ أيام عمل",
+                "سيتم إخطارك عبر البريد الإلكتروني عند التحديث",
+                "تأكد من صحة بيانات الآيبان لتجنب تأخير التحويلات",
+                "يمكنك تحميل نسخة من العقد الرسمي في أي وقت",
+              ].map((tip, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                  <p className="text-sm text-muted-foreground">{tip}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Download className="w-4 h-4 text-accent" /> إجراءات متاحة
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full gap-2 h-12" onClick={() => {
+                downloadKycContractPdf({
+                  contractNumber: existingRequest.contract_number,
+                  businessName: existingRequest.business_name,
+                  businessNameEn: existingRequest.business_name_en,
+                  applicantType: existingRequest.applicant_type,
+                  crNumber: existingRequest.cr_number,
+                  vatNumber: existingRequest.vat_number,
+                  nationalId: existingRequest.national_id,
+                  phone: existingRequest.phone,
+                  email: existingRequest.email,
+                  iban: existingRequest.iban,
+                  bankName: existingRequest.bank_name,
+                  subscriberFullName: existingRequest.subscriber_full_name,
+                  subscriberSignedAt: existingRequest.subscriber_signed_at,
+                  subscriberSignatureData: existingRequest.subscriber_signature_data,
+                  agreementHtml: existingRequest.agreement_html,
+                  createdAt: existingRequest.created_at,
+                  status: existingRequest.status,
+                });
+              }}>
+                <FileDown className="w-5 h-5 text-accent" />
+                <span>تحميل العقد الرسمي (PDF)</span>
+              </Button>
+              <div className="p-3 rounded-lg bg-accent/5 border border-accent/20 text-center">
+                <p className="text-xs text-muted-foreground">هل تحتاج مساعدة؟</p>
+                <p className="text-sm font-medium text-accent mt-1">support@numaxio.com</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
     );
   }
