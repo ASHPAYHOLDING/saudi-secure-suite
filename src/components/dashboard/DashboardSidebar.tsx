@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -94,6 +94,7 @@ const settingsMenuKeys: NavItemDef[] = [
   { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
   { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
   { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
+  { icon: Headphones, key: "nav.support", path: "/dashboard/support", module: "help" },
   { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
 ];
 

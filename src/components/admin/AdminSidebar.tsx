@@ -14,6 +14,7 @@ import {
   Bot,
   Cloud,
   Wallet,
+  Headphones,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const menuItems = [
   { icon: Cloud, label: "البنية التحتية", path: "/admin/infrastructure" },
   { icon: Wallet, label: "رسوم الدفع", path: "/admin/paylink-fees" },
   { icon: CreditCard, label: "إدارة نيوماكسيو باي", path: "/admin/paylink-management" },
+  { icon: Headphones, label: "تذاكر الدعم", path: "/admin/support" },
 ];
 
 interface AdminSidebarProps {

@@ -38,6 +38,7 @@ import PaymentRemindersPage from "@/components/reminders/PaymentRemindersPage";
 import ApprovalWorkflowsPage from "@/components/approvals/ApprovalWorkflowsPage";
 import CreditNotesPage from "@/components/credit-notes/CreditNotesPage";
 import NaturalLanguageQuery from "@/components/ai/NaturalLanguageQuery";
+import SupportTicketsPage from "@/components/support/SupportTicketsPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import NumaxioPay from "@/pages/NumaxioPay";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
@@ -84,6 +85,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   subscription: "subscription",
   settings: "settings",
   help: "help",
+  support: "help",
 };
 
 const Dashboard = () => {
@@ -206,6 +208,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/numaxio-pay") {
       return <NumaxioPay embedded />;
+    }
+    if (path === "/dashboard/support") {
+      return <SupportTicketsPage />;
     }
     return <DashboardHome />;
   };
