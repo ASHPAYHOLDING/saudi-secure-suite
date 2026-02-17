@@ -5403,6 +5403,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_review_topup_request: {
+        Args: {
+          p_action: string
+          p_rejection_reason?: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       admin_set_wallet_status: {
         Args: { p_admin_id: string; p_status: string; p_wallet_id: string }
         Returns: undefined
