@@ -2408,6 +2408,7 @@ export type Database = {
           description_en: string | null
           icon_name: string | null
           id: string
+          included_in_plans: string[]
           is_available: boolean
           key: string
           monthly_price: number
@@ -2415,6 +2416,7 @@ export type Database = {
           name_en: string
           requires_api_key: boolean
           sort_order: number
+          trial_days: number
           updated_at: string
         }
         Insert: {
@@ -2426,6 +2428,7 @@ export type Database = {
           description_en?: string | null
           icon_name?: string | null
           id?: string
+          included_in_plans?: string[]
           is_available?: boolean
           key: string
           monthly_price?: number
@@ -2433,6 +2436,7 @@ export type Database = {
           name_en?: string
           requires_api_key?: boolean
           sort_order?: number
+          trial_days?: number
           updated_at?: string
         }
         Update: {
@@ -2444,6 +2448,7 @@ export type Database = {
           description_en?: string | null
           icon_name?: string | null
           id?: string
+          included_in_plans?: string[]
           is_available?: boolean
           key?: string
           monthly_price?: number
@@ -2451,6 +2456,7 @@ export type Database = {
           name_en?: string
           requires_api_key?: boolean
           sort_order?: number
+          trial_days?: number
           updated_at?: string
         }
         Relationships: []
