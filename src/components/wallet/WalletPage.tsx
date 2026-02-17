@@ -12,7 +12,8 @@ import {
   Upload, Copy, Building2, AlertCircle, Search, Filter,
   CreditCard, Receipt, FileText, Zap, Eye,
   ArrowUpRight, ArrowDownRight, TrendingUp, Activity,
-  Download, MoreHorizontal, CircleDollarSign,
+  Download, MoreHorizontal, CircleDollarSign, Calendar,
+  FileSpreadsheet, ArrowDown,
 } from "lucide-react";
 import {
   WalletBalanceIcon, WalletTopupIcon, WalletActivityIcon,
@@ -24,6 +25,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 // ── Reduced motion detection ──
 function usePrefersReducedMotion() {
@@ -40,17 +44,15 @@ function usePrefersReducedMotion() {
 
 // ── Animated Counter Hook ──
 function useAnimatedNumber(target: number, duration = 300, reducedMotion = false) {
-  const [display, setDisplay] = useState(0); // start from 0 for initial count-up
+  const [display, setDisplay] = useState(0);
   const rafRef = useRef<number>();
   const isFirstRun = useRef(true);
 
   useEffect(() => {
     if (reducedMotion) { setDisplay(target); return; }
-
     const start = isFirstRun.current ? 0 : display;
     isFirstRun.current = false;
     const startTime = performance.now();
-
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
@@ -58,7 +60,6 @@ function useAnimatedNumber(target: number, duration = 300, reducedMotion = false
       setDisplay(Math.round(start + (target - start) * eased));
       if (progress < 1) rafRef.current = requestAnimationFrame(animate);
     };
-
     rafRef.current = requestAnimationFrame(animate);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [target, duration, reducedMotion]);
@@ -71,59 +72,43 @@ function useDebitShake(balance: number, reducedMotion: boolean) {
   const [shaking, setShaking] = useState(false);
   const [flashRed, setFlashRed] = useState(false);
   const prevRef = useRef(balance);
-
   useEffect(() => {
     if (reducedMotion) { prevRef.current = balance; return; }
     if (prevRef.current > balance && prevRef.current !== 0) {
-      setShaking(true);
-      setFlashRed(true);
+      setShaking(true); setFlashRed(true);
       setTimeout(() => setShaking(false), 40);
       setTimeout(() => setFlashRed(false), 300);
     }
     prevRef.current = balance;
   }, [balance, reducedMotion]);
-
   return { shaking, flashRed };
 }
 
-// ── Section reveal animation ──
 const sectionVariants = {
   hidden: { opacity: 0, y: 8 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.18, ease: [0, 0, 0.2, 1] as const } },
 };
 
-// ── Ripple Button Component ──
+// ── Ripple Button ──
 const RippleButton = ({ children, onClick, disabled, className = "", ...props }: React.ComponentProps<typeof Button>) => {
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
-
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     const id = Date.now();
-    setRipples(prev => [...prev, { x, y, id }]);
+    setRipples(prev => [...prev, { x: e.clientX - rect.left, y: e.clientY - rect.top, id }]);
     setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 500);
     onClick?.(e);
   };
-
   return (
     <Button onClick={handleClick} disabled={disabled} className={`relative overflow-hidden ${className}`} {...props}>
       {children}
       {ripples.map(r => (
-        <span
-          key={r.id}
-          className="absolute rounded-full bg-primary-foreground/20 animate-[ripple_0.5s_ease-out]"
-          style={{ left: r.x - 10, top: r.y - 10, width: 20, height: 20 }}
-        />
+        <span key={r.id} className="absolute rounded-full bg-primary-foreground/20 animate-[ripple_0.5s_ease-out]"
+          style={{ left: r.x - 10, top: r.y - 10, width: 20, height: 20 }} />
       ))}
     </Button>
   );
 };
-
-// HoverIcon now delegates to MicroIcon system
-const HoverIcon = ({ icon: Icon, className = "", size = 16 }: { icon: React.ElementType; className?: string; size?: number }) => (
-  <MicroIcon icon={Icon as any} size={size} className={className} />
-);
 
 interface WalletData {
   id: string;
@@ -142,6 +127,8 @@ interface WalletTransaction {
   reference_id: string;
   source: string;
   created_at: string;
+  balance_before: number | null;
+  balance_after: number | null;
 }
 
 interface TopupRequest {
@@ -160,11 +147,6 @@ const STATUS_MAP: Record<string, { label: string; color: string; dotColor: strin
   active: { label: "نشطة", color: "bg-success/10 text-success border-success/20", dotColor: "bg-success" },
   frozen: { label: "مجمّدة", color: "bg-destructive/10 text-destructive border-destructive/20", dotColor: "bg-destructive" },
   suspended: { label: "موقوفة", color: "bg-warning/10 text-warning border-warning/20", dotColor: "bg-warning" },
-};
-
-const TX_STATUS: Record<string, { label: string; color: string }> = {
-  credit: { label: "إيداع", color: "text-success" },
-  debit: { label: "خصم", color: "text-destructive" },
 };
 
 const REASON_LABELS: Record<string, string> = {
@@ -190,6 +172,8 @@ const BANK_INFO = {
 
 const TOPUP_AMOUNTS = [100, 250, 500, 1000, 2500, 5000];
 
+const formatAmount = (n: number) => n.toLocaleString("ar-SA");
+
 const WalletPage = () => {
   const { user, tenantId } = useAuth();
   const { isRTL } = useLanguage();
@@ -200,8 +184,11 @@ const WalletPage = () => {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [newTxIds, setNewTxIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+
+  // Ledger filters
   const [txFilter, setTxFilter] = useState<"all" | "credit" | "debit">("all");
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<"all" | "7d" | "30d" | "90d">("all");
+  const [reasonFilter, setReasonFilter] = useState<string>("all");
 
   // Topup modal state
   const [showTopup, setShowTopup] = useState(false);
@@ -215,30 +202,22 @@ const WalletPage = () => {
 
   const finalAmount = topupAmount > 0 ? topupAmount : Number(customAmount) || 0;
 
-  // Animated numbers (300ms count-up, respects reduced motion)
   const animatedBalance = useAnimatedNumber(wallet?.balance_available || 0, 300, reducedMotion);
   const animatedPending = useAnimatedNumber(wallet?.balance_pending || 0, 300, reducedMotion);
-
-  // Balance change indicator
   const balanceChange = wallet ? wallet.balance_available - prevBalance : 0;
-
-  // Debit shake effect
   const { shaking, flashRed } = useDebitShake(wallet?.balance_available || 0, reducedMotion);
 
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
     setLoading(true);
     const { data: w } = await supabase
-      .from("tenant_wallets")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
+      .from("tenant_wallets").select("*").eq("tenant_id", tenantId).maybeSingle();
 
     if (w) {
       setPrevBalance(wallet?.balance_available || w.balance_available);
       setWallet(w);
       const [{ data: txs }, { data: reqs }] = await Promise.all([
-        supabase.from("wallet_transactions").select("*").eq("wallet_id", w.id).order("created_at", { ascending: false }).limit(50),
+        supabase.from("wallet_transactions").select("*").eq("wallet_id", w.id).order("created_at", { ascending: false }).limit(100),
         supabase.from("wallet_topup_requests").select("*").eq("wallet_id", w.id).order("created_at", { ascending: false }).limit(20),
       ]);
       setTransactions(txs || []);
@@ -247,9 +226,7 @@ const WalletPage = () => {
     setLoading(false);
   }, [tenantId]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   // Realtime
   useEffect(() => {
@@ -257,16 +234,12 @@ const WalletPage = () => {
     const channel = supabase
       .channel("wallet-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "tenant_wallets", filter: `tenant_id=eq.${tenantId}` }, (payload) => {
-        if (payload.new) {
-          setPrevBalance(wallet?.balance_available || 0);
-          setWallet(payload.new as WalletData);
-        }
+        if (payload.new) { setPrevBalance(wallet?.balance_available || 0); setWallet(payload.new as WalletData); }
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions" }, (payload) => {
         if (payload.new) {
           const newTx = payload.new as WalletTransaction;
-          setTransactions((prev) => [newTx, ...prev].slice(0, 50));
-          // Mark as new for slide-in animation
+          setTransactions((prev) => [newTx, ...prev].slice(0, 100));
           setNewTxIds(prev => new Set(prev).add(newTx.id));
           setTimeout(() => setNewTxIds(prev => { const s = new Set(prev); s.delete(newTx.id); return s; }), 600);
         }
@@ -282,60 +255,70 @@ const WalletPage = () => {
     return () => { supabase.removeChannel(channel); };
   }, [tenantId, wallet?.balance_available]);
 
-  // Usage analytics
-  const usageStats = useMemo(() => {
-    const debits = transactions.filter(t => t.type === "debit");
-    const byReason: Record<string, number> = {};
-    debits.forEach(t => { byReason[t.reason] = (byReason[t.reason] || 0) + t.amount; });
-    return {
-      subscriptions: byReason["subscription"] || 0,
-      integrations: byReason["integration"] || 0,
-      totalOps: transactions.length,
-    };
-  }, [transactions]);
-
+  // Filtered transactions
   const filteredTx = useMemo(() => {
-    if (txFilter === "all") return transactions;
-    return transactions.filter(t => t.type === txFilter);
-  }, [transactions, txFilter]);
+    let result = transactions;
+    if (txFilter !== "all") result = result.filter(t => t.type === txFilter);
+    if (reasonFilter !== "all") result = result.filter(t => t.reason === reasonFilter);
+    if (dateRange !== "all") {
+      const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      result = result.filter(t => new Date(t.created_at) >= cutoff);
+    }
+    return result;
+  }, [transactions, txFilter, dateRange, reasonFilter]);
+
+  // Ledger totals
+  const ledgerTotals = useMemo(() => {
+    const totalCredit = filteredTx.filter(t => t.type === "credit").reduce((s, t) => s + t.amount, 0);
+    const totalDebit = filteredTx.filter(t => t.type === "debit").reduce((s, t) => s + t.amount, 0);
+    return { totalCredit, totalDebit, count: filteredTx.length };
+  }, [filteredTx]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`تم نسخ ${label}`);
   };
 
+  // ── Export CSV ──
+  const exportCSV = () => {
+    if (filteredTx.length === 0) { toast.info("لا توجد حركات للتصدير"); return; }
+    const header = "التاريخ,الوصف,المرجع,مدين,دائن,الرصيد بعد العملية";
+    const rows = filteredTx.map(t => {
+      const date = format(new Date(t.created_at), "yyyy-MM-dd HH:mm");
+      const desc = REASON_LABELS[t.reason] || t.reason;
+      const ref = t.reference_type || "-";
+      const debit = t.type === "debit" ? t.amount : "";
+      const credit = t.type === "credit" ? t.amount : "";
+      const bal = t.balance_after ?? "-";
+      return `${date},${desc},${ref},${debit},${credit},${bal}`;
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `wallet-ledger-${format(new Date(), "yyyy-MM-dd")}.csv`; a.click();
+    toast.success("تم تصدير كشف الحساب");
+  };
+
+  // ── Topup ──
   const handleTopup = async () => {
     if (finalAmount <= 0) { toast.error("يرجى إدخال مبلغ صالح"); return; }
-
     if (paymentMethod === "card") {
       setTopupLoading(true);
       try {
         const res = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=topup`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-            body: JSON.stringify({ amount: finalAmount }),
-          }
+          { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: JSON.stringify({ amount: finalAmount }) }
         );
         const result = await res.json();
         if (!res.ok || result.error) { toast.error(result.error || "فشل إنشاء رابط الدفع"); return; }
-        if (result.paymentUrl) {
-          toast.success("جاري التحويل لصفحة الدفع...");
-          window.open(result.paymentUrl, "_blank");
-          resetTopup();
-        }
+        if (result.paymentUrl) { toast.success("جاري التحويل لصفحة الدفع..."); window.open(result.paymentUrl, "_blank"); resetTopup(); }
       } catch { toast.error("حدث خطأ — يرجى المحاولة مرة أخرى"); }
       finally { setTopupLoading(false); }
       return;
     }
-
     if (!receiptFile) { toast.error("يرجى رفع إيصال التحويل البنكي"); return; }
-
     setTopupLoading(true);
     try {
       setUploadingReceipt(true);
@@ -345,67 +328,33 @@ const WalletPage = () => {
       if (uploadErr) { toast.error("فشل رفع الإيصال"); return; }
       setUploadingReceipt(false);
       const { data: urlData } = supabase.storage.from("wallet-receipts").getPublicUrl(uploadData.path);
-
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=bank-transfer-topup`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            amount: finalAmount,
-            bankReference,
-            receiptUrl: urlData.publicUrl || uploadData.path,
-            receiptFilename: receiptFile.name,
-          }),
-        }
+        { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: JSON.stringify({ amount: finalAmount, bankReference, receiptUrl: urlData.publicUrl || uploadData.path, receiptFilename: receiptFile.name }) }
       );
       const result = await res.json();
       if (!res.ok || result.error) { toast.error(result.error || "فشل إرسال الطلب"); return; }
       toast.success("تم إرسال طلب الشحن بنجاح", { description: "سيتم مراجعة الإيصال وإضافة الرصيد خلال 24 ساعة" });
-      resetTopup();
-      fetchData();
+      resetTopup(); fetchData();
     } catch { toast.error("حدث خطأ — يرجى المحاولة مرة أخرى"); }
     finally { setTopupLoading(false); setUploadingReceipt(false); }
   };
 
   const resetTopup = () => {
-    setShowTopup(false);
-    setTopupAmount(0);
-    setCustomAmount("");
-    setBankReference("");
-    setReceiptFile(null);
-    setPaymentMethod("bank_transfer");
+    setShowTopup(false); setTopupAmount(0); setCustomAmount("");
+    setBankReference(""); setReceiptFile(null); setPaymentMethod("bank_transfer");
   };
 
-  const exportCSV = () => {
-    if (transactions.length === 0) { toast.info("لا توجد حركات للتصدير"); return; }
-    const csv = ["النوع,المبلغ,السبب,التاريخ",
-      ...transactions.map(t => `${t.type === "credit" ? "إيداع" : "خصم"},${t.amount},${REASON_LABELS[t.reason] || t.reason},${t.created_at}`)
-    ].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "wallet-statement.csv"; a.click();
-    toast.success("تم تصدير كشف الحساب");
-  };
-
-  const formatAmount = (n: number) => n.toLocaleString("ar-SA");
-
-  // Loading state
+  // ── Loading ──
   if (loading) {
     return (
-      <div dir="rtl" className="space-y-6 p-4 sm:p-6">
+      <div dir="rtl" className="space-y-5 p-4 sm:p-6">
         <Skeleton className="h-8 w-48" />
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
-        </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
-        <Skeleton className="h-80 rounded-xl" />
+        <Skeleton className="h-12 rounded-lg" />
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }
@@ -421,260 +370,288 @@ const WalletPage = () => {
   }
 
   const statusInfo = STATUS_MAP[wallet.status] || STATUS_MAP.active;
-  const txFilterOptions = [
-    { value: "all" as const, label: "الكل" },
-    { value: "credit" as const, label: "إيداع" },
-    { value: "debit" as const, label: "خصم" },
-  ];
 
   return (
-    <div dir="rtl" className="space-y-6 p-4 sm:p-6 relative">
-      {/* Subtle brand-tinted background overlay */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, hsl(172 66% 36% / 0.02) 0%, transparent 60%)" }} />
+    <div dir="rtl" className="space-y-5 p-4 sm:p-6 relative">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, hsl(var(--primary) / 0.02) 0%, transparent 60%)" }} />
 
-      <div className="relative space-y-6">
-        {/* Header */}
-        <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-          className="flex items-center justify-between flex-wrap gap-3"
-        >
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">المحفظة</h1>
-            <p className="text-sm text-muted-foreground mt-1">الرصيد وسجل الحركات المالية</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={exportCSV} className="gap-2">
-              <Download size={16} />
-              تصدير كشف
-            </Button>
-            <RippleButton onClick={() => setShowTopup(true)} className="gap-2">
-              <WalletTopupIcon size={16} className="text-primary-foreground" />
-              إضافة رصيد
-            </RippleButton>
-          </div>
-        </motion.div>
+      <div className="relative space-y-5">
 
-        {/* A) Summary Row */}
-        <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-          className="grid gap-4 grid-cols-1 sm:grid-cols-3"
-          style={{ transitionDelay: "40ms" }}
-        >
-          {/* Balance Card */}
-          <div className={`rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group ${shaking ? "animate-[debit-shake_40ms_ease-in-out]" : ""}`}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium text-muted-foreground">الرصيد المتاح</p>
-              <WalletBalanceIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
-            </div>
-            <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${flashRed ? "text-destructive" : "text-foreground"}`} dir="ltr">
-              {formatAmount(animatedBalance)}
-              <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
-            </p>
-            {/* Change indicator */}
-            <AnimatePresence>
-              {balanceChange !== 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`flex items-center gap-1 mt-2 text-xs font-medium ${balanceChange > 0 ? "text-success" : "text-destructive"}`}
-                >
-                  {balanceChange > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  <span>{balanceChange > 0 ? "+" : ""}{formatAmount(balanceChange)} ر.س</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Pending Balance */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium text-muted-foreground">الرصيد المحجوز</p>
-              <MicroIcon icon={Clock} size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" rotateDir={-1} />
-            </div>
-            <p className="text-2xl font-bold text-foreground tabular-nums" dir="ltr">
-              {formatAmount(animatedPending)}
-              <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
-            </p>
-          </div>
-
-          {/* Status */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium text-muted-foreground">حالة المحفظة</p>
-              {wallet.status === "frozen" || wallet.status === "suspended" 
-                ? <WalletFreezeIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
-                : <WalletShieldIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
-              }
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${statusInfo.dotColor} animate-pulse`} />
-              <Badge variant="outline" className={statusInfo.color}>
-                {statusInfo.label}
-              </Badge>
+        {/* ═══ HEADER: Stats Row ═══ */}
+        <motion.div variants={sectionVariants} initial="hidden" animate="visible">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-bold text-foreground">كشف حساب المحفظة</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">Banking Ledger</p>
             </div>
           </div>
-        </motion.div>
 
-        {/* C) Usage Context */}
-        <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-          className="grid gap-4 grid-cols-1 sm:grid-cols-3"
-          style={{ transitionDelay: "80ms" }}
-        >
-          {[
-            { label: "مستخدم للاشتراكات", value: usageStats.subscriptions, icon: Receipt },
-            { label: "مستخدم للتكاملات", value: usageStats.integrations, icon: Zap },
-            { label: "إجمالي العمليات", value: usageStats.totalOps, icon: TrendingUp, isCount: true },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
-              <div className="flex items-center gap-2 mb-3">
-                <HoverIcon icon={stat.icon} size={14} className="text-muted-foreground/60 group-hover:text-accent transition-colors" />
-                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+            {/* Available Balance */}
+            <div className={`rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group ${shaking ? "animate-[debit-shake_40ms_ease-in-out]" : ""}`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">الرصيد المتاح</p>
+                <WalletBalanceIcon size={18} className="text-muted-foreground/40 group-hover:text-primary transition-colors" />
               </div>
-              <p className="text-xl font-bold text-foreground tabular-nums" dir="ltr">
-                {stat.isCount ? stat.value : formatAmount(stat.value)}
-                {!stat.isCount && <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>}
+              <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${flashRed ? "text-destructive" : "text-foreground"}`} dir="ltr">
+                {formatAmount(animatedBalance)}
+                <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
+              </p>
+              <AnimatePresence>
+                {balanceChange !== 0 && (
+                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className={`flex items-center gap-1 mt-2 text-xs font-medium ${balanceChange > 0 ? "text-success" : "text-destructive"}`}>
+                    {balanceChange > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                    <span>{balanceChange > 0 ? "+" : ""}{formatAmount(balanceChange)} ر.س</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Pending Balance */}
+            <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">الرصيد المعلّق</p>
+                <MicroIcon icon={Clock} size={18} className="text-muted-foreground/40 group-hover:text-primary transition-colors" rotateDir={-1} />
+              </div>
+              <p className="text-2xl font-bold text-foreground tabular-nums" dir="ltr">
+                {formatAmount(animatedPending)}
+                <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
               </p>
             </div>
-          ))}
+
+            {/* Status */}
+            <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">حالة المحفظة</p>
+                {wallet.status === "frozen" || wallet.status === "suspended"
+                  ? <WalletFreezeIcon size={18} className="text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                  : <WalletShieldIcon size={18} className="text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                }
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`w-2 h-2 rounded-full ${statusInfo.dotColor}`} />
+                <Badge variant="outline" className={statusInfo.color}>{statusInfo.label}</Badge>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Topup Requests */}
+        {/* ═══ ACTION BAR ═══ */}
+        <motion.div variants={sectionVariants} initial="hidden" animate="visible"
+          className="flex flex-wrap items-center gap-2 py-3 px-4 rounded-xl border border-border bg-card"
+        >
+          <RippleButton onClick={() => setShowTopup(true)} className="gap-2" size="sm">
+            <Plus size={14} />
+            إضافة رصيد
+          </RippleButton>
+          <Button variant="outline" size="sm" className="gap-2" disabled>
+            <ArrowDown size={14} />
+            سحب
+          </Button>
+          <div className="flex-1" />
+          <Button variant="ghost" size="sm" className="gap-2" onClick={exportCSV}>
+            <FileSpreadsheet size={14} />
+            تصدير Excel
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={exportCSV}>
+            <FileText size={14} />
+            تصدير PDF
+          </Button>
+        </motion.div>
+
+        {/* Pending Topup Requests */}
         {topupRequests.filter(r => r.status === "pending").length > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-            className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md space-y-3"
-            style={{ transitionDelay: "120ms" }}
+            className="rounded-xl border border-warning/20 bg-warning/5 p-4 space-y-2"
           >
-            <h3 className="text-sm font-semibold text-foreground">طلبات شحن معلقة</h3>
-            {topupRequests.filter(r => r.status === "pending").map(req => {
-              const st = TOPUP_STATUS[req.status];
-              return (
-                <div key={req.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-secondary/10">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={st.color}>{st.label}</Badge>
-                    <span className="font-bold text-foreground tabular-nums">{formatAmount(req.amount)} ر.س</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(req.created_at), "dd MMM yyyy", { locale: ar })}
-                  </span>
+            <h3 className="text-xs font-semibold text-warning flex items-center gap-1.5">
+              <Clock size={13} /> طلبات شحن معلقة
+            </h3>
+            {topupRequests.filter(r => r.status === "pending").map(req => (
+              <div key={req.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-card border border-border/50">
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className={TOPUP_STATUS[req.status].color}>{TOPUP_STATUS[req.status].label}</Badge>
+                  <span className="font-bold text-foreground tabular-nums text-sm">{formatAmount(req.amount)} ر.س</span>
                 </div>
-              );
-            })}
+                <span className="text-xs text-muted-foreground">{format(new Date(req.created_at), "dd MMM yyyy", { locale: ar })}</span>
+              </div>
+            ))}
           </motion.div>
         )}
 
-        {/* D) Transactions Table */}
-        <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-          className="space-y-3"
-          style={{ transitionDelay: "160ms" }}
-        >
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="flex items-center gap-2">
-              <WalletActivityIcon size={16} className="text-muted-foreground" />
-              <h3 className="text-sm font-semibold text-foreground">سجل الحركات المالية</h3>
+        {/* ═══ LEDGER TABLE ═══ */}
+        <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-3">
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Filter size={13} className="text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">فلترة:</span>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap ms-auto">
-              <Filter size={14} className="text-muted-foreground ml-1" />
-              {txFilterOptions.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setTxFilter(f.value)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 ${
-                    txFilter === f.value
-                      ? "bg-accent text-accent-foreground shadow-sm"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <Select value={txFilter} onValueChange={(v) => setTxFilter(v as any)}>
+              <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع العمليات</SelectItem>
+                <SelectItem value="credit">إيداع (دائن)</SelectItem>
+                <SelectItem value="debit">خصم (مدين)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={reasonFilter} onValueChange={setReasonFilter}>
+              <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأنواع</SelectItem>
+                <SelectItem value="subscription">اشتراك</SelectItem>
+                <SelectItem value="integration">تكامل</SelectItem>
+                <SelectItem value="topup">شحن</SelectItem>
+                <SelectItem value="refund">استرداد</SelectItem>
+                <SelectItem value="payout">سحب</SelectItem>
+                <SelectItem value="manual">يدوي</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={dateRange} onValueChange={(v) => setDateRange(v as any)}>
+              <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الفترات</SelectItem>
+                <SelectItem value="7d">آخر 7 أيام</SelectItem>
+                <SelectItem value="30d">آخر 30 يوم</SelectItem>
+                <SelectItem value="90d">آخر 90 يوم</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex-1" />
+            <span className="text-xs text-muted-foreground tabular-nums">{ledgerTotals.count} عملية</span>
+          </div>
+
+          {/* Ledger Summary Bar */}
+          <div className="flex items-center gap-6 px-4 py-2.5 rounded-lg bg-secondary/30 border border-border/50 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">إجمالي الدائن:</span>
+              <span className="font-bold text-success tabular-nums" dir="ltr">+{formatAmount(ledgerTotals.totalCredit)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">إجمالي المدين:</span>
+              <span className="font-bold text-destructive tabular-nums" dir="ltr">-{formatAmount(ledgerTotals.totalDebit)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">الصافي:</span>
+              <span className={`font-bold tabular-nums ${ledgerTotals.totalCredit - ledgerTotals.totalDebit >= 0 ? "text-success" : "text-destructive"}`} dir="ltr">
+                {formatAmount(ledgerTotals.totalCredit - ledgerTotals.totalDebit)}
+              </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card overflow-hidden transition-shadow duration-200 hover:shadow-md">
-            {/* Mobile Cards */}
-            <div className="sm:hidden divide-y divide-border">
+          {/* Table */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            {/* Mobile */}
+            <div className="sm:hidden divide-y divide-border/50">
+              {filteredTx.length === 0 && (
+                <div className="py-12 text-center text-muted-foreground text-sm">لا توجد حركات مالية</div>
+              )}
               {filteredTx.map((tx) => (
-                <div key={tx.id} className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-sm font-medium ${TX_STATUS[tx.type]?.color || "text-foreground"}`}>
-                      {TX_STATUS[tx.type]?.label || tx.type}
-                    </span>
-                    <span className="font-bold tabular-nums text-foreground" dir="ltr">
-                      {tx.type === "credit" ? "+" : "-"}{formatAmount(tx.amount)} ر.س
+                <div key={tx.id} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{format(new Date(tx.created_at), "dd/MM/yyyy HH:mm", { locale: ar })}</span>
+                    <span className={`font-bold tabular-nums text-sm ${tx.type === "credit" ? "text-success" : "text-destructive"}`} dir="ltr">
+                      {tx.type === "credit" ? "+" : "-"}{formatAmount(tx.amount)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{REASON_LABELS[tx.reason] || tx.reason}</span>
-                    <span>{format(new Date(tx.created_at), "dd MMM yyyy", { locale: ar })}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">{REASON_LABELS[tx.reason] || tx.reason}</span>
+                    {tx.balance_after != null && (
+                      <span className="text-xs text-muted-foreground tabular-nums" dir="ltr">الرصيد: {formatAmount(tx.balance_after)}</span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Desktop Table */}
+            {/* Desktop Ledger */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm" dir="rtl">
                 <thead>
-                  <tr className="border-b border-border bg-secondary/30">
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">النوع</th>
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">السبب</th>
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المصدر</th>
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">التاريخ</th>
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المبلغ</th>
-                    <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs w-10"></th>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">التاريخ</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">الوصف</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">المرجع</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">مدين</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">دائن</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">الرصيد</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTx.map((tx) => {
                     const isNew = newTxIds.has(tx.id);
-                    const isPending = tx.source === "pending";
                     return (
-                    <tr
-                      key={tx.id}
-                      className={`border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors group ${
-                        isNew && !reducedMotion ? "animate-[tx-slide-in_160ms_ease-out]" : ""
-                      } ${isPending ? "animate-pulse" : ""}`}
-                      onMouseEnter={() => setHoveredRow(tx.id)}
-                      onMouseLeave={() => setHoveredRow(null)}
-                    >
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                          tx.type === "credit"
-                            ? "bg-success/10 text-success"
-                            : "bg-destructive/10 text-destructive"
-                        }`}>
-                          {tx.type === "credit" ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                          {TX_STATUS[tx.type]?.label || tx.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-foreground">{REASON_LABELS[tx.reason] || tx.reason}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{tx.source}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {format(new Date(tx.created_at), "dd MMM yyyy - HH:mm", { locale: ar })}
-                      </td>
-                      <td className="px-4 py-3 font-medium tabular-nums text-foreground" dir="ltr">
-                        <span className={tx.type === "credit" ? "text-success" : "text-destructive"}>
-                          {tx.type === "credit" ? "+" : "-"}{formatAmount(tx.amount)}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground"> ر.س</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className={`transition-opacity duration-150 ${hoveredRow === tx.id ? "opacity-100" : "opacity-0"}`}>
-                          <button className="p-1 rounded hover:bg-secondary transition-colors">
-                            <Eye size={14} className="text-muted-foreground" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      <tr key={tx.id}
+                        className={`border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors ${
+                          isNew && !reducedMotion ? "animate-[tx-slide-in_160ms_ease-out]" : ""
+                        }`}
+                      >
+                        <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                          {format(new Date(tx.created_at), "dd/MM/yyyy", { locale: ar })}
+                          <span className="block text-[10px] text-muted-foreground/60">{format(new Date(tx.created_at), "HH:mm")}</span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground">
+                          <span className="text-sm">{REASON_LABELS[tx.reason] || tx.reason}</span>
+                          <span className="block text-[10px] text-muted-foreground">{tx.source}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {tx.reference_id ? (
+                            <button className="text-xs text-primary hover:underline underline-offset-2 transition-colors font-mono">
+                              {tx.reference_type}#{tx.reference_id.slice(0, 8)}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums text-left" dir="ltr">
+                          {tx.type === "debit" ? (
+                            <span className="text-destructive font-medium">{formatAmount(tx.amount)}</span>
+                          ) : (
+                            <span className="text-muted-foreground/30">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums text-left" dir="ltr">
+                          {tx.type === "credit" ? (
+                            <span className="text-success font-medium">{formatAmount(tx.amount)}</span>
+                          ) : (
+                            <span className="text-muted-foreground/30">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums text-left font-medium text-foreground" dir="ltr">
+                          {tx.balance_after != null ? (
+                            <>{formatAmount(tx.balance_after)} <span className="text-[10px] text-muted-foreground">ر.س</span></>
+                          ) : (
+                            <span className="text-muted-foreground/30">—</span>
+                          )}
+                        </td>
+                      </tr>
                     );
                   })}
                   {filteredTx.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-muted-foreground">
-                        لا توجد حركات مالية
+                      <td colSpan={6} className="py-16 text-center text-muted-foreground text-sm">
+                        لا توجد حركات مالية مطابقة للفلتر
                       </td>
                     </tr>
                   )}
                 </tbody>
+                {/* Ledger Footer Totals */}
+                {filteredTx.length > 0 && (
+                  <tfoot>
+                    <tr className="border-t-2 border-border bg-muted/20">
+                      <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-muted-foreground">الإجمالي</td>
+                      <td className="px-4 py-3 tabular-nums text-left font-bold text-destructive" dir="ltr">
+                        {formatAmount(ledgerTotals.totalDebit)}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-left font-bold text-success" dir="ltr">
+                        {formatAmount(ledgerTotals.totalCredit)}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-left font-bold text-foreground" dir="ltr">
+                        {wallet ? formatAmount(wallet.balance_available) : "—"} <span className="text-[10px] text-muted-foreground font-normal">ر.س</span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>
@@ -687,57 +664,41 @@ const WalletPage = () => {
           <DialogHeader>
             <DialogTitle>إضافة رصيد</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-5 py-2">
-            {/* Payment Method */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">طريقة الدفع</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setPaymentMethod("bank_transfer")}
                   className={`p-3 rounded-lg border-2 transition-all duration-150 flex items-center gap-2 ${
-                    paymentMethod === "bank_transfer"
-                      ? "border-accent bg-accent/5 shadow-sm"
-                      : "border-border bg-card hover:bg-secondary/30"
+                    paymentMethod === "bank_transfer" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:bg-secondary/30"
                   }`}>
-                  <Building2 size={18} className={paymentMethod === "bank_transfer" ? "text-accent" : "text-muted-foreground"} />
-                  <span className={`text-sm font-medium ${paymentMethod === "bank_transfer" ? "text-accent" : "text-muted-foreground"}`}>تحويل بنكي</span>
+                  <Building2 size={18} className={paymentMethod === "bank_transfer" ? "text-primary" : "text-muted-foreground"} />
+                  <span className={`text-sm font-medium ${paymentMethod === "bank_transfer" ? "text-primary" : "text-muted-foreground"}`}>تحويل بنكي</span>
                 </button>
                 <button onClick={() => setPaymentMethod("card")}
                   className={`p-3 rounded-lg border-2 transition-all duration-150 flex items-center gap-2 ${
-                    paymentMethod === "card"
-                      ? "border-accent bg-accent/5 shadow-sm"
-                      : "border-border bg-card hover:bg-secondary/30"
+                    paymentMethod === "card" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:bg-secondary/30"
                   }`}>
-                  <CreditCard size={18} className={paymentMethod === "card" ? "text-accent" : "text-muted-foreground"} />
-                  <span className={`text-sm font-medium ${paymentMethod === "card" ? "text-accent" : "text-muted-foreground"}`}>بطاقة / Apple Pay</span>
+                  <CreditCard size={18} className={paymentMethod === "card" ? "text-primary" : "text-muted-foreground"} />
+                  <span className={`text-sm font-medium ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`}>بطاقة / Apple Pay</span>
                 </button>
               </div>
             </div>
-
-            {/* Amount Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">المبلغ</label>
               <div className="grid grid-cols-3 gap-2">
                 {TOPUP_AMOUNTS.map((amt) => (
                   <button key={amt} onClick={() => { setTopupAmount(amt); setCustomAmount(""); }}
                     className={`py-2.5 rounded-lg text-sm font-bold transition-all duration-150 border ${
-                      topupAmount === amt
-                        ? "border-accent bg-accent/10 text-accent shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary/30"
+                      topupAmount === amt ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border bg-card text-muted-foreground hover:bg-secondary/30"
                     }`}>
                     {amt.toLocaleString("ar-SA")} ر.س
                   </button>
                 ))}
               </div>
-              <Input
-                type="number" min="1" max="50000" placeholder="أو أدخل مبلغ مخصص"
-                value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }}
-                dir="ltr" className="text-center"
-              />
+              <Input type="number" min="1" max="50000" placeholder="أو أدخل مبلغ مخصص" value={customAmount}
+                onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }} dir="ltr" className="text-center" />
             </div>
-
-            {/* Bank Transfer Details */}
             {paymentMethod === "bank_transfer" && finalAmount > 0 && (
               <div className="space-y-3">
                 <div className="rounded-lg border border-border bg-secondary/20 p-4 space-y-2">
@@ -757,30 +718,19 @@ const WalletPage = () => {
                       </button>
                     </div>
                   ))}
-                  <div className="p-2 rounded-md bg-accent/5 border border-accent/20 text-center">
+                  <div className="p-2 rounded-md bg-primary/5 border border-primary/20 text-center">
                     <span className="text-[10px] text-muted-foreground block">المبلغ المطلوب تحويله</span>
-                    <span className="text-lg font-bold text-accent">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
+                    <span className="text-lg font-bold text-primary">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
                   </div>
                 </div>
-                <Input
-                  placeholder="رقم مرجع التحويل (اختياري)"
-                  value={bankReference}
-                  onChange={(e) => setBankReference(e.target.value)}
-                  dir="ltr"
-                />
+                <Input placeholder="رقم مرجع التحويل (اختياري)" value={bankReference} onChange={(e) => setBankReference(e.target.value)} dir="ltr" />
                 <label className={`flex flex-col items-center justify-center gap-2 p-5 rounded-lg border-2 border-dashed cursor-pointer transition-all duration-150 ${
-                  receiptFile ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"
+                  receiptFile ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
                 }`}>
                   <input type="file" accept="image/*,.pdf" className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        if (file.size > 5 * 1024 * 1024) { toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت"); return; }
-                        setReceiptFile(file);
-                      }
-                    }} />
+                    onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 5 * 1024 * 1024) { toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت"); return; } setReceiptFile(file); } }} />
                   {receiptFile ? (
-                    <><CheckCircle2 size={24} className="text-accent" /><p className="text-sm font-medium text-accent">{receiptFile.name}</p></>
+                    <><CheckCircle2 size={24} className="text-primary" /><p className="text-sm font-medium text-primary">{receiptFile.name}</p></>
                   ) : (
                     <><Upload size={24} className="text-muted-foreground" /><p className="text-sm text-muted-foreground">رفع إيصال التحويل *</p></>
                   )}
@@ -791,7 +741,6 @@ const WalletPage = () => {
                 </div>
               </div>
             )}
-
             {paymentMethod === "card" && finalAmount > 0 && (
               <div className="rounded-lg border border-border bg-secondary/20 p-6 text-center space-y-2">
                 <CreditCard size={32} className="text-muted-foreground mx-auto" />
@@ -800,13 +749,9 @@ const WalletPage = () => {
               </div>
             )}
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={resetTopup}>إلغاء</Button>
-            <Button
-              onClick={handleTopup}
-              disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}
-            >
+            <Button onClick={handleTopup} disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}>
               {topupLoading ? (
                 <><Loader2 size={16} className="animate-spin ml-1" />{uploadingReceipt ? "جاري رفع الإيصال..." : "جاري الإرسال..."}</>
               ) : (
@@ -817,31 +762,13 @@ const WalletPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Animation keyframes */}
+      {/* Keyframes */}
       <style>{`
-        @keyframes ripple {
-          0% { transform: scale(1); opacity: 0.4; }
-          100% { transform: scale(12); opacity: 0; }
-        }
-        @keyframes wallet-ripple {
-          0% { transform: scale(1); opacity: 0.15; }
-          100% { transform: scale(8); opacity: 0; }
-        }
-        @keyframes debit-shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-2px); }
-          75% { transform: translateX(2px); }
-        }
-        @keyframes tx-slide-in {
-          0% { opacity: 0; transform: translateX(-12px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(12); opacity: 0; } }
+        @keyframes debit-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+        @keyframes tx-slide-in { 0% { opacity: 0; transform: translateX(-12px); } 100% { opacity: 1; transform: translateX(0); } }
         @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
+          *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
         }
       `}</style>
     </div>
