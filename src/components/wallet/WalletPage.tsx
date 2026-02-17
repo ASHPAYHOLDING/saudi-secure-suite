@@ -62,10 +62,28 @@ interface WalletTransaction {
   created_at: string;
 }
 
+interface TopupRequest {
+  id: string;
+  amount: number;
+  status: string;
+  payment_method: string;
+  bank_reference: string | null;
+  receipt_filename: string | null;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any; bg: string }> = {
   active: { label: "نشطة", color: "text-emerald-400", icon: CheckCircle2, bg: "bg-emerald-400/10" },
   frozen: { label: "مجمّدة", color: "text-red-400", icon: Snowflake, bg: "bg-red-400/10" },
   suspended: { label: "موقوفة", color: "text-amber-400", icon: XCircle, bg: "bg-amber-400/10" },
+};
+
+const TOPUP_STATUS_MAP: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+  pending: { label: "قيد المراجعة", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20", icon: Clock },
+  approved: { label: "تمت الموافقة", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20", icon: CheckCircle2 },
+  rejected: { label: "مرفوض", color: "text-red-400", bg: "bg-red-400/10 border-red-400/20", icon: XCircle },
 };
 
 const REASON_LABELS: Record<string, { label: string; icon: any }> = {
@@ -154,6 +172,7 @@ const WalletPage = () => {
   const { user, tenantId } = useAuth();
   const { isRTL } = useLanguage();
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [topupRequests, setTopupRequests] = useState<TopupRequest[]>([]);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTopup, setShowTopup] = useState(false);
@@ -215,6 +234,14 @@ const WalletPage = () => {
           .order("created_at", { ascending: false })
           .limit(50);
         setTransactions(txs || []);
+
+        const { data: reqs } = await supabase
+          .from("wallet_topup_requests")
+          .select("*")
+          .eq("wallet_id", w.id)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        setTopupRequests((reqs as TopupRequest[]) || []);
       }
       setLoading(false);
     };
@@ -238,6 +265,17 @@ const WalletPage = () => {
       }, (payload) => {
         if (payload.new) {
           setTransactions((prev) => [payload.new as WalletTransaction, ...prev].slice(0, 50));
+        }
+      })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "wallet_topup_requests",
+      }, (payload) => {
+        if (payload.eventType === "INSERT" && payload.new) {
+          setTopupRequests((prev) => [payload.new as TopupRequest, ...prev].slice(0, 20));
+        } else if (payload.eventType === "UPDATE" && payload.new) {
+          setTopupRequests((prev) => prev.map(r => r.id === (payload.new as TopupRequest).id ? payload.new as TopupRequest : r));
         }
       })
       .subscribe();
@@ -349,6 +387,16 @@ const WalletPage = () => {
         description: "سيتم مراجعة الإيصال وإضافة الرصيد خلال 24 ساعة",
         duration: 6000,
       });
+      // Refetch topup requests to show the new one immediately
+      if (wallet) {
+        const { data: reqs } = await supabase
+          .from("wallet_topup_requests")
+          .select("*")
+          .eq("wallet_id", wallet.id)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        setTopupRequests((reqs as TopupRequest[]) || []);
+      }
       setShowTopup(false);
       setTopupAmount(0);
       setCustomAmount("");
@@ -724,6 +772,77 @@ const WalletPage = () => {
                     </div>
                   );
                 })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Topup Requests (Bank Transfer) ── */}
+        {topupRequests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            className="rounded-3xl bg-white/[0.03] border border-white/[0.06] overflow-hidden"
+          >
+            <div className="p-6 pb-4 border-b border-white/[0.05]">
+              <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-400" />
+                طلبات شحن التحويل البنكي
+                <span className="text-xs text-white/30 font-normal">({topupRequests.length})</span>
+              </h3>
+            </div>
+            <div className="p-6 space-y-2">
+              {topupRequests.map((req, i) => {
+                const statusInfo = TOPUP_STATUS_MAP[req.status] || TOPUP_STATUS_MAP.pending;
+                const StatusIcon = statusInfo.icon;
+                return (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.03 * i, duration: 0.4 }}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] hover:border-white/[0.08] transition-all duration-300"
+                  >
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-500/10 border border-blue-500/20">
+                      <Building2 className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white/85">طلب شحن — تحويل بنكي</p>
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        <span className="text-xs text-white/25 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {format(new Date(req.created_at), "dd MMM yyyy - HH:mm", { locale: ar })}
+                        </span>
+                        {req.receipt_filename && (
+                          <span className="text-xs text-white/20 flex items-center gap-1">
+                            <Upload className="w-3 h-3" />
+                            {req.receipt_filename}
+                          </span>
+                        )}
+                        {req.bank_reference && (
+                          <span className="text-xs text-white/20 font-mono" dir="ltr">Ref: {req.bank_reference}</span>
+                        )}
+                      </div>
+                      {req.rejection_reason && (
+                        <p className="text-xs text-red-400/70 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {req.rejection_reason}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className="text-base font-bold text-blue-400 tabular-nums whitespace-nowrap">
+                        +{req.amount.toLocaleString("ar-SA")}
+                        <span className="text-xs font-normal opacity-50 ms-1">{wallet.currency}</span>
+                      </span>
+                      <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {statusInfo.label}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
