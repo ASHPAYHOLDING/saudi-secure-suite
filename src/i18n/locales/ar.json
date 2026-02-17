@@ -92,7 +92,14 @@
     "productivity": "الإنتاجية",
     "supplierInbox": "صندوق فواتير الموردين",
     "paymentReminders": "تذكيرات الدفع",
-    "approvals": "تسلسل الموافقات"
+    "approvals": "تسلسل الموافقات",
+    "group": {
+      "sales": "المبيعات",
+      "purchasing": "المشتريات",
+      "finance": "المالية",
+      "reports": "التقارير والتحليلات",
+      "management": "الإدارة"
+    }
   },
   "landing": {
     "features": "المميزات",

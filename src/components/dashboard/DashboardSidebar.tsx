@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -13,37 +13,78 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
+import { motion, AnimatePresence } from "framer-motion";
 
-const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
+interface NavItemDef {
+  icon: any;
+  key: string;
+  path: string;
+  module: Module;
+}
+
+interface NavGroup {
+  labelKey: string;
+  items: NavItemDef[];
+}
+
+const topItems: NavItemDef[] = [
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
   { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
-  { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
-  { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
-  { icon: FileText, key: "nav.creditNotes", path: "/dashboard/credit-notes", module: "billing" },
-  { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
-  { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
-  { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
-  { icon: Package, key: "nav.purchaseOrders", path: "/dashboard/purchase-orders", module: "purchase-orders" },
-  { icon: Truck, key: "nav.deliveryNotes", path: "/dashboard/delivery-notes", module: "delivery-notes" },
-  { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
-  { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
-  { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
-  { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
-  { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
-  { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
-  { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
-  { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
-  { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
-  { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
-  { icon: Sparkles, key: "nav.smartQuery", path: "/dashboard/smart-query", module: "analytics" },
-  { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },
-  { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
-  { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
-  { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
-  { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
 ];
 
-const settingsMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
+const navGroups: NavGroup[] = [
+  {
+    labelKey: "nav.group.sales",
+    items: [
+      { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
+      { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
+      { icon: FileText, key: "nav.creditNotes", path: "/dashboard/credit-notes", module: "billing" },
+      { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
+      { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
+      { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
+    ],
+  },
+  {
+    labelKey: "nav.group.purchasing",
+    items: [
+      { icon: Package, key: "nav.purchaseOrders", path: "/dashboard/purchase-orders", module: "purchase-orders" },
+      { icon: Truck, key: "nav.deliveryNotes", path: "/dashboard/delivery-notes", module: "delivery-notes" },
+      { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
+      { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
+    ],
+  },
+  {
+    labelKey: "nav.group.finance",
+    items: [
+      { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
+      { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
+      { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
+      { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
+      { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
+    ],
+  },
+  {
+    labelKey: "nav.group.reports",
+    items: [
+      { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
+      { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
+      { icon: Sparkles, key: "nav.smartQuery", path: "/dashboard/smart-query", module: "analytics" },
+      { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },
+    ],
+  },
+  {
+    labelKey: "nav.group.management",
+    items: [
+      { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
+      { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
+      { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
+      { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
+      { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
+    ],
+  },
+];
+
+const settingsMenuKeys: NavItemDef[] = [
   { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
   { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
   { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
@@ -66,6 +107,32 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
+  // Initialize open groups based on current route
+  const getInitialOpenGroups = () => {
+    const open = new Set<string>();
+    for (const group of navGroups) {
+      if (group.items.some((item) => location.pathname === item.path)) {
+        open.add(group.labelKey);
+      }
+    }
+    // Also check settings
+    if (settingsMenuKeys.some((item) => location.pathname === item.path)) {
+      open.add("nav.settingsSection");
+    }
+    return open;
+  };
+
+  const [openGroups, setOpenGroups] = useState<Set<string>>(getInitialOpenGroups);
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -86,17 +153,79 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       <Link
         to={path}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           isActive
             ? "bg-sidebar-accent text-sidebar-primary"
             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
         )}
       >
-        <Icon size={20} className="shrink-0" />
+        <Icon size={18} className="shrink-0" />
         {!collapsed && <span>{label}</span>}
       </Link>
     );
   };
+
+  const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
+    const filteredItems = group.items.filter((item) => isModuleAllowed(tenantType, item.module));
+    if (filteredItems.length === 0) return null;
+
+    const isOpen = openGroups.has(group.labelKey);
+    const hasActiveItem = filteredItems.some((item) => location.pathname === item.path);
+
+    if (collapsed) {
+      return (
+        <div className="space-y-0.5">
+          {filteredItems.map((item) => (
+            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <button
+          onClick={() => toggleGroup(group.labelKey)}
+          className={cn(
+            "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+            hasActiveItem
+              ? "text-sidebar-primary"
+              : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
+          )}
+        >
+          <span>{t(group.labelKey)}</span>
+          <ChevronDown
+            size={14}
+            className={cn(
+              "transition-transform duration-200",
+              isOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
+            )}
+          />
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-0.5 pb-1">
+                {filteredItems.map((item) => (
+                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const filteredSettings = settingsMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module));
+  const isSettingsOpen = openGroups.has("nav.settingsSection");
+  const hasActiveSettings = filteredSettings.some((item) => location.pathname === item.path);
 
   return (
     <aside
@@ -123,30 +252,72 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="space-y-1">
-          {mainMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        {/* Top-level items (Home, Productivity) */}
+        <div className="space-y-0.5 mb-3">
+          {topItems.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
             <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
           ))}
         </div>
 
-        {!collapsed && <div className="my-4 border-t border-sidebar-border" />}
+        {/* Collapsible groups */}
+        <div className="space-y-1">
+          {navGroups.map((group) => (
+            <CollapsibleGroup key={group.labelKey} group={group} />
+          ))}
+        </div>
 
-        {(() => {
-          const filteredSettings = settingsMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module));
-          return filteredSettings.length > 0 ? (
-            <div className="mt-4 space-y-1">
-              {!collapsed && (
-                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-                  {t("nav.settingsSection")}
-                </p>
-              )}
-              {filteredSettings.map((item) => (
-                <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
-              ))}
-            </div>
-          ) : null;
-        })()}
+        {/* Settings group */}
+        {filteredSettings.length > 0 && (
+          <>
+            {!collapsed && <div className="my-3 border-t border-sidebar-border" />}
+            {collapsed ? (
+              <div className="space-y-0.5 mt-2">
+                {filteredSettings.map((item) => (
+                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                ))}
+              </div>
+            ) : (
+              <div>
+                <button
+                  onClick={() => toggleGroup("nav.settingsSection")}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                    hasActiveSettings
+                      ? "text-sidebar-primary"
+                      : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
+                  )}
+                >
+                  <span>{t("nav.settingsSection")}</span>
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "transition-transform duration-200",
+                      isSettingsOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
+                    )}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {isSettingsOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-0.5 pb-1">
+                        {filteredSettings.map((item) => (
+                          <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Admin + Logout */}

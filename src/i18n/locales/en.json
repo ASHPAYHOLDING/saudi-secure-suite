@@ -92,7 +92,14 @@
     "productivity": "Productivity",
     "supplierInbox": "Supplier Inbox",
     "paymentReminders": "Payment Reminders",
-    "approvals": "Approval Workflows"
+    "approvals": "Approval Workflows",
+    "group": {
+      "sales": "Sales",
+      "purchasing": "Purchasing",
+      "finance": "Finance",
+      "reports": "Reports & Analytics",
+      "management": "Management"
+    }
   },
   "landing": {
     "features": "Features",
