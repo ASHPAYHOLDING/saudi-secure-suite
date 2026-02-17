@@ -45,7 +45,7 @@ interface TenantSubscription {
   api_key_encrypted: string | null;
 }
 
-type FlowStep = "preview" | "payment" | "api_keys" | "testing" | "done";
+type FlowStep = "preview" | "payment" | "paying" | "api_keys" | "testing" | "done";
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
   payment: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
@@ -61,6 +61,7 @@ const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> 
 const FLOW_STEPS: { key: FlowStep; label: string; icon: any }[] = [
   { key: "preview", label: "عرض التكامل", icon: CircleDot },
   { key: "payment", label: "الدفع", icon: CreditCard },
+  { key: "paying", label: "إتمام الدفع", icon: ShieldCheck },
   { key: "api_keys", label: "إعداد المفاتيح", icon: Key },
   { key: "testing", label: "اختبار الاتصال", icon: Wifi },
   { key: "done", label: "مفعّل", icon: CheckCircle2 },
@@ -78,6 +79,9 @@ const PaidIntegrationsPage = () => {
   const [apiKeyValue, setApiKeyValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [testResult, setTestResult] = useState<"idle" | "testing" | "success" | "fail">("idle");
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [paylinkTransactionNo, setPaylinkTransactionNo] = useState<string | null>(null);
+  const [paymentCheckInterval, setPaymentCheckInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (tenantId) fetchAll();
@@ -106,42 +110,188 @@ const PaidIntegrationsPage = () => {
   };
 
   const closeFlow = () => {
+    if (paymentCheckInterval) clearInterval(paymentCheckInterval);
     setFlowItem(null);
     setFlowStep("preview");
     setApiKeyValue("");
     setTestResult("idle");
+    setPaymentUrl(null);
+    setPaylinkTransactionNo(null);
+    setPaymentCheckInterval(null);
   };
 
   const handlePayment = async () => {
     if (!flowItem || !tenantId || !user) return;
     setSaving(true);
 
-    // Record purchase
-    const { error } = await supabase.from("tenant_paid_integrations").upsert({
-      tenant_id: tenantId,
-      integration_id: flowItem.id,
-      status: flowItem.requires_api_keys ? "disabled" : "active",
-      activated_by: user.id,
-      purchased_at: new Date().toISOString(),
-      activated_at: new Date().toISOString(),
-      activation_source: "purchase",
-    } as any, { onConflict: "tenant_id,integration_id" });
+    try {
+      // Get user profile for payment info
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .maybeSingle();
 
-    if (error) {
-      toast({ title: "خطأ في الدفع", description: error.message, variant: "destructive" });
+      const orderNumber = `INT-${flowItem.key}-${Date.now()}`;
+
+      // Create Paylink invoice via edge function
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=create-invoice`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            amount: flowItem.price_once,
+            clientName: profile?.full_name || "عميل",
+            clientMobile: "0500000000",
+            clientEmail: profile?.email || user.email || "",
+            orderNumber,
+            note: `شراء تكامل: ${flowItem.name_ar}`,
+            callBackUrl: window.location.href,
+            products: [
+              {
+                title: flowItem.name_ar,
+                price: flowItem.price_once,
+                qty: 1,
+                description: `تكامل ${flowItem.name_en} - دفعة واحدة`,
+              },
+            ],
+          }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        toast({ title: "خطأ في إنشاء الفاتورة", description: result.error || "حدث خطأ", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      // Save payment URL and transaction number
+      setPaymentUrl(result.paymentUrl);
+      setPaylinkTransactionNo(result.transactionNo);
+      setFlowStep("paying");
       setSaving(false);
-      return;
-    }
 
-    toast({ title: "تم الشراء بنجاح ✅", description: `${flowItem.name_ar} - ${flowItem.price_once} ر.س` });
+      // Open payment URL in new tab
+      window.open(result.paymentUrl, "_blank");
+
+      // Start polling for payment status
+      const interval = setInterval(async () => {
+        try {
+          const statusRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=check-status&transactionNo=${result.transactionNo}`,
+            {
+              headers: {
+                Authorization: `Bearer ${session?.session?.access_token}`,
+              },
+            }
+          );
+          const statusData = await statusRes.json();
+
+          if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
+            clearInterval(interval);
+            setPaymentCheckInterval(null);
+
+            // NOW record the purchase after confirmed payment
+            const { error } = await supabase.from("tenant_paid_integrations").upsert({
+              tenant_id: tenantId,
+              integration_id: flowItem.id,
+              status: flowItem.requires_api_keys ? "disabled" : "active",
+              activated_by: user.id,
+              purchased_at: new Date().toISOString(),
+              activated_at: new Date().toISOString(),
+              activation_source: "purchase",
+            } as any, { onConflict: "tenant_id,integration_id" });
+
+            if (error) {
+              toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" });
+              return;
+            }
+
+            toast({ title: "تم الدفع بنجاح ✅", description: `${flowItem.name_ar} - ${flowItem.price_once} ر.س` });
+
+            if (flowItem.requires_api_keys) {
+              setFlowStep("api_keys");
+            } else {
+              setFlowStep("testing");
+              runConnectionTest();
+            }
+          } else if (statusData.orderStatus === "Canceled" || statusData.orderStatus === "canceled") {
+            clearInterval(interval);
+            setPaymentCheckInterval(null);
+            toast({ title: "تم إلغاء الدفع", variant: "destructive" });
+            setFlowStep("payment");
+          }
+        } catch (e) {
+          // Silently retry
+        }
+      }, 5000); // Check every 5 seconds
+
+      setPaymentCheckInterval(interval);
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    // Manual check when user clicks "لقد دفعت"
+    if (!paylinkTransactionNo || !flowItem || !tenantId || !user) return;
+    setSaving(true);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const statusRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=check-status&transactionNo=${paylinkTransactionNo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.session?.access_token}`,
+          },
+        }
+      );
+      const statusData = await statusRes.json();
+
+      if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
+        if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+        setPaymentCheckInterval(null);
+
+        const { error } = await supabase.from("tenant_paid_integrations").upsert({
+          tenant_id: tenantId,
+          integration_id: flowItem.id,
+          status: flowItem.requires_api_keys ? "disabled" : "active",
+          activated_by: user.id,
+          purchased_at: new Date().toISOString(),
+          activated_at: new Date().toISOString(),
+          activation_source: "purchase",
+        } as any, { onConflict: "tenant_id,integration_id" });
+
+        if (error) {
+          toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+
+        toast({ title: "تم الدفع بنجاح ✅", description: `${flowItem.name_ar} - ${flowItem.price_once} ر.س` });
+
+        if (flowItem.requires_api_keys) {
+          setFlowStep("api_keys");
+        } else {
+          setFlowStep("testing");
+          runConnectionTest();
+        }
+      } else {
+        toast({ title: "لم يتم الدفع بعد", description: "يرجى إتمام الدفع أولاً ثم المحاولة مجدداً", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "خطأ في التحقق", description: err.message, variant: "destructive" });
+    }
     setSaving(false);
-
-    if (flowItem.requires_api_keys) {
-      setFlowStep("api_keys");
-    } else {
-      setFlowStep("testing");
-      runConnectionTest();
-    }
   };
 
   const handleSaveApiKeys = async () => {
@@ -202,11 +352,11 @@ const PaidIntegrationsPage = () => {
   // ─── Flow Step Index for progress ───
   const currentStepIndex = FLOW_STEPS.findIndex((s) => s.key === flowStep);
   const visibleSteps = flowItem?.requires_api_keys
-    ? FLOW_STEPS
-    : FLOW_STEPS.filter((s) => s.key !== "api_keys");
+    ? FLOW_STEPS.filter((s) => s.key !== "paying")
+    : FLOW_STEPS.filter((s) => s.key !== "api_keys" && s.key !== "paying");
   const visibleIndex = visibleSteps.findIndex((s) => s.key === flowStep);
   const progressPercent = visibleSteps.length > 1
-    ? (visibleIndex / (visibleSteps.length - 1)) * 100
+    ? Math.max(0, (visibleIndex / (visibleSteps.length - 1)) * 100)
     : 100;
 
   if (loading) {
@@ -402,6 +552,7 @@ const PaidIntegrationsPage = () => {
             <DialogDescription>
               {flowStep === "preview" && "مراجعة تفاصيل التكامل قبل الشراء"}
               {flowStep === "payment" && "تأكيد الدفع لتفعيل التكامل"}
+              {flowStep === "paying" && "أكمل الدفع في صفحة Paylink ثم عد هنا"}
               {flowStep === "api_keys" && "أدخل مفاتيح API المطلوبة للاتصال"}
               {flowStep === "testing" && "جاري اختبار الاتصال..."}
               {flowStep === "done" && "تم تفعيل التكامل بنجاح!"}
@@ -480,6 +631,29 @@ const PaidIntegrationsPage = () => {
               </div>
             )}
 
+            {/* Paying - waiting for Paylink */}
+            {flowStep === "paying" && flowItem && (
+              <div className="space-y-4 text-center">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center animate-pulse">
+                  <CreditCard size={32} className="text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">في انتظار إتمام الدفع...</p>
+                  <p className="text-sm text-muted-foreground mt-1">أكمل الدفع في الصفحة التي فُتحت لك</p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 size={12} className="animate-spin" />
+                  يتم التحقق من حالة الدفع تلقائياً
+                </div>
+                {paymentUrl && (
+                  <Button variant="outline" size="sm" onClick={() => window.open(paymentUrl, "_blank")} className="gap-2">
+                    <ArrowRight size={14} />
+                    فتح صفحة الدفع مجدداً
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* API Keys Setup */}
             {flowStep === "api_keys" && flowItem && (
               <div className="space-y-4">
@@ -554,7 +728,16 @@ const PaidIntegrationsPage = () => {
                 <Button variant="outline" onClick={() => setFlowStep("preview")}>رجوع</Button>
                 <Button onClick={handlePayment} disabled={saving} className="gap-2">
                   {saving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
-                  {saving ? "جاري الدفع..." : `ادفع ${flowItem?.price_once} ر.س`}
+                  {saving ? "جاري إنشاء الفاتورة..." : `ادفع ${flowItem?.price_once} ر.س`}
+                </Button>
+              </>
+            )}
+            {flowStep === "paying" && (
+              <>
+                <Button variant="outline" onClick={closeFlow}>إلغاء</Button>
+                <Button onClick={handleConfirmPayment} disabled={saving} className="gap-2">
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                  {saving ? "جاري التحقق..." : "لقد دفعت — تحقق الآن"}
                 </Button>
               </>
             )}
