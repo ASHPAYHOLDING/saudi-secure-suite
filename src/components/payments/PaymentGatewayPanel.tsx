@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { CreditCard, Smartphone, Apple, Link2, Copy, ExternalLink, Loader2 } from "lucide-react";
+import { CreditCard, Smartphone, Apple, Link2, Copy, ExternalLink, Loader2, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { useHasFeature } from "@/hooks/useSubscriptionFeature";
 
 interface PaymentGatewayPanelProps {
   open: boolean;
@@ -16,44 +17,63 @@ interface PaymentGatewayPanelProps {
   invoiceNumber: string;
   amount: number;
   currency: string;
+  customerName?: string;
+  customerMobile?: string;
+  customerEmail?: string;
 }
 
-const GATEWAYS = [
-  { id: "stc_pay", name: "STC Pay", icon: Smartphone, color: "bg-purple-100 text-purple-700", desc: "إرسال رابط دفع عبر STC Pay" },
-  { id: "apple_pay", name: "Apple Pay", icon: Apple, color: "bg-gray-100 text-gray-800", desc: "الدفع عبر Apple Pay" },
-  { id: "credit_card", name: "بطاقة ائتمان", icon: CreditCard, color: "bg-blue-100 text-blue-700", desc: "Visa / Mastercard / مدى" },
-  { id: "payment_link", name: "رابط دفع مباشر", icon: Link2, color: "bg-green-100 text-green-700", desc: "إنشاء رابط دفع يمكن مشاركته" },
-];
-
-const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amount, currency }: PaymentGatewayPanelProps) => {
+const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amount, currency, customerName, customerMobile, customerEmail }: PaymentGatewayPanelProps) => {
   const { user, tenantId } = useAuth();
-  const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
+  const { allowed: hasPayFeature } = useHasFeature("numaxio_pay");
   const [creating, setCreating] = useState(false);
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
 
-  const handleCreateLink = async (gateway: string) => {
+  const handleCreatePaylinkInvoice = async () => {
     if (!user || !tenantId) return;
-    setSelectedGateway(gateway);
     setCreating(true);
 
-    // Create payment link record
-    const { data, error } = await supabase.from("payment_links").insert({
-      tenant_id: tenantId,
-      invoice_id: invoiceId,
-      amount,
-      currency,
-      gateway,
-      status: "pending",
-      payment_url: `https://pay.numaxio.com/${invoiceId}?gateway=${gateway}`,
-      created_by: user.id,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    }).select("id, payment_url").single();
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        toast.error("يرجى تسجيل الدخول أولاً");
+        setCreating(false);
+        return;
+      }
 
-    if (error) {
-      toast.error("فشل إنشاء رابط الدفع");
-    } else if (data) {
-      setPaymentLink(data.payment_url);
-      toast.success("تم إنشاء رابط الدفع");
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=create-invoice`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            amount,
+            clientName: customerName || "عميل",
+            clientMobile: customerMobile || "0500000000",
+            clientEmail: customerEmail || undefined,
+            orderNumber: invoiceNumber,
+            note: `دفع فاتورة ${invoiceNumber}`,
+            callBackUrl: window.location.origin + "/dashboard/billing",
+            products: [{ title: `فاتورة ${invoiceNumber}`, price: amount, qty: 1 }],
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        toast.error(data.error || "فشل إنشاء رابط الدفع");
+        setCreating(false);
+        return;
+      }
+
+      setPaymentLink(data.paymentUrl);
+      toast.success("✅ تم إنشاء رابط الدفع بنجاح!");
+    } catch (err: any) {
+      toast.error("خطأ في الاتصال: " + (err.message || ""));
     }
     setCreating(false);
   };
@@ -65,11 +85,21 @@ const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amo
     }
   };
 
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      setPaymentLink(null);
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent dir="rtl" className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>بوابات الدفع — {invoiceNumber}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-accent" />
+            بوابة الدفع — {invoiceNumber}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="rounded-lg border border-border bg-muted/30 p-3 text-center mb-4">
@@ -77,37 +107,38 @@ const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amo
           <p className="text-xl font-bold font-english text-foreground" dir="ltr">{formatCurrency(amount)} {currency}</p>
         </div>
 
-        {!paymentLink ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {GATEWAYS.map((gw, i) => {
-              const Icon = gw.icon;
-              return (
-                <motion.button
-                  key={gw.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  onClick={() => handleCreateLink(gw.id)}
-                  disabled={creating}
-                  className="flex items-start gap-3 rounded-xl border border-border p-4 text-right hover:border-accent hover:bg-accent/5 transition-all disabled:opacity-50"
-                >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg shrink-0 ${gw.color}`}>
-                    <Icon size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{gw.name}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{gw.desc}</p>
-                  </div>
-                  {creating && selectedGateway === gw.id && <Loader2 size={16} className="animate-spin text-accent mt-1" />}
-                </motion.button>
-              );
-            })}
+        {!hasPayFeature ? (
+          <div className="text-center py-8 space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-full bg-warning/10 flex items-center justify-center">
+              <Wallet className="w-7 h-7 text-warning" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">بوابة الدفع غير متاحة في باقتك الحالية</p>
+            <p className="text-xs text-muted-foreground">قم بالترقية للباقة الاحترافية أو المؤسسية لتفعيل نيوماكسيو باي</p>
+          </div>
+        ) : !paymentLink ? (
+          <div className="space-y-4">
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={handleCreatePaylinkInvoice}
+              disabled={creating}
+              className="flex items-center gap-3 w-full rounded-xl border border-border p-4 text-right hover:border-accent hover:bg-accent/5 transition-all disabled:opacity-50"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg shrink-0 bg-accent/10 text-accent">
+                <CreditCard size={24} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">إنشاء رابط دفع عبر نيوماكسيو باي</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">يدعم مدى، Visa، Mastercard، Apple Pay، STC Pay</p>
+              </div>
+              {creating && <Loader2 size={16} className="animate-spin text-accent" />}
+            </motion.button>
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">{GATEWAYS.find(g => g.id === selectedGateway)?.name}</Badge>
-              <Badge className="bg-green-100 text-green-700 text-xs">جاهز</Badge>
+              <Badge className="bg-accent/10 text-accent text-xs">نيوماكسيو باي</Badge>
+              <Badge className="bg-success/10 text-success text-xs">جاهز</Badge>
             </div>
             <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
               <input readOnly value={paymentLink} className="flex-1 bg-transparent text-xs font-english text-foreground outline-none" dir="ltr" />
@@ -119,7 +150,7 @@ const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amo
                 <ExternalLink size={14} />فتح الرابط
               </Button>
             </div>
-            <Button variant="ghost" className="w-full text-xs" onClick={() => { setPaymentLink(null); setSelectedGateway(null); }}>
+            <Button variant="ghost" className="w-full text-xs" onClick={() => setPaymentLink(null)}>
               إنشاء رابط آخر
             </Button>
           </motion.div>
