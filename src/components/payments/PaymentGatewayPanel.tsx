@@ -53,7 +53,7 @@ const PaymentGatewayPanel = ({ open, onOpenChange, invoiceId, invoiceNumber, amo
       const gateways: ActiveGateway[] = [];
       (data || []).forEach((row: any) => {
         const pi = row.paid_integrations;
-        if (pi && pi.category === "payment_gateway") {
+        if (pi && pi.integration_type === "payment_gateway") {
           gateways.push({
             integrationId: row.integration_id,
             key: pi.key,
