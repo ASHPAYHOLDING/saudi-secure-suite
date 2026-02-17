@@ -1,25 +1,17 @@
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * Apply full RTL/LTR adjustments to the DOM.
+ * Apply RTL/LTR direction to the document.
  */
-const applyDirectionToDOM = (lang: "ar" | "en") => {
-  const isRTL = lang === "ar";
-  const dir = isRTL ? "rtl" : "ltr";
-
+const applyDirection = (lang: "ar" | "en") => {
+  const dir = lang === "ar" ? "rtl" : "ltr";
   document.documentElement.setAttribute("dir", dir);
   document.documentElement.setAttribute("lang", lang);
-  document.body.setAttribute("dir", dir);
-  document.body.classList.toggle("rtl", isRTL);
-  document.body.classList.toggle("ltr", !isRTL);
-  document.body.style.textAlign = isRTL ? "right" : "left";
-
-  document.querySelectorAll<HTMLElement>(".rtl-flip").forEach((el) => {
-    el.style.transform = isRTL ? "scaleX(-1)" : "";
-  });
+  document.body.style.direction = dir;
+  document.body.style.textAlign = lang === "ar" ? "right" : "left";
 };
 
 /**
@@ -28,43 +20,18 @@ const applyDirectionToDOM = (lang: "ar" | "en") => {
 export const useLanguage = () => {
   const { i18n, t } = useTranslation();
   const { user } = useAuth();
-  const observerRef = useRef<MutationObserver | null>(null);
   const currentLang = i18n.language?.startsWith("ar") ? "ar" : "en";
   const isRTL = currentLang === "ar";
   const dir = isRTL ? "rtl" : "ltr";
 
-  // Apply direction on mount and when language changes + observe DOM
   useEffect(() => {
-    applyDirectionToDOM(currentLang as "ar" | "en");
-
-    // Clean up previous observer
-    observerRef.current?.disconnect();
-
-    // Observe DOM for newly added containers
-    const observer = new MutationObserver(() => {
-      const htmlDir = document.documentElement.dir;
-      if (htmlDir) {
-        document.querySelectorAll<HTMLElement>(
-          "main:not([dir]), aside:not([dir]), section:not([dir])"
-        ).forEach((el) => {
-          if (el.getAttribute("data-dir-locked") !== "true") {
-            el.dir = htmlDir;
-          }
-        });
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    observerRef.current = observer;
-
-    return () => observer.disconnect();
+    applyDirection(currentLang as "ar" | "en");
   }, [currentLang]);
 
   const switchLanguage = useCallback(
     async (lang: "ar" | "en") => {
       await i18n.changeLanguage(lang);
-      applyDirectionToDOM(lang);
-
+      applyDirection(lang);
       if (user) {
         await supabase
           .from("profiles")
