@@ -16,7 +16,7 @@ import {
   Wallet,
   Headphones,
 } from "lucide-react";
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -76,7 +76,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         <div className="flex items-center gap-2">
           {!collapsed ? (
             <>
-              <img src={numaxioLogo} alt="نيوماكسيو" className="h-7" />
+              <NumaxioLogo variant="dark" size="sm" />
               <span className="rounded bg-destructive/20 px-1.5 py-0.5 text-[10px] font-bold text-destructive">
                 ADMIN
               </span>

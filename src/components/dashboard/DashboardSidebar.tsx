@@ -7,7 +7,7 @@ import {
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock,
 } from "lucide-react";
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -273,9 +273,9 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         {!collapsed ? (
-          <img src={numaxioLogo} alt="Numaxio" className="h-7" />
+          <NumaxioLogo variant="dark" size="sm" />
         ) : (
-          <img src={numaxioLogo} alt="Numaxio" className="h-6 w-6 object-contain" />
+          <NumaxioLogo variant="dark" size="sm" showText={false} />
         )}
         <button
           onClick={onToggle}
