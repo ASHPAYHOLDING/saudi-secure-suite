@@ -13,12 +13,13 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowDownToLine,
   Receipt, ChevronLeft, DollarSign, Percent, Clock,
   CheckCircle2, XCircle, Bell, Download, Loader2,
-  BanknoteIcon
+  BanknoteIcon, Send, Settings2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePaylinkData } from "@/hooks/usePaylinkData";
 import { supabase } from "@/integrations/supabase/client";
+import PayoutSettings from "@/components/paylink/PayoutSettings";
 
 const NumaxioPayDashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const NumaxioPayDashboard = () => {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "deposit" | "withdrawal">("all");
+  const [activeTab, setActiveTab] = useState<"overview" | "payouts">("overview");
 
   // Fee preview for withdrawal
   const withdrawPreview = useMemo(() => {
@@ -168,7 +170,7 @@ const NumaxioPayDashboard = () => {
               </AnimatePresence>
             </div>
             <Button variant="ghost" size="sm" onClick={() => navigate("/numaxio-pay")}>إعدادات الربط</Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-1">
               رجوع <ChevronLeft className="w-4 h-4" />
             </Button>
           </div>
@@ -176,6 +178,24 @@ const NumaxioPayDashboard = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Main Tabs */}
+        <div className="flex items-center gap-2 bg-muted rounded-lg p-0.5 w-fit">
+          {([
+            { key: "overview" as const, label: "نظرة عامة", icon: Receipt },
+            { key: "payouts" as const, label: "التحويلات والإعدادات", icon: Send },
+          ]).map((t) => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                activeTab === t.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>
+              <t.icon className="w-4 h-4" /> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "payouts" && <PayoutSettings />}
+
+        {activeTab === "overview" && (<>
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map((kpi, i) => (
@@ -311,6 +331,7 @@ const NumaxioPayDashboard = () => {
             </CardContent>
           </Card>
         </motion.div>
+        </>)}
       </main>
 
       {/* Withdraw Dialog */}

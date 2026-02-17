@@ -2429,6 +2429,121 @@ export type Database = {
           },
         ]
       }
+      paylink_payout_settings: {
+        Row: {
+          account_holder_name: string
+          bank_name: string
+          created_at: string
+          iban: string
+          id: string
+          is_active: boolean
+          min_payout_amount: number
+          payout_day: number | null
+          payout_schedule: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          is_active?: boolean
+          min_payout_amount?: number
+          payout_day?: number | null
+          payout_schedule?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          is_active?: boolean
+          min_payout_amount?: number
+          payout_day?: number | null
+          payout_schedule?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_payout_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paylink_payouts: {
+        Row: {
+          account_holder_name: string | null
+          bank_name: string | null
+          created_at: string
+          created_by: string | null
+          failure_reason: string | null
+          fee_amount: number
+          gross_amount: number
+          iban: string | null
+          id: string
+          net_amount: number
+          payout_number: string
+          processed_at: string | null
+          scheduled_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name?: string | null
+          bank_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          failure_reason?: string | null
+          fee_amount?: number
+          gross_amount?: number
+          iban?: string | null
+          id?: string
+          net_amount?: number
+          payout_number: string
+          processed_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string | null
+          bank_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          failure_reason?: string | null
+          fee_amount?: number
+          gross_amount?: number
+          iban?: string | null
+          id?: string
+          net_amount?: number
+          payout_number?: string
+          processed_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_payouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       paylink_transactions: {
         Row: {
           created_at: string
