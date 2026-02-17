@@ -15,8 +15,8 @@ import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const mainMenuKeys: { icon: any; key: string; path: string; module: Module }[] = [
-  { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
+  { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
   { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
   { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
   { icon: FileText, key: "nav.creditNotes", path: "/dashboard/credit-notes", module: "billing" },
