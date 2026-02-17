@@ -5365,33 +5365,19 @@ export type Database = {
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       process_subscription_expiry: { Args: never; Returns: undefined }
-      process_wallet_transaction:
-        | {
-            Args: {
-              p_actor_id: string
-              p_amount: number
-              p_reason: string
-              p_reference_id: string
-              p_reference_type: string
-              p_source: string
-              p_type: string
-              p_wallet_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_actor_id: string
-              p_amount: number
-              p_reason: string
-              p_reference_id: string
-              p_reference_type: string
-              p_source: string
-              p_type: string
-              p_wallet_id: string
-            }
-            Returns: string
-          }
+      process_wallet_transaction: {
+        Args: {
+          p_actor_id: string
+          p_amount: number
+          p_reason: string
+          p_reference_id: string
+          p_reference_type: string
+          p_source: string
+          p_type: string
+          p_wallet_id: string
+        }
+        Returns: string
+      }
       record_stock_movement: {
         Args: {
           _created_by?: string
