@@ -12,6 +12,7 @@ import AdminSecurityCenter from "@/components/admin/AdminSecurityCenter";
 import AdminFinance from "@/components/admin/AdminFinance";
 import AdminTemplates from "@/components/admin/AdminTemplates";
 import AdminEmailTemplates from "@/components/admin/AdminEmailTemplates";
+import AdminEmailCenter from "@/components/admin/AdminEmailCenter";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminInfrastructure from "@/components/admin/AdminInfrastructure";
 import AdminPaylinkFees from "@/components/admin/AdminPaylinkFees";
@@ -74,6 +75,7 @@ const Admin = () => {
     if (path === "/admin/finance") return <AdminFinance />;
     if (path === "/admin/templates") return <AdminTemplates />;
     if (path === "/admin/email-templates") return <AdminEmailTemplates />;
+    if (path === "/admin/email-center") return <AdminEmailCenter />;
     if (path === "/admin/ai") return <AdminAIAssistant />;
     if (path === "/admin/infrastructure") return <AdminInfrastructure />;
     if (path === "/admin/paylink-fees") return <AdminPaylinkFees />;
