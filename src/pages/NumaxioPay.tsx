@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const NumaxioPay = () => {
   const { transactions, stats, loading: dataLoading, refetch, feeConfig } = usePaylinkData(tenantId ?? undefined);
 
   const [isActivating, setIsActivating] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
@@ -205,13 +207,56 @@ const NumaxioPay = () => {
 
                 <Separator />
 
+                {/* Legal Agreement Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-5 h-5 text-destructive" />
+                    <h3 className="text-sm font-bold text-foreground">إقرار وموافقة قانونية</h3>
+                  </div>
+
+                  <div className="bg-muted/60 border border-border rounded-lg p-4 max-h-56 overflow-y-auto text-sm text-muted-foreground leading-relaxed space-y-3">
+                    <p className="font-semibold text-foreground">بالضغط على زر التفعيل أدناه، أقرّ وأوافق صراحةً وبشكل نهائي وغير قابل للرجوع على ما يلي:</p>
+
+                    <p><strong className="text-foreground">١. طبيعة الخدمة:</strong> إن خدمة "نيوماكسيو باي" هي بوابة دفع إلكترونية مُدارة مركزياً من قبل إدارة المنصة. جميع عمليات الدفع الواردة من العملاء تمر عبر النظام المركزي وتخضع لرقابة وإشراف الإدارة.</p>
+
+                    <p><strong className="text-foreground">٢. الرسوم والعمولات:</strong> أوافق على أن الإدارة تحتفظ بالحق في تحديد وتعديل نسبة الرسوم (نسبة مئوية أو مبلغ ثابت أو مزيج منهما) على كل عملية دفع واردة. يتم خصم هذه الرسوم تلقائياً قبل تسوية المبالغ إلى حسابي، ولا يحق لي الاعتراض على الرسوم المعتمدة من الإدارة.</p>
+
+                    <p><strong className="text-foreground">٣. تسوية المبالغ:</strong> تتم تسوية المبالغ الصافية (بعد خصم الرسوم) وفقاً لجدول التحويل المحدد (يومي، أسبوعي، أو شهري) مع مراعاة الحد الأدنى للسحب. لا تتحمل الإدارة أي مسؤولية عن تأخر التحويلات البنكية الناتجة عن أطراف ثالثة.</p>
+
+                    <p><strong className="text-foreground">٤. صحة البيانات:</strong> أتعهد بأن جميع البيانات المدخلة (بما في ذلك بيانات الحساب البنكي ورقم الآيبان) صحيحة ودقيقة، وأتحمل كامل المسؤولية القانونية عن أي أخطاء أو بيانات غير صحيحة.</p>
+
+                    <p><strong className="text-foreground">٥. الامتثال التنظيمي:</strong> أتعهد بالتزامي بجميع الأنظمة واللوائح المعمول بها في المملكة العربية السعودية، بما في ذلك نظام مؤسسة النقد العربي السعودي (ساما)، ونظام مكافحة غسل الأموال وتمويل الإرهاب، ونظام حماية البيانات الشخصية (PDPL).</p>
+
+                    <p><strong className="text-foreground">٦. حق التعليق والإلغاء:</strong> يحق للإدارة تعليق أو إلغاء بوابة الدفع الخاصة بي في أي وقت دون إشعار مسبق في حال الاشتباه بأي نشاط مخالف أو احتيالي أو مخالفة لشروط الاستخدام، مع الاحتفاظ بالحق في تجميد المبالغ المعلّقة لحين التحقق.</p>
+
+                    <p><strong className="text-foreground">٧. المسؤولية القانونية:</strong> أتحمل كامل المسؤولية القانونية والمالية عن جميع العمليات التي تتم عبر بوابة الدفع المرتبطة بحسابي، بما في ذلك عمليات الاسترداد (Chargeback) والنزاعات مع العملاء.</p>
+
+                    <p><strong className="text-foreground">٨. الإخطار بالتغييرات:</strong> يحق للإدارة تعديل هذه الشروط أو نسب الرسوم في أي وقت، وسيتم إخطاري عبر المنصة. استمراري في استخدام الخدمة بعد الإخطار يُعتبر موافقة ضمنية على التعديلات.</p>
+
+                    <p className="font-semibold text-foreground border-t border-border pt-3">هذا الإقرار يُعتبر عقداً ملزماً بين الطرفين ويخضع لأنظمة وقوانين المملكة العربية السعودية، وأي نزاع ينشأ عنه يختص بالفصل فيه القضاء السعودي المختص.</p>
+                  </div>
+
+                  {/* Agreement Checkbox */}
+                  <div className="flex items-start gap-3 p-3 rounded-lg border border-accent/30 bg-accent/5">
+                    <Checkbox
+                      id="agree-terms"
+                      checked={agreedToTerms}
+                      onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="agree-terms" className="text-sm text-foreground cursor-pointer leading-relaxed">
+                      أقرّ بأنني قرأت وفهمت جميع الشروط والأحكام المذكورة أعلاه، وأوافق عليها بالكامل بصفتي الممثل القانوني المخوّل للمنشأة.
+                    </label>
+                  </div>
+                </div>
+
                 {/* Activate Button */}
                 <div className="text-center">
                   <Button
                     onClick={handleActivate}
-                    disabled={isActivating}
+                    disabled={isActivating || !agreedToTerms}
                     size="lg"
-                    className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base"
+                    className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base disabled:opacity-50"
                   >
                     {isActivating ? (
                       <>
@@ -221,13 +266,15 @@ const NumaxioPay = () => {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5" />
-                        تفعيل بوابة الدفع
+                        أوافق وأفعّل بوابة الدفع
                       </>
                     )}
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    بالتفعيل، أنت توافق على شروط استخدام بوابة الدفع ورسوم العمليات المحددة من الإدارة.
-                  </p>
+                  {!agreedToTerms && (
+                    <p className="text-xs text-destructive mt-2">
+                      يجب الموافقة على الإقرار القانوني أعلاه للمتابعة
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
