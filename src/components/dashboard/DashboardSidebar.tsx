@@ -155,8 +155,8 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           isActive
-            ? "bg-sidebar-accent text-sidebar-primary"
-            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
+            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
         )}
       >
         <Icon size={18} className="shrink-0" />
@@ -190,7 +190,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
             "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
             hasActiveItem
               ? "text-sidebar-primary"
-              : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
+              : "text-sidebar-foreground/70 hover:text-sidebar-foreground"
           )}
         >
           <span>{t(group.labelKey)}</span>
@@ -245,7 +245,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         )}
         <button
           onClick={onToggle}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <CollapseIcon size={16} className="transition-transform" />
         </button>
@@ -284,8 +284,8 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
                     hasActiveSettings
-                      ? "text-sidebar-primary"
-                      : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
+                       ? "text-sidebar-primary"
+                       : "text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
                   <span>{t("nav.settingsSection")}</span>
@@ -333,7 +333,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         )}
         <Link
           to="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut size={18} className="shrink-0" />
           {!collapsed && <span>{t("common.logout")}</span>}
