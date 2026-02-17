@@ -14,6 +14,7 @@ import AdminTemplates from "@/components/admin/AdminTemplates";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminInfrastructure from "@/components/admin/AdminInfrastructure";
 import AdminPaylinkFees from "@/components/admin/AdminPaylinkFees";
+import AdminPaylinkManagement from "@/components/admin/AdminPaylinkManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ const Admin = () => {
     if (path === "/admin/ai") return <AdminAIAssistant />;
     if (path === "/admin/infrastructure") return <AdminInfrastructure />;
     if (path === "/admin/paylink-fees") return <AdminPaylinkFees />;
+    if (path === "/admin/paylink-management") return <AdminPaylinkManagement />;
     return <AdminDashboard />;
   };
 
