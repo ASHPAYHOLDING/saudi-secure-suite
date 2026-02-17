@@ -23,9 +23,7 @@ import {
 } from "@/components/wallet/WalletIcons";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -692,89 +690,7 @@ const WalletPage = () => {
         </Card>
       </motion.div>
 
-      {/* ── Topup Modal ── */}
-      <Dialog open={showTopup} onOpenChange={(o) => { if (!o) resetTopup(); }}>
-        <DialogContent className="max-w-lg" dir="rtl">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><WalletTopupIcon size={20} /> إضافة رصيد</DialogTitle></DialogHeader>
-          <div className="space-y-5 py-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">طريقة الدفع</label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { key: "bank_transfer" as const, label: "تحويل بنكي", icon: Building2 },
-                  { key: "card" as const, label: "بطاقة / Apple Pay", icon: CreditCard },
-                ].map(pm => (
-                  <button key={pm.key} onClick={() => setPaymentMethod(pm.key)}
-                    className={`p-3 rounded-xl border-2 transition-all duration-150 flex items-center gap-2 ${paymentMethod === pm.key ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:bg-muted/30"}`}>
-                    <pm.icon size={18} className={paymentMethod === pm.key ? "text-primary" : "text-muted-foreground"} />
-                    <span className={`text-sm font-medium ${paymentMethod === pm.key ? "text-primary" : "text-muted-foreground"}`}>{pm.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">المبلغ</label>
-              <div className="grid grid-cols-3 gap-2">
-                {TOPUP_AMOUNTS.map(amt => (
-                  <button key={amt} onClick={() => { setTopupAmount(amt); setCustomAmount(""); }}
-                    className={`py-2.5 rounded-xl text-sm font-bold transition-all duration-150 border ${topupAmount === amt ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border bg-card text-muted-foreground hover:bg-muted/30"}`}>
-                    {amt.toLocaleString("ar-SA")} ر.س
-                  </button>
-                ))}
-              </div>
-              <Input type="number" min="1" max="50000" placeholder="أو أدخل مبلغ مخصص" value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }} dir="ltr" className="text-center" />
-            </div>
-            {paymentMethod === "bank_transfer" && finalAmount > 0 && (
-              <div className="space-y-3">
-                <Card className="bg-muted/20">
-                  <CardContent className="p-4 space-y-2">
-                    <p className="text-xs font-semibold text-foreground mb-2">معلومات الحساب البنكي</p>
-                    {[
-                      { label: "رقم الآيبان (IBAN)", value: BANK_INFO.iban },
-                      { label: "اسم البنك", value: BANK_INFO.bankName },
-                      { label: "اسم المستفيد", value: BANK_INFO.beneficiary },
-                    ].map(item => (
-                      <div key={item.label} className="flex items-center justify-between p-2 rounded-lg bg-card border border-border/50">
-                        <div><span className="text-[10px] text-muted-foreground block">{item.label}</span><span className="text-sm text-foreground">{item.value}</span></div>
-                        <button onClick={() => copyToClipboard(item.value, item.label)} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><Copy size={14} className="text-muted-foreground" /></button>
-                      </div>
-                    ))}
-                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-center">
-                      <span className="text-[10px] text-muted-foreground block">المبلغ المطلوب تحويله</span>
-                      <span className="text-xl font-bold text-primary">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Input placeholder="رقم مرجع التحويل (اختياري)" value={bankReference} onChange={(e) => setBankReference(e.target.value)} dir="ltr" />
-                <label className={`flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed cursor-pointer transition-all ${receiptFile ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"}`}>
-                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 5 * 1024 * 1024) { toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت"); return; } setReceiptFile(file); } }} />
-                  {receiptFile ? <><CheckCircle2 size={24} className="text-primary" /><p className="text-sm font-medium text-primary">{receiptFile.name}</p></> : <><Upload size={24} className="text-muted-foreground" /><p className="text-sm text-muted-foreground">رفع إيصال التحويل *</p></>}
-                </label>
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-warning/5 border border-warning/20">
-                  <AlertCircle size={14} className="text-warning flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-warning leading-relaxed">سيتم مراجعة الإيصال وتأكيد الرصيد خلال 24 ساعة عمل.</p>
-                </div>
-              </div>
-            )}
-            {paymentMethod === "card" && finalAmount > 0 && (
-              <Card className="bg-muted/20">
-                <CardContent className="p-6 text-center space-y-2">
-                  <CreditCard size={32} className="text-muted-foreground mx-auto" />
-                  <p className="text-xl font-bold text-foreground">{finalAmount.toLocaleString("ar-SA")} ر.س</p>
-                  <p className="text-sm text-muted-foreground">سيتم تحويلك لصفحة الدفع الآمنة</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={resetTopup}>إلغاء</Button>
-            <Button onClick={handleTopup} disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}>
-              {topupLoading ? <><Loader2 size={16} className="animate-spin ml-1" />{uploadingReceipt ? "جاري رفع الإيصال..." : "جاري الإرسال..."}</> : finalAmount > 0 ? `إرسال طلب — ${finalAmount.toLocaleString("ar-SA")} ر.س` : "اختر المبلغ"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       <style>{`
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(12); opacity: 0; } }
