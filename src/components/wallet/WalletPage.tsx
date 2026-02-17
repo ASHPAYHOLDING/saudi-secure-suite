@@ -115,6 +115,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; dotColor: strin
 
 const REASON_LABELS: Record<string, string> = { subscription: "اشتراك", integration: "تكامل", refund: "استرداد", topup: "شحن رصيد", manual: "عملية يدوية", payout: "سحب" };
 const REASON_ICONS: Record<string, typeof Receipt> = { subscription: Receipt, integration: Zap, refund: RefreshCw, topup: Banknote, manual: Activity, payout: ArrowDown };
+const SOURCE_LABELS: Record<string, string> = { admin: "الإدارة المالية", system: "النظام", gateway: "بوابة الدفع", payment_gateway: "بوابة الدفع" };
 
 const TOPUP_STATUS: Record<string, { label: string; color: string }> = {
   pending: { label: "قيد المراجعة", color: "bg-warning/10 text-warning border-warning/20" },
@@ -805,7 +806,7 @@ const WalletPage = () => {
                             </div>
                             <div>
                               <span className="text-sm text-foreground">{REASON_LABELS[tx.reason] || tx.reason}</span>
-                              <span className="block text-[10px] text-muted-foreground">{tx.source}</span>
+                              <span className="block text-[10px] text-muted-foreground">{SOURCE_LABELS[tx.source] || tx.source}</span>
                             </div>
                           </div>
                         </td>
