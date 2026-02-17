@@ -405,7 +405,7 @@ const PaidIntegrationsPage = () => {
                   const CatIcon = cat.icon;
                   const purchased = subscriptions.find((s) => s.integration_id === item.id);
                   return (
-                    <Card key={item.id} className={`transition-all ${sub ? "border-primary/30 bg-primary/[0.02]" : ""} ${!item.is_ready ? "opacity-70" : ""}`}>
+                    <Card key={item.id} className={`transition-all flex flex-col ${sub ? "border-primary/30 bg-primary/[0.02]" : ""} ${!item.is_ready ? "opacity-70" : ""}`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -434,8 +434,8 @@ const PaidIntegrationsPage = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <CardDescription className="text-sm leading-relaxed">{item.description_ar}</CardDescription>
+                      <CardContent className="space-y-4 flex-1 flex flex-col">
+                        <CardDescription className="text-sm leading-relaxed flex-1">{item.description_ar}</CardDescription>
                         
                         {item.requires_api_keys && (
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
