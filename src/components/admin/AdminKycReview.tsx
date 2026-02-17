@@ -111,7 +111,7 @@ const AdminKycReview = () => {
         admin_signature_data: adminSignature,
         admin_signed_at: new Date().toISOString(),
         admin_user_id: user.id,
-        admin_full_name: profile?.full_name || "مسؤول المنصة",
+        admin_full_name: "نيوماكسيو",
         reviewed_at: new Date().toISOString(),
         reviewed_by: user.id,
       } as any)
@@ -457,7 +457,7 @@ const AdminKycReview = () => {
                   {/* Admin Signature for approval */}
                   <CertifiedSignaturePad
                     onSignatureChange={setAdminSignature}
-                    signerName={profile?.full_name || "مسؤول المنصة"}
+                    signerName="نيوماكسيو"
                     signerRole="مدير الامتثال المالي"
                     label="التوقيع الرقمي المعتمد للاعتماد"
                   />
