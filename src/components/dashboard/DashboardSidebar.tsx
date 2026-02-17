@@ -29,7 +29,6 @@ interface NavGroup {
 
 const topItems: NavItemDef[] = [
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
-  { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
 ];
 
 const navGroups: NavGroup[] = [
@@ -75,6 +74,7 @@ const navGroups: NavGroup[] = [
   {
     labelKey: "nav.group.management",
     items: [
+      { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
       { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
