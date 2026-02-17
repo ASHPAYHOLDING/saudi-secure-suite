@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -19,6 +19,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+/* ── Animated Counter Hook ── */
+function useAnimatedCounter(target: number, duration = 1.2) {
+  const [display, setDisplay] = useState(0);
+  const prevTarget = useRef(0);
+
+  useEffect(() => {
+    const from = prevTarget.current;
+    prevTarget.current = target;
+    const startTime = performance.now();
+    const diff = target - from;
+
+    if (diff === 0) return;
+
+    const step = (now: number) => {
+      const elapsed = Math.min((now - startTime) / (duration * 1000), 1);
+      // ease out cubic
+      const eased = 1 - Math.pow(1 - elapsed, 3);
+      setDisplay(Math.round(from + diff * eased));
+      if (elapsed < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+
+  return display;
+}
 
 interface WalletData {
   id: string;
@@ -147,6 +173,8 @@ const WalletPage = () => {
   const [customAmount, setCustomAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "gateway">("card");
   const [topupLoading, setTopupLoading] = useState(false);
+  const animatedBalance = useAnimatedCounter(wallet?.balance_available ?? 0);
+  const animatedPending = useAnimatedCounter(wallet?.balance_pending ?? 0);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -393,92 +421,107 @@ const WalletPage = () => {
       </Dialog>
 
       <div className="relative z-10 p-6 md:p-8 space-y-8 max-w-6xl mx-auto">
-        {/* Header */}
+        {/* ── Hero Section ── */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center justify-between"
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400/20 to-cyan-500/10 backdrop-blur-sm border border-white/10 flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-teal-400" />
+          <GlassCard delay={0} className="!p-8 md:!p-10 relative overflow-hidden">
+            {/* Shimmer overlay on balance */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 55%, transparent 60%)",
+                  backgroundSize: "200% 100%",
+                }}
+                animate={{ backgroundPosition: ["200% 0%", "-200% 0%"] }}
+                transition={{ duration: 4, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+              />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">المحفظة</h1>
-              <p className="text-sm text-white/40">إدارة الرصيد والمعاملات المالية</p>
-            </div>
-          </div>
 
-          {/* Topup CTA Button with pulse */}
-          <motion.button
-            onClick={() => setShowTopup(true)}
-            className="relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white text-sm
-              shadow-[0_4px_20px_-4px_hsla(152,60%,42%,0.4)]
-              hover:shadow-[0_6px_28px_-4px_hsla(152,60%,42%,0.55)]
-              transition-shadow duration-300"
-            style={{
-              background: "linear-gradient(135deg, hsl(152,60%,42%) 0%, hsl(172,60%,40%) 100%)",
-            }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            {/* Pulse ring */}
-            <motion.span
-              className="absolute inset-0 rounded-xl"
-              style={{
-                background: "linear-gradient(135deg, hsl(152,60%,42%) 0%, hsl(172,60%,40%) 100%)",
-              }}
-              animate={{ opacity: [0, 0.4, 0], scale: [1, 1.15, 1.2] }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 4.5, ease: "easeOut" }}
-            />
-            <Plus className="w-5 h-5 relative z-10" />
-            <span className="relative z-10">إضافة رصيد</span>
-          </motion.button>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+              {/* Left: Title + Balance */}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-400/20 to-cyan-500/10 border border-white/10 flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-teal-400" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl md:text-2xl font-bold text-white">محفظتك الرقمية</h1>
+                      <p className="text-sm text-white/40 mt-0.5">تحكّم كامل في أرصدة شركتك ومعاملاتها المالية بشكل لحظي وآمن.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Big Balance */}
+                <div className="space-y-1">
+                  <span className="text-xs text-white/40 uppercase tracking-wider">الرصيد المتاح</span>
+                  <div className="flex items-baseline gap-3">
+                    <motion.span
+                      key={animatedBalance}
+                      className="text-5xl md:text-6xl font-black text-white tabular-nums tracking-tighter"
+                      style={{
+                        background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      {animatedBalance.toLocaleString("ar-SA")}
+                    </motion.span>
+                    <span className="text-lg font-medium text-white/30">{wallet.currency}</span>
+                  </div>
+                </div>
+
+                {/* Pending + Status row */}
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-400/70" />
+                    <span className="text-sm text-white/40">معلّق:</span>
+                    <span className="text-sm font-bold text-white/80 tabular-nums">
+                      {animatedPending.toLocaleString("ar-SA")} {wallet.currency}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusIcon className={`w-4 h-4 ${statusInfo.color}`} />
+                    <Badge className={`${statusInfo.color} bg-white/[0.06] border border-white/10 text-xs px-3 py-1`}>
+                      {statusInfo.label}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: CTA Button */}
+              <div className="flex-shrink-0">
+                <motion.button
+                  onClick={() => setShowTopup(true)}
+                  className="relative flex items-center gap-2 px-7 py-4 rounded-xl font-bold text-white text-sm
+                    shadow-[0_4px_20px_-4px_hsla(152,60%,42%,0.4)]
+                    hover:shadow-[0_6px_28px_-4px_hsla(152,60%,42%,0.55)]
+                    transition-shadow duration-300"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(152,60%,42%) 0%, hsl(172,60%,40%) 100%)",
+                  }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <motion.span
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(152,60%,42%) 0%, hsl(172,60%,40%) 100%)",
+                    }}
+                    animate={{ opacity: [0, 0.4, 0], scale: [1, 1.15, 1.2] }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 4.5, ease: "easeOut" }}
+                  />
+                  <Plus className="w-5 h-5 relative z-10" />
+                  <span className="relative z-10">إضافة رصيد</span>
+                </motion.button>
+              </div>
+            </div>
+          </GlassCard>
         </motion.div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <GlassCard delay={0.1}>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-white/50">الرصيد المتاح</span>
-              <div className="w-10 h-10 rounded-xl bg-teal-400/10 flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-teal-400" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-white tracking-tight">
-              {wallet.balance_available.toLocaleString("ar-SA")}
-              <span className="text-base font-normal text-white/30 ms-2">{wallet.currency}</span>
-            </p>
-          </GlassCard>
-
-          <GlassCard delay={0.2}>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-white/50">الرصيد المعلّق</span>
-              <div className="w-10 h-10 rounded-xl bg-amber-400/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-400" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-white tracking-tight">
-              {wallet.balance_pending.toLocaleString("ar-SA")}
-              <span className="text-base font-normal text-white/30 ms-2">{wallet.currency}</span>
-            </p>
-          </GlassCard>
-
-          <GlassCard delay={0.3}>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-white/50">حالة المحفظة</span>
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                <StatusIcon className={`w-5 h-5 ${statusInfo.color}`} />
-              </div>
-            </div>
-            <Badge
-              className={`${statusInfo.color} bg-white/[0.06] border border-white/10 text-sm px-4 py-1.5`}
-            >
-              {statusInfo.label}
-            </Badge>
-          </GlassCard>
-        </div>
 
         {/* Transactions */}
         <GlassCard delay={0.4} className="!p-0">
