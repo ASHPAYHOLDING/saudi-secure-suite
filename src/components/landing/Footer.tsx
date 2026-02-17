@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, ArrowUp, Shield, FileText, Scale, ExternalLink } from "lucide-react";
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { useState } from "react";
 
 const footerLinks = {
@@ -111,7 +111,9 @@ const Footer = () => {
         >
           {/* Brand column */}
           <motion.div variants={itemVariants} className="md:col-span-4">
-            <img src={numaxioLogo} alt="نيوماكسيو" className="h-9 mb-5 brightness-200" />
+            <div className="mb-5">
+              <NumaxioLogo variant="light" size="md" />
+            </div>
             <p className="max-w-sm text-sm leading-relaxed text-white/50 mb-8">
               المنصة المحاسبية السحابية الأولى المصممة للمنشآت السعودية.
               فواتير إلكترونية، عقود، تقارير مالية، وامتثال كامل مع هيئة الزكاة والدخل.

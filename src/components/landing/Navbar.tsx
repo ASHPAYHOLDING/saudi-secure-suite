@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import NumaxioLogo from "@/components/landing/NumaxioLogo";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,14 +34,13 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex h-18 items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <motion.img
-            src={numaxioLogo}
-            alt="نيوماكسيو"
-            className="h-9"
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-          />
+          >
+            <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
+          </motion.div>
         </Link>
 
         <div className="hidden items-center gap-8 lg:flex">
