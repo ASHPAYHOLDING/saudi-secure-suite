@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Plug, Plus, Pencil, Trash2, Monitor, ShoppingBag, Users, CreditCard, Package } from "lucide-react";
+import {
+  Plug, Plus, Pencil, Trash2, Monitor, ShoppingBag, Users, CreditCard, Package,
+  DollarSign, TrendingUp, Clock, BarChart3, BookOpen, Crown, Loader2,
+} from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 interface PaidIntegration {
   id: string;
@@ -28,6 +37,14 @@ interface PaidIntegration {
   requires_api_key: boolean;
   api_key_label: string;
   sort_order: number;
+  trial_days: number;
+  included_in_plans: string[];
+}
+
+interface SubPlan {
+  id: string;
+  slug: string;
+  name_ar: string;
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any }> = {
@@ -35,52 +52,98 @@ const CATEGORY_MAP: Record<string, { label: string; icon: any }> = {
   ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag },
   hr_payroll: { label: "موارد بشرية", icon: Users },
   payment_gateway: { label: "بوابات دفع", icon: CreditCard },
+  accounting: { label: "محاسبة", icon: BookOpen },
   other: { label: "أخرى", icon: Package },
 };
 
+const CHART_COLORS = [
+  "hsl(var(--accent))",
+  "hsl(var(--primary))",
+  "hsl(var(--destructive))",
+  "hsl(var(--secondary-foreground))",
+  "hsl(var(--muted-foreground))",
+  "hsl(160, 60%, 45%)",
+];
+
 const AdminPaidIntegrations = () => {
   const [integrations, setIntegrations] = useState<PaidIntegration[]>([]);
+  const [plans, setPlans] = useState<SubPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialog, setEditDialog] = useState<PaidIntegration | null>(null);
   const [createDialog, setCreateDialog] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [subscriberCounts, setSubscriberCounts] = useState<Record<string, number>>({});
+  const [trialCounts, setTrialCounts] = useState<Record<string, number>>({});
+  const [activeTab, setActiveTab] = useState("catalog");
+
   const [formData, setFormData] = useState({
     key: "", name_ar: "", name_en: "", description_ar: "", description_en: "",
     category: "other", monthly_price: 0, is_available: true, requires_api_key: false,
-    api_key_label: "", sort_order: 0, icon_name: "Plug",
+    api_key_label: "", sort_order: 0, icon_name: "Plug", trial_days: 0,
+    included_in_plans: [] as string[],
   });
-  const [subscriberCounts, setSubscriberCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    fetchIntegrations();
+    fetchAll();
   }, []);
 
-  const fetchIntegrations = async () => {
+  const fetchAll = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("paid_integrations")
-      .select("*")
-      .order("sort_order");
-    setIntegrations((data as any[]) || []);
 
-    // Fetch subscriber counts
-    const { data: subs } = await supabase
-      .from("tenant_paid_integrations")
-      .select("integration_id")
-      .eq("status", "active");
-    const counts: Record<string, number> = {};
-    (subs || []).forEach((s: any) => {
-      counts[s.integration_id] = (counts[s.integration_id] || 0) + 1;
+    const [intRes, planRes, subsRes] = await Promise.all([
+      supabase.from("paid_integrations").select("*").order("sort_order"),
+      supabase.from("subscription_plans").select("id, slug, name_ar").eq("is_active", true).order("sort_order"),
+      supabase.from("tenant_paid_integrations").select("integration_id, status"),
+    ]);
+
+    setIntegrations((intRes.data as any[]) || []);
+    setPlans((planRes.data as SubPlan[]) || []);
+
+    const active: Record<string, number> = {};
+    const trials: Record<string, number> = {};
+    ((subsRes.data as any[]) || []).forEach((s) => {
+      if (s.status === "active") active[s.integration_id] = (active[s.integration_id] || 0) + 1;
+      if (s.status === "trial") trials[s.integration_id] = (trials[s.integration_id] || 0) + 1;
     });
-    setSubscriberCounts(counts);
+    setSubscriberCounts(active);
+    setTrialCounts(trials);
     setLoading(false);
   };
 
+  // ─── Revenue Metrics (aggregated, no tenant data) ───
+  const metrics = useMemo(() => {
+    const totalSubs = Object.values(subscriberCounts).reduce((a, b) => a + b, 0);
+    const totalTrials = Object.values(trialCounts).reduce((a, b) => a + b, 0);
+    const mrr = integrations.reduce((sum, i) => sum + (subscriberCounts[i.id] || 0) * i.monthly_price, 0);
+    const arr = mrr * 12;
+
+    const byCategoryData = Object.entries(CATEGORY_MAP).map(([key, { label }]) => {
+      const catIntegrations = integrations.filter((i) => i.category === key);
+      const revenue = catIntegrations.reduce((s, i) => s + (subscriberCounts[i.id] || 0) * i.monthly_price, 0);
+      const subs = catIntegrations.reduce((s, i) => s + (subscriberCounts[i.id] || 0), 0);
+      return { name: label, revenue, subscribers: subs };
+    }).filter((d) => d.subscribers > 0);
+
+    const perIntegrationData = integrations
+      .map((i) => ({
+        name: i.name_ar,
+        subscribers: subscriberCounts[i.id] || 0,
+        trials: trialCounts[i.id] || 0,
+        revenue: (subscriberCounts[i.id] || 0) * i.monthly_price,
+      }))
+      .filter((d) => d.subscribers > 0 || d.trials > 0)
+      .sort((a, b) => b.revenue - a.revenue);
+
+    return { totalSubs, totalTrials, mrr, arr, byCategoryData, perIntegrationData };
+  }, [integrations, subscriberCounts, trialCounts]);
+
+  // ─── Form Handlers ───
   const openCreate = () => {
     setFormData({
       key: "", name_ar: "", name_en: "", description_ar: "", description_en: "",
       category: "other", monthly_price: 0, is_available: true, requires_api_key: false,
       api_key_label: "", sort_order: integrations.length + 1, icon_name: "Plug",
+      trial_days: 0, included_in_plans: [],
     });
     setCreateDialog(true);
   };
@@ -92,6 +155,7 @@ const AdminPaidIntegrations = () => {
       category: item.category, monthly_price: item.monthly_price, is_available: item.is_available,
       requires_api_key: item.requires_api_key, api_key_label: item.api_key_label || "",
       sort_order: item.sort_order, icon_name: item.icon_name || "Plug",
+      trial_days: item.trial_days || 0, included_in_plans: item.included_in_plans || [],
     });
     setEditDialog(item);
   };
@@ -102,53 +166,51 @@ const AdminPaidIntegrations = () => {
       return;
     }
     setSaving(true);
+    const payload = {
+      name_ar: formData.name_ar, name_en: formData.name_en,
+      description_ar: formData.description_ar, description_en: formData.description_en,
+      category: formData.category, monthly_price: formData.monthly_price,
+      is_available: formData.is_available, requires_api_key: formData.requires_api_key,
+      api_key_label: formData.api_key_label, sort_order: formData.sort_order,
+      icon_name: formData.icon_name, trial_days: formData.trial_days,
+      included_in_plans: formData.included_in_plans,
+    };
+
     if (editDialog) {
-      await supabase
-        .from("paid_integrations")
-        .update({
-          name_ar: formData.name_ar, name_en: formData.name_en,
-          description_ar: formData.description_ar, description_en: formData.description_en,
-          category: formData.category, monthly_price: formData.monthly_price,
-          is_available: formData.is_available, requires_api_key: formData.requires_api_key,
-          api_key_label: formData.api_key_label, sort_order: formData.sort_order,
-          icon_name: formData.icon_name,
-        } as any)
-        .eq("id", editDialog.id);
+      await supabase.from("paid_integrations").update(payload as any).eq("id", editDialog.id);
       toast({ title: "تم تحديث التكامل" });
       setEditDialog(null);
     } else {
-      await supabase.from("paid_integrations").insert({
-        key: formData.key, name_ar: formData.name_ar, name_en: formData.name_en,
-        description_ar: formData.description_ar, description_en: formData.description_en,
-        category: formData.category, monthly_price: formData.monthly_price,
-        is_available: formData.is_available, requires_api_key: formData.requires_api_key,
-        api_key_label: formData.api_key_label, sort_order: formData.sort_order,
-        icon_name: formData.icon_name,
-      } as any);
+      await supabase.from("paid_integrations").insert({ ...payload, key: formData.key } as any);
       toast({ title: "تم إضافة التكامل" });
       setCreateDialog(false);
     }
     setSaving(false);
-    fetchIntegrations();
+    fetchAll();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("هل تريد حذف هذا التكامل؟")) return;
     await supabase.from("paid_integrations").delete().eq("id", id);
     toast({ title: "تم حذف التكامل" });
-    fetchIntegrations();
+    fetchAll();
   };
 
   const toggleAvailability = async (id: string, val: boolean) => {
     await supabase.from("paid_integrations").update({ is_available: val } as any).eq("id", id);
-    fetchIntegrations();
+    fetchAll();
   };
 
-  const totalRevenue = integrations.reduce((sum, i) => {
-    const count = subscriberCounts[i.id] || 0;
-    return sum + count * i.monthly_price;
-  }, 0);
+  const togglePlan = (slug: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      included_in_plans: prev.included_in_plans.includes(slug)
+        ? prev.included_in_plans.filter((s) => s !== slug)
+        : [...prev.included_in_plans, slug],
+    }));
+  };
 
+  // ─── Form Dialog ───
   const FormDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent dir="rtl" className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -188,16 +250,43 @@ const AdminPaidIntegrations = () => {
             <Label>الوصف (عربي)</Label>
             <Textarea value={formData.description_ar} onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })} rows={2} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* Pricing & Trial */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <Label>السعر الشهري (ر.س)</Label>
               <Input type="number" value={formData.monthly_price} onChange={(e) => setFormData({ ...formData, monthly_price: Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label>فترة تجربة (أيام)</Label>
+              <Input type="number" value={formData.trial_days} onChange={(e) => setFormData({ ...formData, trial_days: Number(e.target.value) })} placeholder="0 = بدون تجربة" />
             </div>
             <div>
               <Label>الترتيب</Label>
               <Input type="number" value={formData.sort_order} onChange={(e) => setFormData({ ...formData, sort_order: Number(e.target.value) })} />
             </div>
           </div>
+
+          {/* Plan Assignment */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Crown size={14} className="text-accent" />
+              مضمّن في الخطط (مجاناً)
+            </Label>
+            <p className="text-xs text-muted-foreground">المشتركون في هذه الخطط يحصلون على التكامل مجاناً</p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              {plans.map((plan) => (
+                <label key={plan.slug} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={formData.included_in_plans.includes(plan.slug)}
+                    onCheckedChange={() => togglePlan(plan.slug)}
+                  />
+                  {plan.name_ar}
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 text-sm">
               <Switch checked={formData.is_available} onCheckedChange={(v) => setFormData({ ...formData, is_available: v })} />
@@ -226,7 +315,7 @@ const AdminPaidIntegrations = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -236,94 +325,267 @@ const AdminPaidIntegrations = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">إدارة التكاملات المدفوعة</h1>
-          <p className="text-muted-foreground mt-1">إدارة كتالوج التكاملات الخارجية وأسعارها ومشتركيها</p>
+          <p className="text-muted-foreground mt-1">تسعير، خطط، تجارب مجانية، ومقاييس الإيرادات</p>
         </div>
         <Button onClick={openCreate} className="gap-2"><Plus size={16} /> إضافة تكامل</Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">إجمالي التكاملات</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Package size={16} className="text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">إجمالي التكاملات</span>
+            </div>
             <p className="text-2xl font-bold">{integrations.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">تكاملات متاحة</p>
-            <p className="text-2xl font-bold text-green-600">{integrations.filter(i => i.is_available).length}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Users size={16} className="text-primary" />
+              <span className="text-xs text-muted-foreground">مشتركين فعّالين</span>
+            </div>
+            <p className="text-2xl font-bold text-primary">{metrics.totalSubs}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">إجمالي المشتركين</p>
-            <p className="text-2xl font-bold text-primary">{Object.values(subscriberCounts).reduce((a, b) => a + b, 0)}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Clock size={16} className="text-accent" />
+              <span className="text-xs text-muted-foreground">تجارب مجانية</span>
+            </div>
+            <p className="text-2xl font-bold text-accent">{metrics.totalTrials}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">الإيراد الشهري المتوقع</p>
-            <p className="text-2xl font-bold text-accent">{totalRevenue.toLocaleString()} ر.س</p>
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign size={16} className="text-accent" />
+              <span className="text-xs text-muted-foreground">MRR</span>
+            </div>
+            <p className="text-2xl font-bold text-accent">{metrics.mrr.toLocaleString()} <span className="text-sm font-normal">ر.س</span></p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp size={16} className="text-primary" />
+              <span className="text-xs text-muted-foreground">ARR</span>
+            </div>
+            <p className="text-2xl font-bold text-primary">{metrics.arr.toLocaleString()} <span className="text-sm font-normal">ر.س</span></p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">كتالوج التكاملات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>التكامل</TableHead>
-                <TableHead>التصنيف</TableHead>
-                <TableHead>السعر الشهري</TableHead>
-                <TableHead>المشتركين</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead>إجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {integrations.map((item) => {
-                const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
-                const CatIcon = cat.icon;
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                          <CatIcon size={18} className="text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{item.name_ar}</p>
-                          <p className="text-xs text-muted-foreground">{item.name_en}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell><Badge variant="secondary">{cat.label}</Badge></TableCell>
-                    <TableCell className="font-medium">{item.monthly_price} ر.س</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{subscriberCounts[item.id] || 0} مشترك</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch checked={item.is_available} onCheckedChange={(v) => toggleAvailability(item.id, v)} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></Button>
-                      </div>
-                    </TableCell>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="catalog" className="gap-2"><Package size={14} /> الكتالوج</TabsTrigger>
+          <TabsTrigger value="revenue" className="gap-2"><BarChart3 size={14} /> الإيرادات</TabsTrigger>
+        </TabsList>
+
+        {/* ─── Catalog Tab ─── */}
+        <TabsContent value="catalog" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">كتالوج التكاملات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>التكامل</TableHead>
+                    <TableHead>التصنيف</TableHead>
+                    <TableHead>السعر</TableHead>
+                    <TableHead>تجربة</TableHead>
+                    <TableHead>مضمّن في</TableHead>
+                    <TableHead>المشتركين</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>إجراءات</TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {integrations.map((item) => {
+                    const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                    const CatIcon = cat.icon;
+                    const includedPlans = (item.included_in_plans || [])
+                      .map((slug) => plans.find((p) => p.slug === slug)?.name_ar)
+                      .filter(Boolean);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                              <CatIcon size={18} className="text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{item.name_ar}</p>
+                              <p className="text-xs text-muted-foreground">{item.name_en}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell><Badge variant="secondary">{cat.label}</Badge></TableCell>
+                        <TableCell className="font-medium">{item.monthly_price} ر.س</TableCell>
+                        <TableCell>
+                          {item.trial_days > 0 ? (
+                            <Badge className="bg-accent/10 text-accent border-accent/20">{item.trial_days} يوم</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {includedPlans.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {includedPlans.map((name) => (
+                                <Badge key={name} variant="outline" className="text-[10px]">{name}</Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{subscriberCounts[item.id] || 0}</Badge>
+                            {(trialCounts[item.id] || 0) > 0 && (
+                              <Badge className="bg-accent/10 text-accent text-[10px]">{trialCounts[item.id]} تجربة</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Switch checked={item.is_available} onCheckedChange={(v) => toggleAvailability(item.id, v)} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
+                            <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(item.id)}><Trash2 size={14} /></Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ─── Revenue Tab ─── */}
+        <TabsContent value="revenue" className="mt-4 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Revenue per Integration */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 size={16} className="text-primary" />
+                  الإيراد الشهري حسب التكامل
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {metrics.perIntegrationData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={metrics.perIntegrationData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))" }} width={100} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        formatter={(val: number) => [`${val.toLocaleString()} ر.س`, "الإيراد"]}
+                      />
+                      <Bar dataKey="revenue" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-12">لا يوجد اشتراكات بعد</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Distribution by Category */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp size={16} className="text-accent" />
+                  التوزيع حسب التصنيف
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {metrics.byCategoryData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={metrics.byCategoryData}
+                        dataKey="revenue"
+                        nameKey="name"
+                        cx="50%" cy="50%"
+                        outerRadius={100}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {metrics.byCategoryData.map((_, i) => (
+                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(val: number) => [`${val.toLocaleString()} ر.س`, "الإيراد"]} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-12">لا يوجد بيانات</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Subscribers & Trials Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">تفاصيل الاشتراكات والتجارب</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>التكامل</TableHead>
+                    <TableHead>مشتركين فعّالين</TableHead>
+                    <TableHead>تجارب مجانية</TableHead>
+                    <TableHead>إيراد شهري</TableHead>
+                    <TableHead>إيراد سنوي</TableHead>
+                    <TableHead>معدل التحويل</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {integrations.map((item) => {
+                    const subs = subscriberCounts[item.id] || 0;
+                    const trials = trialCounts[item.id] || 0;
+                    const monthlyRev = subs * item.monthly_price;
+                    const convRate = (subs + trials) > 0 ? ((subs / (subs + trials)) * 100).toFixed(0) : "—";
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name_ar}</TableCell>
+                        <TableCell><Badge variant="outline">{subs}</Badge></TableCell>
+                        <TableCell>
+                          {trials > 0 ? <Badge className="bg-accent/10 text-accent">{trials}</Badge> : "—"}
+                        </TableCell>
+                        <TableCell className="font-medium">{monthlyRev.toLocaleString()} ر.س</TableCell>
+                        <TableCell>{(monthlyRev * 12).toLocaleString()} ر.س</TableCell>
+                        <TableCell>
+                          {convRate !== "—" ? <Badge variant="secondary">{convRate}%</Badge> : "—"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <FormDialog open={createDialog || !!editDialog} onClose={() => { setCreateDialog(false); setEditDialog(null); }} />
     </div>
