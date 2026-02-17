@@ -117,10 +117,10 @@ async function handlePurchaseIntegration(
 
   const price = integration.price_once;
 
-  // 3. Get or check wallet
+  // 3. Get wallet
   const { data: wallet } = await supabase
     .from("tenant_wallets")
-    .select("*")
+    .select("id")
     .eq("tenant_id", tenantId)
     .eq("currency", "SAR")
     .maybeSingle();
@@ -129,59 +129,28 @@ async function handlePurchaseIntegration(
     return json({ error: "لا توجد محفظة — يرجى التواصل مع الإدارة", code: "NO_WALLET" }, 400);
   }
 
-  if (wallet.status === "frozen") {
-    return json({ error: "المحفظة مجمّدة — يرجى التواصل مع الإدارة", code: "WALLET_FROZEN" }, 400);
-  }
-
-  if (wallet.balance_available < price) {
-    return json({
-      error: `الرصيد غير كافٍ. المطلوب: ${price} ر.س — المتاح: ${wallet.balance_available} ر.س`,
-      code: "INSUFFICIENT_BALANCE",
-      required: price,
-      available: wallet.balance_available,
-    }, 400);
-  }
-
-  // 4. Debit wallet
-  const newBalance = wallet.balance_available - price;
-
-  const { error: updateErr } = await supabase
-    .from("tenant_wallets")
-    .update({ balance_available: newBalance })
-    .eq("id", wallet.id);
-
-  if (updateErr) {
-    console.error("Failed to debit wallet:", updateErr);
-    return json({ error: "فشل خصم المبلغ من المحفظة" }, 500);
-  }
-
-  // 5. Create wallet transaction
-  const { data: walletTx, error: txErr } = await supabase
-    .from("wallet_transactions")
-    .insert({
-      wallet_id: wallet.id,
-      type: "debit",
-      source: "system",
-      reason: "integration",
-      amount: price,
-      reference_type: "integration",
-      reference_id: integrationId,
-      created_by: userId,
-    })
-    .select("id")
-    .single();
+  // 4. Use atomic DB function — handles locking, validation, balance update, audit
+  const { data: txId, error: txErr } = await supabase.rpc("process_wallet_transaction", {
+    p_wallet_id: wallet.id,
+    p_type: "debit",
+    p_amount: price,
+    p_reason: `شراء تكامل: ${integration.name_ar}`,
+    p_reference_type: "integration",
+    p_reference_id: integrationId,
+    p_actor_id: userId,
+    p_source: "system",
+  });
 
   if (txErr) {
-    console.error("Failed to create wallet transaction:", txErr);
-    // Rollback wallet debit
-    await supabase
-      .from("tenant_wallets")
-      .update({ balance_available: wallet.balance_available })
-      .eq("id", wallet.id);
-    return json({ error: "فشل تسجيل العملية" }, 500);
+    console.error("process_wallet_transaction error:", txErr);
+    const msg = txErr.message || "فشل تنفيذ العملية";
+    const code = msg.includes("مجمّدة") ? "WALLET_FROZEN"
+      : msg.includes("غير كافٍ") ? "INSUFFICIENT_BALANCE"
+      : "TX_FAILED";
+    return json({ error: msg, code }, 400);
   }
 
-  // 6. Activate integration
+  // 5. Activate integration
   const activationData = {
     tenant_id: tenantId,
     integration_id: integrationId,
@@ -208,28 +177,42 @@ async function handlePurchaseIntegration(
 
   if (activateErr) {
     console.error("Failed to activate integration:", activateErr);
-    // Rollback
-    await supabase
-      .from("tenant_wallets")
-      .update({ balance_available: wallet.balance_available })
-      .eq("id", wallet.id);
-    return json({ error: "فشل تفعيل التكامل" }, 500);
+    // Refund via atomic function
+    await supabase.rpc("process_wallet_transaction", {
+      p_wallet_id: wallet.id,
+      p_type: "credit",
+      p_amount: price,
+      p_reason: `استرداد — فشل تفعيل تكامل: ${integration.name_ar}`,
+      p_reference_type: "integration_refund",
+      p_reference_id: integrationId,
+      p_actor_id: userId,
+      p_source: "system",
+    });
+    return json({ error: "فشل تفعيل التكامل — تم استرداد المبلغ" }, 500);
   }
 
-  // 7. Create receipt
+  // 6. Create receipt
   const receiptNumber = `WR-${Date.now()}`;
   await supabase.from("wallet_receipts").insert({
-    wallet_transaction_id: walletTx.id,
+    wallet_transaction_id: txId,
+    tenant_id: tenantId,
     invoice_number: receiptNumber,
-    pdf_url: null, // Can be generated later
+    pdf_url: null,
     issued_at: new Date().toISOString(),
   });
+
+  // 7. Get updated balance
+  const { data: updatedWallet } = await supabase
+    .from("tenant_wallets")
+    .select("balance_available")
+    .eq("id", wallet.id)
+    .single();
 
   return json({
     success: true,
     message: `تم شراء ${integration.name_ar} بنجاح`,
     receipt_number: receiptNumber,
-    new_balance: newBalance,
+    new_balance: updatedWallet?.balance_available ?? 0,
     requires_api_keys: integration.requires_api_keys,
   });
 }

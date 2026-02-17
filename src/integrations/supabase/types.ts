@@ -5237,6 +5237,7 @@ export type Database = {
           invoice_number: string
           issued_at: string
           pdf_url: string | null
+          tenant_id: string
           wallet_transaction_id: string
         }
         Insert: {
@@ -5244,6 +5245,7 @@ export type Database = {
           invoice_number: string
           issued_at?: string
           pdf_url?: string | null
+          tenant_id: string
           wallet_transaction_id: string
         }
         Update: {
@@ -5251,9 +5253,17 @@ export type Database = {
           invoice_number?: string
           issued_at?: string
           pdf_url?: string | null
+          tenant_id?: string
           wallet_transaction_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "wallet_receipts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "wallet_receipts_wallet_transaction_id_fkey"
             columns: ["wallet_transaction_id"]
@@ -5270,8 +5280,8 @@ export type Database = {
           created_by: string
           id: string
           reason: string
-          reference_id: string | null
-          reference_type: string | null
+          reference_id: string
+          reference_type: string
           source: string
           type: string
           wallet_id: string
@@ -5282,8 +5292,8 @@ export type Database = {
           created_by: string
           id?: string
           reason: string
-          reference_id?: string | null
-          reference_type?: string | null
+          reference_id: string
+          reference_type: string
           source: string
           type: string
           wallet_id: string
@@ -5294,8 +5304,8 @@ export type Database = {
           created_by?: string
           id?: string
           reason?: string
-          reference_id?: string | null
-          reference_type?: string | null
+          reference_id?: string
+          reference_type?: string
           source?: string
           type?: string
           wallet_id?: string
@@ -5351,6 +5361,19 @@ export type Database = {
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       process_subscription_expiry: { Args: never; Returns: undefined }
+      process_wallet_transaction: {
+        Args: {
+          p_actor_id: string
+          p_amount: number
+          p_reason: string
+          p_reference_id: string
+          p_reference_type: string
+          p_source: string
+          p_type: string
+          p_wallet_id: string
+        }
+        Returns: string
+      }
       record_stock_movement: {
         Args: {
           _created_by?: string
