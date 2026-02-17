@@ -1453,6 +1453,8 @@ export type Database = {
           provider_id: string | null
           provider_response: Json | null
           recipient_email: string
+          resend_of: string | null
+          resend_reason: string | null
           retry_count: number
           sender_address: string
           sent_at: string | null
@@ -1474,6 +1476,8 @@ export type Database = {
           provider_id?: string | null
           provider_response?: Json | null
           recipient_email: string
+          resend_of?: string | null
+          resend_reason?: string | null
           retry_count?: number
           sender_address?: string
           sent_at?: string | null
@@ -1495,6 +1499,8 @@ export type Database = {
           provider_id?: string | null
           provider_response?: Json | null
           recipient_email?: string
+          resend_of?: string | null
+          resend_reason?: string | null
           retry_count?: number
           sender_address?: string
           sent_at?: string | null
@@ -1504,6 +1510,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "email_logs_resend_of_fkey"
+            columns: ["resend_of"]
+            isOneToOne: false
+            referencedRelation: "email_logs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "email_logs_tenant_id_fkey"
             columns: ["tenant_id"]
