@@ -30,6 +30,9 @@ interface PaidIntegration {
   requires_api_keys: boolean;
   api_key_label: string;
   trial_days: number;
+  has_service: boolean;
+  has_api_client: boolean;
+  has_test_connection: boolean;
 }
 
 interface TenantSubscription {
@@ -83,7 +86,7 @@ const PaidIntegrationsPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     const [{ data: catalog }, { data: subs }] = await Promise.all([
-      supabase.from("paid_integrations").select("*").eq("is_listed", true).order("sort_order"),
+      supabase.from("paid_integrations").select("*").eq("is_listed", true).eq("is_ready", true).order("sort_order"),
       supabase.from("tenant_paid_integrations").select("*").eq("tenant_id", tenantId!),
     ]);
     setIntegrations((catalog as any[]) || []);
