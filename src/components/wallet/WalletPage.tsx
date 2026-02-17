@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Wallet, TrendingUp, Clock, CheckCircle2,
   XCircle, ArrowUpRight, ArrowDownRight, Receipt, Snowflake,
-  Plus, CreditCard, Landmark, Loader2,
+  Plus, CreditCard, Landmark, Loader2, Upload, Copy, Building2, AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -35,7 +35,6 @@ function useAnimatedCounter(target: number, duration = 1.2) {
 
     const step = (now: number) => {
       const elapsed = Math.min((now - startTime) / (duration * 1000), 1);
-      // ease out cubic
       const eased = 1 - Math.pow(1 - elapsed, 3);
       setDisplay(Math.round(from + diff * eased));
       if (elapsed < 1) requestAnimationFrame(step);
@@ -79,11 +78,17 @@ const REASON_LABELS: Record<string, string> = {
   payout: "سحب",
 };
 
+// Bank account info
+const BANK_INFO = {
+  iban: "SA5345000000262359391004",
+  bankName: "Alawwal Bank",
+  beneficiary: "شركة علي صالح الشهري القابضة",
+};
+
 /* ── Animated Grid Background ── */
 const AnimatedGrid = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Grid pattern */}
       <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="wallet-grid" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -92,7 +97,6 @@ const AnimatedGrid = () => {
         </defs>
         <rect width="100%" height="100%" fill="url(#wallet-grid)" />
       </svg>
-      {/* Slow animated glow orbs */}
       <motion.div
         className="absolute w-[500px] h-[500px] rounded-full"
         style={{
@@ -113,7 +117,6 @@ const AnimatedGrid = () => {
         animate={{ x: [0, -20, 0], y: [0, -15, 0] }}
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
-      {/* Noise overlay */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -150,7 +153,6 @@ const GlassCard = ({
       ${className}
     `}
   >
-    {/* Animated border glow on hover */}
     <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
       style={{
         background: "linear-gradient(135deg, hsla(172,66%,44%,0.1) 0%, transparent 50%, hsla(220,60%,50%,0.05) 100%)",
@@ -171,8 +173,11 @@ const WalletPage = () => {
   const [showTopup, setShowTopup] = useState(false);
   const [topupAmount, setTopupAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "gateway">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"bank_transfer" | "card">("bank_transfer");
   const [topupLoading, setTopupLoading] = useState(false);
+  const [bankReference, setBankReference] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const animatedBalance = useAnimatedCounter(wallet?.balance_available ?? 0);
   const animatedPending = useAnimatedCounter(wallet?.balance_pending ?? 0);
 
@@ -228,16 +233,53 @@ const WalletPage = () => {
 
   const finalAmount = topupAmount > 0 ? topupAmount : Number(customAmount) || 0;
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`تم نسخ ${label}`);
+  };
+
   const handleTopup = async () => {
     if (finalAmount <= 0) {
       toast.error("يرجى إدخال مبلغ صالح");
       return;
     }
+
+    if (paymentMethod === "card") {
+      toast.error("الدفع بالبطاقة غير متاح حالياً — يرجى استخدام التحويل البنكي");
+      return;
+    }
+
+    // Bank transfer flow
+    if (!receiptFile) {
+      toast.error("يرجى رفع إيصال التحويل البنكي");
+      return;
+    }
+
     setTopupLoading(true);
     try {
-      // Call edge function with action=topup
+      // 1. Upload receipt to storage
+      setUploadingReceipt(true);
+      const fileExt = receiptFile.name.split(".").pop();
+      const filePath = `${tenantId}/${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from("wallet-receipts")
+        .upload(filePath, receiptFile);
+
+      if (uploadErr) {
+        toast.error("فشل رفع الإيصال — يرجى المحاولة مرة أخرى");
+        console.error("Upload error:", uploadErr);
+        return;
+      }
+      setUploadingReceipt(false);
+
+      const { data: urlData } = supabase.storage
+        .from("wallet-receipts")
+        .getPublicUrl(uploadData.path);
+
+      // 2. Submit bank transfer topup request
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=topup`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=bank-transfer-topup`,
         {
           method: "POST",
           headers: {
@@ -245,27 +287,35 @@ const WalletPage = () => {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ amount: finalAmount, paymentMethod }),
+          body: JSON.stringify({
+            amount: finalAmount,
+            bankReference,
+            receiptUrl: urlData.publicUrl || uploadData.path,
+            receiptFilename: receiptFile.name,
+          }),
         }
       );
       const result = await res.json();
 
       if (!res.ok || result.error) {
-        toast.error(result.error || "فشل شحن الرصيد");
+        toast.error(result.error || "فشل إرسال الطلب");
         return;
       }
 
-      toast.success(result.message || "تم شحن الرصيد بنجاح", {
-        description: `رقم الإيصال: ${result.receipt_number}`,
-        duration: 5000,
+      toast.success(result.message || "تم إرسال طلب الشحن بنجاح", {
+        description: "سيتم مراجعة الإيصال وإضافة الرصيد خلال 24 ساعة",
+        duration: 6000,
       });
       setShowTopup(false);
       setTopupAmount(0);
       setCustomAmount("");
+      setBankReference("");
+      setReceiptFile(null);
     } catch (err: any) {
       toast.error("حدث خطأ — يرجى المحاولة مرة أخرى");
     } finally {
       setTopupLoading(false);
+      setUploadingReceipt(false);
     }
   };
 
@@ -310,7 +360,7 @@ const WalletPage = () => {
 
       {/* Topup Modal */}
       <Dialog open={showTopup} onOpenChange={setShowTopup}>
-        <DialogContent className="bg-[hsl(220,30%,12%)] border-white/10 text-white max-w-md">
+        <DialogContent className="bg-[hsl(220,30%,12%)] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
               <Plus className="w-5 h-5 text-emerald-400" />
@@ -318,35 +368,33 @@ const WalletPage = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 mt-2">
+          <div className="space-y-5 mt-2">
             {/* Payment Method */}
             <div className="space-y-3">
               <label className="text-sm text-white/60">طريقة الدفع</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => setPaymentMethod("card")}
+                  onClick={() => setPaymentMethod("bank_transfer")}
                   className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center gap-2 ${
-                    paymentMethod === "card"
+                    paymentMethod === "bank_transfer"
                       ? "border-emerald-400/50 bg-emerald-400/10"
                       : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
                   }`}
                 >
-                  <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-emerald-400" : "text-white/40"}`} />
-                  <span className={`text-sm ${paymentMethod === "card" ? "text-emerald-400" : "text-white/60"}`}>
-                    بطاقة / Apple Pay
+                  <Building2 className={`w-6 h-6 ${paymentMethod === "bank_transfer" ? "text-emerald-400" : "text-white/40"}`} />
+                  <span className={`text-sm ${paymentMethod === "bank_transfer" ? "text-emerald-400" : "text-white/60"}`}>
+                    تحويل بنكي
                   </span>
                 </button>
                 <button
-                  onClick={() => setPaymentMethod("gateway")}
-                  className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center gap-2 ${
-                    paymentMethod === "gateway"
-                      ? "border-emerald-400/50 bg-emerald-400/10"
-                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
-                  }`}
+                  onClick={() => setPaymentMethod("card")}
+                  className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col items-center gap-2 opacity-50 cursor-not-allowed relative"
+                  disabled
                 >
-                  <Landmark className={`w-6 h-6 ${paymentMethod === "gateway" ? "text-emerald-400" : "text-white/40"}`} />
-                  <span className={`text-sm ${paymentMethod === "gateway" ? "text-emerald-400" : "text-white/60"}`}>
-                    بوابة الدفع المفعّلة
+                  <CreditCard className="w-6 h-6 text-white/20" />
+                  <span className="text-sm text-white/30">بطاقة / Apple Pay</span>
+                  <span className="absolute -top-2 -end-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-400/30">
+                    قريباً
                   </span>
                 </button>
               </div>
@@ -392,26 +440,164 @@ const WalletPage = () => {
               </div>
             </div>
 
+            {/* Bank Transfer Details */}
+            {paymentMethod === "bank_transfer" && finalAmount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4"
+              >
+                {/* Bank Info Card */}
+                <div className="rounded-xl bg-white/[0.04] border border-white/[0.08] p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2 className="w-4 h-4 text-teal-400" />
+                    <span className="text-sm font-semibold text-white/80">معلومات الحساب البنكي</span>
+                  </div>
+
+                  {/* IBAN */}
+                  <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <div className="min-w-0">
+                      <span className="text-[10px] text-white/30 uppercase tracking-wider block">رقم الآيبان (IBAN)</span>
+                      <span className="text-sm font-mono text-white/90 break-all" dir="ltr">{BANK_INFO.iban}</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(BANK_INFO.iban, "رقم الآيبان")}
+                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <Copy className="w-4 h-4 text-white/40" />
+                    </button>
+                  </div>
+
+                  {/* Bank Name */}
+                  <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <div>
+                      <span className="text-[10px] text-white/30 uppercase tracking-wider block">اسم البنك</span>
+                      <span className="text-sm text-white/90">{BANK_INFO.bankName}</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(BANK_INFO.bankName, "اسم البنك")}
+                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <Copy className="w-4 h-4 text-white/40" />
+                    </button>
+                  </div>
+
+                  {/* Beneficiary */}
+                  <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <div>
+                      <span className="text-[10px] text-white/30 uppercase tracking-wider block">اسم المستفيد</span>
+                      <span className="text-sm text-white/90">{BANK_INFO.beneficiary}</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(BANK_INFO.beneficiary, "اسم المستفيد")}
+                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <Copy className="w-4 h-4 text-white/40" />
+                    </button>
+                  </div>
+
+                  {/* Transfer Amount */}
+                  <div className="p-3 rounded-lg bg-emerald-400/5 border border-emerald-400/20 text-center">
+                    <span className="text-[10px] text-emerald-400/60 uppercase tracking-wider block">المبلغ المطلوب تحويله</span>
+                    <span className="text-xl font-black text-emerald-400">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
+                  </div>
+                </div>
+
+                {/* Bank Reference */}
+                <div className="space-y-2">
+                  <label className="text-sm text-white/60">رقم مرجع التحويل (اختياري)</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: TRN-123456"
+                    value={bankReference}
+                    onChange={(e) => setBankReference(e.target.value)}
+                    className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20
+                      focus:outline-none focus:border-emerald-400/40 focus:ring-1 focus:ring-emerald-400/20 transition-all text-sm"
+                    dir="ltr"
+                  />
+                </div>
+
+                {/* Receipt Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm text-white/60">
+                    رفع إيصال التحويل <span className="text-red-400">*</span>
+                  </label>
+                  <label className={`flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-300 ${
+                    receiptFile
+                      ? "border-emerald-400/40 bg-emerald-400/5"
+                      : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+                  }`}>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت");
+                            return;
+                          }
+                          setReceiptFile(file);
+                        }
+                      }}
+                    />
+                    {receiptFile ? (
+                      <>
+                        <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                        <div className="text-center">
+                          <p className="text-sm font-semibold text-emerald-400">{receiptFile.name}</p>
+                          <p className="text-xs text-white/40 mt-1">
+                            {(receiptFile.size / 1024).toFixed(0)} KB — انقر لتغيير الملف
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-white/20" />
+                        <div className="text-center">
+                          <p className="text-sm text-white/50">انقر لرفع إيصال التحويل</p>
+                          <p className="text-xs text-white/30 mt-1">صورة أو PDF — حد أقصى 5 MB</p>
+                        </div>
+                      </>
+                    )}
+                  </label>
+                </div>
+
+                {/* Info note */}
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-400/5 border border-amber-400/15">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-400/80 leading-relaxed">
+                    بعد إرسال الطلب سيتم مراجعة الإيصال وتأكيد الرصيد خلال 24 ساعة عمل.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             {/* Confirm */}
             <button
               onClick={handleTopup}
-              disabled={topupLoading || finalAmount <= 0}
+              disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}
               className="w-full py-4 rounded-xl font-bold text-white text-base transition-all duration-300
                 disabled:opacity-40 disabled:cursor-not-allowed
                 flex items-center justify-center gap-2"
               style={{
-                background: finalAmount > 0
+                background: finalAmount > 0 && (paymentMethod !== "bank_transfer" || receiptFile)
                   ? "linear-gradient(135deg, hsl(152,60%,42%) 0%, hsl(172,60%,40%) 100%)"
                   : "rgba(255,255,255,0.06)",
               }}
             >
               {topupLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {uploadingReceipt ? "جاري رفع الإيصال..." : "جاري الإرسال..."}
+                </span>
               ) : (
                 <>
                   <CheckCircle2 className="w-5 h-5" />
                   {finalAmount > 0
-                    ? `تأكيد الشحن — ${finalAmount.toLocaleString("ar-SA")} ر.س`
+                    ? `إرسال طلب الشحن — ${finalAmount.toLocaleString("ar-SA")} ر.س`
                     : "اختر المبلغ"}
                 </>
               )}
@@ -538,7 +724,6 @@ const WalletPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center py-20 text-center"
               >
-                {/* Illustration placeholder */}
                 <div className="relative mb-6">
                   <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/[0.06] flex items-center justify-center">
                     <Receipt className="w-10 h-10 text-white/10" />
@@ -563,7 +748,6 @@ const WalletPage = () => {
               </motion.div>
             ) : (
               <div className="relative">
-                {/* Vertical timeline line */}
                 <div className="absolute top-0 bottom-0 start-[22px] w-px bg-gradient-to-b from-white/10 via-white/[0.06] to-transparent" />
 
                 <AnimatePresence initial={false}>
@@ -585,7 +769,6 @@ const WalletPage = () => {
                         transition={{ delay: 0.04 * Math.min(i, 12), duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                         className="relative flex gap-4 pb-6 last:pb-0 group/tx"
                       >
-                        {/* Timeline node */}
                         <div className="relative z-10 flex-shrink-0">
                           <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all duration-300 ${
                             isCredit
@@ -596,7 +779,6 @@ const WalletPage = () => {
                           </div>
                         </div>
 
-                        {/* Card */}
                         <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.06]
                           hover:bg-white/[0.06] hover:border-white/[0.1] transition-all duration-300
                           p-4 flex items-center justify-between gap-4">
@@ -617,7 +799,6 @@ const WalletPage = () => {
                             </div>
                           </div>
 
-                          {/* Amount */}
                           <div className={`text-base font-bold tabular-nums whitespace-nowrap ${
                             isCredit ? "text-emerald-400" : "text-red-400"
                           }`}>
