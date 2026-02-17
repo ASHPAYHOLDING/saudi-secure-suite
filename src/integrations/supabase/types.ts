@@ -5325,6 +5325,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_wallet_status: {
+        Args: { p_admin_id: string; p_status: string; p_wallet_id: string }
+        Returns: undefined
+      }
       calculate_paylink_fee: {
         Args: { _gross_amount: number; _tenant_id: string }
         Returns: {
