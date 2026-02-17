@@ -279,7 +279,7 @@ async function handleTopup(
     p_reference_type: "topup",
     p_reference_id: wallet.id,
     p_actor_id: userId,
-    p_source: paymentMethod || "card",
+    p_source: "gateway",
   });
 
   if (txErr) {
