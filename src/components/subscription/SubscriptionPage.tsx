@@ -251,7 +251,7 @@ const SubscriptionPage = () => {
                   </div>
                 </div>
 
-                <div className="text-left sm:text-right space-y-2 min-w-[180px]">
+                <div className="text-start space-y-2 min-w-[180px]">
                   <p className="text-3xl font-bold text-foreground">
                     {getPlanPrice(currentPlan, subscription.billing_cycle).toLocaleString("ar-SA")}
                     <span className="text-sm font-normal text-muted-foreground mr-1">ر.س/{CYCLE_LABELS[subscription.billing_cycle]}</span>
@@ -323,11 +323,11 @@ const SubscriptionPage = () => {
                         <Badge className="bg-accent text-accent-foreground">خطتك الحالية</Badge>
                       </div>
                     )}
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">{plan.name_ar}</CardTitle>
-                      <div className="mt-2">
+                    <CardHeader className="pb-3 text-start">
+                      <CardTitle className="text-lg text-start">{plan.name_ar}</CardTitle>
+                      <div className="mt-2 text-start">
                         <span className="text-3xl font-bold text-foreground">{price.toLocaleString("ar-SA")}</span>
-                        <span className="text-sm text-muted-foreground mr-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
+                        <span className="text-sm text-muted-foreground me-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
                         {selectedCycle !== "monthly" && (
                           <p className="text-xs text-muted-foreground mt-0.5">
                             ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
@@ -335,33 +335,33 @@ const SubscriptionPage = () => {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-3">
+                    <CardContent className="flex-1 space-y-3 text-start">
                       <div className="space-y-2 text-sm">
                         {plan.max_users && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-row">
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_users} مستخدم</span>
                           </div>
                         )}
                         {plan.max_invoices && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-row">
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_invoices} فاتورة/شهر</span>
                           </div>
                         )}
                         {plan.max_storage_gb && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-row">
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{plan.max_storage_gb} GB تخزين</span>
                           </div>
                         )}
                         {features.map((f: string, fi: number) => (
-                          <div key={fi} className="flex items-center gap-2">
+                          <div key={fi} className="flex items-center gap-2 flex-row">
                             <CheckCircle2 size={14} className="text-accent shrink-0" />
                             <span>{f}</span>
                           </div>
                         ))}
-                        <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="flex items-center gap-2 flex-row text-muted-foreground">
                           <Shield size={14} className="shrink-0" />
                           <span>فترة سماح {plan.grace_period_days} يوم</span>
                         </div>
