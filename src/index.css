@@ -19,17 +19,24 @@
   }
 
   /* ── Text alignment ── */
-  html[dir="rtl"] h1,
-  html[dir="rtl"] h2,
-  html[dir="rtl"] h3,
-  html[dir="rtl"] h4,
-  html[dir="rtl"] h5,
-  html[dir="rtl"] h6,
-  html[dir="rtl"] p,
+  html[dir="rtl"] h1:not(.text-center),
+  html[dir="rtl"] h2:not(.text-center),
+  html[dir="rtl"] h3:not(.text-center),
+  html[dir="rtl"] h4:not(.text-center),
+  html[dir="rtl"] h5:not(.text-center),
+  html[dir="rtl"] h6:not(.text-center),
+  html[dir="rtl"] p:not(.text-center),
   html[dir="rtl"] label,
-  html[dir="rtl"] span,
+  html[dir="rtl"] span:not(.text-center),
   html[dir="rtl"] li {
     text-align: right;
+  }
+
+  /* Allow text-center to override RTL right-alignment */
+  html[dir="rtl"] .text-center,
+  html[dir="rtl"] [style*="text-align: center"],
+  html[dir="rtl"] [style*="text-align:center"] {
+    text-align: center !important;
   }
 
   /* Preserve LTR for English-only content, numbers, codes */

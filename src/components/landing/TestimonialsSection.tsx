@@ -40,7 +40,7 @@ const TestimonialsSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-5 text-3xl font-bold text-foreground md:text-5xl" style={{ textAlign: "center" }}
+            className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center"
           >
             ماذا يقول عملاؤنا
           </motion.h2>
