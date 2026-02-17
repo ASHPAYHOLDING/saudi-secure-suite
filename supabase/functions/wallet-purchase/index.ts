@@ -46,6 +46,10 @@ Deno.serve(async (req) => {
       return await handlePurchaseIntegration(req, supabase, user.id, tenantId);
     }
 
+    if (action === "topup" && req.method === "POST") {
+      return await handleTopup(req, supabase, user.id, tenantId);
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (err: any) {
     console.error("wallet-purchase error:", err);
@@ -230,6 +234,81 @@ async function handlePurchaseIntegration(
     receipt_number: receiptNumber,
     new_balance: updatedWallet?.balance_available ?? 0,
     requires_api_keys: integration.requires_api_keys,
+  });
+}
+
+// ===================== TOPUP =====================
+async function handleTopup(
+  req: Request,
+  supabase: any,
+  userId: string,
+  tenantId: string
+) {
+  const body = await req.json();
+  const { amount, paymentMethod } = body;
+
+  if (!amount || amount <= 0) {
+    return json({ error: "المبلغ غير صالح" }, 400);
+  }
+  if (amount > 50000) {
+    return json({ error: "الحد الأقصى للشحن الواحد 50,000 ر.س" }, 400);
+  }
+
+  // Get wallet
+  const { data: wallet } = await supabase
+    .from("tenant_wallets")
+    .select("id, status")
+    .eq("tenant_id", tenantId)
+    .eq("currency", "SAR")
+    .maybeSingle();
+
+  if (!wallet) {
+    return json({ error: "لا توجد محفظة — يرجى التواصل مع الإدارة", code: "NO_WALLET" }, 400);
+  }
+
+  if (wallet.status === "frozen") {
+    return json({ error: "المحفظة مجمّدة — لا يمكن شحن الرصيد", code: "WALLET_FROZEN" }, 400);
+  }
+
+  // Process topup via atomic function
+  const { data: txId, error: txErr } = await supabase.rpc("process_wallet_transaction", {
+    p_wallet_id: wallet.id,
+    p_type: "credit",
+    p_amount: amount,
+    p_reason: "topup",
+    p_reference_type: "topup",
+    p_reference_id: wallet.id,
+    p_actor_id: userId,
+    p_source: paymentMethod || "card",
+  });
+
+  if (txErr) {
+    console.error("topup error:", txErr);
+    return json({ error: "فشل شحن الرصيد — يرجى المحاولة مرة أخرى", detail: txErr.message }, 500);
+  }
+
+  // Create receipt
+  const receiptNumber = `TOP-${Date.now()}`;
+  await supabase.from("wallet_receipts").insert({
+    wallet_transaction_id: txId,
+    tenant_id: tenantId,
+    invoice_number: receiptNumber,
+    pdf_url: null,
+    issued_at: new Date().toISOString(),
+  });
+
+  // Get updated balance
+  const { data: updatedWallet } = await supabase
+    .from("tenant_wallets")
+    .select("balance_available")
+    .eq("id", wallet.id)
+    .single();
+
+  return json({
+    success: true,
+    message: `تم شحن المحفظة بمبلغ ${amount} ر.س بنجاح`,
+    receipt_number: receiptNumber,
+    new_balance: updatedWallet?.balance_available ?? 0,
   });
 }
 
