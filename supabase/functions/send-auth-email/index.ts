@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, type, redirectTo } = await req.json();
+    const { email, type, redirectTo, otp } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {
@@ -26,65 +26,85 @@ serve(async (req) => {
       });
     }
 
-    // Use admin client to generate the verification link
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const emailType = type === "recovery" ? "recovery" : "signup";
-    const redirect = redirectTo || "https://numaxio.com";
-
-    const { data: linkData, error: linkError } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: emailType,
-        email,
-        options: { redirectTo: redirect },
-      });
-
-    if (linkError) {
-      console.error("Generate link error:", linkError);
-      return new Response(
-        JSON.stringify({ error: linkError.message }),
-        {
+    // --- Verify OTP ---
+    if (type === "verify_otp") {
+      if (!otp) {
+        return new Response(JSON.stringify({ error: "OTP is required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+        });
+      }
 
-    const actionLink = linkData?.properties?.action_link;
-    if (!actionLink) {
-      return new Response(
-        JSON.stringify({ error: "Failed to generate verification link" }),
-        {
-          status: 500,
+      const { data, error } = await supabaseAdmin.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
+
+      if (error) {
+        console.error("OTP verification error:", error);
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, session: data.session }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Build email HTML
-    let subject: string;
-    let htmlBody: string;
+    // --- Send OTP for signup ---
+    if (type === "signup") {
+      // Generate a 6-digit OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    if (emailType === "signup") {
-      subject = "تأكيد حسابك في Numaxio";
-      htmlBody = `
+      // Store OTP using Supabase admin - generate a magic link which also sets the OTP
+      const { data: linkData, error: linkError } =
+        await supabaseAdmin.auth.admin.generateLink({
+          type: "signup",
+          email,
+          options: { redirectTo: redirectTo || "https://numaxio.com" },
+        });
+
+      if (linkError) {
+        console.error("Generate link error:", linkError);
+        return new Response(JSON.stringify({ error: linkError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Extract the OTP from the generated link properties
+      const generatedOtp = linkData?.properties?.email_otp;
+      const codeToSend = generatedOtp || otpCode;
+
+      // Send OTP email via Resend
+      const subject = "رمز التحقق - Numaxio";
+      const htmlBody = `
         <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #f8fafc;">
           <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="text-align: center; margin-bottom: 32px;">
               <h1 style="color: #1a1a2e; font-size: 24px; margin: 0;">مرحباً بك في Numaxio</h1>
             </div>
-            <p style="color: #4a5568; font-size: 16px; line-height: 1.8;">
-              شكراً لتسجيلك! يرجى تأكيد بريدك الإلكتروني بالضغط على الزر أدناه:
+            <p style="color: #4a5568; font-size: 16px; line-height: 1.8; text-align: center;">
+              رمز التحقق الخاص بك هو:
             </p>
-            <div style="text-align: center; margin: 32px 0;">
-              <a href="${actionLink}" 
-                 style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 14px 40px; border-radius: 12px; text-decoration: none; font-size: 16px; font-weight: 600; display: inline-block;">
-                تأكيد البريد الإلكتروني
-              </a>
+            <div style="text-align: center; margin: 24px 0;">
+              <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px 40px; border-radius: 16px; display: inline-block; letter-spacing: 12px; font-size: 36px; font-weight: 700; font-family: monospace;">
+                ${codeToSend}
+              </div>
             </div>
-            <p style="color: #718096; font-size: 14px; text-align: center;">
+            <p style="color: #718096; font-size: 14px; text-align: center; line-height: 1.8;">
+              أدخل هذا الرمز في صفحة التسجيل لتأكيد حسابك.<br/>
+              الرمز صالح لمدة محدودة.
+            </p>
+            <p style="color: #a0aec0; font-size: 13px; text-align: center; margin-top: 24px;">
               إذا لم تقم بإنشاء حساب، يمكنك تجاهل هذه الرسالة.
             </p>
           </div>
@@ -93,9 +113,66 @@ serve(async (req) => {
           </p>
         </div>
       `;
-    } else {
-      subject = "إعادة تعيين كلمة المرور - Numaxio";
-      htmlBody = `
+
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Numaxio <noreply@numaxio.com>",
+          to: [email],
+          subject,
+          html: htmlBody,
+        }),
+      });
+
+      const resData = await res.json();
+      console.log("Resend response:", JSON.stringify(resData));
+
+      if (!res.ok) {
+        console.error("Resend error:", resData);
+        return new Response(JSON.stringify({ error: resData }), {
+          status: res.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Recovery (password reset) ---
+    if (type === "recovery") {
+      const redirect = redirectTo || "https://numaxio.com";
+      const { data: linkData, error: linkError } =
+        await supabaseAdmin.auth.admin.generateLink({
+          type: "recovery",
+          email,
+          options: { redirectTo: redirect },
+        });
+
+      if (linkError) {
+        console.error("Generate link error:", linkError);
+        return new Response(JSON.stringify({ error: linkError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const actionLink = linkData?.properties?.action_link;
+      if (!actionLink) {
+        return new Response(JSON.stringify({ error: "Failed to generate reset link" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const subject = "إعادة تعيين كلمة المرور - Numaxio";
+      const htmlBody = `
         <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #f8fafc;">
           <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="text-align: center; margin-bottom: 32px;">
@@ -119,36 +196,37 @@ serve(async (req) => {
           </p>
         </div>
       `;
-    }
 
-    // Send via Resend
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Numaxio <noreply@numaxio.com>",
-        to: [email],
-        subject,
-        html: htmlBody,
-      }),
-    });
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Numaxio <noreply@numaxio.com>",
+          to: [email],
+          subject,
+          html: htmlBody,
+        }),
+      });
 
-    const resData = await res.json();
-    console.log("Resend response:", JSON.stringify(resData));
+      const resData = await res.json();
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: resData }), {
+          status: res.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    if (!res.ok) {
-      console.error("Resend error:", resData);
-      return new Response(JSON.stringify({ error: resData }), {
-        status: res.status,
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
+    return new Response(JSON.stringify({ error: "Invalid type" }), {
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
