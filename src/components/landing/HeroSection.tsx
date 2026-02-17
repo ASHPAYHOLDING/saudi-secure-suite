@@ -12,7 +12,7 @@ const floatingFeatures = [
   { icon: Stamp, label: "ختم إلكتروني", x: "88%", y: "68%", delay: 1.4 },
 ];
 
-const trustedLogos = ["أرامكو", "STC", "NEOM", "البنك الأهلي", "الراجحي"];
+const trustedLogos = ["stc", "أرامكو", "الراجحي", "البنك الأهلي", "NEOM"];
 
 const HeroSection = () => {
 
@@ -176,7 +176,7 @@ const HeroSection = () => {
           transition={{ delay: 1.2 }}
           className="mt-12 text-center"
         >
-          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest">موثوق من قبل أكثر من 1,200 منشأة سعودية</p>
+          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest">موثوق من أكثر من منشأة سعودية</p>
           <div className="flex items-center justify-center gap-8 flex-wrap">
             {trustedLogos.map((logo, i) => (
               <motion.span
