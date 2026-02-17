@@ -86,7 +86,7 @@ const WhySection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-2xl text-lg text-muted-foreground"
+            className="mx-auto max-w-2xl text-lg text-muted-foreground text-center"
           >
             أكثر من مجرد نظام محاسبي — منصة متكاملة تنمو مع منشأتك
           </motion.p>

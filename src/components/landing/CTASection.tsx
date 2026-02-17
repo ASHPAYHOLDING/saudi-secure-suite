@@ -57,7 +57,7 @@ const CTASection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-lg text-primary-foreground/60 mb-8 max-w-2xl mx-auto"
+              className="text-lg text-primary-foreground/60 mb-8 max-w-2xl mx-auto text-center"
             >
               انضم لأكثر من 1,200 منشأة سعودية تدير أعمالها عبر نيوماكسيو
             </motion.p>
