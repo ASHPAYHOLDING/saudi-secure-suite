@@ -39,6 +39,7 @@ import ApprovalWorkflowsPage from "@/components/approvals/ApprovalWorkflowsPage"
 import CreditNotesPage from "@/components/credit-notes/CreditNotesPage";
 import NaturalLanguageQuery from "@/components/ai/NaturalLanguageQuery";
 import SupportTicketsPage from "@/components/support/SupportTicketsPage";
+import CreateTicketPage from "@/components/support/CreateTicketPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import NumaxioPay from "@/pages/NumaxioPay";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
@@ -208,6 +209,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/numaxio-pay") {
       return <NumaxioPay embedded />;
+    }
+    if (path === "/dashboard/support/new") {
+      return <CreateTicketPage />;
     }
     if (path === "/dashboard/support") {
       return <SupportTicketsPage />;

@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  Headphones, Plus, Search, Filter, Clock, CheckCircle2,
-  AlertCircle, MessageCircle, ChevronLeft, Send, Paperclip,
+  Headphones, Plus, Search, Clock, CheckCircle2,
+  AlertCircle, MessageCircle, ChevronLeft, Send,
   LifeBuoy, Lightbulb, CreditCard, FileText, Settings,
-  ArrowLeftRight, User, Tag, Loader2, X, ArrowRight,
+  ArrowLeftRight, User, Tag, Loader2, ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,13 +28,6 @@ const CATEGORIES = [
   { value: "transfers", label: "التحويلات", icon: ArrowLeftRight },
   { value: "account", label: "الحساب", icon: User },
   { value: "other", label: "أخرى", icon: Settings },
-];
-
-const PRIORITIES = [
-  { value: "low", label: "منخفضة", color: "text-muted-foreground border-muted" },
-  { value: "medium", label: "متوسطة", color: "text-warning border-warning/30" },
-  { value: "high", label: "عالية", color: "text-destructive border-destructive/30" },
-  { value: "urgent", label: "عاجلة", color: "text-destructive border-destructive bg-destructive/10" },
 ];
 
 const STATUSES: Record<string, { label: string; color: string; icon: any }> = {
@@ -70,22 +61,15 @@ interface Reply {
 
 const SupportTicketsPage = () => {
   const { tenantId, user, profile } = useAuth();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [showCreate, setShowCreate] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
-  const [creating, setCreating] = useState(false);
-
-  // New ticket form
-  const [newSubject, setNewSubject] = useState("");
-  const [newCategory, setNewCategory] = useState("technical");
-  const [newPriority, setNewPriority] = useState("medium");
-  const [newDescription, setNewDescription] = useState("");
 
   useEffect(() => {
     if (!tenantId) return;
@@ -130,69 +114,6 @@ const SupportTicketsPage = () => {
     await fetchReplies(ticket.id);
   };
 
-  const createTicket = async () => {
-    if (!newSubject.trim() || !newDescription.trim()) {
-      toast.error("يرجى تعبئة جميع الحقول المطلوبة");
-      return;
-    }
-    setCreating(true);
-    try {
-      const ticketNumber = `TK-${Date.now().toString(36).toUpperCase()}`;
-      const { data: ticket, error } = await supabase.from("support_tickets").insert({
-        ticket_number: ticketNumber,
-        scope: "platform",
-        tenant_id: tenantId!,
-        created_by: user!.id,
-        subject: newSubject.trim(),
-        category: newCategory,
-        priority: newPriority,
-        customer_name: profile?.full_name || "",
-        customer_email: profile?.email || "",
-      }).select().single();
-
-      if (error) throw error;
-
-      // Add the description as the first reply
-      await supabase.from("ticket_replies").insert({
-        ticket_id: (ticket as any).id,
-        user_id: user!.id,
-        sender_type: "user",
-        sender_name: profile?.full_name || "مستخدم",
-        sender_email: profile?.email || "",
-        content: newDescription.trim(),
-      });
-
-      // Send email notification
-      try {
-        await supabase.functions.invoke("send-ticket-notification", {
-          body: {
-            ticketId: (ticket as any).id,
-            ticketNumber,
-            subject: newSubject.trim(),
-            category: CATEGORIES.find(c => c.value === newCategory)?.label || newCategory,
-            priority: PRIORITIES.find(p => p.value === newPriority)?.label || newPriority,
-            senderName: profile?.full_name || "",
-            senderEmail: profile?.email || "",
-            content: newDescription.trim(),
-            type: "new_ticket",
-          },
-        });
-      } catch (e) { /* silent */ }
-
-      toast.success(`تم إنشاء التذكرة ${ticketNumber} بنجاح`);
-      setShowCreate(false);
-      setNewSubject("");
-      setNewDescription("");
-      setNewCategory("technical");
-      setNewPriority("medium");
-      fetchTickets();
-    } catch (err) {
-      toast.error("حدث خطأ أثناء إنشاء التذكرة");
-    } finally {
-      setCreating(false);
-    }
-  };
-
   const sendReply = async () => {
     if (!replyText.trim() || !selectedTicket) return;
     setSending(true);
@@ -206,12 +127,10 @@ const SupportTicketsPage = () => {
         content: replyText.trim(),
       });
 
-      // Update ticket status if it was waiting for customer
       if (selectedTicket.status === "waiting_customer") {
         await supabase.from("support_tickets").update({ status: "in_progress" }).eq("id", selectedTicket.id);
       }
 
-      // Notify admin
       try {
         await supabase.functions.invoke("send-ticket-notification", {
           body: {
@@ -284,14 +203,9 @@ const SupportTicketsPage = () => {
           </CardHeader>
         </Card>
 
-        {/* Replies thread */}
         <div className="space-y-3">
           {replies.map((reply) => (
-            <motion.div
-              key={reply.id}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <motion.div key={reply.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
               <div className={`rounded-xl p-4 border ${
                 reply.sender_type === "admin"
                   ? "bg-accent/5 border-accent/20 ms-8"
@@ -314,7 +228,6 @@ const SupportTicketsPage = () => {
           ))}
         </div>
 
-        {/* Reply box */}
         {selectedTicket.status !== "closed" && (
           <Card>
             <CardContent className="p-4">
@@ -340,7 +253,6 @@ const SupportTicketsPage = () => {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -349,13 +261,12 @@ const SupportTicketsPage = () => {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">تواصل مع فريق الدعم لحل مشاكلك واقتراحاتك</p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={() => navigate("/dashboard/support/new")} className="gap-2">
           <Plus size={16} />
           تذكرة جديدة
         </Button>
       </motion.div>
 
-      {/* Status tabs */}
       <div className="flex items-center gap-2 flex-wrap">
         {[
           { key: "all", label: "الكل" },
@@ -377,7 +288,6 @@ const SupportTicketsPage = () => {
         ))}
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -388,14 +298,13 @@ const SupportTicketsPage = () => {
         />
       </div>
 
-      {/* Tickets list */}
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <LifeBuoy className="w-12 h-12 text-muted-foreground/30 mb-3" />
               <p className="text-muted-foreground text-sm">لا توجد تذاكر {filterStatus !== "all" ? "بهذه الحالة" : "بعد"}</p>
-              <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={() => setShowCreate(true)}>
+              <Button variant="outline" size="sm" className="mt-3 gap-2" onClick={() => navigate("/dashboard/support/new")}>
                 <Plus size={14} /> إنشاء أول تذكرة
               </Button>
             </CardContent>
@@ -438,68 +347,6 @@ const SupportTicketsPage = () => {
           })
         )}
       </div>
-
-      {/* Create ticket dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Headphones className="w-5 h-5 text-accent" />
-              تذكرة دعم جديدة
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>الموضوع *</Label>
-              <Input
-                placeholder="وصف مختصر للمشكلة أو الاقتراح"
-                value={newSubject}
-                onChange={(e) => setNewSubject(e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>التصنيف</Label>
-                <Select value={newCategory} onValueChange={setNewCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>الأولوية</Label>
-                <Select value={newPriority} onValueChange={setNewPriority}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PRIORITIES.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label>التفاصيل *</Label>
-              <Textarea
-                placeholder="اشرح مشكلتك أو اقتراحك بالتفصيل..."
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                rows={5}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>إلغاء</Button>
-            <Button onClick={createTicket} disabled={creating} className="gap-2">
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send size={16} />}
-              إرسال التذكرة
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
