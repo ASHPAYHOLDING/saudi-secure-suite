@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,22 +12,21 @@ import { toast } from "sonner";
 import {
   Wallet, TrendingUp, Clock, CheckCircle2, XCircle,
   ArrowDownToLine, Receipt, ChevronLeft, DollarSign, Percent,
-  Loader2, BanknoteIcon, Sparkles, Shield, CreditCard,
+  Loader2, BanknoteIcon, CreditCard,
   Download, Send
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePaylinkData } from "@/hooks/usePaylinkData";
 import { supabase } from "@/integrations/supabase/client";
 import PayoutSettings from "@/components/paylink/PayoutSettings";
+import KycVerificationForm from "@/components/paylink/KycVerificationForm";
 
 const NumaxioPay = () => {
   const navigate = useNavigate();
   const { tenantId, user } = useAuth();
   const { transactions, stats, loading: dataLoading, refetch, feeConfig } = usePaylinkData(tenantId ?? undefined);
 
-  const [isActivating, setIsActivating] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
@@ -54,23 +52,6 @@ const NumaxioPay = () => {
   useEffect(() => {
     checkStatus();
   }, [checkStatus]);
-
-  const handleActivate = async () => {
-    if (!tenantId) return;
-    setIsActivating(true);
-    const { error } = await supabase
-      .from("tenants")
-      .update({ paylink_enabled: true, paylink_enabled_at: new Date().toISOString() })
-      .eq("id", tenantId);
-    setIsActivating(false);
-    if (error) {
-      toast.error("حدث خطأ أثناء التفعيل، حاول مرة أخرى");
-    } else {
-      setIsEnabled(true);
-      toast.success("🎉 تم تفعيل بوابة الدفع بنجاح!");
-      refetch();
-    }
-  };
 
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
@@ -155,142 +136,9 @@ const NumaxioPay = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* === ACTIVATION STATE === */}
+        {/* === KYC VERIFICATION STATE === */}
         {!isEnabled && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-8">
-            {/* Hero */}
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
-                <Sparkles className="w-4 h-4" />
-                بوابة دفع متكاملة
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-                استقبل مدفوعاتك بسهولة
-              </h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-base">
-                فعّل بوابة الدفع لاستقبال المدفوعات إلكترونياً عبر مدى، Apple Pay، وبطاقات الائتمان. البوابة مربوطة مباشرة بإدارة النظام.
-              </p>
-            </div>
-
-            {/* Info Card */}
-            <Card className="border-border/60">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-info/5 border border-info/20">
-                  <Shield className="w-5 h-5 text-info mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">بوابة مُدارة بالكامل</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      عند التفعيل، يتم ربط حسابك تلقائياً ببوابة الدفع المركزية. جميع المدفوعات تصل مباشرة إلى النظام ويتم تسويتها تلقائياً حسب الجدول المحدد.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { icon: CreditCard, title: "مدى & Apple Pay", desc: "استقبل المدفوعات بجميع الطرق" },
-                    { icon: Shield, title: "آمن ومشفّر", desc: "حماية كاملة للبيانات المالية" },
-                    { icon: Receipt, title: "تقارير فورية", desc: "تتبع كل عملية لحظة بلحظة" },
-                    { icon: BanknoteIcon, title: "سحب سهل", desc: "اسحب أرباحك في أي وقت" },
-                  ].map((f) => (
-                    <div key={f.title} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                      <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                        <f.icon className="w-4 h-4 text-accent" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{f.title}</p>
-                        <p className="text-xs text-muted-foreground">{f.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Separator />
-
-                {/* Legal Agreement Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="w-5 h-5 text-destructive" />
-                    <h3 className="text-sm font-bold text-foreground">إقرار وموافقة قانونية</h3>
-                  </div>
-
-                  <div className="bg-muted/60 border border-border rounded-lg p-4 max-h-72 overflow-y-auto text-sm text-muted-foreground leading-relaxed space-y-3">
-                    <p className="font-bold text-foreground text-center text-base mb-2">إقرار وتعهد بالموافقة على شروط وأحكام خدمة "نيوماكسيو باي"</p>
-                    <p className="text-foreground text-xs text-center mb-3">(صادر وفقاً لأحكام نظام التجارة الإلكترونية ونظام المدفوعات بالمملكة العربية السعودية)</p>
-
-                    <p className="font-semibold text-foreground">أنا الموقّع أدناه (المُشار إليه بـ "المشترك")، بصفتي الممثل القانوني المفوّض للمنشأة، أقرّ وأوافق صراحةً وبشكل نهائي وغير قابل للرجوع على جميع البنود والشروط التالية:</p>
-
-                    <Separator className="my-2" />
-
-                    <p><strong className="text-foreground">المادة الأولى — طبيعة الخدمة والوساطة التقنية:</strong> إن خدمة "نيوماكسيو باي" هي خدمة وساطة تقنية للدفع الإلكتروني تُتيحها منصة نيوماكسيو لمشتركيها وفقاً لنموذج التجميع (Payment Aggregation). يُقرّ المشترك بعلمه وفهمه التام بأن منصة نيوماكسيو <strong className="text-foreground">ليست بنكاً ولا مؤسسة مالية مرخّصة ولا تقوم بمعالجة المدفوعات بشكل مباشر</strong>، وإنما تعمل حصراً بصفتها <strong className="text-foreground">وسيط تقني</strong> يربط المشترك بمزوّد خدمة دفع طرف ثالث مرخّص ومعتمد. لا تحتفظ منصة نيوماكسيو بأموال المشتركين أو العملاء في أي وقت، وإنما تمر جميع الأموال عبر الحسابات المصرفية المعتمدة لدى مزوّد الخدمة المرخّص.</p>
-
-                    <p><strong className="text-foreground">المادة الثانية — مزوّد خدمة الدفع (الطرف الثالث) والعلاقة التعاقدية:</strong> يُقرّ المشترك بعلمه أن جميع عمليات الدفع والتحصيل والمعالجة المالية تتم حصرياً عبر مزوّد خدمة دفع طرف ثالث مرخّص من البنك المركزي السعودي (ساما) ومتوافق مع معايير أمان بيانات صناعة بطاقات الدفع (PCI DSS). إدارة نيوماكسيو هي الطرف المتعاقد مباشرةً مع مزوّد الخدمة بموجب اتفاقية تجارية مستقلة، ويستفيد المشترك من هذه الخدمة ضمن إطار اشتراكه في المنصة. يُقرّ المشترك بأن أي التزامات مالية أو تنظيمية تتعلق بمعالجة المدفوعات تقع على عاتق مزوّد الخدمة المرخّص وليس على منصة نيوماكسيو بصفتها وسيطاً تقنياً.</p>
-
-                    <p><strong className="text-foreground">المادة الثالثة — الرسوم والعمولات:</strong> يوافق المشترك على أن إدارة نيوماكسيو تحتفظ بالحق الكامل في تحديد وتعديل هيكل الرسوم المطبّقة (سواءً نسبة مئوية أو مبلغ ثابت أو مزيج منهما) على كل عملية دفع واردة. تشمل الرسوم: (أ) رسوم معالجة الدفع لمزوّد الخدمة، و(ب) رسوم الخدمة الإدارية لمنصة نيوماكسيو. يتم خصم هذه الرسوم تلقائياً من كل عملية قبل تسوية المبالغ الصافية إلى حساب المشترك.</p>
-
-                    <p><strong className="text-foreground">المادة الرابعة — تسوية المبالغ والتحويلات:</strong> تتم تسوية المبالغ الصافية (بعد خصم جميع الرسوم) وفقاً لجدول التحويل المحدد من المشترك (يومي، أسبوعي، أو شهري)، مع مراعاة الحد الأدنى للسحب المعتمد. يُقرّ المشترك بأن: (أ) مواعيد التسوية استرشادية وقد تتأثر بالإجراءات البنكية، و(ب) لا تتحمل إدارة نيوماكسيو المسؤولية عن أي تأخير ناتج عن مزوّد الخدمة أو البنوك أو الجهات التنظيمية.</p>
-
-                    <p><strong className="text-foreground">المادة الخامسة — صحة البيانات والمسؤولية:</strong> يتعهد المشترك بأن جميع البيانات المقدّمة (بما في ذلك: الاسم التجاري، السجل التجاري، الرقم الضريبي، بيانات الحساب البنكي ورقم الآيبان IBAN) صحيحة ودقيقة ومحدّثة. يتحمل المشترك كامل المسؤولية القانونية والمالية عن أي أخطاء أو بيانات مغلوطة، بما في ذلك أي خسائر مالية أو تبعات نظامية تنشأ عن ذلك.</p>
-
-                    <p><strong className="text-foreground">المادة السادسة — الامتثال التنظيمي والقانوني:</strong> يتعهد المشترك بالتزامه الكامل بجميع الأنظمة واللوائح المعمول بها في المملكة العربية السعودية، بما في ذلك على سبيل المثال لا الحصر: (أ) لوائح البنك المركزي السعودي (ساما) المتعلقة بخدمات الدفع، (ب) نظام مكافحة غسل الأموال وتمويل الإرهاب، (ج) نظام حماية البيانات الشخصية (PDPL)، (د) نظام التجارة الإلكترونية، (هـ) نظام مكافحة الاحتيال المالي وخيانة الأمانة. كما يتعهد بعدم استخدام بوابة الدفع في أي نشاط مخالف للشريعة الإسلامية أو الأنظمة السعودية.</p>
-
-                    <p><strong className="text-foreground">المادة السابعة — حق التعليق والإنهاء:</strong> يحق لإدارة نيوماكسيو — بشكل منفرد ودون الحاجة لإبداء الأسباب — تعليق أو تقييد أو إنهاء خدمة بوابة الدفع للمشترك فوراً في أي من الحالات التالية: (أ) الاشتباه في نشاط احتيالي أو غسل أموال، (ب) مخالفة أي من شروط الاستخدام، (ج) طلب من جهة تنظيمية أو قضائية مختصة، (د) تعليق أو إنهاء العلاقة مع مزوّد خدمة الدفع. وللإدارة الحق في تجميد المبالغ المعلّقة لحين استكمال التحقيقات اللازمة.</p>
-
-                    <p><strong className="text-foreground">المادة الثامنة — المسؤولية القانونية والنزاعات:</strong> يتحمل المشترك كامل المسؤولية القانونية والمالية عن: (أ) جميع العمليات المالية التي تتم عبر بوابة الدفع المرتبطة بحسابه، (ب) عمليات الاسترداد (Chargeback) والنزاعات مع العملاء، (ج) أي مطالبات قانونية ناشئة عن استخدام الخدمة. كما يُعفي المشترك إدارة نيوماكسيو من أي مسؤولية تجاه أخطاء أو أعطال مزوّد خدمة الدفع الطرف الثالث، ما لم يثبت تقصير متعمد من إدارة نيوماكسيو.</p>
-
-                    <p><strong className="text-foreground">المادة التاسعة — حماية البيانات والخصوصية:</strong> يُقرّ المشترك بعلمه أن بياناته المالية والشخصية قد تتم مشاركتها مع مزوّد خدمة الدفع الطرف الثالث بالقدر اللازم لمعالجة عمليات الدفع، وذلك وفقاً لنظام حماية البيانات الشخصية (PDPL). تلتزم إدارة نيوماكسيو بحماية هذه البيانات وفقاً لسياسة الخصوصية المعتمدة.</p>
-
-                    <p><strong className="text-foreground">المادة العاشرة — تعديل الشروط والأحكام:</strong> يحق لإدارة نيوماكسيو تعديل هذه الشروط والأحكام أو هيكل الرسوم في أي وقت. سيتم إخطار المشترك بأي تعديلات جوهرية عبر المنصة أو البريد الإلكتروني قبل (15) يوم عمل من تاريخ السريان. استمرار المشترك في استخدام الخدمة بعد انقضاء مهلة الإخطار يُعتبر قبولاً ضمنياً وملزماً بالتعديلات.</p>
-
-                    <Separator className="my-2" />
-
-                    <p className="font-bold text-foreground text-center">الإقرار النهائي</p>
-                    <p className="font-semibold text-foreground">يُقرّ المشترك بأنه قد قرأ جميع البنود والشروط الواردة أعلاه وفهمها فهماً كاملاً، وأنه يوافق عليها طوعاً واختياراً دون أي إكراه. يُعتبر هذا الإقرار بمثابة عقد إلكتروني ملزم وفقاً لنظام التعاملات الإلكترونية الصادر بالمرسوم الملكي رقم (م/18) بتاريخ 8/3/1428هـ، ويخضع لأنظمة وقوانين المملكة العربية السعودية. أي نزاع ينشأ عن هذا الإقرار أو يتعلق به يختص بالفصل فيه القضاء السعودي المختص في مدينة الرياض.</p>
-                  </div>
-
-                  {/* Agreement Checkbox */}
-                  <div className="flex items-start gap-3 p-3 rounded-lg border border-accent/30 bg-accent/5">
-                    <Checkbox
-                      id="agree-terms"
-                      checked={agreedToTerms}
-                      onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                      className="mt-0.5"
-                    />
-                    <label htmlFor="agree-terms" className="text-sm text-foreground cursor-pointer leading-relaxed">
-                      أقرّ بأنني قرأت وفهمت جميع الشروط والأحكام المذكورة أعلاه، وأوافق عليها بالكامل بصفتي الممثل القانوني المخوّل للمنشأة.
-                    </label>
-                  </div>
-                </div>
-
-                {/* Activate Button */}
-                <div className="text-center">
-                  <Button
-                    onClick={handleActivate}
-                    disabled={isActivating || !agreedToTerms}
-                    size="lg"
-                    className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base disabled:opacity-50"
-                  >
-                    {isActivating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        جارٍ التفعيل...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5" />
-                        أوافق وأفعّل بوابة الدفع
-                      </>
-                    )}
-                  </Button>
-                  {!agreedToTerms && (
-                    <p className="text-xs text-destructive mt-2">
-                      يجب الموافقة على الإقرار القانوني أعلاه للمتابعة
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <KycVerificationForm onActivated={() => { setIsEnabled(true); refetch(); }} />
         )}
 
         {/* === DASHBOARD STATE === */}
