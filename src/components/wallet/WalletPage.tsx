@@ -412,6 +412,162 @@ const WalletPage = () => {
         ))}
       </div>
 
+      {/* ═══ INLINE TOPUP SECTION ═══ */}
+      <AnimatePresence>
+        {showTopup && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <Card className="border-border/60 border-primary/20 bg-primary/[0.02]">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <WalletTopupIcon size={18} className="text-primary" />
+                    إضافة رصيد
+                  </CardTitle>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={resetTopup}>
+                    <span className="text-lg leading-none">✕</span>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {/* Payment Method Tabs */}
+                <div className="flex gap-2">
+                  <Button
+                    variant={paymentMethod === "bank_transfer" ? "default" : "outline"}
+                    size="sm"
+                    className="gap-1.5 flex-1"
+                    onClick={() => setPaymentMethod("bank_transfer")}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    تحويل بنكي
+                  </Button>
+                  <Button
+                    variant={paymentMethod === "card" ? "default" : "outline"}
+                    size="sm"
+                    className="gap-1.5 flex-1"
+                    onClick={() => setPaymentMethod("card")}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    بطاقة دفع
+                  </Button>
+                </div>
+
+                {/* Amount Selection */}
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-foreground">اختر المبلغ</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {TOPUP_AMOUNTS.map((amt) => (
+                      <button
+                        key={amt}
+                        onClick={() => { setTopupAmount(amt); setCustomAmount(""); }}
+                        className={`py-2.5 px-2 rounded-xl text-sm font-bold border transition-all ${
+                          topupAmount === amt
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-card border-border/60 text-foreground hover:border-primary/40 hover:bg-primary/5"
+                        }`}
+                      >
+                        {formatAmount(amt)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder="مبلغ مخصص..."
+                      value={customAmount}
+                      onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }}
+                      className="h-9 text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">ر.س</span>
+                  </div>
+                </div>
+
+                {/* Bank Transfer Details */}
+                {paymentMethod === "bank_transfer" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Card className="border-border/40">
+                      <CardContent className="p-4 space-y-3">
+                        <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Building2 size={13} className="text-muted-foreground" />
+                          بيانات الحساب البنكي
+                        </p>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/30">
+                            <span className="text-muted-foreground">IBAN</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-medium text-foreground text-[11px]">{BANK_INFO.iban}</span>
+                              <button onClick={() => copyToClipboard(BANK_INFO.iban, "IBAN")} className="text-primary hover:text-primary/80">
+                                <Copy size={12} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/30">
+                            <span className="text-muted-foreground">البنك</span>
+                            <span className="font-medium text-foreground">{BANK_INFO.bankName}</span>
+                          </div>
+                          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/30">
+                            <span className="text-muted-foreground">المستفيد</span>
+                            <span className="font-medium text-foreground text-[11px]">{BANK_INFO.beneficiary}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/40">
+                      <CardContent className="p-4 space-y-3">
+                        <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Upload size={13} className="text-muted-foreground" />
+                          رفع إيصال التحويل
+                        </p>
+                        <Input
+                          placeholder="رقم مرجع التحويل"
+                          value={bankReference}
+                          onChange={(e) => setBankReference(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <label className="flex flex-col items-center justify-center py-4 border-2 border-dashed border-border/60 rounded-xl cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                          {receiptFile ? (
+                            <div className="text-center">
+                              <CheckCircle2 className="w-6 h-6 text-success mx-auto mb-1" />
+                              <span className="text-xs font-medium text-foreground">{receiptFile.name}</span>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="w-6 h-6 text-muted-foreground/40 mx-auto mb-1" />
+                              <span className="text-xs text-muted-foreground">اختر ملف الإيصال</span>
+                            </div>
+                          )}
+                          <input type="file" className="hidden" accept="image/*,.pdf" onChange={(e) => e.target.files?.[0] && setReceiptFile(e.target.files[0])} />
+                        </label>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Submit */}
+                <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                  <div className="text-sm">
+                    المبلغ: <span className="font-bold text-foreground">{formatAmount(finalAmount)} ر.س</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={resetTopup}>إلغاء</Button>
+                    <Button size="sm" onClick={handleTopup} disabled={topupLoading || finalAmount <= 0} className="gap-1.5">
+                      {topupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      {uploadingReceipt ? "جاري الرفع..." : paymentMethod === "card" ? "الدفع الآن" : "إرسال الطلب"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ═══ INSIGHTS ROW ═══ */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         {/* Wallet Status Card */}
