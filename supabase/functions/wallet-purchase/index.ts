@@ -134,7 +134,7 @@ async function handlePurchaseIntegration(
     p_wallet_id: wallet.id,
     p_type: "debit",
     p_amount: price,
-    p_reason: `شراء تكامل: ${integration.name_ar}`,
+    p_reason: "integration",
     p_reference_type: "integration",
     p_reference_id: integrationId,
     p_actor_id: userId,
@@ -144,10 +144,26 @@ async function handlePurchaseIntegration(
   if (txErr) {
     console.error("process_wallet_transaction error:", txErr);
     const msg = txErr.message || "فشل تنفيذ العملية";
-    const code = msg.includes("مجمّدة") ? "WALLET_FROZEN"
-      : msg.includes("غير كافٍ") ? "INSUFFICIENT_BALANCE"
-      : "TX_FAILED";
-    return json({ error: msg, code }, 400);
+
+    let code = "TX_FAILED";
+    let userMsg = "حدث خطأ أثناء معالجة العملية";
+    let statusCode = 400;
+
+    if (msg.includes("مجمّدة")) {
+      code = "WALLET_FROZEN";
+      userMsg = "المحفظة مجمّدة — لا يمكن إتمام عملية الشراء. يرجى التواصل مع الإدارة لإلغاء التجميد.";
+    } else if (msg.includes("غير كافٍ")) {
+      code = "INSUFFICIENT_BALANCE";
+      userMsg = `الرصيد غير كافٍ لشراء "${integration.name_ar}". المبلغ المطلوب: ${price} ر.س — يرجى شحن المحفظة أولاً.`;
+    } else if (msg.includes("غير صالح") || msg.includes("مطلوب")) {
+      code = "INVALID_REFERENCE";
+      userMsg = "بيانات العملية غير مكتملة — يرجى المحاولة مرة أخرى أو التواصل مع الدعم الفني.";
+    } else if (msg.includes("غير موجودة")) {
+      code = "NO_WALLET";
+      userMsg = "لا توجد محفظة مرتبطة بحسابك — يرجى التواصل مع الإدارة.";
+    }
+
+    return json({ error: userMsg, code, detail: msg }, statusCode);
   }
 
   // 5. Activate integration
@@ -182,8 +198,8 @@ async function handlePurchaseIntegration(
       p_wallet_id: wallet.id,
       p_type: "credit",
       p_amount: price,
-      p_reason: `استرداد — فشل تفعيل تكامل: ${integration.name_ar}`,
-      p_reference_type: "integration_refund",
+      p_reason: "refund",
+      p_reference_type: "integration",
       p_reference_id: integrationId,
       p_actor_id: userId,
       p_source: "system",
