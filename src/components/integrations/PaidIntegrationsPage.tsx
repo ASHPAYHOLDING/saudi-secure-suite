@@ -123,7 +123,7 @@ const PaidIntegrationsPage = () => {
       status: flowItem.requires_api_keys ? "disabled" : "active",
       activated_by: user.id,
       purchased_at: new Date().toISOString(),
-      activated_at: flowItem.requires_api_keys ? null : new Date().toISOString(),
+      activated_at: new Date().toISOString(),
       activation_source: "purchase",
     } as any, { onConflict: "tenant_id,integration_id" });
 
