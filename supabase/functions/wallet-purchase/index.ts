@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action");
+
+    // Paylink callback doesn't require user auth
+    if (action === "paylink-callback") {
+      return await handlePaylinkCallback(req, supabaseUrl, serviceKey);
+    }
+
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // Authenticate
@@ -34,9 +43,6 @@ Deno.serve(async (req) => {
     if (!member) return json({ error: "No tenant found" }, 403);
 
     const tenantId = member.tenant_id;
-
-    const url = new URL(req.url);
-    const action = url.searchParams.get("action");
 
     if (action === "get-balance") {
       return await handleGetBalance(supabase, tenantId);
@@ -233,19 +239,207 @@ async function handlePurchaseIntegration(
   });
 }
 
-// ===================== TOPUP (Card — requires real gateway) =====================
+// ===================== TOPUP (Card / Apple Pay via Paylink) =====================
 async function handleTopup(
-  _req: Request,
-  _supabase: any,
-  _userId: string,
-  _tenantId: string
+  req: Request,
+  supabase: any,
+  userId: string,
+  tenantId: string
 ) {
-  // Card payment requires a real payment gateway integration (Moyasar, Tap, etc.)
-  // This is a placeholder — actual gateway should be connected
+  const body = await req.json();
+  const { amount } = body;
+
+  if (!amount || amount <= 0) {
+    return json({ error: "المبلغ غير صالح" }, 400);
+  }
+  if (amount > 50000) {
+    return json({ error: "الحد الأقصى للشحن الواحد 50,000 ر.س" }, 400);
+  }
+
+  // Get wallet
+  const { data: wallet } = await supabase
+    .from("tenant_wallets")
+    .select("id, status")
+    .eq("tenant_id", tenantId)
+    .eq("currency", "SAR")
+    .maybeSingle();
+
+  if (!wallet) {
+    return json({ error: "لا توجد محفظة", code: "NO_WALLET" }, 400);
+  }
+  if (wallet.status === "frozen") {
+    return json({ error: "المحفظة مجمّدة", code: "WALLET_FROZEN" }, 400);
+  }
+
+  // Get tenant info for client name
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("name")
+    .eq("id", tenantId)
+    .single();
+
+  // Get user profile for contact
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, email, phone")
+    .eq("id", userId)
+    .single();
+
+  // Authenticate with Paylink
+  const PAYLINK_BASE_URL = "https://restapi.paylink.sa";
+  const apiId = Deno.env.get("PAYLINK_API_ID");
+  const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
+
+  if (!apiId || !secretKey) {
+    return json({ error: "بوابة الدفع غير مهيأة — يرجى التواصل مع الإدارة" }, 500);
+  }
+
+  const authRes = await fetch(`${PAYLINK_BASE_URL}/api/auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiId, secretKey, persistToken: true }),
+  });
+
+  if (!authRes.ok) {
+    return json({ error: "فشل الاتصال ببوابة الدفع" }, 502);
+  }
+
+  const { id_token: paylinkToken } = await authRes.json();
+
+  const orderNumber = `WT-${Date.now()}`;
+  const callBackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/wallet-purchase?action=paylink-callback`;
+
+  // Create Paylink invoice
+  const invoiceRes = await fetch(`${PAYLINK_BASE_URL}/api/addInvoice`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${paylinkToken}`,
+    },
+    body: JSON.stringify({
+      amount,
+      callBackUrl,
+      clientEmail: profile?.email || "",
+      clientMobile: profile?.phone || "0500000000",
+      clientName: profile?.full_name || tenant?.name || "عميل",
+      currency: "SAR",
+      note: `شحن محفظة - ${tenant?.name || ""}`,
+      orderNumber,
+      products: [{ title: "شحن رصيد المحفظة", price: amount, qty: 1 }],
+    }),
+  });
+
+  if (!invoiceRes.ok) {
+    const errText = await invoiceRes.text();
+    console.error("Paylink addInvoice error:", errText);
+    return json({ error: "فشل إنشاء رابط الدفع" }, 502);
+  }
+
+  const invoiceData = await invoiceRes.json();
+
+  // Save as pending topup request
+  await supabase.from("wallet_topup_requests").insert({
+    tenant_id: tenantId,
+    wallet_id: wallet.id,
+    amount,
+    payment_method: "card",
+    bank_reference: invoiceData.transactionNo || null,
+    receipt_url: invoiceData.url || null,
+    receipt_filename: null,
+    status: "pending",
+    created_by: userId,
+  });
+
   return json({
-    error: "الدفع بالبطاقة غير متاح حالياً — يرجى استخدام التحويل البنكي",
-    code: "CARD_NOT_AVAILABLE",
-  }, 400);
+    success: true,
+    paymentUrl: invoiceData.url,
+    transactionNo: invoiceData.transactionNo,
+    orderNumber,
+  });
+}
+
+// ===================== PAYLINK CALLBACK =====================
+async function handlePaylinkCallback(
+  req: Request,
+  supabaseUrl: string,
+  serviceKey: string
+) {
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  let transactionNo: string | null = null;
+  let orderStatus: string | null = null;
+
+  // Try to parse from body or URL
+  try {
+    const body = await req.json();
+    transactionNo = body.transactionNo || body.orderNumber;
+    orderStatus = body.orderStatus;
+  } catch {
+    const url = new URL(req.url);
+    transactionNo = url.searchParams.get("transactionNo");
+    orderStatus = url.searchParams.get("orderStatus");
+  }
+
+  if (!transactionNo) {
+    return json({ error: "Missing transactionNo" }, 400);
+  }
+
+  // Get the topup request by bank_reference (we stored transactionNo there)
+  const { data: topupReq } = await supabase
+    .from("wallet_topup_requests")
+    .select("id, tenant_id, wallet_id, amount, status")
+    .eq("bank_reference", transactionNo)
+    .eq("payment_method", "card")
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (!topupReq) {
+    console.log("No pending topup found for transactionNo:", transactionNo);
+    return json({ success: true, note: "No pending request found" });
+  }
+
+  // Verify with Paylink
+  const apiId = Deno.env.get("PAYLINK_API_ID");
+  const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
+  const PAYLINK_BASE_URL = "https://restapi.paylink.sa";
+
+  const authRes = await fetch(`${PAYLINK_BASE_URL}/api/auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiId, secretKey, persistToken: true }),
+  });
+  const { id_token: paylinkToken } = await authRes.json();
+
+  const statusRes = await fetch(`${PAYLINK_BASE_URL}/api/getInvoice/${transactionNo}`, {
+    headers: { Authorization: `Bearer ${paylinkToken}` },
+  });
+  const statusData = await statusRes.json();
+
+  if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
+    // Credit the wallet
+    await supabase.rpc("process_wallet_transaction", {
+      p_wallet_id: topupReq.wallet_id,
+      p_type: "credit",
+      p_amount: topupReq.amount,
+      p_reason: "topup",
+      p_reference_type: "topup",
+      p_reference_id: topupReq.id,
+      p_actor_id: "00000000-0000-0000-0000-000000000000",
+      p_source: "paylink",
+    });
+
+    await supabase
+      .from("wallet_topup_requests")
+      .update({ status: "approved", reviewed_at: new Date().toISOString() })
+      .eq("id", topupReq.id);
+  } else if (statusData.orderStatus === "Canceled" || statusData.orderStatus === "canceled") {
+    await supabase
+      .from("wallet_topup_requests")
+      .update({ status: "rejected", rejection_reason: "تم إلغاء الدفع", reviewed_at: new Date().toISOString() })
+      .eq("id", topupReq.id);
+  }
+
+  return json({ success: true, status: statusData.orderStatus });
 }
 
 // ===================== BANK TRANSFER TOPUP =====================
