@@ -439,7 +439,17 @@ async function handlePaylinkCallback(
       .eq("id", topupReq.id);
   }
 
-  return json({ success: true, status: statusData.orderStatus });
+  // Redirect user back to the wallet page instead of showing JSON
+  const appOrigin = Deno.env.get("APP_ORIGIN") || "https://saudi-secure-suite.lovable.app";
+  const redirectUrl = `${appOrigin}/dashboard/wallet?topup=${statusData.orderStatus === "Paid" || statusData.orderStatus === "paid" ? "success" : "failed"}`;
+  
+  return new Response(null, {
+    status: 302,
+    headers: { 
+      ...corsHeaders,
+      "Location": redirectUrl,
+    },
+  });
 }
 
 // ===================== BANK TRANSFER TOPUP =====================
