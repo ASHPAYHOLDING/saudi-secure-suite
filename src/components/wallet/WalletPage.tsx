@@ -523,7 +523,7 @@ const WalletPage = () => {
           </GlassCard>
         </motion.div>
 
-        {/* Transactions */}
+        {/* ── Transaction Timeline ── */}
         <GlassCard delay={0.4} className="!p-0">
           <div className="p-6 pb-4 border-b border-white/[0.06]">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
@@ -531,54 +531,103 @@ const WalletPage = () => {
               سجل المعاملات
             </h3>
           </div>
-          <div className="p-4">
+          <div className="p-6">
             {transactions.length === 0 ? (
-              <div className="text-center py-16">
-                <TrendingUp className="w-12 h-12 mx-auto mb-4 text-white/10" />
-                <p className="text-sm text-white/30">لا توجد معاملات بعد</p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center justify-center py-20 text-center"
+              >
+                {/* Illustration placeholder */}
+                <div className="relative mb-6">
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/[0.06] flex items-center justify-center">
+                    <Receipt className="w-10 h-10 text-white/10" />
+                  </div>
+                  <motion.div
+                    className="absolute -top-2 -end-2 w-8 h-8 rounded-xl bg-teal-400/10 border border-teal-400/20 flex items-center justify-center"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <TrendingUp className="w-4 h-4 text-teal-400/60" />
+                  </motion.div>
+                  <motion.div
+                    className="absolute -bottom-1 -start-1 w-6 h-6 rounded-lg bg-amber-400/10 border border-amber-400/20 flex items-center justify-center"
+                    animate={{ y: [0, 3, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  >
+                    <Clock className="w-3 h-3 text-amber-400/50" />
+                  </motion.div>
+                </div>
+                <h4 className="text-lg font-semibold text-white/70 mb-2">لا توجد معاملات بعد</h4>
+                <p className="text-sm text-white/30 max-w-xs">ستظهر هنا جميع حركاتك المالية — شحن رصيد، مشتريات، واسترداد — بمجرد إجراء أول عملية.</p>
+              </motion.div>
             ) : (
-              <div className="space-y-1.5">
-                {transactions.map((tx, i) => {
-                  const isCredit = tx.type === "credit";
-                  return (
-                    <motion.div
-                      key={tx.id}
-                      initial={{ opacity: 0, x: isRTL ? -10 : 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 * Math.min(i, 10), duration: 0.3 }}
-                      className="flex items-center justify-between p-3.5 rounded-xl
-                        hover:bg-white/[0.04] transition-colors duration-300 group/tx"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-300 ${
-                          isCredit
-                            ? "bg-emerald-400/10 group-hover/tx:bg-emerald-400/20"
-                            : "bg-red-400/10 group-hover/tx:bg-red-400/20"
-                        }`}>
-                          {isCredit ? (
-                            <ArrowDownRight className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <ArrowUpRight className="w-4 h-4 text-red-400" />
-                          )}
+              <div className="relative">
+                {/* Vertical timeline line */}
+                <div className="absolute top-0 bottom-0 start-[22px] w-px bg-gradient-to-b from-white/10 via-white/[0.06] to-transparent" />
+
+                <AnimatePresence initial={false}>
+                  {transactions.map((tx, i) => {
+                    const isCredit = tx.type === "credit";
+                    const IconComp = isCredit ? ArrowDownRight : ArrowUpRight;
+                    const refLabel = tx.reference_type === "invoice" ? "فاتورة"
+                      : tx.reference_type === "subscription" ? "اشتراك"
+                      : tx.reference_type === "integration" ? "تكامل"
+                      : tx.reference_type === "topup" ? "شحن"
+                      : tx.reference_type || "";
+
+                    return (
+                      <motion.div
+                        key={tx.id}
+                        initial={{ opacity: 0, x: isRTL ? 30 : -30, y: 10 }}
+                        animate={{ opacity: 1, x: 0, y: 0 }}
+                        exit={{ opacity: 0, x: isRTL ? -20 : 20 }}
+                        transition={{ delay: 0.04 * Math.min(i, 12), duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                        className="relative flex gap-4 pb-6 last:pb-0 group/tx"
+                      >
+                        {/* Timeline node */}
+                        <div className="relative z-10 flex-shrink-0">
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all duration-300 ${
+                            isCredit
+                              ? "bg-emerald-400/10 border-emerald-400/20 group-hover/tx:bg-emerald-400/20 group-hover/tx:border-emerald-400/30"
+                              : "bg-red-400/10 border-red-400/20 group-hover/tx:bg-red-400/20 group-hover/tx:border-red-400/30"
+                          }`}>
+                            <IconComp className={`w-5 h-5 ${isCredit ? "text-emerald-400" : "text-red-400"}`} />
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-white/90">
-                            {REASON_LABELS[tx.reason] || tx.reason}
-                          </p>
-                          <p className="text-xs text-white/30">
-                            {format(new Date(tx.created_at), "dd MMM yyyy - HH:mm", { locale: ar })}
-                          </p>
+
+                        {/* Card */}
+                        <div className="flex-1 rounded-xl bg-white/[0.03] border border-white/[0.06]
+                          hover:bg-white/[0.06] hover:border-white/[0.1] transition-all duration-300
+                          p-4 flex items-center justify-between gap-4">
+                          <div className="space-y-1.5 min-w-0">
+                            <p className="text-sm font-semibold text-white/90">
+                              {REASON_LABELS[tx.reason] || tx.reason}
+                            </p>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className="text-xs text-white/30 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {format(new Date(tx.created_at), "dd MMM yyyy - HH:mm", { locale: ar })}
+                              </span>
+                              {refLabel && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-white/40">
+                                  {refLabel}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Amount */}
+                          <div className={`text-base font-bold tabular-nums whitespace-nowrap ${
+                            isCredit ? "text-emerald-400" : "text-red-400"
+                          }`}>
+                            {isCredit ? "+" : "-"}{tx.amount.toLocaleString("ar-SA")} <span className="text-xs font-normal opacity-60">{wallet.currency}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className={`text-sm font-bold tabular-nums ${
-                        isCredit ? "text-emerald-400" : "text-red-400"
-                      }`}>
-                        {isCredit ? "+" : "-"}{tx.amount.toLocaleString("ar-SA")} {wallet.currency}
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             )}
           </div>
