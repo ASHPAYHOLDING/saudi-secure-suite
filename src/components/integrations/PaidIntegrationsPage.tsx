@@ -85,6 +85,9 @@ const PaidIntegrationsPage = () => {
 
   useEffect(() => {
     if (tenantId) fetchAll();
+    return () => {
+      if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+    };
   }, [tenantId]);
 
   const fetchAll = async () => {
