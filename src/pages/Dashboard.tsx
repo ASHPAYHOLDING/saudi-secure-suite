@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Navigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
@@ -96,9 +96,16 @@ const PATH_MODULE_MAP: Record<string, Module> = {
 
 const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const location = useLocation();
   const { tenantType } = useAuth();
   const { isRTL } = useLanguage();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   const renderContent = () => {
     const path = location.pathname;
     // Extract the sub-path after /dashboard/
@@ -235,19 +242,30 @@ const Dashboard = () => {
       <BranchProvider>
         <SubscriptionGuard>
           <div className="min-h-screen bg-background" dir={isRTL ? "rtl" : "ltr"}>
+            {/* Mobile sidebar backdrop */}
+            {mobileSidebarOpen && (
+              <div
+                className="fixed inset-0 z-30 bg-black/50 md:hidden"
+                onClick={() => setMobileSidebarOpen(false)}
+              />
+            )}
             <DashboardSidebar
               collapsed={sidebarCollapsed}
               onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+              mobileOpen={mobileSidebarOpen}
+              onMobileClose={() => setMobileSidebarOpen(false)}
             />
             <div
               className={cn(
                 "transition-all duration-300",
+                // Desktop margins
+                "md:transition-all",
                 isRTL
-                  ? (sidebarCollapsed ? "mr-[68px]" : "mr-64")
-                  : (sidebarCollapsed ? "ml-[68px]" : "ml-64")
+                  ? (sidebarCollapsed ? "md:mr-[68px]" : "md:mr-64")
+                  : (sidebarCollapsed ? "md:ml-[68px]" : "md:ml-64")
               )}
             >
-              <DashboardTopbar />
+              <DashboardTopbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
               <CommandPalette />
               <UpgradeBanner />
               {renderContent()}

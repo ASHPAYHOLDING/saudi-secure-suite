@@ -40,9 +40,11 @@ const menuItems = [
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
+const AdminSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: AdminSidebarProps) => {
   const location = useLocation();
 
   const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
@@ -68,7 +70,9 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       dir="rtl"
       className={cn(
         "fixed right-0 top-0 z-40 flex h-screen flex-col border-l border-sidebar-border bg-sidebar transition-all duration-300",
-        collapsed ? "w-[68px]" : "w-64"
+        collapsed ? "w-[68px]" : "w-64",
+        "max-md:hidden",
+        mobileOpen && "max-md:!flex"
       )}
     >
       {/* Logo + Badge */}
