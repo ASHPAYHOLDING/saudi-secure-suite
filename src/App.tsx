@@ -15,6 +15,7 @@ import TermsConditions from "./pages/TermsConditions";
 import SLA from "./pages/SLA";
 import Admin from "./pages/Admin";
 import NumaxioPay from "./pages/NumaxioPay";
+import NumaxioPayDashboard from "./pages/NumaxioPayDashboard";
 import PlatformAdminRoute from "./components/admin/PlatformAdminRoute";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/terms" element={<TermsConditions />} />
             <Route path="/sla" element={<SLA />} />
             <Route path="/numaxio-pay" element={<ProtectedRoute><NumaxioPay /></ProtectedRoute>} />
+            <Route path="/numaxio-pay/dashboard" element={<ProtectedRoute><NumaxioPayDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />

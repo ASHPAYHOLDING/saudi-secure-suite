@@ -333,7 +333,7 @@ const NumaxioPay = () => {
                           </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button onClick={() => navigate("/dashboard")} className="gap-2">
+                          <Button onClick={() => navigate("/numaxio-pay/dashboard")} className="gap-2">
                             <ArrowRight className="w-4 h-4" />
                             الذهاب للوحة التحكم
                           </Button>
