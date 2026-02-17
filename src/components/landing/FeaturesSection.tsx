@@ -103,7 +103,7 @@ const FeaturesSection = () => {
     <section id="features" className="py-24 md:py-32 bg-background" dir="rtl">
       <div className="container mx-auto px-4" ref={ref}>
         {/* Header */}
-        <div className="mb-16" style={{ textAlign: "center" }}>
+        <div className="mb-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -117,7 +117,7 @@ const FeaturesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-5 text-3xl font-bold text-foreground md:text-5xl" style={{ textAlign: "center" }}
+            className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center"
           >
             منصة محاسبية شاملة
             <br />
