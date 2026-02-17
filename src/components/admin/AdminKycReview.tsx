@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import SignaturePad from "@/components/paylink/SignaturePad";
+import CertifiedSignaturePad from "@/components/paylink/CertifiedSignaturePad";
 import {
-  Shield, CheckCircle2, XCircle, Clock, Loader2, Eye,
+  Shield, ShieldCheck, CheckCircle2, XCircle, Clock, Loader2, Eye,
   FileText, Download, Search, AlertTriangle, Building2, User
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -386,13 +386,24 @@ const AdminKycReview = () => {
               {/* Admin Signature (if already approved) */}
               {reviewRequest.admin_signature_data && (
                 <div>
-                  <h4 className="text-sm font-semibold text-foreground mb-2">توقيع الإدارة</h4>
-                  <div className="bg-success/5 rounded-lg p-3 space-y-2 border border-success/20">
-                    <p className="text-sm"><span className="text-muted-foreground">المسؤول:</span> <span className="font-semibold mr-1">{reviewRequest.admin_full_name}</span></p>
-                    <p className="text-sm"><span className="text-muted-foreground">التاريخ:</span> <span className="font-semibold mr-1">{reviewRequest.admin_signed_at ? new Date(reviewRequest.admin_signed_at).toLocaleString("ar-SA") : "—"}</span></p>
-                    <div className="border rounded-lg overflow-hidden bg-white inline-block">
-                      <img src={reviewRequest.admin_signature_data} alt="توقيع الإدارة" className="max-h-24" />
+                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-success" /> التوقيع الرقمي المعتمد
+                  </h4>
+                  <div className="bg-success/5 rounded-xl p-4 space-y-3 border border-success/20 relative overflow-hidden">
+                    <div className="absolute top-2 left-2">
+                      <Badge className="text-[9px] bg-success/10 text-success border-success/20 gap-1">
+                        <ShieldCheck className="w-2.5 h-2.5" /> معتمد رسمياً
+                      </Badge>
                     </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm pt-4">
+                      <p><span className="text-muted-foreground">المسؤول:</span> <span className="font-bold mr-1">{reviewRequest.admin_full_name}</span></p>
+                      <p><span className="text-muted-foreground">الصفة:</span> <span className="font-semibold mr-1 text-accent">مدير الامتثال المالي</span></p>
+                      <p className="col-span-2"><span className="text-muted-foreground">تاريخ التوقيع:</span> <span className="font-semibold mr-1 font-mono">{reviewRequest.admin_signed_at ? new Date(reviewRequest.admin_signed_at).toLocaleString("ar-SA") : "—"}</span></p>
+                    </div>
+                    <div className="border-2 border-success/20 rounded-lg overflow-hidden bg-white inline-block shadow-sm">
+                      <img src={reviewRequest.admin_signature_data} alt="التوقيع الرقمي المعتمد" className="max-h-28" />
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">توقيع رقمي مشفّر ومعتمد وفقاً لنظام التعاملات الإلكترونية م/18</p>
                   </div>
                 </div>
               )}
@@ -429,7 +440,12 @@ const AdminKycReview = () => {
                   </div>
 
                   {/* Admin Signature for approval */}
-                  <SignaturePad onSignatureChange={setAdminSignature} label="توقيع المسؤول للاعتماد" />
+                  <CertifiedSignaturePad
+                    onSignatureChange={setAdminSignature}
+                    signerName={profile?.full_name || "مسؤول المنصة"}
+                    signerRole="مدير الامتثال المالي"
+                    label="التوقيع الرقمي المعتمد للاعتماد"
+                  />
 
                   <div className="flex items-center gap-2 pt-2">
                     <Button onClick={handleApprove} disabled={isProcessing || !adminSignature} className="gap-2 bg-success hover:bg-success/90 text-success-foreground flex-1">
