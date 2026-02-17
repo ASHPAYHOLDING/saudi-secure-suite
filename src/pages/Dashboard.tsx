@@ -39,6 +39,7 @@ import ApprovalWorkflowsPage from "@/components/approvals/ApprovalWorkflowsPage"
 import CreditNotesPage from "@/components/credit-notes/CreditNotesPage";
 import NaturalLanguageQuery from "@/components/ai/NaturalLanguageQuery";
 import CommandPalette from "@/components/productivity/CommandPalette";
+import NumaxioPay from "@/pages/NumaxioPay";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -202,6 +203,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/help") {
       return <HelpPage />;
+    }
+    if (path === "/dashboard/numaxio-pay") {
+      return <NumaxioPay embedded />;
     }
     return <DashboardHome />;
   };

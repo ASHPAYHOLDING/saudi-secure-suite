@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PayoutSettings from "@/components/paylink/PayoutSettings";
 import KycVerificationForm from "@/components/paylink/KycVerificationForm";
 
-const NumaxioPay = () => {
+const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
   const navigate = useNavigate();
   const { tenantId, user } = useAuth();
   const { transactions, stats, loading: dataLoading, refetch, feeConfig } = usePaylinkData(tenantId ?? undefined);
@@ -113,29 +113,31 @@ const NumaxioPay = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-accent-foreground" />
+    <div className={embedded ? "bg-background" : "min-h-screen bg-background"} dir="rtl">
+      {/* Header - only show when standalone */}
+      {!embedded && (
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-accent-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">نيوماكسيو باي</h1>
+                <p className="text-xs text-muted-foreground">
+                  {isEnabled ? "لوحة تحكم المدفوعات" : "تفعيل بوابة الدفع"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">نيوماكسيو باي</h1>
-              <p className="text-xs text-muted-foreground">
-                {isEnabled ? "لوحة تحكم المدفوعات" : "تفعيل بوابة الدفع"}
-              </p>
-            </div>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-1">
+              رجوع
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-1">
-            رجوع
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className={embedded ? "px-4 py-6" : "max-w-6xl mx-auto px-4 py-8"}>
         {/* === KYC VERIFICATION STATE === */}
         {!isEnabled && (
           <KycVerificationForm onActivated={() => { setIsEnabled(true); refetch(); }} />
