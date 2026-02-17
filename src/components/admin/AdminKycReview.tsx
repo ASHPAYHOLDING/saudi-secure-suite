@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import CertifiedSignaturePad from "@/components/paylink/CertifiedSignaturePad";
 import CertifiedApprovalStamp from "@/components/paylink/CertifiedApprovalStamp";
 import {
   Shield, ShieldCheck, CheckCircle2, XCircle, Clock, Loader2, Eye,
@@ -66,7 +65,7 @@ const AdminKycReview = () => {
   const [reviewDocs, setReviewDocs] = useState<KycDocument[]>([]);
   const [adminNotes, setAdminNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
-  const [adminSignature, setAdminSignature] = useState<string | null>(null);
+  const [adminSignature] = useState<string>("certified-digital-stamp");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchRequests = useCallback(async () => {
@@ -87,7 +86,7 @@ const AdminKycReview = () => {
     setReviewRequest(req);
     setAdminNotes(req.admin_notes || "");
     setRejectionReason(req.rejection_reason || "");
-    setAdminSignature(null);
+    // stamp is auto-generated, no manual signature needed
 
     const { data: docs } = await supabase
       .from("paylink_kyc_documents")
@@ -97,8 +96,8 @@ const AdminKycReview = () => {
   };
 
   const handleApprove = async () => {
-    if (!reviewRequest || !user || !adminSignature) {
-      toast.error("يرجى التوقيع إلكترونياً قبل الاعتماد");
+    if (!reviewRequest || !user) {
+      toast.error("خطأ في البيانات");
       return;
     }
 
@@ -108,7 +107,7 @@ const AdminKycReview = () => {
       .update({
         status: "approved",
         admin_notes: adminNotes,
-        admin_signature_data: adminSignature,
+        admin_signature_data: "certified-digital-stamp",
         admin_signed_at: new Date().toISOString(),
         admin_user_id: user.id,
         admin_full_name: "نيوماكسيو",
@@ -384,11 +383,11 @@ const AdminKycReview = () => {
                 </div>
               </div>
 
-              {/* Admin Signature & Stamp (if already approved) */}
+              {/* Admin Certified Stamp (if already approved) */}
               {reviewRequest.admin_signature_data && (
                 <div>
                   <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-success" /> التوقيع والختم الرقمي المعتمد
+                    <ShieldCheck className="w-4 h-4 text-success" /> الختم الرقمي المعتمد
                   </h4>
                   <div className="bg-success/5 rounded-xl p-5 border border-success/20 relative overflow-hidden">
                     <div className="absolute top-2 left-2">
@@ -397,28 +396,20 @@ const AdminKycReview = () => {
                       </Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm pt-4 mb-4">
-                      <p><span className="text-muted-foreground">المسؤول:</span> <span className="font-bold mr-1">{reviewRequest.admin_full_name}</span></p>
+                      <p><span className="text-muted-foreground">الجهة المعتمدة:</span> <span className="font-bold mr-1">{reviewRequest.admin_full_name || "نيوماكسيو"}</span></p>
                       <p><span className="text-muted-foreground">الصفة:</span> <span className="font-semibold mr-1 text-accent">مدير الامتثال المالي</span></p>
                       <p className="col-span-2"><span className="text-muted-foreground">تاريخ الاعتماد:</span> <span className="font-semibold mr-1 font-mono">{reviewRequest.admin_signed_at ? new Date(reviewRequest.admin_signed_at).toLocaleString("ar-SA") : "—"}</span></p>
                     </div>
-                    <div className="flex flex-wrap items-end gap-6">
-                      {/* Signature */}
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground font-semibold">التوقيع الإلكتروني</p>
-                        <div className="border-2 border-success/20 rounded-lg overflow-hidden bg-white shadow-sm">
-                          <img src={reviewRequest.admin_signature_data} alt="التوقيع الرقمي المعتمد" className="max-h-28" />
-                        </div>
-                      </div>
-                      {/* Certified Stamp */}
+                    <div className="flex justify-center">
                       <CertifiedApprovalStamp
-                        approverName={reviewRequest.admin_full_name || "مسؤول المنصة"}
+                        approverName={reviewRequest.admin_full_name || "نيوماكسيو"}
                         approverTitle="مدير الامتثال المالي"
                         approvalDate={reviewRequest.admin_signed_at || undefined}
                         contractNumber={reviewRequest.contract_number}
-                        size="md"
+                        size="lg"
                       />
                     </div>
-                    <p className="text-[9px] text-muted-foreground mt-3">توقيع وختم رقمي مشفّر ومعتمد وفقاً لنظام التعاملات الإلكترونية م/18</p>
+                    <p className="text-[9px] text-muted-foreground mt-3 text-center">ختم رقمي مشفّر ومعتمد وفقاً لنظام التعاملات الإلكترونية م/18</p>
                   </div>
                 </div>
               )}
@@ -454,16 +445,19 @@ const AdminKycReview = () => {
                     <Textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="سبب الرفض..." rows={2} />
                   </div>
 
-                  {/* Admin Signature for approval */}
-                  <CertifiedSignaturePad
-                    onSignatureChange={setAdminSignature}
-                    signerName="نيوماكسيو"
-                    signerRole="مدير الامتثال المالي"
-                    label="التوقيع الرقمي المعتمد للاعتماد"
-                  />
+                  {/* Certified Digital Stamp Preview */}
+                  <div className="flex flex-col items-center py-4">
+                    <p className="text-xs text-muted-foreground mb-3">سيتم اعتماد الطلب بالختم الرقمي التالي:</p>
+                    <CertifiedApprovalStamp
+                      approverName="نيوماكسيو"
+                      approverTitle="مدير الامتثال المالي"
+                      contractNumber={reviewRequest.contract_number}
+                      size="md"
+                    />
+                  </div>
 
                   <div className="flex items-center gap-2 pt-2">
-                    <Button onClick={handleApprove} disabled={isProcessing || !adminSignature} className="gap-2 bg-success hover:bg-success/90 text-success-foreground flex-1">
+                    <Button onClick={handleApprove} disabled={isProcessing} className="gap-2 bg-success hover:bg-success/90 text-success-foreground flex-1">
                       {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} اعتماد وتفعيل
                     </Button>
                     <Button onClick={handleRequestUpdate} disabled={isProcessing} variant="outline" className="gap-2 flex-1 text-warning border-warning/30">
