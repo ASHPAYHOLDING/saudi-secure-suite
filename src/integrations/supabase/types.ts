@@ -4592,6 +4592,8 @@ export type Database = {
           logo_url: string | null
           name: string
           name_en: string | null
+          paylink_enabled: boolean
+          paylink_enabled_at: string | null
           phone: string | null
           slug: string
           stamp_company_name: string | null
@@ -4631,6 +4633,8 @@ export type Database = {
           logo_url?: string | null
           name: string
           name_en?: string | null
+          paylink_enabled?: boolean
+          paylink_enabled_at?: string | null
           phone?: string | null
           slug: string
           stamp_company_name?: string | null
@@ -4670,6 +4674,8 @@ export type Database = {
           logo_url?: string | null
           name?: string
           name_en?: string | null
+          paylink_enabled?: boolean
+          paylink_enabled_at?: string | null
           phone?: string | null
           slug?: string
           stamp_company_name?: string | null
