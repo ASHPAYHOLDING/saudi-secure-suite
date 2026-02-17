@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Mail, Lock, User, ArrowLeft, Loader2, Building2, UserCircle, Briefcase, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Mail, Lock, User, ArrowLeft, Loader2, Building2, UserCircle, Briefcase, Eye, EyeOff, CheckCircle2, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +20,9 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -61,6 +63,101 @@ const Auth = () => {
     return true;
   };
 
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) value = value.slice(-1);
+    if (!/^\d*$/.test(value)) return;
+
+    const newDigits = [...otpDigits];
+    newDigits[index] = value;
+    setOtpDigits(newDigits);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const newDigits = [...otpDigits];
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pasted[i] || "";
+    }
+    setOtpDigits(newDigits);
+    const nextEmpty = newDigits.findIndex((d) => !d);
+    otpRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
+  };
+
+  const verifyOtp = async () => {
+    const otp = otpDigits.join("");
+    if (otp.length !== 6) {
+      toast({ title: "خطأ", description: "يرجى إدخال الرمز المكون من 6 أرقام", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
+
+      if (error) {
+        if (error.message.includes("expired") || error.message.includes("invalid")) {
+          throw new Error("الرمز غير صحيح أو منتهي الصلاحية. يرجى طلب رمز جديد.");
+        }
+        throw error;
+      }
+
+      if (data.session) {
+        toast({ title: "تم التحقق بنجاح!", description: "جارٍ تحويلك إلى لوحة التحكم..." });
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendOtp = async () => {
+    if (resendTimer > 0) return;
+    setLoading(true);
+    try {
+      const { error: fnError } = await supabase.functions.invoke("send-auth-email", {
+        body: { email, type: "signup", redirectTo: window.location.origin },
+      });
+      if (fnError) throw fnError;
+      startResendTimer();
+      toast({ title: "تم الإرسال", description: "تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني" });
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -68,7 +165,6 @@ const Auth = () => {
 
     try {
       if (mode === "forgot") {
-        // Send password reset via our custom edge function (uses Resend)
         const { error: fnError } = await supabase.functions.invoke("send-auth-email", {
           body: { email, type: "recovery", redirectTo: `${window.location.origin}/reset-password` },
         });
@@ -84,15 +180,20 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        // Send verification email via our custom edge function (uses Resend + numaxio.com)
+
+        // Send OTP verification email via Resend
         try {
           await supabase.functions.invoke("send-auth-email", {
             body: { email, type: "signup", redirectTo: window.location.origin },
           });
         } catch (emailErr) {
-          console.error("Failed to send custom verification email:", emailErr);
+          console.error("Failed to send OTP email:", emailErr);
         }
-        setSignupSuccess(true);
+
+        // Switch to OTP input mode
+        setOtpDigits(["", "", "", "", "", ""]);
+        setMode("otp");
+        startResendTimer();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -100,7 +201,19 @@ const Auth = () => {
             throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
           }
           if (error.message.includes("Email not confirmed")) {
-            throw new Error("يرجى تأكيد بريدك الإلكتروني أولاً");
+            // If email not confirmed, allow them to verify via OTP
+            try {
+              await supabase.functions.invoke("send-auth-email", {
+                body: { email, type: "signup", redirectTo: window.location.origin },
+              });
+              setOtpDigits(["", "", "", "", "", ""]);
+              setMode("otp");
+              startResendTimer();
+              toast({ title: "تحقق مطلوب", description: "تم إرسال رمز التحقق إلى بريدك الإلكتروني" });
+              return;
+            } catch {
+              throw new Error("يرجى تأكيد بريدك الإلكتروني أولاً");
+            }
           }
           throw error;
         }
@@ -116,9 +229,9 @@ const Auth = () => {
   const switchMode = (newMode: "login" | "signup" | "forgot") => {
     setMode(newMode);
     setResetSent(false);
-    setSignupSuccess(false);
     setShowPassword(false);
     setShowConfirm(false);
+    setOtpDigits(["", "", "", "", "", ""]);
     if (newMode !== "forgot") {
       setPassword("");
       setConfirmPassword("");
@@ -142,19 +255,55 @@ const Auth = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* Signup Success */}
-            {signupSuccess ? (
-              <motion.div key="signup-success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6">
+            {/* OTP Verification */}
+            {mode === "otp" ? (
+              <motion.div key="otp" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
                 <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={32} className="text-accent" />
+                  <KeyRound size={32} className="text-accent" />
                 </div>
-                <h2 className="text-lg font-semibold text-foreground mb-2">تم التسجيل بنجاح!</h2>
-                <p className="text-sm text-muted-foreground mb-1">تم إرسال رمز التحقق إلى</p>
-                <p className="text-sm font-semibold text-foreground mb-4 dir-ltr">{email}</p>
-                <p className="text-xs text-muted-foreground mb-6">يرجى التحقق من بريدك الإلكتروني (والرسائل غير المرغوبة) ثم اضغط على رابط التأكيد</p>
-                <Button onClick={() => switchMode("login")} variant="outline" className="w-full">
-                  العودة لتسجيل الدخول
+                <h2 className="text-lg font-semibold text-foreground mb-2">أدخل رمز التحقق</h2>
+                <p className="text-sm text-muted-foreground mb-1">تم إرسال رمز مكون من 6 أرقام إلى</p>
+                <p className="text-sm font-semibold text-foreground mb-6 dir-ltr">{email}</p>
+
+                {/* OTP Input */}
+                <div className="flex justify-center gap-2 mb-6" dir="ltr" onPaste={handleOtpPaste}>
+                  {otpDigits.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-border bg-background text-foreground focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all"
+                    />
+                  ))}
+                </div>
+
+                <Button
+                  onClick={verifyOtp}
+                  disabled={loading || otpDigits.join("").length !== 6}
+                  className="w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90 mb-4"
+                >
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  تأكيد الرمز
                 </Button>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={resendOtp}
+                    disabled={resendTimer > 0 || loading}
+                    className={`text-sm ${resendTimer > 0 ? "text-muted-foreground cursor-not-allowed" : "text-accent hover:underline"}`}
+                  >
+                    {resendTimer > 0 ? `إعادة الإرسال بعد ${resendTimer} ثانية` : "إعادة إرسال الرمز"}
+                  </button>
+                  <br />
+                  <button onClick={() => switchMode("login")} className="text-sm text-muted-foreground hover:text-foreground">
+                    العودة لتسجيل الدخول
+                  </button>
+                </div>
               </motion.div>
 
             /* Reset Sent */
