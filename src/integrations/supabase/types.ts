@@ -2429,6 +2429,170 @@ export type Database = {
           },
         ]
       }
+      paylink_kyc_documents: {
+        Row: {
+          created_at: string
+          document_name: string
+          document_type: string
+          file_size: number | null
+          file_url: string
+          id: string
+          kyc_request_id: string
+          tenant_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          document_name: string
+          document_type: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          kyc_request_id: string
+          tenant_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          kyc_request_id?: string
+          tenant_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_kyc_documents_kyc_request_id_fkey"
+            columns: ["kyc_request_id"]
+            isOneToOne: false
+            referencedRelation: "paylink_kyc_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paylink_kyc_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paylink_kyc_requests: {
+        Row: {
+          admin_full_name: string | null
+          admin_notes: string | null
+          admin_signature_data: string | null
+          admin_signed_at: string | null
+          admin_signed_ip: string | null
+          admin_user_id: string | null
+          agreement_html: string
+          agreement_version: string
+          applicant_type: string
+          bank_name: string | null
+          business_name: string
+          business_name_en: string | null
+          contract_number: string
+          cr_number: string | null
+          created_at: string
+          email: string
+          iban: string
+          id: string
+          national_id: string | null
+          phone: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          subscriber_full_name: string
+          subscriber_signature_data: string | null
+          subscriber_signed_at: string | null
+          subscriber_signed_ip: string | null
+          subscriber_user_id: string
+          tenant_id: string
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          admin_full_name?: string | null
+          admin_notes?: string | null
+          admin_signature_data?: string | null
+          admin_signed_at?: string | null
+          admin_signed_ip?: string | null
+          admin_user_id?: string | null
+          agreement_html: string
+          agreement_version?: string
+          applicant_type?: string
+          bank_name?: string | null
+          business_name: string
+          business_name_en?: string | null
+          contract_number: string
+          cr_number?: string | null
+          created_at?: string
+          email: string
+          iban: string
+          id?: string
+          national_id?: string | null
+          phone: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          subscriber_full_name: string
+          subscriber_signature_data?: string | null
+          subscriber_signed_at?: string | null
+          subscriber_signed_ip?: string | null
+          subscriber_user_id: string
+          tenant_id: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          admin_full_name?: string | null
+          admin_notes?: string | null
+          admin_signature_data?: string | null
+          admin_signed_at?: string | null
+          admin_signed_ip?: string | null
+          admin_user_id?: string | null
+          agreement_html?: string
+          agreement_version?: string
+          applicant_type?: string
+          bank_name?: string | null
+          business_name?: string
+          business_name_en?: string | null
+          contract_number?: string
+          cr_number?: string | null
+          created_at?: string
+          email?: string
+          iban?: string
+          id?: string
+          national_id?: string | null
+          phone?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          subscriber_full_name?: string
+          subscriber_signature_data?: string | null
+          subscriber_signed_at?: string | null
+          subscriber_signed_ip?: string | null
+          subscriber_user_id?: string
+          tenant_id?: string
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_kyc_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       paylink_payout_settings: {
         Row: {
           account_holder_name: string

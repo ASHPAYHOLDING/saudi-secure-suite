@@ -10,10 +10,11 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import AdminKycReview from "./AdminKycReview";
 import {
   Building2, Wallet, TrendingUp, Percent, DollarSign,
   ArrowDownToLine, Receipt, Search, Loader2, CheckCircle2,
-  XCircle, Clock, Send, Eye, BanknoteIcon, Bell
+  XCircle, Clock, Send, Eye, BanknoteIcon, Bell, Shield
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -51,7 +52,7 @@ const AdminPaylinkManagement = () => {
   const [allTransactions, setAllTransactions] = useState<TransactionLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<"tenants" | "transactions">("tenants");
+  const [tab, setTab] = useState<"kyc" | "tenants" | "transactions">("kyc");
   const [filterEnabled, setFilterEnabled] = useState<"all" | "enabled" | "disabled">("all");
 
   // Payout dialog
@@ -221,6 +222,7 @@ const AdminPaylinkManagement = () => {
       {/* Tabs */}
       <div className="flex items-center gap-2 bg-muted rounded-lg p-0.5 w-fit">
         {([
+          { key: "kyc" as const, label: "طلبات التحقق", icon: Shield },
           { key: "tenants" as const, label: "المشتركون", icon: Building2 },
           { key: "transactions" as const, label: "سجل العمليات", icon: Receipt },
         ]).map((t) => (
@@ -232,6 +234,9 @@ const AdminPaylinkManagement = () => {
           </button>
         ))}
       </div>
+
+      {/* KYC Tab */}
+      {tab === "kyc" && <AdminKycReview />}
 
       {/* Tenants Tab */}
       {tab === "tenants" && (
