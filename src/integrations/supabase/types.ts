@@ -2401,7 +2401,6 @@ export type Database = {
       paid_integrations: {
         Row: {
           api_key_label: string | null
-          category: string
           created_at: string
           currency: string
           description_ar: string | null
@@ -2409,19 +2408,20 @@ export type Database = {
           icon_name: string | null
           id: string
           included_in_plans: string[]
-          is_available: boolean
+          integration_type: string
+          is_listed: boolean
+          is_ready: boolean
           key: string
-          monthly_price: number
           name_ar: string
           name_en: string
-          requires_api_key: boolean
+          price_once: number
+          requires_api_keys: boolean
           sort_order: number
           trial_days: number
           updated_at: string
         }
         Insert: {
           api_key_label?: string | null
-          category: string
           created_at?: string
           currency?: string
           description_ar?: string | null
@@ -2429,19 +2429,20 @@ export type Database = {
           icon_name?: string | null
           id?: string
           included_in_plans?: string[]
-          is_available?: boolean
+          integration_type: string
+          is_listed?: boolean
+          is_ready?: boolean
           key: string
-          monthly_price?: number
           name_ar: string
           name_en?: string
-          requires_api_key?: boolean
+          price_once?: number
+          requires_api_keys?: boolean
           sort_order?: number
           trial_days?: number
           updated_at?: string
         }
         Update: {
           api_key_label?: string | null
-          category?: string
           created_at?: string
           currency?: string
           description_ar?: string | null
@@ -2449,12 +2450,14 @@ export type Database = {
           icon_name?: string | null
           id?: string
           included_in_plans?: string[]
-          is_available?: boolean
+          integration_type?: string
+          is_listed?: boolean
+          is_ready?: boolean
           key?: string
-          monthly_price?: number
           name_ar?: string
           name_en?: string
-          requires_api_key?: boolean
+          price_once?: number
+          requires_api_keys?: boolean
           sort_order?: number
           trial_days?: number
           updated_at?: string
