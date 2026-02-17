@@ -5,13 +5,146 @@
 @tailwind utilities;
 
 @layer base {
-  /* Global RTL support */
+  /* ═══════════════════════════════════════════════
+     Global RTL Support
+     ═══════════════════════════════════════════════ */
   html[dir="rtl"] {
     text-align: right;
+    direction: rtl;
   }
 
   html[dir="rtl"] body {
     direction: rtl;
+    text-align: right;
+  }
+
+  /* ── Text alignment ── */
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] h5,
+  html[dir="rtl"] h6,
+  html[dir="rtl"] p,
+  html[dir="rtl"] label,
+  html[dir="rtl"] span,
+  html[dir="rtl"] li {
+    text-align: right;
+  }
+
+  /* Preserve LTR for English-only content, numbers, codes */
+  html[dir="rtl"] [dir="ltr"],
+  html[dir="rtl"] .dir-ltr,
+  html[dir="rtl"] code,
+  html[dir="rtl"] pre,
+  html[dir="rtl"] .font-english {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ── Flexbox & Grid RTL auto-reverse ── */
+  /* flex containers in RTL automatically reverse due to dir attribute */
+  /* Ensure any explicit left/right positioning uses logical properties */
+
+  /* ── Card content alignment ── */
+  html[dir="rtl"] .card,
+  html[dir="rtl"] [class*="CardContent"],
+  html[dir="rtl"] [class*="CardHeader"],
+  html[dir="rtl"] [class*="CardTitle"],
+  html[dir="rtl"] [class*="CardDescription"] {
+    text-align: right;
+  }
+
+  /* ── Tables RTL ── */
+  html[dir="rtl"] table,
+  html[dir="rtl"] th,
+  html[dir="rtl"] td {
+    text-align: right;
+  }
+
+  /* ── Form inputs ── */
+  html[dir="rtl"] input:not([dir="ltr"]):not([type="email"]):not([type="url"]):not([type="tel"]),
+  html[dir="rtl"] textarea:not([dir="ltr"]),
+  html[dir="rtl"] select {
+    text-align: right;
+  }
+
+  /* Keep email/url/tel inputs LTR */
+  html[dir="rtl"] input[type="email"],
+  html[dir="rtl"] input[type="url"],
+  html[dir="rtl"] input[type="tel"] {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ── Directional icons that should flip in RTL ── */
+  html[dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Auto-flip common directional icons: arrows, chevrons */
+  html[dir="rtl"] [data-rtl-flip="true"] {
+    transform: scaleX(-1);
+  }
+
+  /* ── Dialog / Sheet / Popover alignment ── */
+  html[dir="rtl"] [role="dialog"],
+  html[dir="rtl"] [role="alertdialog"] {
+    text-align: right;
+  }
+
+  /* ── Dropdown menus ── */
+  html[dir="rtl"] [role="menu"],
+  html[dir="rtl"] [role="listbox"] {
+    text-align: right;
+  }
+
+  /* ── Badge & Button content ── */
+  html[dir="rtl"] .badge,
+  html[dir="rtl"] [class*="Badge"] {
+    direction: rtl;
+  }
+
+  /* ── Tabs alignment ── */
+  html[dir="rtl"] [role="tablist"] {
+    direction: rtl;
+  }
+
+  /* ── Spacing logical properties override ── 
+     Use margin-inline / padding-inline in RTL contexts 
+     so ml-* and mr-* swap automatically */
+  html[dir="rtl"] .ms-auto {
+    margin-inline-start: auto;
+  }
+  html[dir="rtl"] .me-auto {
+    margin-inline-end: auto;
+  }
+
+  /* ── Sidebar specific ── */
+  html[dir="rtl"] aside {
+    text-align: right;
+  }
+
+  /* ── Progress bars ── */
+  html[dir="rtl"] [role="progressbar"] > div {
+    transform-origin: right;
+  }
+
+  /* ── Scroll areas ── */
+  html[dir="rtl"] [data-radix-scroll-area-viewport] {
+    direction: rtl;
+  }
+
+  /* ── Tooltips ── */
+  html[dir="rtl"] [role="tooltip"] {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* ── Accordion ── */
+  html[dir="rtl"] [data-state="open"] > [data-radix-accordion-trigger],
+  html[dir="rtl"] [data-radix-accordion-trigger] {
+    text-align: right;
   }
 
   :root {
@@ -185,4 +318,44 @@
   .font-english {
     font-family: 'Inter', sans-serif;
   }
+
+  /* RTL-aware spacing utilities */
+  .rtl\:space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  /* Flip icon for RTL directional arrows */
+  [dir="rtl"] .rtl-mirror {
+    transform: scaleX(-1);
+  }
+
+  /* Logical margin helpers */
+  .mis-1 { margin-inline-start: 0.25rem; }
+  .mis-2 { margin-inline-start: 0.5rem; }
+  .mis-3 { margin-inline-start: 0.75rem; }
+  .mis-4 { margin-inline-start: 1rem; }
+  .mie-1 { margin-inline-end: 0.25rem; }
+  .mie-2 { margin-inline-end: 0.5rem; }
+  .mie-3 { margin-inline-end: 0.75rem; }
+  .mie-4 { margin-inline-end: 1rem; }
+
+  /* Logical padding helpers */
+  .pis-1 { padding-inline-start: 0.25rem; }
+  .pis-2 { padding-inline-start: 0.5rem; }
+  .pis-3 { padding-inline-start: 0.75rem; }
+  .pis-4 { padding-inline-start: 1rem; }
+  .pie-1 { padding-inline-end: 0.25rem; }
+  .pie-2 { padding-inline-end: 0.5rem; }
+  .pie-3 { padding-inline-end: 0.75rem; }
+  .pie-4 { padding-inline-end: 1rem; }
+
+  /* Logical positioning */
+  .inset-inline-start-0 { inset-inline-start: 0; }
+  .inset-inline-end-0 { inset-inline-end: 0; }
+
+  /* Float RTL */
+  [dir="rtl"] .float-start { float: right; }
+  [dir="rtl"] .float-end { float: left; }
+  [dir="ltr"] .float-start { float: left; }
+  [dir="ltr"] .float-end { float: right; }
 }
