@@ -210,7 +210,7 @@ const Dashboard = () => {
     <BrandingProvider>
       <BranchProvider>
         <SubscriptionGuard>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-background" dir={isRTL ? "rtl" : "ltr"}>
             <DashboardSidebar
               collapsed={sidebarCollapsed}
               onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
