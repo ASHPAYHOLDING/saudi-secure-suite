@@ -11,8 +11,9 @@ import { toast } from "sonner";
 import {
   Shield, Upload, FileText, CheckCircle2, Clock, XCircle,
   Loader2, CreditCard, Sparkles, BanknoteIcon, Building2,
-  User, Download, AlertTriangle
+  User, Download, AlertTriangle, FileDown
 } from "lucide-react";
+import { downloadKycContractPdf } from "@/lib/kyc-contract-pdf";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -299,17 +300,29 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
               </div>
             </div>
 
-            {/* Download contract */}
+            {/* Download contract as PDF */}
             <Button variant="outline" className="w-full gap-2" onClick={() => {
-              const blob = new Blob([existingRequest.agreement_html], { type: "text/html" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `contract-${existingRequest.contract_number}.html`;
-              a.click();
-              URL.revokeObjectURL(url);
+              downloadKycContractPdf({
+                contractNumber: existingRequest.contract_number,
+                businessName: existingRequest.business_name,
+                businessNameEn: existingRequest.business_name_en,
+                applicantType: existingRequest.applicant_type,
+                crNumber: existingRequest.cr_number,
+                vatNumber: existingRequest.vat_number,
+                nationalId: existingRequest.national_id,
+                phone: existingRequest.phone,
+                email: existingRequest.email,
+                iban: existingRequest.iban,
+                bankName: existingRequest.bank_name,
+                subscriberFullName: existingRequest.subscriber_full_name,
+                subscriberSignedAt: existingRequest.subscriber_signed_at,
+                subscriberSignatureData: existingRequest.subscriber_signature_data,
+                agreementHtml: existingRequest.agreement_html,
+                createdAt: existingRequest.created_at,
+                status: existingRequest.status,
+              });
             }}>
-              <Download className="w-4 h-4" /> تحميل نسخة من العقد
+              <FileDown className="w-4 h-4" /> تحميل العقد الرسمي (PDF)
             </Button>
           </CardContent>
         </Card>
