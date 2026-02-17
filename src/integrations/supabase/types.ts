@@ -2322,6 +2322,63 @@ export type Database = {
           },
         ]
       }
+      paid_integrations: {
+        Row: {
+          api_key_label: string | null
+          category: string
+          created_at: string
+          currency: string
+          description_ar: string | null
+          description_en: string | null
+          icon_name: string | null
+          id: string
+          is_available: boolean
+          key: string
+          monthly_price: number
+          name_ar: string
+          name_en: string
+          requires_api_key: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          api_key_label?: string | null
+          category: string
+          created_at?: string
+          currency?: string
+          description_ar?: string | null
+          description_en?: string | null
+          icon_name?: string | null
+          id?: string
+          is_available?: boolean
+          key: string
+          monthly_price?: number
+          name_ar: string
+          name_en?: string
+          requires_api_key?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          api_key_label?: string | null
+          category?: string
+          created_at?: string
+          currency?: string
+          description_ar?: string | null
+          description_en?: string | null
+          icon_name?: string | null
+          id?: string
+          is_available?: boolean
+          key?: string
+          monthly_price?: number
+          name_ar?: string
+          name_en?: string
+          requires_api_key?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       paylink_fee_configs: {
         Row: {
           created_at: string
@@ -4799,6 +4856,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tenant_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_paid_integrations: {
+        Row: {
+          activated_at: string
+          activated_by: string
+          api_key_encrypted: string | null
+          cancelled_at: string | null
+          config: Json | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          integration_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string
+          activated_by: string
+          api_key_encrypted?: string | null
+          cancelled_at?: string | null
+          config?: Json | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          integration_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string
+          activated_by?: string
+          api_key_encrypted?: string | null
+          cancelled_at?: string | null
+          config?: Json | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          integration_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_paid_integrations_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "paid_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_paid_integrations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

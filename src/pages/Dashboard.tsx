@@ -26,6 +26,7 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import HelpPage from "@/components/help/HelpPage";
 import SubscriptionPage from "@/components/subscription/SubscriptionPage";
 import IntegrationsPage from "@/components/integrations/IntegrationsPage";
+import PaidIntegrationsPage from "@/components/integrations/PaidIntegrationsPage";
 import SheetViewPage from "@/components/sheet-view/SheetViewPage";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import BranchManagement from "@/components/branches/BranchManagement";
@@ -82,6 +83,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   branches: "branches",
   chat: "chat",
   integrations: "integrations",
+  "paid-integrations": "integrations",
   "smart-query": "analytics",
   subscription: "subscription",
   settings: "settings",
@@ -188,6 +190,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/integrations") {
       return <IntegrationsPage />;
+    }
+    if (path === "/dashboard/paid-integrations") {
+      return <PaidIntegrationsPage />;
     }
     if (path === "/dashboard/sheet-view") {
       return <SheetViewPage />;
