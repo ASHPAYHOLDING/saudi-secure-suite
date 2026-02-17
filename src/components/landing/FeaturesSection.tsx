@@ -128,7 +128,7 @@ const FeaturesSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-2xl text-lg text-muted-foreground"
+            className="mx-auto max-w-2xl text-lg text-muted-foreground text-center"
           >
             من الفواتير الإلكترونية إلى المحفظة الرقمية — كل ما تحتاجه لإدارة أعمالك في مكان واحد
           </motion.p>

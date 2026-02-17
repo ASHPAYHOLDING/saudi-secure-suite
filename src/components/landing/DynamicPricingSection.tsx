@@ -113,7 +113,7 @@ const DynamicPricingSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-lg text-muted-foreground"
+            className="mx-auto max-w-xl text-lg text-muted-foreground text-center"
           >
             ابدأ مجاناً لمدة 14 يوم. بدون بطاقة ائتمان. بدون التزام.
           </motion.p>
