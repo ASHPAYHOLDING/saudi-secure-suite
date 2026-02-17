@@ -238,7 +238,7 @@ const Auth = () => {
 
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-3">
-            {["فوترة إلكترونية", "تقارير مالية", "ضريبة القيمة المضافة", "متوافق مع زاتكا"].map((f, i) => (
+            {["فوترة إلكترونية", "تقارير مالية", "ضريبة القيمة المضافة", "إدارة المصروفات"].map((f, i) => (
               <motion.span
                 key={f}
                 initial={{ opacity: 0, y: 10 }}
