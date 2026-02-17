@@ -5017,6 +5017,44 @@ export type Database = {
           },
         ]
       }
+      tenant_wallets: {
+        Row: {
+          balance_available: number
+          balance_pending: number
+          created_at: string
+          currency: string
+          id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          balance_available?: number
+          balance_pending?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          balance_available?: number
+          balance_pending?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_wallets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           address_city: string | null
