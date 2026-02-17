@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import DiscountCodeInput from "./DiscountCodeInput";
 
 interface Plan {
   id: string;
@@ -77,6 +78,7 @@ const SubscriptionPage = () => {
   const [loading, setLoading] = useState(true);
   const [upgradeDialog, setUpgradeDialog] = useState<Plan | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<string>("monthly");
+  const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
 
   const fetchData = async () => {
     if (!tenantId) return;
@@ -449,7 +451,7 @@ const SubscriptionPage = () => {
       </Tabs>
 
       {/* Upgrade/Downgrade Dialog */}
-      <Dialog open={!!upgradeDialog} onOpenChange={() => setUpgradeDialog(null)}>
+      <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) { setUpgradeDialog(null); setDiscountedPrice(null); } }}>
         <DialogContent dir="rtl" className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -473,16 +475,41 @@ const SubscriptionPage = () => {
                 </div>
                 <div className="border-t pt-2 flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">السعر:</span>
-                  <span className="text-lg font-bold">{getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س</span>
+                  <div className="text-left">
+                    {discountedPrice !== null ? (
+                      <>
+                        <span className="text-sm text-muted-foreground line-through mr-2">
+                          {getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س
+                        </span>
+                        <span className="text-lg font-bold text-emerald-600">{discountedPrice.toLocaleString("ar-SA")} ر.س</span>
+                      </>
+                    ) : (
+                      <span className="text-lg font-bold">{getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س</span>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Discount Code Input */}
+              <DiscountCodeInput
+                planId={upgradeDialog.id}
+                originalPrice={getPlanPrice(upgradeDialog, selectedCycle)}
+                onDiscountApplied={(res) => {
+                  if (res.success && res.amount_after !== undefined) {
+                    setDiscountedPrice(res.amount_after);
+                  } else {
+                    setDiscountedPrice(null);
+                  }
+                }}
+              />
+
               <p className="text-xs text-muted-foreground">
                 سيتم تحديث اشتراكك فوراً وتبدأ فترة جديدة من اليوم.
               </p>
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setUpgradeDialog(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => { setUpgradeDialog(null); setDiscountedPrice(null); }}>إلغاء</Button>
             <Button onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)}>تأكيد التغيير</Button>
           </DialogFooter>
         </DialogContent>

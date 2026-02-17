@@ -4538,6 +4538,106 @@ export type Database = {
           },
         ]
       }
+      subscription_discount_usage: {
+        Row: {
+          amount_after: number
+          amount_before: number
+          discount_id: string
+          id: string
+          subscription_id: string
+          tenant_id: string
+          used_at: string
+        }
+        Insert: {
+          amount_after: number
+          amount_before: number
+          discount_id: string
+          id?: string
+          subscription_id: string
+          tenant_id: string
+          used_at?: string
+        }
+        Update: {
+          amount_after?: number
+          amount_before?: number
+          discount_id?: string
+          id?: string
+          subscription_id?: string
+          tenant_id?: string
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_discount_usage_discount_id_fkey"
+            columns: ["discount_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_discounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_discount_usage_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_discount_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_discounts: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          discount_type: string
+          discount_value: number
+          eligible_plan_ids: string[] | null
+          expires_at: string
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          starts_at: string
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          discount_type?: string
+          discount_value: number
+          eligible_plan_ids?: string[] | null
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          starts_at?: string
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          discount_type?: string
+          discount_value?: number
+          eligible_plan_ids?: string[] | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          starts_at?: string
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: []
+      }
       subscription_logs: {
         Row: {
           action: string
@@ -5843,6 +5943,10 @@ export type Database = {
       admin_set_wallet_status: {
         Args: { p_admin_id: string; p_status: string; p_wallet_id: string }
         Returns: undefined
+      }
+      apply_subscription_discount: {
+        Args: { _code: string; _plan_id: string; _tenant_id: string }
+        Returns: Json
       }
       calculate_paylink_fee: {
         Args: { _gross_amount: number; _tenant_id: string }
