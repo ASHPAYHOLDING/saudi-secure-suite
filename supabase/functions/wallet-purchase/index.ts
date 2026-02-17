@@ -50,6 +50,10 @@ Deno.serve(async (req) => {
       return await handleTopup(req, supabase, user.id, tenantId);
     }
 
+    if (action === "bank-transfer-topup" && req.method === "POST") {
+      return await handleBankTransferTopup(req, supabase, user.id, tenantId);
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (err: any) {
     console.error("wallet-purchase error:", err);
@@ -92,7 +96,6 @@ async function handlePurchaseIntegration(
     return json({ error: "integrationId is required" }, 400);
   }
 
-  // 1. Get integration details
   const { data: integration, error: intErr } = await supabase
     .from("paid_integrations")
     .select("id, key, name_ar, name_en, price_once, requires_api_keys, is_ready, is_listed")
@@ -107,7 +110,6 @@ async function handlePurchaseIntegration(
     return json({ error: "Integration is not available" }, 400);
   }
 
-  // 2. Check if already purchased
   const { data: existing } = await supabase
     .from("tenant_paid_integrations")
     .select("id, status")
@@ -121,7 +123,6 @@ async function handlePurchaseIntegration(
 
   const price = integration.price_once;
 
-  // 3. Get wallet
   const { data: wallet } = await supabase
     .from("tenant_wallets")
     .select("id")
@@ -133,7 +134,6 @@ async function handlePurchaseIntegration(
     return json({ error: "لا توجد محفظة — يرجى التواصل مع الإدارة", code: "NO_WALLET" }, 400);
   }
 
-  // 4. Use atomic DB function — handles locking, validation, balance update, audit
   const { data: txId, error: txErr } = await supabase.rpc("process_wallet_transaction", {
     p_wallet_id: wallet.id,
     p_type: "debit",
@@ -170,7 +170,6 @@ async function handlePurchaseIntegration(
     return json({ error: userMsg, code, detail: msg }, statusCode);
   }
 
-  // 5. Activate integration
   const activationData = {
     tenant_id: tenantId,
     integration_id: integrationId,
@@ -197,7 +196,6 @@ async function handlePurchaseIntegration(
 
   if (activateErr) {
     console.error("Failed to activate integration:", activateErr);
-    // Refund via atomic function
     await supabase.rpc("process_wallet_transaction", {
       p_wallet_id: wallet.id,
       p_type: "credit",
@@ -211,7 +209,6 @@ async function handlePurchaseIntegration(
     return json({ error: "فشل تفعيل التكامل — تم استرداد المبلغ" }, 500);
   }
 
-  // 6. Create receipt
   const receiptNumber = `WR-${Date.now()}`;
   await supabase.from("wallet_receipts").insert({
     wallet_transaction_id: txId,
@@ -221,7 +218,6 @@ async function handlePurchaseIntegration(
     issued_at: new Date().toISOString(),
   });
 
-  // 7. Get updated balance
   const { data: updatedWallet } = await supabase
     .from("tenant_wallets")
     .select("balance_available")
@@ -237,21 +233,39 @@ async function handlePurchaseIntegration(
   });
 }
 
-// ===================== TOPUP =====================
+// ===================== TOPUP (Card — requires real gateway) =====================
 async function handleTopup(
+  _req: Request,
+  _supabase: any,
+  _userId: string,
+  _tenantId: string
+) {
+  // Card payment requires a real payment gateway integration (Moyasar, Tap, etc.)
+  // This is a placeholder — actual gateway should be connected
+  return json({
+    error: "الدفع بالبطاقة غير متاح حالياً — يرجى استخدام التحويل البنكي",
+    code: "CARD_NOT_AVAILABLE",
+  }, 400);
+}
+
+// ===================== BANK TRANSFER TOPUP =====================
+async function handleBankTransferTopup(
   req: Request,
   supabase: any,
   userId: string,
   tenantId: string
 ) {
   const body = await req.json();
-  const { amount, paymentMethod } = body;
+  const { amount, bankReference, receiptUrl, receiptFilename } = body;
 
   if (!amount || amount <= 0) {
     return json({ error: "المبلغ غير صالح" }, 400);
   }
   if (amount > 50000) {
     return json({ error: "الحد الأقصى للشحن الواحد 50,000 ر.س" }, 400);
+  }
+  if (!receiptUrl) {
+    return json({ error: "يرجى رفع إيصال التحويل" }, 400);
   }
 
   // Get wallet
@@ -270,45 +284,36 @@ async function handleTopup(
     return json({ error: "المحفظة مجمّدة — لا يمكن شحن الرصيد", code: "WALLET_FROZEN" }, 400);
   }
 
-  // Process topup via atomic function
-  const { data: txId, error: txErr } = await supabase.rpc("process_wallet_transaction", {
-    p_wallet_id: wallet.id,
-    p_type: "credit",
-    p_amount: amount,
-    p_reason: "topup",
-    p_reference_type: "topup",
-    p_reference_id: wallet.id,
-    p_actor_id: userId,
-    p_source: "payment_gateway",
-  });
+  // Create pending topup request
+  const { data: topupRequest, error: insertErr } = await supabase
+    .from("wallet_topup_requests")
+    .insert({
+      tenant_id: tenantId,
+      wallet_id: wallet.id,
+      amount,
+      payment_method: "bank_transfer",
+      bank_reference: bankReference || null,
+      receipt_url: receiptUrl,
+      receipt_filename: receiptFilename || null,
+      status: "pending",
+      created_by: userId,
+    })
+    .select("id")
+    .single();
 
-  if (txErr) {
-    console.error("topup error:", txErr);
-    return json({ error: "فشل شحن الرصيد — يرجى المحاولة مرة أخرى", detail: txErr.message }, 500);
+  if (insertErr) {
+    console.error("Failed to create topup request:", insertErr);
+    return json({ error: "فشل إنشاء طلب الشحن — يرجى المحاولة مرة أخرى", detail: insertErr.message }, 500);
   }
 
-  // Create receipt
-  const receiptNumber = `TOP-${Date.now()}`;
-  await supabase.from("wallet_receipts").insert({
-    wallet_transaction_id: txId,
-    tenant_id: tenantId,
-    invoice_number: receiptNumber,
-    pdf_url: null,
-    issued_at: new Date().toISOString(),
-  });
-
-  // Get updated balance
-  const { data: updatedWallet } = await supabase
-    .from("tenant_wallets")
-    .select("balance_available")
-    .eq("id", wallet.id)
-    .single();
+  const requestNumber = `BTR-${Date.now()}`;
 
   return json({
     success: true,
-    message: `تم شحن المحفظة بمبلغ ${amount} ر.س بنجاح`,
-    receipt_number: receiptNumber,
-    new_balance: updatedWallet?.balance_available ?? 0,
+    message: `تم إرسال طلب شحن بمبلغ ${amount} ر.س بنجاح — سيتم مراجعته وتأكيده خلال 24 ساعة`,
+    request_id: topupRequest.id,
+    request_number: requestNumber,
+    status: "pending",
   });
 }
 
