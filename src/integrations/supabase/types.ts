@@ -2322,6 +2322,82 @@ export type Database = {
           },
         ]
       }
+      paid_gateway_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          currency: string
+          gateway_key: string
+          gateway_response: Json | null
+          id: string
+          integration_id: string
+          invoice_id: string
+          paid_at: string | null
+          payment_url: string | null
+          session_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          currency?: string
+          gateway_key: string
+          gateway_response?: Json | null
+          id?: string
+          integration_id: string
+          invoice_id: string
+          paid_at?: string | null
+          payment_url?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          currency?: string
+          gateway_key?: string
+          gateway_response?: Json | null
+          id?: string
+          integration_id?: string
+          invoice_id?: string
+          paid_at?: string | null
+          payment_url?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paid_gateway_transactions_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "paid_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paid_gateway_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paid_gateway_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       paid_integrations: {
         Row: {
           api_key_label: string | null
