@@ -25,21 +25,35 @@ import {
 } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ── Reduced motion detection ──
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
+
 // ── Animated Counter Hook ──
-function useAnimatedNumber(target: number, duration = 200) {
-  const [display, setDisplay] = useState(target);
+function useAnimatedNumber(target: number, duration = 300, reducedMotion = false) {
+  const [display, setDisplay] = useState(0); // start from 0 for initial count-up
   const rafRef = useRef<number>();
-  const startRef = useRef({ value: target, time: 0 });
+  const isFirstRun = useRef(true);
 
   useEffect(() => {
-    const start = display;
+    if (reducedMotion) { setDisplay(target); return; }
+
+    const start = isFirstRun.current ? 0 : display;
+    isFirstRun.current = false;
     const startTime = performance.now();
-    startRef.current = { value: start, time: startTime };
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(Math.round(start + (target - start) * eased));
       if (progress < 1) rafRef.current = requestAnimationFrame(animate);
@@ -47,9 +61,29 @@ function useAnimatedNumber(target: number, duration = 200) {
 
     rafRef.current = requestAnimationFrame(animate);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [target, duration]);
+  }, [target, duration, reducedMotion]);
 
   return display;
+}
+
+// ── Debit shake hook ──
+function useDebitShake(balance: number, reducedMotion: boolean) {
+  const [shaking, setShaking] = useState(false);
+  const [flashRed, setFlashRed] = useState(false);
+  const prevRef = useRef(balance);
+
+  useEffect(() => {
+    if (reducedMotion) { prevRef.current = balance; return; }
+    if (prevRef.current > balance && prevRef.current !== 0) {
+      setShaking(true);
+      setFlashRed(true);
+      setTimeout(() => setShaking(false), 40);
+      setTimeout(() => setFlashRed(false), 300);
+    }
+    prevRef.current = balance;
+  }, [balance, reducedMotion]);
+
+  return { shaking, flashRed };
 }
 
 // ── Section reveal animation ──
@@ -159,10 +193,12 @@ const TOPUP_AMOUNTS = [100, 250, 500, 1000, 2500, 5000];
 const WalletPage = () => {
   const { user, tenantId } = useAuth();
   const { isRTL } = useLanguage();
+  const reducedMotion = usePrefersReducedMotion();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [prevBalance, setPrevBalance] = useState<number>(0);
   const [topupRequests, setTopupRequests] = useState<TopupRequest[]>([]);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [newTxIds, setNewTxIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [txFilter, setTxFilter] = useState<"all" | "credit" | "debit">("all");
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
@@ -179,12 +215,15 @@ const WalletPage = () => {
 
   const finalAmount = topupAmount > 0 ? topupAmount : Number(customAmount) || 0;
 
-  // Animated numbers
-  const animatedBalance = useAnimatedNumber(wallet?.balance_available || 0);
-  const animatedPending = useAnimatedNumber(wallet?.balance_pending || 0);
+  // Animated numbers (300ms count-up, respects reduced motion)
+  const animatedBalance = useAnimatedNumber(wallet?.balance_available || 0, 300, reducedMotion);
+  const animatedPending = useAnimatedNumber(wallet?.balance_pending || 0, 300, reducedMotion);
 
   // Balance change indicator
   const balanceChange = wallet ? wallet.balance_available - prevBalance : 0;
+
+  // Debit shake effect
+  const { shaking, flashRed } = useDebitShake(wallet?.balance_available || 0, reducedMotion);
 
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
@@ -224,7 +263,13 @@ const WalletPage = () => {
         }
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions" }, (payload) => {
-        if (payload.new) setTransactions((prev) => [payload.new as WalletTransaction, ...prev].slice(0, 50));
+        if (payload.new) {
+          const newTx = payload.new as WalletTransaction;
+          setTransactions((prev) => [newTx, ...prev].slice(0, 50));
+          // Mark as new for slide-in animation
+          setNewTxIds(prev => new Set(prev).add(newTx.id));
+          setTimeout(() => setNewTxIds(prev => { const s = new Set(prev); s.delete(newTx.id); return s; }), 600);
+        }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "wallet_topup_requests" }, (payload) => {
         if (payload.eventType === "INSERT" && payload.new) {
@@ -414,12 +459,12 @@ const WalletPage = () => {
           style={{ transitionDelay: "40ms" }}
         >
           {/* Balance Card */}
-          <div className="rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group">
+          <div className={`rounded-xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md group ${shaking ? "animate-[debit-shake_40ms_ease-in-out]" : ""}`}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground">الرصيد المتاح</p>
               <WalletBalanceIcon size={18} className="text-muted-foreground/50 group-hover:text-accent transition-colors" />
             </div>
-            <p className="text-2xl font-bold text-foreground tabular-nums" dir="ltr">
+            <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${flashRed ? "text-destructive" : "text-foreground"}`} dir="ltr">
               {formatAmount(animatedBalance)}
               <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
             </p>
@@ -579,10 +624,15 @@ const WalletPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTx.map((tx) => (
+                  {filteredTx.map((tx) => {
+                    const isNew = newTxIds.has(tx.id);
+                    const isPending = tx.source === "pending";
+                    return (
                     <tr
                       key={tx.id}
-                      className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors group"
+                      className={`border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors group ${
+                        isNew && !reducedMotion ? "animate-[tx-slide-in_160ms_ease-out]" : ""
+                      } ${isPending ? "animate-pulse" : ""}`}
                       onMouseEnter={() => setHoveredRow(tx.id)}
                       onMouseLeave={() => setHoveredRow(null)}
                     >
@@ -615,7 +665,8 @@ const WalletPage = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {filteredTx.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-muted-foreground">
@@ -766,7 +817,7 @@ const WalletPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Ripple keyframes */}
+      {/* Animation keyframes */}
       <style>{`
         @keyframes ripple {
           0% { transform: scale(1); opacity: 0.4; }
@@ -775,6 +826,22 @@ const WalletPage = () => {
         @keyframes wallet-ripple {
           0% { transform: scale(1); opacity: 0.15; }
           100% { transform: scale(8); opacity: 0; }
+        }
+        @keyframes debit-shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-2px); }
+          75% { transform: translateX(2px); }
+        }
+        @keyframes tx-slide-in {
+          0% { opacity: 0; transform: translateX(-12px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </div>
