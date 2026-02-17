@@ -2,13 +2,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Shield, Zap, Globe, FileText, Calculator, BarChart3, Wallet, Users, Receipt, Stamp, CheckCircle2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
 
-const counterTargets = [
-  { label: "فاتورة تمت معالجتها", value: 50000, suffix: "+" },
-  { label: "شركة تثق بنا", value: 1200, suffix: "+" },
-  { label: "ريال سعودي تمت إدارته", value: 85, suffix: "M ﷼" },
-];
+
 
 const floatingFeatures = [
   { icon: FileText, label: "فواتير ZATCA", x: "8%", y: "20%", delay: 0.8 },
@@ -20,22 +15,6 @@ const floatingFeatures = [
 const trustedLogos = ["أرامكو", "STC", "NEOM", "البنك الأهلي", "الراجحي"];
 
 const HeroSection = () => {
-  const [counts, setCounts] = useState(counterTargets.map(() => 0));
-
-  useEffect(() => {
-    const duration = 2000;
-    const steps = 60;
-    const interval = duration / steps;
-    let step = 0;
-    const timer = setInterval(() => {
-      step++;
-      const progress = Math.min(step / steps, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCounts(counterTargets.map((t) => Math.floor(t.value * eased)));
-      if (step >= steps) clearInterval(timer);
-    }, interval);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl">
@@ -189,27 +168,6 @@ const HeroSection = () => {
           ))}
         </motion.div>
 
-        {/* Stats counters */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="w-full max-w-4xl rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.04] backdrop-blur-xl p-8"
-        >
-          <div className="grid grid-cols-3 divide-x divide-primary-foreground/10" style={{ direction: "ltr" }}>
-            {counterTargets.map((target, i) => (
-              <div key={target.label} className="text-center px-4" dir="rtl">
-                <p className="text-3xl md:text-4xl font-bold text-accent font-english mb-1">
-                  {target.suffix.includes("M")
-                    ? `${counts[i]}${target.suffix}`
-                    : `${counts[i].toLocaleString("ar-SA")}${target.suffix}`
-                  }
-                </p>
-                <p className="text-sm text-primary-foreground/50">{target.label}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
 
         {/* Trusted by logos */}
         <motion.div
