@@ -4,7 +4,7 @@ import {
   FileText, TrendingUp, CreditCard, FileSignature, Users, Loader2,
   ArrowUpRight, ArrowDownRight, Receipt, Wallet, BarChart3,
   Plus, Eye, Clock, CheckCircle2, AlertTriangle, Zap,
-  PieChart, Target, Sparkles, Activity, Lightbulb
+  PieChart, Target, Sparkles, Activity, Lightbulb, Rocket, X, ChevronLeft
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,6 +109,112 @@ const FINANCIAL_WISDOMS = [
   { text: "في إدارة الأعمال: ما لا يُقاس لا يُدار", author: "بيتر دراكر", category: "القياس" },
   { text: "الامتثال للأنظمة ليس خياراً بل ضرورة لاستدامة الأعمال", author: "حكمة تنظيمية", category: "الامتثال" },
 ];
+
+// إعلان نيوماكسيو باي
+const NumaxioPayBanner = () => {
+  const [dismissed, setDismissed] = useState(false);
+  const navigate = useNavigate();
+
+  if (dismissed) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97, y: 15 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-l from-accent/10 via-accent/5 to-primary/5 p-5 sm:p-6">
+        {/* Animated background shapes */}
+        <motion.div
+          className="absolute -top-10 -end-10 w-40 h-40 rounded-full bg-accent/10 blur-2xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-8 -start-8 w-32 h-32 rounded-full bg-primary/10 blur-2xl"
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Dismiss button */}
+        <button
+          onClick={() => setDismissed(true)}
+          className="absolute top-3 start-3 z-10 rounded-full p-1 text-muted-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
+        >
+          <X size={14} />
+        </button>
+
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {/* Icon */}
+          <motion.div
+            className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-lg shadow-accent/20"
+            animate={{ rotate: [0, -3, 3, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Rocket className="w-7 h-7 text-accent-foreground" />
+          </motion.div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <motion.span
+                className="text-xs font-bold text-accent tracking-wide"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                🎉 جديد
+              </motion.span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-foreground font-[IBM_Plex_Sans_Arabic] mb-1">
+              نيوماكسيو باي — بوابة الدفع الذكية
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              استقبل مدفوعاتك من عملائك عبر مدى، فيزا، ماستركارد، Apple Pay و STC Pay مباشرة من فواتيرك. تفعيل فوري بدون تعقيد.
+            </p>
+          </div>
+
+          {/* CTA */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="shrink-0"
+          >
+            <Button
+              size="sm"
+              className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-md shadow-accent/20 rounded-xl px-5"
+              onClick={() => navigate("/dashboard/numaxio-pay")}
+            >
+              <span>اكتشف الآن</span>
+              <ChevronLeft size={16} />
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Payment methods strip */}
+        <motion.div
+          className="relative mt-4 pt-3 border-t border-accent/10 flex items-center gap-3 flex-wrap"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          {["مدى", "Visa", "Mastercard", "Apple Pay", "STC Pay"].map((method, i) => (
+            <motion.span
+              key={method}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.8 + i * 0.1 }}
+              className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-background/60 text-muted-foreground border border-border/50"
+            >
+              {method}
+            </motion.span>
+          ))}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
 
 const DailyWisdom = () => {
   const today = new Date();
@@ -374,6 +480,9 @@ const DashboardHome = () => {
           </Button>
         </div>
       </motion.div>
+
+      {/* إعلان نيوماكسيو باي */}
+      <NumaxioPayBanner />
 
       {/* حكمة اليوم المالية */}
       <DailyWisdom />
