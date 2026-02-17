@@ -2322,6 +2322,188 @@ export type Database = {
           },
         ]
       }
+      paylink_fee_configs: {
+        Row: {
+          created_at: string
+          fee_fixed_amount: number
+          fee_percentage: number
+          fee_type: string
+          id: string
+          is_active: boolean
+          max_fee: number | null
+          min_fee: number
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          fee_fixed_amount?: number
+          fee_percentage?: number
+          fee_type?: string
+          id?: string
+          is_active?: boolean
+          max_fee?: number | null
+          min_fee?: number
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          fee_fixed_amount?: number
+          fee_percentage?: number
+          fee_type?: string
+          id?: string
+          is_active?: boolean
+          max_fee?: number | null
+          min_fee?: number
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_fee_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paylink_fee_logs: {
+        Row: {
+          created_at: string
+          description: string | null
+          fee_amount: number
+          fee_fixed: number | null
+          fee_percentage: number | null
+          fee_type: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          tenant_id: string
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          fee_amount: number
+          fee_fixed?: number | null
+          fee_percentage?: number | null
+          fee_type: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          tenant_id: string
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          fee_amount?: number
+          fee_fixed?: number | null
+          fee_percentage?: number | null
+          fee_type?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          tenant_id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_fee_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paylink_fee_logs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "paylink_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paylink_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          fee_amount: number
+          fee_rate: number | null
+          fee_type: string | null
+          gateway_reference: string | null
+          gross_amount: number
+          id: string
+          invoice_id: string | null
+          net_amount: number
+          payment_method: string | null
+          status: string
+          tenant_id: string
+          transaction_number: string
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_amount?: number
+          fee_rate?: number | null
+          fee_type?: string | null
+          gateway_reference?: string | null
+          gross_amount?: number
+          id?: string
+          invoice_id?: string | null
+          net_amount?: number
+          payment_method?: string | null
+          status?: string
+          tenant_id: string
+          transaction_number: string
+          transaction_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_amount?: number
+          fee_rate?: number | null
+          fee_type?: string | null
+          gateway_reference?: string | null
+          gross_amount?: number
+          id?: string
+          invoice_id?: string | null
+          net_amount?: number
+          payment_method?: string | null
+          status?: string
+          tenant_id?: string
+          transaction_number?: string
+          transaction_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paylink_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paylink_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_links: {
         Row: {
           amount: number
@@ -4402,6 +4584,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_paylink_fee: {
+        Args: { _gross_amount: number; _tenant_id: string }
+        Returns: {
+          fee_amount: number
+          fee_fixed: number
+          fee_percentage: number
+          fee_type: string
+          net_amount: number
+        }[]
+      }
       generate_smart_notifications: { Args: never; Returns: undefined }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
