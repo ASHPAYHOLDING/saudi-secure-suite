@@ -2721,6 +2721,7 @@ export type Database = {
           id: string
           invoice_id: string | null
           net_amount: number
+          paylink_transaction_no: string | null
           payment_method: string | null
           status: string
           tenant_id: string
@@ -2740,6 +2741,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           net_amount?: number
+          paylink_transaction_no?: string | null
           payment_method?: string | null
           status?: string
           tenant_id: string
@@ -2759,6 +2761,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           net_amount?: number
+          paylink_transaction_no?: string | null
           payment_method?: string | null
           status?: string
           tenant_id?: string

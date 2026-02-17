@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.process-payouts]
 verify_jwt = false
+
+[functions.paylink-gateway]
+verify_jwt = false

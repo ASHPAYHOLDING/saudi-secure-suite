@@ -13,7 +13,7 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowDownToLine,
   Receipt, ChevronLeft, DollarSign, Percent, Clock,
   CheckCircle2, XCircle, Bell, Download, Loader2,
-  BanknoteIcon, Send, Settings2
+  BanknoteIcon, Send, Settings2, Link2, Copy, ExternalLink, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +31,112 @@ const NumaxioPayDashboard = () => {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "deposit" | "withdrawal">("all");
-  const [activeTab, setActiveTab] = useState<"overview" | "payouts">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "payouts" | "create-payment">("overview");
+
+  // Create payment link state
+  const [paymentForm, setPaymentForm] = useState({
+    amount: "",
+    clientName: "",
+    clientMobile: "",
+    clientEmail: "",
+    orderNumber: "",
+    note: "",
+  });
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [paymentResult, setPaymentResult] = useState<{
+    paymentUrl: string;
+    transactionNo: string;
+  } | null>(null);
+
+  const handleCreatePaymentLink = async () => {
+    const { amount, clientName, clientMobile, orderNumber } = paymentForm;
+    if (!amount || !clientName || !clientMobile || !orderNumber) {
+      toast.error("يرجى تعبئة الحقول المطلوبة: المبلغ، اسم العميل، رقم الجوال، رقم الطلب");
+      return;
+    }
+
+    setIsCreatingPayment(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        toast.error("يرجى تسجيل الدخول أولاً");
+        setIsCreatingPayment(false);
+        return;
+      }
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=create-invoice`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            clientName,
+            clientMobile,
+            clientEmail: paymentForm.clientEmail || undefined,
+            orderNumber,
+            note: paymentForm.note || undefined,
+            callBackUrl: window.location.origin + "/numaxio-pay-dashboard",
+            products: [{ title: `طلب ${orderNumber}`, price: parseFloat(amount), qty: 1 }],
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        toast.error(data.error || "فشل إنشاء رابط الدفع");
+        setIsCreatingPayment(false);
+        return;
+      }
+
+      setPaymentResult({
+        paymentUrl: data.paymentUrl,
+        transactionNo: data.transactionNo,
+      });
+      toast.success("✅ تم إنشاء رابط الدفع بنجاح!");
+      refetch();
+    } catch (err: any) {
+      toast.error("خطأ في الاتصال: " + (err.message || ""));
+    }
+    setIsCreatingPayment(false);
+  };
+
+  const handleCheckStatus = async (transactionNo: string) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) return;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=check-status&transactionNo=${transactionNo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const data = await res.json();
+      if (data.orderStatus === "Paid" || data.orderStatus === "paid") {
+        toast.success("✅ تم الدفع بنجاح!");
+      } else {
+        toast.info(`حالة الدفع: ${data.orderStatus || "غير معروفة"}`);
+      }
+      refetch();
+    } catch {
+      toast.error("فشل فحص حالة الدفع");
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("تم نسخ الرابط!");
+  };
 
   // Fee preview for withdrawal
   const withdrawPreview = useMemo(() => {
@@ -182,6 +287,7 @@ const NumaxioPayDashboard = () => {
         <div className="flex items-center gap-2 bg-muted rounded-lg p-0.5 w-fit">
           {([
             { key: "overview" as const, label: "نظرة عامة", icon: Receipt },
+            { key: "create-payment" as const, label: "إنشاء رابط دفع", icon: Link2 },
             { key: "payouts" as const, label: "التحويلات والإعدادات", icon: Send },
           ]).map((t) => (
             <button key={t.key} onClick={() => setActiveTab(t.key)}
@@ -194,6 +300,139 @@ const NumaxioPayDashboard = () => {
         </div>
 
         {activeTab === "payouts" && <PayoutSettings />}
+
+        {/* Create Payment Link Tab */}
+        {activeTab === "create-payment" && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Form */}
+              <Card className="border-border/60">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-accent" /> إنشاء رابط دفع جديد
+                  </CardTitle>
+                  <CardDescription>أنشئ رابط دفع وأرسله لعميلك عبر Paylink</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>المبلغ (ر.س) *</Label>
+                      <Input type="number" placeholder="100.00" dir="ltr" value={paymentForm.amount}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, amount: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>رقم الطلب *</Label>
+                      <Input placeholder="ORD-001" value={paymentForm.orderNumber}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, orderNumber: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>اسم العميل *</Label>
+                    <Input placeholder="محمد أحمد" value={paymentForm.clientName}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, clientName: e.target.value }))} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>رقم الجوال *</Label>
+                      <Input placeholder="05XXXXXXXX" dir="ltr" value={paymentForm.clientMobile}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, clientMobile: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>البريد الإلكتروني</Label>
+                      <Input type="email" placeholder="client@email.com" dir="ltr" value={paymentForm.clientEmail}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, clientEmail: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ملاحظة</Label>
+                    <Input placeholder="ملاحظة اختيارية..." value={paymentForm.note}
+                      onChange={(e) => setPaymentForm(prev => ({ ...prev, note: e.target.value }))} />
+                  </div>
+
+                  {paymentForm.amount && parseFloat(paymentForm.amount) > 0 && (
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">المبلغ</span>
+                        <span className="font-semibold">{formatCurrency(parseFloat(paymentForm.amount))}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">رسوم المنصة</span>
+                        <span className="text-destructive text-xs">
+                          -{formatCurrency(calculateFee(parseFloat(paymentForm.amount)).fee)}
+                        </span>
+                      </div>
+                      <Separator className="my-1" />
+                      <div className="flex justify-between">
+                        <span className="font-semibold">صافي المبلغ</span>
+                        <span className="font-bold text-accent">
+                          {formatCurrency(calculateFee(parseFloat(paymentForm.amount)).net)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={handleCreatePaymentLink} disabled={isCreatingPayment}
+                    className="w-full gap-2 bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
+                    {isCreatingPayment ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ الإنشاء...</>
+                    ) : (
+                      <><Link2 className="w-4 h-4" /> إنشاء رابط الدفع</>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Result */}
+              <Card className="border-border/60">
+                <CardHeader>
+                  <CardTitle className="text-base">رابط الدفع</CardTitle>
+                  <CardDescription>بعد الإنشاء، شارك الرابط مع عميلك</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {paymentResult ? (
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                      className="space-y-4">
+                      <div className="bg-success/10 border border-success/20 rounded-xl p-6 text-center space-y-3">
+                        <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
+                        <p className="font-bold text-foreground text-lg">تم إنشاء رابط الدفع!</p>
+                        <p className="text-sm text-muted-foreground">رقم العملية: {paymentResult.transactionNo}</p>
+                      </div>
+
+                      <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-2">
+                        <Input value={paymentResult.paymentUrl} readOnly className="text-xs font-mono" dir="ltr" />
+                        <Button variant="outline" size="icon" onClick={() => copyToClipboard(paymentResult.paymentUrl)}>
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" asChild>
+                          <a href={paymentResult.paymentUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1 gap-2"
+                          onClick={() => handleCheckStatus(paymentResult.transactionNo)}>
+                          <RefreshCw className="w-4 h-4" /> فحص حالة الدفع
+                        </Button>
+                        <Button variant="ghost" className="flex-1"
+                          onClick={() => { setPaymentResult(null); setPaymentForm({ amount: "", clientName: "", clientMobile: "", clientEmail: "", orderNumber: "", note: "" }); }}>
+                          إنشاء رابط جديد
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="text-center py-16 text-muted-foreground">
+                      <Link2 className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                      <p className="text-sm">أنشئ رابط دفع من النموذج المجاور</p>
+                      <p className="text-xs mt-1">سيتم إرسال الرابط عبر Paylink مباشرة</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )}
 
         {activeTab === "overview" && (<>
         {/* KPI Cards */}
