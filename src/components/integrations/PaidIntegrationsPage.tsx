@@ -102,7 +102,7 @@ const PaidIntegrationsPage = () => {
     if (!confirm("هل تريد إلغاء هذا التكامل؟ سيتم إيقافه فوراً.")) return;
     await supabase
       .from("tenant_paid_integrations")
-      .update({ status: "cancelled", cancelled_at: new Date().toISOString() } as any)
+      .update({ status: "disabled" } as any)
       .eq("tenant_id", tenantId!)
       .eq("integration_id", integrationId);
     toast({ title: "تم إلغاء التكامل" });
