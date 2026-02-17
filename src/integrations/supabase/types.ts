@@ -5276,6 +5276,8 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          balance_after: number | null
+          balance_before: number | null
           created_at: string
           created_by: string
           id: string
@@ -5288,6 +5290,8 @@ export type Database = {
         }
         Insert: {
           amount: number
+          balance_after?: number | null
+          balance_before?: number | null
           created_at?: string
           created_by: string
           id?: string
@@ -5300,6 +5304,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          balance_after?: number | null
+          balance_before?: number | null
           created_at?: string
           created_by?: string
           id?: string
