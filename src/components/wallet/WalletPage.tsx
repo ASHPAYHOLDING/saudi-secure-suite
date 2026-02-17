@@ -438,15 +438,6 @@ const WalletPage = () => {
                 {/* Payment Method Tabs */}
                 <div className="flex gap-2">
                   <Button
-                    variant={paymentMethod === "bank_transfer" ? "default" : "outline"}
-                    size="sm"
-                    className="gap-1.5 flex-1"
-                    onClick={() => setPaymentMethod("bank_transfer")}
-                  >
-                    <Building2 className="w-4 h-4" />
-                    تحويل بنكي
-                  </Button>
-                  <Button
                     variant={paymentMethod === "card" ? "default" : "outline"}
                     size="sm"
                     className="gap-1.5 flex-1"
@@ -454,6 +445,15 @@ const WalletPage = () => {
                   >
                     <CreditCard className="w-4 h-4" />
                     بطاقة دفع
+                  </Button>
+                  <Button
+                    variant={paymentMethod === "bank_transfer" ? "default" : "outline"}
+                    size="sm"
+                    className="gap-1.5 flex-1"
+                    onClick={() => setPaymentMethod("bank_transfer")}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    تحويل بنكي
                   </Button>
                 </div>
 
