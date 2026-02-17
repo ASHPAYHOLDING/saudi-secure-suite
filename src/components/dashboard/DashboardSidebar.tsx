@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock,
 } from "lucide-react";
 import numaxioLogo from "@/assets/numaxio-logo.png";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
+import { usePaidIntegration } from "@/hooks/usePaidIntegration";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItemDef {
@@ -109,6 +110,16 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const { user, tenantType } = useAuth();
   const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const { active: hasAdvancedAccounting, loading: loadingAccounting } = usePaidIntegration("accounting_advanced");
+
+  // Paths that require advanced accounting integration
+  const ADVANCED_ACCOUNTING_PATHS = new Set([
+    "/dashboard/journal-entries",
+    "/dashboard/reports",
+    "/dashboard/vat-return",
+    "/dashboard/analytics",
+    "/dashboard/smart-query",
+  ]);
 
   // Initialize open groups based on current route
   const getInitialOpenGroups = () => {
@@ -152,6 +163,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
 
   const NavItem = ({ icon: Icon, label, path, badge }: { icon: any; label: string; path: string; badge?: string }) => {
     const isActive = location.pathname === path;
+    const isLocked = !hasAdvancedAccounting && ADVANCED_ACCOUNTING_PATHS.has(path);
     return (
       <Link
         to={path}
@@ -159,14 +171,17 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
           "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           isActive
             ? "bg-sidebar-accent text-sidebar-primary font-semibold"
-            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
+            : isLocked
+              ? "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
         )}
       >
         <Icon size={18} className="shrink-0" />
         {!collapsed && (
           <span className="flex-1 flex items-center gap-2">
             {label}
-            {badge && (
+            {isLocked && <Lock size={12} className="text-muted-foreground" />}
+            {badge && !isLocked && (
               <span className="relative flex items-center">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent/40" />
                 <span className="relative inline-flex rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-bold text-accent-foreground leading-none">
@@ -176,7 +191,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
             )}
           </span>
         )}
-        {collapsed && badge && (
+        {collapsed && badge && !isLocked && (
           <span className="absolute top-0.5 end-0.5 h-2 w-2 rounded-full bg-accent" />
         )}
       </Link>

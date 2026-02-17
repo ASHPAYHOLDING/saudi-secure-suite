@@ -37,6 +37,7 @@ const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> 
   ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag, color: "bg-purple-500/10 text-purple-600" },
   hr_payroll: { label: "موارد بشرية", icon: Users, color: "bg-emerald-500/10 text-emerald-600" },
   payment_gateway: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
+  accounting: { label: "محاسبة", icon: Package, color: "bg-accent/10 text-accent" },
   other: { label: "أخرى", icon: Package, color: "bg-muted text-muted-foreground" },
 };
 
