@@ -4954,10 +4954,8 @@ export type Database = {
           activated_by: string
           activation_source: string
           api_key_encrypted: string | null
-          cancelled_at: string | null
           config: Json | null
           created_at: string
-          expires_at: string | null
           id: string
           integration_id: string
           purchased_at: string | null
@@ -4970,10 +4968,8 @@ export type Database = {
           activated_by: string
           activation_source?: string
           api_key_encrypted?: string | null
-          cancelled_at?: string | null
           config?: Json | null
           created_at?: string
-          expires_at?: string | null
           id?: string
           integration_id: string
           purchased_at?: string | null
@@ -4986,10 +4982,8 @@ export type Database = {
           activated_by?: string
           activation_source?: string
           api_key_encrypted?: string | null
-          cancelled_at?: string | null
           config?: Json | null
           created_at?: string
-          expires_at?: string | null
           id?: string
           integration_id?: string
           purchased_at?: string | null
