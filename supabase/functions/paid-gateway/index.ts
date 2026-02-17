@@ -47,6 +47,10 @@ Deno.serve(async (req) => {
     }
     const tenantId = member.tenant_id;
 
+    if (action === "test-connection" && req.method === "POST") {
+      return await handleTestConnection(req, supabase, tenantId);
+    }
+
     if (action === "create-session") {
       return await handleCreateSession(req, supabase, user.id, tenantId);
     }
@@ -61,6 +65,116 @@ Deno.serve(async (req) => {
     return json({ error: err.message || "Internal error" }, 500);
   }
 });
+
+// ===================== TEST CONNECTION =====================
+async function handleTestConnection(req: Request, supabase: any, tenantId: string) {
+  const body = await req.json();
+  const { gatewayKey, apiKey } = body;
+
+  if (!gatewayKey || !apiKey) {
+    return json({ error: "gatewayKey and apiKey are required" }, 400);
+  }
+
+  let result: { success: boolean; message: string };
+
+  switch (gatewayKey) {
+    case "pay_moyasar":
+      result = await testMoyasar(apiKey);
+      break;
+    case "pay_hyperpay":
+      result = await testHyperPay(apiKey);
+      break;
+    case "pay_tap":
+      result = await testTap(apiKey);
+      break;
+    default:
+      result = { success: false, message: `بوابة غير معروفة: ${gatewayKey}` };
+  }
+
+  // If successful, activate the integration
+  if (result.success) {
+    const { data: integ } = await supabase
+      .from("paid_integrations")
+      .select("id")
+      .eq("key", gatewayKey)
+      .single();
+
+    if (integ) {
+      await supabase
+        .from("tenant_paid_integrations")
+        .update({
+          status: "active",
+          activated_at: new Date().toISOString(),
+        })
+        .eq("tenant_id", tenantId)
+        .eq("integration_id", integ.id);
+    }
+  }
+
+  return json(result);
+}
+
+async function testMoyasar(apiKey: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch("https://api.moyasar.com/v1/payments?page=1&per=1", {
+      headers: { Authorization: `Basic ${btoa(apiKey + ":")}` },
+    });
+    if (res.status === 401) return { success: false, message: "مفتاح API غير صالح — تحقق من المفتاح السري (sk_...)" };
+    if (res.status === 403) return { success: false, message: "المفتاح لا يمتلك الصلاحيات المطلوبة" };
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, message: `خطأ من Moyasar: ${res.status} — ${text.substring(0, 200)}` };
+    }
+    return { success: true, message: "تم الاتصال بنجاح مع Moyasar ✅" };
+  } catch (err: any) {
+    return { success: false, message: `فشل الاتصال بـ Moyasar: ${err.message}` };
+  }
+}
+
+async function testHyperPay(accessToken: string): Promise<{ success: boolean; message: string }> {
+  try {
+    // HyperPay format: "entityId:accessToken"
+    const [entityId, token] = accessToken.includes(":") ? accessToken.split(":") : ["", accessToken];
+    const testUrl = entityId 
+      ? `https://eu-test.oppwa.com/v1/checkouts/test123/payment?entityId=${entityId}`
+      : `https://eu-test.oppwa.com/v1/checkouts/test123/payment?entityId=test`;
+    
+    const res = await fetch(testUrl, {
+      headers: { Authorization: `Bearer ${token || accessToken}` },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return { success: false, message: "Access Token غير صالح — تحقق من التوكن" };
+    }
+    // 400 or 404 means token works but test ID doesn't exist (expected)
+    return { success: true, message: "تم الاتصال بنجاح مع HyperPay ✅" };
+  } catch (err: any) {
+    return { success: false, message: `فشل الاتصال بـ HyperPay: ${err.message}` };
+  }
+}
+
+async function testTap(secretKey: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch("https://api.tap.company/v2/charges/list", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ period: { date: { from: Date.now(), to: Date.now() } }, limit: 1 }),
+    });
+    if (res.status === 401) return { success: false, message: "مفتاح API غير صالح — تحقق من Secret Key (sk_live_...)" };
+    if (res.status === 403) return { success: false, message: "المفتاح لا يمتلك الصلاحيات المطلوبة" };
+    // 400 from Tap often means key is valid but request format issue
+    if (res.status === 400) return { success: true, message: "تم الاتصال بنجاح مع Tap ✅" };
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, message: `خطأ من Tap: ${res.status} — ${text.substring(0, 200)}` };
+    }
+    return { success: true, message: "تم الاتصال بنجاح مع Tap ✅" };
+  } catch (err: any) {
+    return { success: false, message: `فشل الاتصال بـ Tap: ${err.message}` };
+  }
+}
 
 // ===================== CREATE SESSION =====================
 async function handleCreateSession(
@@ -97,7 +211,7 @@ async function handleCreateSession(
     .from("paid_integrations")
     .select("id, key")
     .eq("key", gatewayKey)
-    .eq("integration_type", "payment_gateway")
+    .in("integration_type", ["payment", "payment_gateway"])
       .eq("is_ready", true)
     .single();
 
