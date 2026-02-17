@@ -1,0 +1,2 @@
+ALTER TABLE public.wallet_transactions DROP CONSTRAINT wallet_transactions_reason_check;
+ALTER TABLE public.wallet_transactions ADD CONSTRAINT wallet_transactions_reason_check CHECK (reason = ANY (ARRAY['subscription','integration','refund','manual','topup','payout']));
