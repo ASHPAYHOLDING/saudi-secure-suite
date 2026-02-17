@@ -97,8 +97,8 @@ async function handleCreateSession(
     .from("paid_integrations")
     .select("id, key")
     .eq("key", gatewayKey)
-    .eq("category", "payment_gateway")
-    .eq("is_available", true)
+    .eq("integration_type", "payment_gateway")
+      .eq("is_ready", true)
     .single();
 
   if (!integration) {
