@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Zap, Globe, FileText, Calculator, BarChart3 } from "lucide-react";
+import { ArrowLeft, Shield, Zap, Globe, FileText, Calculator, BarChart3, Wallet, Users, Receipt, Stamp, CheckCircle2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,15 @@ const counterTargets = [
   { label: "شركة تثق بنا", value: 1200, suffix: "+" },
   { label: "ريال سعودي تمت إدارته", value: 85, suffix: "M ﷼" },
 ];
+
+const floatingFeatures = [
+  { icon: FileText, label: "فواتير ZATCA", x: "8%", y: "20%", delay: 0.8 },
+  { icon: Calculator, label: "حسابات تلقائية", x: "85%", y: "25%", delay: 1.0 },
+  { icon: Wallet, label: "محفظة رقمية", x: "5%", y: "72%", delay: 1.2 },
+  { icon: Stamp, label: "ختم إلكتروني", x: "88%", y: "68%", delay: 1.4 },
+];
+
+const trustedLogos = ["أرامكو", "STC", "NEOM", "البنك الأهلي", "الراجحي"];
 
 const HeroSection = () => {
   const [counts, setCounts] = useState(counterTargets.map(() => 0));
@@ -30,136 +39,197 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl">
-      {/* Animated background elements */}
+      {/* Animated grid background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+      </div>
+
+      {/* Animated gradient orbs */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(172 66% 36% / 0.08) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.06, 0.1, 0.06] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)" }}
         />
         <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(220 60% 50% / 0.06) 0%, transparent 70%)" }}
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.04, 0.08, 0.04] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[10%] left-[5%] w-[400px] h-[400px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, hsl(220 70% 60% / 0.1), transparent 70%)" }}
+        />
+        <motion.div
+          animate={{ y: [0, -30, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[40%] left-[50%] w-[300px] h-[300px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, hsl(260 50% 50% / 0.06), transparent 70%)" }}
         />
       </div>
 
-      {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M0 0h1v40H0V0zm39 0h1v40h-1V0zM0 0h40v1H0V0zm0 39h40v1H0v-1z'/%3E%3C/g%3E%3C/svg%3E")`,
-      }} />
+      {/* Floating feature pills */}
+      {floatingFeatures.map((f, i) => (
+        <motion.div
+          key={f.label}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: f.delay, duration: 0.6, type: "spring" }}
+          className="absolute hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.1] shadow-lg z-10"
+          style={{ left: f.x, top: f.y }}
+        >
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}
+            className="flex items-center gap-2"
+          >
+            <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center">
+              <f.icon size={14} className="text-accent" />
+            </div>
+            <span className="text-xs font-medium text-white/80">{f.label}</span>
+          </motion.div>
+        </motion.div>
+      ))}
 
-      <div className="container relative mx-auto flex min-h-screen flex-col items-center justify-center px-4 pt-24 pb-12">
+      <div className="container relative mx-auto flex min-h-screen flex-col items-center justify-center px-4 pt-28 pb-16 z-20">
         {/* Badge */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-5 py-2.5 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8 inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-6 py-3 backdrop-blur-sm"
         >
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
           </span>
-          <span className="text-sm font-medium text-accent">
-            المنصة المحاسبية الأولى في السعودية
+          <span className="text-sm font-semibold text-accent">
+            🇸🇦 المنصة المحاسبية #1 في المملكة العربية السعودية
           </span>
         </motion.div>
 
-        {/* Headline */}
+        {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="mb-6 text-center text-4xl font-bold leading-[1.2] text-primary-foreground md:text-6xl lg:text-7xl"
+          transition={{ duration: 0.8, delay: 0.15 }}
+          className="mb-6 text-center text-4xl font-bold leading-[1.15] text-primary-foreground md:text-6xl lg:text-7xl max-w-5xl"
         >
-          حلول محاسبية ذكية
+          أدِر أعمالك المحاسبية
           <br />
-          <span className="text-gradient">لنمو أعمالك</span>
+          <span className="relative inline-block">
+            <span className="text-gradient">بذكاء وأمان مطلق</span>
+            <motion.span
+              className="absolute -bottom-2 left-0 right-0 h-1 rounded-full bg-accent/40"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 1, duration: 0.8 }}
+            />
+          </span>
         </motion.h1>
 
-        {/* Sub */}
+        {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-10 max-w-2xl text-center text-lg leading-relaxed text-primary-foreground/70 md:text-xl"
+          transition={{ duration: 0.7, delay: 0.25 }}
+          className="mb-10 max-w-3xl text-center text-lg leading-relaxed text-primary-foreground/65 md:text-xl"
         >
-          فواتير إلكترونية متوافقة مع هيئة الزكاة والدخل، إدارة عقود، تقارير مالية متقدمة، 
-          وختم إلكتروني — كل ما تحتاجه منشأتك في منصة واحدة.
+          فواتير إلكترونية ZATCA · عقود · عروض أسعار · أوامر شراء · محفظة رقمية · 
+          تقارير مالية · ختم إلكتروني · إدارة مخزون — كل شيء في منصة واحدة.
         </motion.p>
 
-        {/* CTA */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-16 flex flex-col items-center gap-4 sm:flex-row"
+          transition={{ duration: 0.6, delay: 0.35 }}
+          className="mb-12 flex flex-col items-center gap-4 sm:flex-row"
         >
           <Link to="/auth">
-            <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 text-base transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_hsl(172_66%_36%/0.5)]">
-                ابدأ تجربتك المجانية — 14 يوم
+            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+              <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-7 text-base font-bold transition-shadow duration-300 hover:shadow-[0_8px_40px_-4px_hsl(172_66%_36%/0.5)]">
+                ابدأ مجاناً — 14 يوم
                 <ArrowLeft className="mr-2 h-5 w-5" />
               </Button>
             </motion.div>
           </Link>
           <a href="#features">
-            <motion.div whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              <Button size="lg" className="border border-white/20 bg-white/10 text-white hover:bg-white/20 px-8 py-6 text-base backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.15)]">
-                اكتشف المميزات
+            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+              <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 py-7 text-base backdrop-blur-sm gap-2">
+                <Play size={16} className="fill-current" />
+                شاهد العرض التوضيحي
               </Button>
             </motion.div>
           </a>
         </motion.div>
 
-        {/* Floating feature cards */}
+        {/* Feature highlights row */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mb-16 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mb-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
         >
           {[
-            { icon: FileText, label: "فواتير ZATCA" },
-            { icon: Calculator, label: "حسابات تلقائية" },
-            { icon: BarChart3, label: "تقارير فورية" },
-            { icon: Shield, label: "أمان مؤسسي" },
+            "✅ متوافق مع ZATCA المرحلة الثانية",
+            "🔒 تشفير 256-bit",
+            "☁️ سحابي بالكامل",
+            "🇸🇦 دعم عربي كامل",
           ].map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+            <motion.span
+              key={item}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.6 + i * 0.1 }}
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="flex items-center gap-3 rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm px-4 py-3 cursor-default"
+              className="text-sm text-primary-foreground/50"
             >
-              <item.icon size={18} className="text-accent shrink-0" />
-              <span className="text-sm text-primary-foreground/80">{item.label}</span>
-            </motion.div>
+              {item}
+            </motion.span>
           ))}
         </motion.div>
 
-        {/* Animated counters */}
+        {/* Stats counters */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.7 }}
-          className="w-full max-w-4xl rounded-2xl border border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-md p-8"
+          className="w-full max-w-4xl rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.04] backdrop-blur-xl p-8"
         >
           <div className="grid grid-cols-3 divide-x divide-primary-foreground/10" style={{ direction: "ltr" }}>
             {counterTargets.map((target, i) => (
               <div key={target.label} className="text-center px-4" dir="rtl">
                 <p className="text-3xl md:text-4xl font-bold text-accent font-english mb-1">
-                  {target.suffix.includes("M") 
+                  {target.suffix.includes("M")
                     ? `${counts[i]}${target.suffix}`
                     : `${counts[i].toLocaleString("ar-SA")}${target.suffix}`
                   }
                 </p>
-                <p className="text-sm text-primary-foreground/60">{target.label}</p>
+                <p className="text-sm text-primary-foreground/50">{target.label}</p>
               </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Trusted by logos */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="mt-12 text-center"
+        >
+          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest">موثوق من قبل أكثر من 1,200 منشأة سعودية</p>
+          <div className="flex items-center justify-center gap-8 flex-wrap">
+            {trustedLogos.map((logo, i) => (
+              <motion.span
+                key={logo}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.4 + i * 0.1 }}
+                className="text-sm font-medium text-primary-foreground/20"
+              >
+                {logo}
+              </motion.span>
             ))}
           </div>
         </motion.div>

@@ -1,6 +1,7 @@
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import PlatformShowcase from "@/components/landing/PlatformShowcase";
 import WhySection from "@/components/landing/WhySection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import DynamicPricingSection from "@/components/landing/DynamicPricingSection";
@@ -13,6 +14,7 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <FeaturesSection />
+      <PlatformShowcase />
       <WhySection />
       <TestimonialsSection />
       <DynamicPricingSection />
