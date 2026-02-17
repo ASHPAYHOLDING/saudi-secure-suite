@@ -14,7 +14,7 @@ import {
   Plug, CheckCircle2, Monitor, ShoppingBag, Users, CreditCard, Package,
   Power, PowerOff, Key, BookOpen, MessageSquare, Radio,
   ShieldCheck, Loader2, AlertTriangle, Zap, Settings2, CircleDot,
-  ArrowRight, Lock, Unlock, WifiOff, Wifi,
+  ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet,
 } from "lucide-react";
 
 interface PaidIntegration {
@@ -45,6 +45,7 @@ interface TenantSubscription {
   api_key_encrypted: string | null;
 }
 
+type PaymentMethod = "wallet" | "paylink";
 type FlowStep = "preview" | "payment" | "paying" | "api_keys" | "testing" | "done";
 
 const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
@@ -80,16 +81,38 @@ const PaidIntegrationsPage = () => {
   const [apiKeyValue, setApiKeyValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [testResult, setTestResult] = useState<"idle" | "testing" | "success" | "fail">("idle");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("wallet");
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [walletExists, setWalletExists] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [paylinkTransactionNo, setPaylinkTransactionNo] = useState<string | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (tenantId) fetchAll();
+    if (tenantId) {
+      fetchAll();
+      fetchWalletBalance();
+    }
     return () => {
       if (paymentCheckInterval) clearInterval(paymentCheckInterval);
     };
   }, [tenantId]);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=get-balance`,
+        { headers: { Authorization: `Bearer ${session?.session?.access_token}` } }
+      );
+      const data = await res.json();
+      setWalletBalance(data.balance_available ?? 0);
+      setWalletExists(data.exists ?? false);
+    } catch {
+      setWalletBalance(0);
+      setWalletExists(false);
+    }
+  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -111,6 +134,8 @@ const PaidIntegrationsPage = () => {
     setFlowStep("preview");
     setApiKeyValue("");
     setTestResult("idle");
+    // Auto-select wallet if balance is sufficient
+    setPaymentMethod(walletExists && walletBalance !== null && walletBalance >= item.price_once ? "wallet" : "paylink");
   };
 
   const closeFlow = () => {
@@ -122,6 +147,50 @@ const PaidIntegrationsPage = () => {
     setPaymentUrl(null);
     setPaylinkTransactionNo(null);
     setPaymentCheckInterval(null);
+  };
+
+  // ─── Wallet Purchase ───
+  const handleWalletPurchase = async () => {
+    if (!flowItem || !tenantId || !user) return;
+    setSaving(true);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=purchase-integration`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.session?.access_token}`,
+          },
+          body: JSON.stringify({ integrationId: flowItem.id }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        toast({ title: "فشل الشراء", description: result.error || "حدث خطأ", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      toast({ title: "تم الشراء بنجاح ✅", description: `${flowItem.name_ar} — الرصيد المتبقي: ${result.new_balance} ر.س` });
+      setWalletBalance(result.new_balance);
+
+      if (result.requires_api_keys) {
+        setFlowStep("api_keys");
+      } else {
+        setFlowStep("testing");
+        runConnectionTest();
+      }
+
+      fetchAll();
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    }
+    setSaving(false);
   };
 
   const handlePayment = async () => {
@@ -636,14 +705,65 @@ const PaidIntegrationsPage = () => {
 
             {/* Payment */}
             {flowStep === "payment" && flowItem && (
-              <div className="space-y-4 text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <CreditCard size={32} className="text-primary" />
-                </div>
-                <div>
+              <div className="space-y-4">
+                <div className="text-center">
                   <p className="text-2xl font-bold text-foreground">{flowItem.price_once} ر.س</p>
                   <p className="text-sm text-muted-foreground mt-1">دفعة واحدة — {flowItem.name_ar}</p>
                 </div>
+
+                {/* Payment method selector */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">طريقة الدفع</Label>
+                  
+                  {/* Wallet option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("wallet")}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-right ${
+                      paymentMethod === "wallet"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30"
+                    }`}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                      <Wallet size={20} className="text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm text-foreground">المحفظة</p>
+                      <p className="text-xs text-muted-foreground">
+                        {walletExists
+                          ? `الرصيد: ${walletBalance?.toFixed(2)} ر.س`
+                          : "لا توجد محفظة"}
+                      </p>
+                    </div>
+                    {walletExists && walletBalance !== null && walletBalance >= flowItem.price_once && (
+                      <Badge variant="outline" className="text-[10px] bg-green-500/5 text-green-600 border-green-200">كافٍ</Badge>
+                    )}
+                    {walletExists && walletBalance !== null && walletBalance < flowItem.price_once && (
+                      <Badge variant="outline" className="text-[10px] bg-destructive/5 text-destructive border-destructive/20">غير كافٍ</Badge>
+                    )}
+                  </button>
+
+                  {/* Paylink option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("paylink")}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-right ${
+                      paymentMethod === "paylink"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30"
+                    }`}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 shrink-0">
+                      <CreditCard size={20} className="text-accent" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm text-foreground">Paylink (بطاقة / تحويل)</p>
+                      <p className="text-xs text-muted-foreground">ادفع عبر بوابة Paylink الآمنة</p>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <ShieldCheck size={12} />
                   دفع آمن ومشفّر
@@ -758,10 +878,21 @@ const PaidIntegrationsPage = () => {
             {flowStep === "payment" && (
               <>
                 <Button variant="outline" onClick={() => setFlowStep("preview")}>رجوع</Button>
-                <Button onClick={handlePayment} disabled={saving} className="gap-2">
-                  {saving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
-                  {saving ? "جاري إنشاء الفاتورة..." : `ادفع ${flowItem?.price_once} ر.س`}
-                </Button>
+                {paymentMethod === "wallet" ? (
+                  <Button
+                    onClick={handleWalletPurchase}
+                    disabled={saving || !walletExists || (walletBalance ?? 0) < (flowItem?.price_once ?? 0)}
+                    className="gap-2"
+                  >
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Wallet size={14} />}
+                    {saving ? "جاري الخصم..." : `ادفع من المحفظة ${flowItem?.price_once} ر.س`}
+                  </Button>
+                ) : (
+                  <Button onClick={handlePayment} disabled={saving} className="gap-2">
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                    {saving ? "جاري إنشاء الفاتورة..." : `ادفع ${flowItem?.price_once} ر.س`}
+                  </Button>
+                )}
               </>
             )}
             {flowStep === "paying" && (
