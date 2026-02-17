@@ -24,10 +24,16 @@ import { cn } from "@/lib/utils";
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -76,20 +82,38 @@ const Admin = () => {
     return <AdminDashboard />;
   };
 
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
+      {/* Mobile sidebar backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
       <AdminSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
       <div
         className={cn(
           "transition-all duration-300",
-          sidebarCollapsed ? "mr-[68px]" : "mr-64"
+          sidebarCollapsed ? "md:mr-[68px]" : "md:mr-64"
         )}
       >
-        <div className="flex items-center justify-between border-b bg-card px-6 py-3">
-          <h2 className="text-lg font-semibold text-foreground">لوحة إدارة المنصة</h2>
+        <div className="flex items-center justify-between border-b bg-card px-3 md:px-6 py-3">
+          <div className="flex items-center gap-2">
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-secondary/50"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <h2 className="text-base md:text-lg font-semibold text-foreground">لوحة إدارة المنصة</h2>
+          </div>
           <AdminNotifications />
         </div>
         {renderContent()}

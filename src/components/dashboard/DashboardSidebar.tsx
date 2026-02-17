@@ -104,9 +104,11 @@ const settingsMenuKeys: NavItemDef[] = [
 interface DashboardSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: DashboardSidebarProps) => {
   const location = useLocation();
   const { user, tenantType } = useAuth();
   const { t, isRTL } = useLanguage();
@@ -262,12 +264,16 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const hasActiveSettings = filteredSettings.some((item) => location.pathname === item.path);
 
   return (
+    <>
     <aside
       dir={isRTL ? "rtl" : "ltr"}
       className={cn(
         "fixed top-0 z-40 flex h-screen flex-col border-sidebar-border bg-sidebar transition-all duration-300",
         isRTL ? "right-0 border-l" : "left-0 border-r",
-        collapsed ? "w-[68px]" : "w-64"
+        collapsed ? "w-[68px]" : "w-64",
+        // Mobile: hidden by default, shown via mobileOpen
+        "max-md:hidden",
+        mobileOpen && "max-md:!flex"
       )}
     >
       {/* Logo */}
@@ -374,6 +380,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         </Link>
       </div>
     </aside>
+    </>
   );
 };
 
