@@ -22,6 +22,19 @@ export const usePaidIntegration = (integrationKey: string) => {
     }
 
     const check = async () => {
+      // Check 0: Integration must be ready
+      const { data: readyCheck } = await supabase
+        .from("paid_integrations")
+        .select("is_ready")
+        .eq("key", integrationKey)
+        .eq("is_ready", true)
+        .maybeSingle();
+      if (!readyCheck) {
+        setActive(false);
+        setLoading(false);
+        return;
+      }
+
       // Check 1: Explicit activation
       const { data: explicit } = await supabase
         .from("tenant_paid_integrations")

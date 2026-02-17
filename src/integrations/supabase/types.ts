@@ -2405,6 +2405,9 @@ export type Database = {
           currency: string
           description_ar: string | null
           description_en: string | null
+          has_api_client: boolean
+          has_service: boolean
+          has_test_connection: boolean
           icon_name: string | null
           id: string
           included_in_plans: string[]
@@ -2426,6 +2429,9 @@ export type Database = {
           currency?: string
           description_ar?: string | null
           description_en?: string | null
+          has_api_client?: boolean
+          has_service?: boolean
+          has_test_connection?: boolean
           icon_name?: string | null
           id?: string
           included_in_plans?: string[]
@@ -2447,6 +2453,9 @@ export type Database = {
           currency?: string
           description_ar?: string | null
           description_en?: string | null
+          has_api_client?: boolean
+          has_service?: boolean
+          has_test_connection?: boolean
           icon_name?: string | null
           id?: string
           included_in_plans?: string[]

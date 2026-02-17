@@ -41,6 +41,9 @@ interface PaidIntegration {
   sort_order: number;
   trial_days: number;
   included_in_plans: string[];
+  has_service: boolean;
+  has_api_client: boolean;
+  has_test_connection: boolean;
 }
 
 interface SubPlan {
@@ -85,6 +88,7 @@ const AdminPaidIntegrations = () => {
     integration_type: "other", price_once: 0, is_listed: true, is_ready: false,
     requires_api_keys: false, api_key_label: "", sort_order: 0, icon_name: "Plug",
     trial_days: 0, included_in_plans: [] as string[],
+    has_service: false, has_api_client: false, has_test_connection: false,
   });
 
   useEffect(() => {
@@ -147,6 +151,7 @@ const AdminPaidIntegrations = () => {
       integration_type: "other", price_once: 0, is_listed: true, is_ready: false,
       requires_api_keys: false, api_key_label: "", sort_order: integrations.length + 1,
       icon_name: "Plug", trial_days: 0, included_in_plans: [],
+      has_service: false, has_api_client: false, has_test_connection: false,
     });
     setCreateDialog(true);
   };
@@ -160,6 +165,7 @@ const AdminPaidIntegrations = () => {
       requires_api_keys: item.requires_api_keys, api_key_label: item.api_key_label || "",
       sort_order: item.sort_order, icon_name: item.icon_name || "Plug",
       trial_days: item.trial_days || 0, included_in_plans: item.included_in_plans || [],
+      has_service: item.has_service || false, has_api_client: item.has_api_client || false, has_test_connection: item.has_test_connection || false,
     });
     setEditDialog(item);
   };
@@ -178,6 +184,7 @@ const AdminPaidIntegrations = () => {
       requires_api_keys: formData.requires_api_keys, api_key_label: formData.api_key_label,
       sort_order: formData.sort_order, icon_name: formData.icon_name,
       trial_days: formData.trial_days, included_in_plans: formData.included_in_plans,
+      has_service: formData.has_service, has_api_client: formData.has_api_client, has_test_connection: formData.has_test_connection,
     };
 
     if (editDialog) {
@@ -206,6 +213,13 @@ const AdminPaidIntegrations = () => {
   };
 
   const toggleReady = async (id: string, val: boolean) => {
+    if (val) {
+      const item = integrations.find((i) => i.id === id);
+      if (!item?.has_service || !item?.has_api_client || !item?.has_test_connection) {
+        toast({ title: "لا يمكن التفعيل", description: "يجب أن يكون has_service و has_api_client و has_test_connection = true", variant: "destructive" });
+        return;
+      }
+    }
     await supabase.from("paid_integrations").update({ is_ready: val } as any).eq("id", id);
     fetchAll();
   };
@@ -296,10 +310,36 @@ const AdminPaidIntegrations = () => {
             </div>
           </div>
 
+          <div className="space-y-3 border rounded-lg p-3 bg-muted/30">
+            <Label className="text-sm font-semibold">متطلبات الجاهزية (is_ready)</Label>
+            <p className="text-[10px] text-muted-foreground">لا يمكن تفعيل is_ready إلا إذا كانت الثلاثة = true</p>
+            <div className="flex items-center gap-6 flex-wrap">
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={formData.has_service} onCheckedChange={(v) => setFormData({ ...formData, has_service: v })} />
+                has_service 🔧
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={formData.has_api_client} onCheckedChange={(v) => setFormData({ ...formData, has_api_client: v })} />
+                has_api_client 🔌
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={formData.has_test_connection} onCheckedChange={(v) => setFormData({ ...formData, has_test_connection: v })} />
+                has_test_connection ✅
+              </label>
+            </div>
+          </div>
+
           <div className="flex items-center gap-6 flex-wrap">
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={formData.is_ready} onCheckedChange={(v) => setFormData({ ...formData, is_ready: v })} />
+              <Switch
+                checked={formData.is_ready}
+                disabled={!(formData.has_service && formData.has_api_client && formData.has_test_connection)}
+                onCheckedChange={(v) => setFormData({ ...formData, is_ready: v })}
+              />
               جاهز تقنياً 🔥
+              {!(formData.has_service && formData.has_api_client && formData.has_test_connection) && (
+                <span className="text-[10px] text-destructive">(يتطلب الثلاثة أعلاه)</span>
+              )}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <Switch checked={formData.is_listed} onCheckedChange={(v) => setFormData({ ...formData, is_listed: v })} />
@@ -405,6 +445,7 @@ const AdminPaidIntegrations = () => {
                     <TableHead>تجربة</TableHead>
                     <TableHead>مضمّن في</TableHead>
                     <TableHead>المشتركين</TableHead>
+                    <TableHead>الجاهزية</TableHead>
                     <TableHead>جاهز 🔥</TableHead>
                     <TableHead>يظهر للبيع</TableHead>
                     <TableHead>إجراءات</TableHead>
@@ -460,7 +501,18 @@ const AdminPaidIntegrations = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Switch checked={item.is_ready} onCheckedChange={(v) => toggleReady(item.id, v)} />
+                            <span title="has_service" className={`text-[10px] px-1 rounded ${item.has_service ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>SVC</span>
+                            <span title="has_api_client" className={`text-[10px] px-1 rounded ${item.has_api_client ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>API</span>
+                            <span title="has_test_connection" className={`text-[10px] px-1 rounded ${item.has_test_connection ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>TST</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Switch
+                              checked={item.is_ready}
+                              disabled={!(item.has_service && item.has_api_client && item.has_test_connection)}
+                              onCheckedChange={(v) => toggleReady(item.id, v)}
+                            />
                             {item.is_ready ? (
                               <CheckCircle2 size={14} className="text-green-500" />
                             ) : (
