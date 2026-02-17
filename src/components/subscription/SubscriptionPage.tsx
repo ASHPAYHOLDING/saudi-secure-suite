@@ -280,8 +280,8 @@ const SubscriptionPage = () => {
         </motion.div>
       )}
 
-      <Tabs defaultValue="plans" className="space-y-4">
-        <TabsList>
+      <Tabs defaultValue="plans" className="space-y-4" dir="rtl">
+        <TabsList className="flex-row-reverse">
           <TabsTrigger value="plans" className="gap-1"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
           <TabsTrigger value="history" className="gap-1"><History size={14} /> سجل الاشتراك</TabsTrigger>
         </TabsList>
