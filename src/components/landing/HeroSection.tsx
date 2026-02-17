@@ -176,7 +176,7 @@ const HeroSection = () => {
           transition={{ delay: 1.2 }}
           className="mt-12 text-center"
         >
-          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest">موثوق من أكثر من منشأة سعودية</p>
+          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest text-center">موثوق من أكثر من منشأة سعودية</p>
           <div className="flex items-center justify-center gap-8 flex-wrap">
             {trustedLogos.map((logo, i) => (
               <motion.span
