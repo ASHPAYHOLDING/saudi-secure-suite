@@ -68,10 +68,11 @@ const Auth = () => {
 
     try {
       if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+        // Send password reset via our custom edge function (uses Resend)
+        const { error: fnError } = await supabase.functions.invoke("send-auth-email", {
+          body: { email, type: "recovery", redirectTo: `${window.location.origin}/reset-password` },
         });
-        if (error) throw error;
+        if (fnError) throw fnError;
         setResetSent(true);
       } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
@@ -83,6 +84,14 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        // Send verification email via our custom edge function (uses Resend + numaxio.com)
+        try {
+          await supabase.functions.invoke("send-auth-email", {
+            body: { email, type: "signup", redirectTo: window.location.origin },
+          });
+        } catch (emailErr) {
+          console.error("Failed to send custom verification email:", emailErr);
+        }
         setSignupSuccess(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
