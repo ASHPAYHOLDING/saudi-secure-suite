@@ -148,7 +148,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
     ? (collapsed ? ChevronLeft : ChevronRight)
     : (collapsed ? ChevronRight : ChevronLeft);
 
-  const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
+  const NavItem = ({ icon: Icon, label, path, badge }: { icon: any; label: string; path: string; badge?: string }) => {
     const isActive = location.pathname === path;
     return (
       <Link
@@ -161,7 +161,22 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
         )}
       >
         <Icon size={18} className="shrink-0" />
-        {!collapsed && <span>{label}</span>}
+        {!collapsed && (
+          <span className="flex-1 flex items-center gap-2">
+            {label}
+            {badge && (
+              <span className="relative flex items-center">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent/40" />
+                <span className="relative inline-flex rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-bold text-accent-foreground leading-none">
+                  {badge}
+                </span>
+              </span>
+            )}
+          </span>
+        )}
+        {collapsed && badge && (
+          <span className="absolute top-0.5 end-0.5 h-2 w-2 rounded-full bg-accent" />
+        )}
       </Link>
     );
   };
@@ -177,7 +192,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
       return (
         <div className="space-y-0.5">
           {filteredItems.map((item) => (
-            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} badge={item.path === "/dashboard/numaxio-pay" ? "جديد" : undefined} />
           ))}
         </div>
       );
@@ -214,7 +229,7 @@ const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
             >
               <div className="space-y-0.5 pb-1">
                 {filteredItems.map((item) => (
-                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} badge={item.path === "/dashboard/numaxio-pay" ? "جديد" : undefined} />
                 ))}
               </div>
             </motion.div>
