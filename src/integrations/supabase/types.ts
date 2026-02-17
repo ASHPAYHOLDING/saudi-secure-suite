@@ -1342,6 +1342,56 @@ export type Database = {
           },
         ]
       }
+      document_access_tokens: {
+        Row: {
+          access_count: number | null
+          accessed_at: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string
+          document_type: string
+          expires_at: string
+          id: string
+          max_access: number | null
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          access_count?: number | null
+          accessed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          document_type: string
+          expires_at?: string
+          id?: string
+          max_access?: number | null
+          tenant_id: string
+          token?: string
+        }
+        Update: {
+          access_count?: number | null
+          accessed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          document_type?: string
+          expires_at?: string
+          id?: string
+          max_access?: number | null
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_access_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_lifecycle: {
         Row: {
           change_reason: string | null
@@ -5499,6 +5549,17 @@ export type Database = {
           net_amount: number
         }[]
       }
+      cleanup_expired_tokens: { Args: never; Returns: undefined }
+      create_document_access_token: {
+        Args: {
+          _document_id: string
+          _document_type: string
+          _hours?: number
+          _max_access?: number
+          _tenant_id: string
+        }
+        Returns: string
+      }
       generate_smart_notifications: { Args: never; Returns: undefined }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
@@ -5562,6 +5623,15 @@ export type Database = {
       user_has_permission: {
         Args: { _permission_key: string }
         Returns: boolean
+      }
+      validate_document_token: {
+        Args: { _token: string }
+        Returns: {
+          document_id: string
+          document_type: string
+          is_valid: boolean
+          tenant_id: string
+        }[]
       }
     }
     Enums: {
