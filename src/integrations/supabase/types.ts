@@ -5231,6 +5231,38 @@ export type Database = {
           },
         ]
       }
+      wallet_receipts: {
+        Row: {
+          id: string
+          invoice_number: string
+          issued_at: string
+          pdf_url: string | null
+          wallet_transaction_id: string
+        }
+        Insert: {
+          id?: string
+          invoice_number: string
+          issued_at?: string
+          pdf_url?: string | null
+          wallet_transaction_id: string
+        }
+        Update: {
+          id?: string
+          invoice_number?: string
+          issued_at?: string
+          pdf_url?: string | null
+          wallet_transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_receipts_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
