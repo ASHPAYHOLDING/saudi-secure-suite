@@ -281,7 +281,7 @@ const SubscriptionPage = () => {
       )}
 
       <Tabs defaultValue="plans" className="space-y-4" dir="rtl">
-        <TabsList className="flex-row-reverse">
+        <TabsList>
           <TabsTrigger value="plans" className="gap-1"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
           <TabsTrigger value="history" className="gap-1"><History size={14} /> سجل الاشتراك</TabsTrigger>
         </TabsList>
