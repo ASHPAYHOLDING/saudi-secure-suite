@@ -524,7 +524,7 @@ const WalletPage = () => {
                     >
                       {balanceHidden ? "●●●●●●" : animatedBalance.toLocaleString("ar-SA")}
                     </motion.span>
-                    <span className="text-lg font-medium text-white/25">{wallet.currency}</span>
+                    <span className="text-lg font-medium text-white/25">﷼</span>
                   </div>
                 </div>
 
@@ -534,7 +534,7 @@ const WalletPage = () => {
                     <Clock className="w-3.5 h-3.5 text-amber-400/70" />
                     <span className="text-xs text-white/35">معلّق:</span>
                     <span className="text-xs font-bold text-white/70 tabular-nums">
-                      {balanceHidden ? "••••" : `${animatedPending.toLocaleString("ar-SA")} ${wallet.currency}`}
+                      {balanceHidden ? "••••" : `${animatedPending.toLocaleString("ar-SA")} ﷼`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
@@ -727,10 +727,10 @@ const WalletPage = () => {
         {/* ── Analytics Cards ── */}
         {analytics && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard icon={ArrowDownRight} label="الوارد (30 يوم)" value={balanceHidden ? "••••" : analytics.totalIn.toLocaleString("ar-SA")} suffix={wallet.currency} color="bg-blue-500/20" delay={0.2} />
-            <StatCard icon={ArrowUpRight} label="المنصرف (30 يوم)" value={balanceHidden ? "••••" : analytics.totalOut.toLocaleString("ar-SA")} suffix={wallet.currency} color="bg-indigo-500/20" delay={0.25} />
+            <StatCard icon={ArrowDownRight} label="الوارد (30 يوم)" value={balanceHidden ? "••••" : analytics.totalIn.toLocaleString("ar-SA")} suffix="﷼" color="bg-blue-500/20" delay={0.2} />
+            <StatCard icon={ArrowUpRight} label="المنصرف (30 يوم)" value={balanceHidden ? "••••" : analytics.totalOut.toLocaleString("ar-SA")} suffix="﷼" color="bg-indigo-500/20" delay={0.25} />
             <StatCard icon={BarChart3} label="عمليات الشهر" value={analytics.txCount} color="bg-purple-500/20" delay={0.3} />
-            <StatCard icon={TrendingUp} label="صافي التدفق" value={balanceHidden ? "••••" : (analytics.totalIn - analytics.totalOut).toLocaleString("ar-SA")} suffix={wallet.currency} color="bg-emerald-500/20" delay={0.35} />
+            <StatCard icon={TrendingUp} label="صافي التدفق" value={balanceHidden ? "••••" : (analytics.totalIn - analytics.totalOut).toLocaleString("ar-SA")} suffix="﷼" color="bg-emerald-500/20" delay={0.35} />
           </div>
         )}
 
@@ -761,7 +761,7 @@ const WalletPage = () => {
                           {info.label}
                         </span>
                         <span className="text-white/70 font-bold tabular-nums">
-                          {balanceHidden ? "••••" : amount.toLocaleString("ar-SA")} {wallet.currency} ({pct}%)
+                          {balanceHidden ? "••••" : amount.toLocaleString("ar-SA")} ﷼ ({pct}%)
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
@@ -837,7 +837,7 @@ const WalletPage = () => {
                     <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                       <span className="text-base font-bold text-blue-400 tabular-nums whitespace-nowrap">
                         +{req.amount.toLocaleString("ar-SA")}
-                        <span className="text-xs font-normal opacity-50 ms-1">{wallet.currency}</span>
+                        <span className="text-xs font-normal opacity-50 ms-1">﷼</span>
                       </span>
                       <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
                         <StatusIcon className="w-3 h-3" />
@@ -939,7 +939,7 @@ const WalletPage = () => {
                           isCredit ? "text-blue-400" : "text-red-400"
                         }`}>
                           {isCredit ? "+" : "-"}{tx.amount.toLocaleString("ar-SA")}
-                          <span className="text-xs font-normal opacity-50 ms-1">{wallet.currency}</span>
+                          <span className="text-xs font-normal opacity-50 ms-1">﷼</span>
                         </div>
                       </motion.div>
                     );
