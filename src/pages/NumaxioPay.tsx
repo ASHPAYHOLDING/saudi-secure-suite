@@ -13,7 +13,7 @@ import {
   Wallet, TrendingUp, Clock, CheckCircle2, XCircle,
   ArrowDownToLine, Receipt, ChevronLeft, DollarSign, Percent,
   Loader2, BanknoteIcon, CreditCard,
-  Download, Send
+  Download, Send, Crown
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,8 +21,10 @@ import { usePaylinkData } from "@/hooks/usePaylinkData";
 import { supabase } from "@/integrations/supabase/client";
 import PayoutSettings from "@/components/paylink/PayoutSettings";
 import KycVerificationForm from "@/components/paylink/KycVerificationForm";
+import { useHasFeature } from "@/hooks/useSubscriptionFeature";
 
 const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
+  const { allowed: hasPayFeature, loading: featureLoading } = useHasFeature("numaxio_pay");
   const navigate = useNavigate();
   const { tenantId, user } = useAuth();
   const { transactions, stats, loading: dataLoading, refetch, feeConfig } = usePaylinkData(tenantId ?? undefined);
@@ -97,10 +99,30 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
   const formatCurrency = (n: number) =>
     n.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ر.س";
 
-  if (checkingStatus) {
+  if (checkingStatus || featureLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Subscription gate
+  if (!hasPayFeature) {
+    return (
+      <div className={embedded ? "bg-background" : "min-h-screen bg-background"} dir="rtl">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
+          <div className="mx-auto w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center">
+            <Crown className="w-10 h-10 text-warning" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">بوابة الدفع غير متاحة في باقتك الحالية</h2>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            خدمة "نيوماكسيو باي" متاحة حصرياً لمشتركي الباقة الاحترافية والمؤسسية. قم بالترقية للاستفادة من بوابة الدفع المتكاملة.
+          </p>
+          <Button onClick={() => navigate("/dashboard/subscription")} className="gap-2">
+            <Crown className="w-4 h-4" /> ترقية الباقة
+          </Button>
+        </div>
       </div>
     );
   }

@@ -459,6 +459,9 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
           invoiceNumber={invoice.invoice_number}
           amount={invoice.amount_due}
           currency={invoice.currency}
+          customerName={customer?.name}
+          customerMobile={customer?.phone}
+          customerEmail={customer?.email}
         />
       )}
     </div>
