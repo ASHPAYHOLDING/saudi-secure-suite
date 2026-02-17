@@ -16,12 +16,7 @@ import {
 import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ar } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+// Topup is now inline, no Dialog needed
 
 /* ── Animated Counter Hook ── */
 function useAnimatedCounter(target: number, duration = 1.2) {
@@ -412,225 +407,7 @@ const WalletPage = () => {
     <div className="min-h-screen relative">
       <BankingBackground />
 
-      {/* Topup Modal */}
-      <Dialog open={showTopup} onOpenChange={setShowTopup}>
-        <DialogContent className="bg-[hsl(225,30%,11%)] border-white/[0.08] text-white max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <Plus className="w-4 h-4 text-blue-400" />
-              </div>
-              إضافة رصيد
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-5 mt-2">
-            {/* Payment Method */}
-            <div className="space-y-3">
-              <label className="text-sm text-white/50 font-medium">طريقة الدفع</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setPaymentMethod("bank_transfer")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-2 ${
-                    paymentMethod === "bank_transfer"
-                      ? "border-blue-500/50 bg-blue-500/10 shadow-[0_0_20px_-5px_hsla(220,80%,60%,0.2)]"
-                      : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
-                  }`}
-                >
-                  <Building2 className={`w-6 h-6 ${paymentMethod === "bank_transfer" ? "text-blue-400" : "text-white/40"}`} />
-                  <span className={`text-sm font-medium ${paymentMethod === "bank_transfer" ? "text-blue-400" : "text-white/50"}`}>
-                    تحويل بنكي
-                  </span>
-                </button>
-                <button
-                  onClick={() => setPaymentMethod("card")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-2 ${
-                    paymentMethod === "card"
-                      ? "border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_20px_-5px_hsla(250,80%,60%,0.2)]"
-                      : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"
-                  }`}
-                >
-                  <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-indigo-400" : "text-white/40"}`} />
-                  <span className={`text-sm font-medium ${paymentMethod === "card" ? "text-indigo-400" : "text-white/50"}`}>
-                    بطاقة / Apple Pay
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Amounts */}
-            <div className="space-y-3">
-              <label className="text-sm text-white/50 font-medium">اختر المبلغ</label>
-              <div className="grid grid-cols-3 gap-2">
-                {TOPUP_AMOUNTS.map((amt) => (
-                  <button
-                    key={amt}
-                    onClick={() => { setTopupAmount(amt); setCustomAmount(""); }}
-                    className={`py-3.5 rounded-xl text-sm font-bold transition-all duration-300 border-2 ${
-                      topupAmount === amt
-                        ? "border-blue-500/50 bg-blue-500/10 text-blue-400 shadow-[0_0_15px_-5px_hsla(220,80%,60%,0.3)]"
-                        : "border-white/[0.06] bg-white/[0.03] text-white/50 hover:bg-white/[0.06]"
-                    }`}
-                  >
-                    {amt.toLocaleString("ar-SA")} ر.س
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom Amount */}
-            <div className="space-y-2">
-              <label className="text-sm text-white/50 font-medium">أو أدخل مبلغ مخصص</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="1"
-                  max="50000"
-                  placeholder="0"
-                  value={customAmount}
-                  onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }}
-                  className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3.5 text-white placeholder-white/15
-                    focus:outline-none focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10 transition-all
-                    text-lg font-bold text-center"
-                  dir="ltr"
-                />
-                <span className="absolute top-1/2 -translate-y-1/2 start-4 text-sm text-white/20">ر.س</span>
-              </div>
-            </div>
-
-            {/* Bank Transfer Details */}
-            {paymentMethod === "bank_transfer" && finalAmount > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-4"
-              >
-                <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Building2 className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm font-semibold text-white/70">معلومات الحساب البنكي</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                    <div className="min-w-0">
-                      <span className="text-[10px] text-white/25 uppercase tracking-wider block">رقم الآيبان (IBAN)</span>
-                      <span className="text-sm font-mono text-white/80 break-all" dir="ltr">{BANK_INFO.iban}</span>
-                    </div>
-                    <button onClick={() => copyToClipboard(BANK_INFO.iban, "رقم الآيبان")}
-                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                      <Copy className="w-4 h-4 text-white/30" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                    <div>
-                      <span className="text-[10px] text-white/25 uppercase tracking-wider block">اسم البنك</span>
-                      <span className="text-sm text-white/80">{BANK_INFO.bankName}</span>
-                    </div>
-                    <button onClick={() => copyToClipboard(BANK_INFO.bankName, "اسم البنك")}
-                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                      <Copy className="w-4 h-4 text-white/30" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                    <div>
-                      <span className="text-[10px] text-white/25 uppercase tracking-wider block">اسم المستفيد</span>
-                      <span className="text-sm text-white/80">{BANK_INFO.beneficiary}</span>
-                    </div>
-                    <button onClick={() => copyToClipboard(BANK_INFO.beneficiary, "اسم المستفيد")}
-                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                      <Copy className="w-4 h-4 text-white/30" />
-                    </button>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-center">
-                    <span className="text-[10px] text-blue-400/60 uppercase tracking-wider block">المبلغ المطلوب تحويله</span>
-                    <span className="text-xl font-black text-blue-400">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50">رقم مرجع التحويل (اختياري)</label>
-                  <input type="text" placeholder="مثال: TRN-123456" value={bankReference}
-                    onChange={(e) => setBankReference(e.target.value)}
-                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/15
-                      focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all text-sm"
-                    dir="ltr" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50">
-                    رفع إيصال التحويل <span className="text-red-400">*</span>
-                  </label>
-                  <label className={`flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300 ${
-                    receiptFile
-                      ? "border-blue-500/40 bg-blue-500/5"
-                      : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]"
-                  }`}>
-                    <input type="file" accept="image/*,.pdf" className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 5 * 1024 * 1024) { toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت"); return; }
-                          setReceiptFile(file);
-                        }
-                      }} />
-                    {receiptFile ? (
-                      <>
-                        <CheckCircle2 className="w-8 h-8 text-blue-400" />
-                        <div className="text-center">
-                          <p className="text-sm font-semibold text-blue-400">{receiptFile.name}</p>
-                          <p className="text-xs text-white/30 mt-1">{(receiptFile.size / 1024).toFixed(0)} KB — انقر لتغيير الملف</p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-white/15" />
-                        <div className="text-center">
-                          <p className="text-sm text-white/40">انقر لرفع إيصال التحويل</p>
-                          <p className="text-xs text-white/20 mt-1">صورة أو PDF — حد أقصى 5 MB</p>
-                        </div>
-                      </>
-                    )}
-                  </label>
-                </div>
-
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-400/5 border border-amber-400/10">
-                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-400/70 leading-relaxed">
-                    بعد إرسال الطلب سيتم مراجعة الإيصال وتأكيد الرصيد خلال 24 ساعة عمل.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            <button onClick={handleTopup}
-              disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}
-              className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all duration-300
-                disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{
-                background: finalAmount > 0 && (paymentMethod !== "bank_transfer" || receiptFile)
-                  ? "linear-gradient(135deg, hsl(220,80%,55%) 0%, hsl(250,70%,55%) 100%)"
-                  : "rgba(255,255,255,0.04)",
-              }}
-            >
-              {topupLoading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {uploadingReceipt ? "جاري رفع الإيصال..." : "جاري الإرسال..."}
-                </span>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  {finalAmount > 0 ? `إرسال طلب الشحن — ${finalAmount.toLocaleString("ar-SA")} ر.س` : "اختر المبلغ"}
-                </>
-              )}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Topup section is now inline below the hero card */}
 
       <div className="relative z-10 p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
 
@@ -747,7 +524,138 @@ const WalletPage = () => {
           </div>
         </motion.div>
 
-        {/* ── Quick Actions ── */}
+        {/* ── Inline Topup Section ── */}
+        <AnimatePresence>
+          {showTopup && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-3xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] p-6 md:p-8 space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                      <Plus className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">إضافة رصيد</h2>
+                  </div>
+                  <button onClick={() => setShowTopup(false)}
+                    className="p-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-all">
+                    <XCircle className="w-5 h-5 text-white/40" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-5">
+                    <div className="space-y-3">
+                      <label className="text-sm text-white/50 font-medium">طريقة الدفع</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setPaymentMethod("bank_transfer")}
+                          className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-2 ${paymentMethod === "bank_transfer" ? "border-blue-500/50 bg-blue-500/10" : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"}`}>
+                          <Building2 className={`w-6 h-6 ${paymentMethod === "bank_transfer" ? "text-blue-400" : "text-white/40"}`} />
+                          <span className={`text-sm font-medium ${paymentMethod === "bank_transfer" ? "text-blue-400" : "text-white/50"}`}>تحويل بنكي</span>
+                        </button>
+                        <button onClick={() => setPaymentMethod("card")}
+                          className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-2 ${paymentMethod === "card" ? "border-indigo-500/50 bg-indigo-500/10" : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]"}`}>
+                          <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-indigo-400" : "text-white/40"}`} />
+                          <span className={`text-sm font-medium ${paymentMethod === "card" ? "text-indigo-400" : "text-white/50"}`}>بطاقة / Apple Pay</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-sm text-white/50 font-medium">اختر المبلغ</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {TOPUP_AMOUNTS.map((amt) => (
+                          <button key={amt} onClick={() => { setTopupAmount(amt); setCustomAmount(""); }}
+                            className={`py-3.5 rounded-xl text-sm font-bold transition-all duration-300 border-2 ${topupAmount === amt ? "border-blue-500/50 bg-blue-500/10 text-blue-400" : "border-white/[0.06] bg-white/[0.03] text-white/50 hover:bg-white/[0.06]"}`}>
+                            {amt.toLocaleString("ar-SA")} ر.س
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-white/50 font-medium">أو أدخل مبلغ مخصص</label>
+                      <div className="relative">
+                        <input type="number" min="1" max="50000" placeholder="0" value={customAmount}
+                          onChange={(e) => { setCustomAmount(e.target.value); setTopupAmount(0); }}
+                          className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3.5 text-white placeholder-white/15 focus:outline-none focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10 transition-all text-lg font-bold text-center" dir="ltr" />
+                        <span className="absolute top-1/2 -translate-y-1/2 start-4 text-sm text-white/20">ر.س</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {paymentMethod === "bank_transfer" && finalAmount > 0 ? (
+                      <div className="space-y-4">
+                        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 space-y-3">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Building2 className="w-4 h-4 text-blue-400" />
+                            <span className="text-sm font-semibold text-white/70">معلومات الحساب البنكي</span>
+                          </div>
+                          {[
+                            { label: "رقم الآيبان (IBAN)", value: BANK_INFO.iban, dir: "ltr" as const, mono: true },
+                            { label: "اسم البنك", value: BANK_INFO.bankName },
+                            { label: "اسم المستفيد", value: BANK_INFO.beneficiary },
+                          ].map((item) => (
+                            <div key={item.label} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                              <div className="min-w-0">
+                                <span className="text-[10px] text-white/25 uppercase tracking-wider block">{item.label}</span>
+                                <span className={`text-sm text-white/80 ${item.mono ? "font-mono break-all" : ""}`} dir={item.dir}>{item.value}</span>
+                              </div>
+                              <button onClick={() => copyToClipboard(item.value, item.label)} className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                                <Copy className="w-4 h-4 text-white/30" />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-center">
+                            <span className="text-[10px] text-blue-400/60 uppercase tracking-wider block">المبلغ المطلوب تحويله</span>
+                            <span className="text-xl font-black text-blue-400">{finalAmount.toLocaleString("ar-SA")} ر.س</span>
+                          </div>
+                        </div>
+                        <input type="text" placeholder="رقم مرجع التحويل (اختياري)" value={bankReference}
+                          onChange={(e) => setBankReference(e.target.value)}
+                          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-white/15 focus:outline-none focus:border-blue-500/40 transition-all text-sm" dir="ltr" />
+                        <label className={`flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300 ${receiptFile ? "border-blue-500/40 bg-blue-500/5" : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]"}`}>
+                          <input type="file" accept="image/*,.pdf" className="hidden"
+                            onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 5 * 1024 * 1024) { toast.error("حجم الملف يجب أن لا يتجاوز 5 ميجابايت"); return; } setReceiptFile(file); } }} />
+                          {receiptFile ? (<><CheckCircle2 className="w-8 h-8 text-blue-400" /><p className="text-sm font-semibold text-blue-400">{receiptFile.name}</p></>) : (<><Upload className="w-8 h-8 text-white/15" /><p className="text-sm text-white/40">رفع إيصال التحويل *</p></>)}
+                        </label>
+                        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-400/5 border border-amber-400/10">
+                          <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-amber-400/70 leading-relaxed">سيتم مراجعة الإيصال وتأكيد الرصيد خلال 24 ساعة عمل.</p>
+                        </div>
+                      </div>
+                    ) : paymentMethod === "card" && finalAmount > 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full rounded-2xl bg-white/[0.03] border border-white/[0.06] p-8 text-center space-y-4">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center"><CreditCard className="w-8 h-8 text-indigo-400" /></div>
+                        <p className="text-lg font-bold text-white">{finalAmount.toLocaleString("ar-SA")} ر.س</p>
+                        <p className="text-sm text-white/40">سيتم تحويلك لصفحة الدفع الآمنة</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full rounded-2xl bg-white/[0.02] border border-dashed border-white/[0.06] p-8 text-center">
+                        <Banknote className="w-12 h-12 text-white/10 mb-3" />
+                        <p className="text-sm text-white/25">اختر المبلغ وطريقة الدفع</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button onClick={handleTopup}
+                  disabled={topupLoading || finalAmount <= 0 || (paymentMethod === "bank_transfer" && !receiptFile)}
+                  className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ background: finalAmount > 0 && (paymentMethod !== "bank_transfer" || receiptFile) ? "linear-gradient(135deg, hsl(220,80%,55%) 0%, hsl(250,70%,55%) 100%)" : "rgba(255,255,255,0.04)" }}>
+                  {topupLoading ? (<span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" />{uploadingReceipt ? "جاري رفع الإيصال..." : "جاري الإرسال..."}</span>)
+                    : (<><CheckCircle2 className="w-5 h-5" />{finalAmount > 0 ? `إرسال طلب الشحن — ${finalAmount.toLocaleString("ar-SA")} ر.س` : "اختر المبلغ"}</>)}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+
         <div className="grid grid-cols-4 gap-3">
           <QuickAction icon={Plus} label="شحن رصيد" onClick={() => setShowTopup(true)} color="bg-blue-500/20" delay={0.1} />
           <QuickAction icon={BarChart3} label="التحليلات" onClick={() => {}} color="bg-indigo-500/20" delay={0.15} />
