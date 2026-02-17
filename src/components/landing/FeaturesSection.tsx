@@ -180,7 +180,7 @@ const FeaturesSection = () => {
               {/* Hover gradient */}
               <div className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${activeCat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-3xl`} />
               
-              <div className="relative">
+              <div className="relative text-center flex flex-col items-center">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-accent-foreground group-hover:shadow-accent-glow group-hover:scale-110">
                   <feature.icon size={22} />
                 </div>
