@@ -509,16 +509,19 @@ const WalletPage = () => {
                   <span className="text-xs text-white/30 uppercase tracking-widest font-medium">الرصيد المتاح</span>
                   <div className="flex items-baseline gap-3">
                     <motion.span
-                      key={animatedBalance}
-                      className="text-5xl md:text-7xl font-black text-white tabular-nums tracking-tighter"
-                      style={{
-                        background: balanceHidden ? "none" : "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 100%)",
-                        WebkitBackgroundClip: balanceHidden ? "unset" : "text",
-                        WebkitTextFillColor: balanceHidden ? "transparent" : "transparent",
+                      key={balanceHidden ? "hidden" : animatedBalance}
+                      className="text-5xl md:text-7xl font-black tabular-nums tracking-tighter"
+                      style={balanceHidden ? {
+                        color: "rgba(255,255,255,0.5)",
+                        letterSpacing: "0.15em",
+                      } : {
+                        background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
                         letterSpacing: "-0.04em",
                       }}
                     >
-                      {balanceHidden ? "••••••" : animatedBalance.toLocaleString("ar-SA")}
+                      {balanceHidden ? "★ ★ ★ ★ ★" : animatedBalance.toLocaleString("ar-SA")}
                     </motion.span>
                     <span className="text-lg font-medium text-white/25">{wallet.currency}</span>
                   </div>
