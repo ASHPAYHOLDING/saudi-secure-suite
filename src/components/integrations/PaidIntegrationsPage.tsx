@@ -128,14 +128,29 @@ const PaidIntegrationsPage = () => {
   const getSubscription = (integrationId: string) =>
     subscriptions.find((s) => s.integration_id === integrationId && s.status === "active");
 
+  const getPurchased = (integrationId: string) =>
+    subscriptions.find((s) => s.integration_id === integrationId);
+
   // ─── Flow Handlers ───
   const openFlow = (item: PaidIntegration) => {
     setFlowItem(item);
-    setFlowStep("preview");
     setApiKeyValue("");
     setTestResult("idle");
     // Auto-select wallet if balance is sufficient
     setPaymentMethod(walletExists && walletBalance !== null && walletBalance >= item.price_once ? "wallet" : "paylink");
+
+    // If already purchased, skip to appropriate step
+    const existing = getPurchased(item.id);
+    if (existing) {
+      if (item.requires_api_keys && !existing.api_key_encrypted) {
+        setFlowStep("api_keys");
+      } else {
+        setFlowStep("testing");
+        setTimeout(() => runConnectionTest(), 100);
+      }
+    } else {
+      setFlowStep("preview");
+    }
   };
 
   const closeFlow = () => {
@@ -489,7 +504,7 @@ const PaidIntegrationsPage = () => {
                   const sub = getSubscription(item.id);
                   const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                   const CatIcon = cat.icon;
-                  const purchased = subscriptions.find((s) => s.integration_id === item.id);
+                  const purchased = getPurchased(item.id);
                   return (
                     <Card key={item.id} className={`transition-all flex flex-col ${sub ? "border-primary/30 bg-primary/[0.02]" : ""} ${!item.is_ready ? "opacity-70" : ""}`}>
                       <CardHeader className="pb-3">
@@ -510,6 +525,11 @@ const PaidIntegrationsPage = () => {
                             {sub && (
                               <Badge className="gap-1 bg-green-500/10 text-green-600 border-green-200">
                                 <CheckCircle2 size={12} /> مفعّل
+                              </Badge>
+                            )}
+                            {!sub && purchased && (
+                              <Badge variant="outline" className="gap-1 border-amber-300 text-amber-600 bg-amber-50">
+                                <Settings2 size={12} /> تم الشراء
                               </Badge>
                             )}
                             {!item.is_ready && (
@@ -546,6 +566,15 @@ const PaidIntegrationsPage = () => {
                           {sub ? (
                             <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDeactivate(item.id)}>
                               <PowerOff size={14} /> إيقاف
+                            </Button>
+                          ) : purchased ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 border-primary/30 text-primary"
+                              onClick={() => openFlow(item)}
+                            >
+                              <Settings2 size={14} /> إكمال التفعيل
                             </Button>
                           ) : (
                             <Button
