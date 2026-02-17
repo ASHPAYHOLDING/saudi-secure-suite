@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { downloadKycContractPdf } from "@/lib/kyc-contract-pdf";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SignaturePad from "./SignaturePad";
@@ -41,6 +41,41 @@ const AGREEMENT_HTML = `
 <hr/>
 <p style="text-align:center;font-weight:bold;">هذا الإقرار عقد إلكتروني ملزم وفقاً لنظام التعاملات الإلكترونية (م/18) ويخضع للقضاء السعودي في الرياض.</p>
 `;
+
+const PENDING_MESSAGES = [
+  "يتم مراجعة طلبك من قبل فريق الامتثال المالي ⏳",
+  "جاري التحقق من صحة المستندات والبيانات المقدّمة 🔍",
+  "فريق المراجعة يعمل على التدقيق في طلبك 📋",
+  "سيتم إخطارك فور اعتماد الطلب من قبل الإدارة ✅",
+];
+
+const PendingAnimatedText = () => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % PENDING_MESSAGES.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-6 mt-1.5 overflow-hidden relative">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.4 }}
+          className="text-sm text-muted-foreground absolute"
+        >
+          {PENDING_MESSAGES[index]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
   const { tenantId, user, profile } = useAuth();
@@ -246,7 +281,7 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
         bg: "bg-warning/10",
         border: "border-warning/30",
         title: "في انتظار المراجعة",
-        desc: "طلبك قيد المراجعة من قبل إدارة المنصة. سيتم إخطارك فور اتخاذ القرار.",
+        desc: null, // animated text below
       },
       under_review: {
         icon: Shield,
@@ -313,7 +348,11 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
                   </motion.div>
                   <div className="flex-1">
                     <h3 className={`text-xl font-bold ${currentStatus.color} font-[IBM_Plex_Sans_Arabic]`}>{currentStatus.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{currentStatus.desc}</p>
+                    {existingRequest.status === "pending" ? (
+                      <PendingAnimatedText />
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">{currentStatus.desc}</p>
+                    )}
                   </div>
                   <Badge variant="outline" className={`${currentStatus.color} ${currentStatus.border} text-xs px-3 py-1`}>
                     {existingRequest.status === "pending" ? "قيد الانتظار" : existingRequest.status === "under_review" ? "تحت المراجعة" : "مرفوض"}
