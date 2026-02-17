@@ -244,8 +244,42 @@ const WalletPage = () => {
       return;
     }
 
+    // Card / Apple Pay flow via Paylink
     if (paymentMethod === "card") {
-      toast.error("الدفع بالبطاقة غير متاح حالياً — يرجى استخدام التحويل البنكي");
+      setTopupLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=topup`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ amount: finalAmount }),
+          }
+        );
+        const result = await res.json();
+
+        if (!res.ok || result.error) {
+          toast.error(result.error || "فشل إنشاء رابط الدفع");
+          return;
+        }
+
+        // Redirect to Paylink payment page
+        if (result.paymentUrl) {
+          toast.success("جاري التحويل لصفحة الدفع...", { duration: 3000 });
+          window.open(result.paymentUrl, "_blank");
+          setShowTopup(false);
+          setTopupAmount(0);
+          setCustomAmount("");
+        }
+      } catch (err: any) {
+        toast.error("حدث خطأ — يرجى المحاولة مرة أخرى");
+      } finally {
+        setTopupLoading(false);
+      }
       return;
     }
 
@@ -388,13 +422,15 @@ const WalletPage = () => {
                 </button>
                 <button
                   onClick={() => setPaymentMethod("card")}
-                  className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-col items-center gap-2 opacity-50 cursor-not-allowed relative"
-                  disabled
+                  className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center gap-2 ${
+                    paymentMethod === "card"
+                      ? "border-blue-400/50 bg-blue-400/10"
+                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
+                  }`}
                 >
-                  <CreditCard className="w-6 h-6 text-white/20" />
-                  <span className="text-sm text-white/30">بطاقة / Apple Pay</span>
-                  <span className="absolute -top-2 -end-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-400/30">
-                    قريباً
+                  <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-blue-400" : "text-white/40"}`} />
+                  <span className={`text-sm ${paymentMethod === "card" ? "text-blue-400" : "text-white/60"}`}>
+                    بطاقة / Apple Pay
                   </span>
                 </button>
               </div>
