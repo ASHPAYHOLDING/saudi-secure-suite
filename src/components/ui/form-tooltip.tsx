@@ -36,7 +36,7 @@ export const FormLabel = ({
   className?: string;
 }) => (
   <label className={`flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5 ${className}`}>
-    <span>{label}{required && <span className="text-destructive mr-0.5"> *</span>}</span>
+    <span>{label}{required && <span className="text-destructive me-0.5"> *</span>}</span>
     {tooltip && <FormTooltip text={tooltip} />}
   </label>
 );

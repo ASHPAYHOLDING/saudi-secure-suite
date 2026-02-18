@@ -365,4 +365,9 @@
   [dir="rtl"] .float-end { float: left; }
   [dir="ltr"] .float-start { float: left; }
   [dir="ltr"] .float-end { float: right; }
+
+  /* RTL chevron auto-flip */
+  [dir="rtl"] .rtl\:rotate-180 {
+    transform: rotate(180deg);
+  }
 }

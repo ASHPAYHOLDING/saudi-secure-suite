@@ -293,11 +293,8 @@ const Dashboard = () => {
             <div
               className={cn(
                 "transition-all duration-300",
-                // Desktop margins
                 "md:transition-all",
-                isRTL
-                  ? (sidebarCollapsed ? "md:mr-[68px]" : "md:mr-64")
-                  : (sidebarCollapsed ? "md:ml-[68px]" : "md:ml-64")
+                sidebarCollapsed ? "md:ms-[68px]" : "md:ms-64"
               )}
             >
               <DashboardTopbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
