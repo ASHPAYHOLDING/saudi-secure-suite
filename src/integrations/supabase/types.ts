@@ -111,6 +111,13 @@ export type Database = {
             foreignKeyName: "affiliate_commissions_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -359,6 +366,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      analytics_definitions: {
+        Row: {
+          category: string
+          created_at: string
+          depends_on_tables: string[]
+          formula_description: string | null
+          id: string
+          is_active: boolean
+          metric_key: string
+          name_ar: string
+          name_en: string | null
+          sql_source: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          depends_on_tables?: string[]
+          formula_description?: string | null
+          id?: string
+          is_active?: boolean
+          metric_key: string
+          name_ar: string
+          name_en?: string | null
+          sql_source: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          depends_on_tables?: string[]
+          formula_description?: string | null
+          id?: string
+          is_active?: boolean
+          metric_key?: string
+          name_ar?: string
+          name_en?: string | null
+          sql_source?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       approval_actions: {
         Row: {
@@ -1521,6 +1570,13 @@ export type Database = {
             foreignKeyName: "credit_notes_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -2578,6 +2634,13 @@ export type Database = {
             foreignKeyName: "invoice_delivery_log_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "invoice_delivery_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -2637,6 +2700,13 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
           {
             foreignKeyName: "invoice_items_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -2738,6 +2808,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
           {
             foreignKeyName: "invoice_payments_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -3225,6 +3302,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "paid_integrations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paid_gateway_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
           },
           {
             foreignKeyName: "paid_gateway_transactions_invoice_id_fkey"
@@ -3769,6 +3853,13 @@ export type Database = {
             foreignKeyName: "paylink_transactions_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "paylink_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -3838,6 +3929,13 @@ export type Database = {
             foreignKeyName: "payment_links_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "payment_links_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -3903,6 +4001,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "customers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminder_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
           },
           {
             foreignKeyName: "payment_reminder_logs_invoice_id_fkey"
@@ -4474,6 +4579,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "ap_aging_view"
+            referencedColumns: ["purchase_order_id"]
           },
           {
             foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
@@ -6637,6 +6749,13 @@ export type Database = {
             foreignKeyName: "zatca_submission_log_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "zatca_submission_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
@@ -6651,7 +6770,292 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ap_aging_view: {
+        Row: {
+          aging_bucket: string | null
+          branch_id: string | null
+          currency: string | null
+          days_overdue: number | null
+          due_date: string | null
+          grand_total: number | null
+          ledger_balance: number | null
+          order_number: string | null
+          purchase_order_id: string | null
+          supplier_id: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ar_aging_view: {
+        Row: {
+          aging_bucket: string | null
+          amount_due: number | null
+          branch_id: string | null
+          currency: string | null
+          customer_id: string | null
+          days_overdue: number | null
+          due_date: string | null
+          invoice_id: string | null
+          invoice_number: string | null
+          ledger_balance: number | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_sheet_view: {
+        Row: {
+          account_name: string | null
+          balance: number | null
+          branch_id: string | null
+          category: string | null
+          tenant_id: string | null
+          total_credit: number | null
+          total_debit: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cashflow_view: {
+        Row: {
+          branch_id: string | null
+          cash_in: number | null
+          cash_out: number | null
+          net_cash: number | null
+          period: string | null
+          source_type: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_summary_view: {
+        Row: {
+          account_name: string | null
+          branch_id: string | null
+          net_expense: number | null
+          period: string | null
+          source_type: string | null
+          tenant_id: string | null
+          total_credit: number | null
+          total_debit: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profit_loss_view: {
+        Row: {
+          branch_id: string | null
+          category: string | null
+          expenses: number | null
+          net_profit: number | null
+          period: string | null
+          revenue: number | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_summary_view: {
+        Row: {
+          account_name: string | null
+          branch_id: string | null
+          net_revenue: number | null
+          period: string | null
+          tenant_id: string | null
+          total_credit: number | null
+          total_debit: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_revenue_view: {
+        Row: {
+          billing_cycle: string | null
+          cancel_at_period_end: boolean | null
+          current_period_end: string | null
+          current_period_start: string | null
+          plan_name: string | null
+          price_monthly: number | null
+          price_yearly: number | null
+          recurring_amount: number | null
+          subscribed_at: string | null
+          subscription_status: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vat_summary_view: {
+        Row: {
+          account_name: string | null
+          branch_id: string | null
+          net_vat_payable: number | null
+          period: string | null
+          source_type: string | null
+          tenant_id: string | null
+          vat_input: number | null
+          vat_output: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_activity_view: {
+        Row: {
+          period: string | null
+          reason: string | null
+          source: string | null
+          tenant_id: string | null
+          total_amount: number | null
+          total_credits: number | null
+          total_debits: number | null
+          transaction_count: number | null
+          transaction_type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_wallets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activate_budget: { Args: { p_budget_id: string }; Returns: Json }
@@ -6715,6 +7119,7 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: Json
       }
+      classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       create_document_access_token: {
         Args: {
@@ -6731,6 +7136,15 @@ export type Database = {
         Returns: boolean
       }
       generate_smart_notifications: { Args: never; Returns: undefined }
+      get_metric_breakdown: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_metric_key: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
