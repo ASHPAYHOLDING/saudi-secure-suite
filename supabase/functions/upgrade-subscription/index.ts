@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -117,8 +117,8 @@ Deno.serve(async (req) => {
 
     // 5. Validate discount code (without consuming it)
     let finalPrice = price;
-    let discountId: string | null = null;
-    let discountCode: string | null = null;
+    let appliedDiscountId: string | null = null;
+    let appliedDiscountCode: string | null = null;
 
     if (discount_code) {
       const { data: discountResult } = await supabase.rpc("validate_subscription_discount", {
@@ -129,8 +129,8 @@ Deno.serve(async (req) => {
 
       if (discountResult && discountResult.success) {
         finalPrice = discountResult.amount_after;
-        discountId = discountResult.discount_id;
-        discountCode = discountResult.code;
+        appliedDiscountId = discountResult.discount_id;
+        appliedDiscountCode = discountResult.code;
       } else {
         return new Response(JSON.stringify({ error: discountResult?.error || "كود الخصم غير صالح" }), {
           status: 400,
@@ -244,9 +244,9 @@ Deno.serve(async (req) => {
     }
 
     // 10. NOW consume the discount code (only after successful payment + subscription update)
-    if (discountCode) {
+    if (appliedDiscountCode) {
       await supabase.rpc("apply_subscription_discount", {
-        _code: discountCode,
+        _code: appliedDiscountCode,
         _tenant_id: tenantId,
         _plan_id: plan_id,
       });
@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
       old_status: currentSub.status,
       new_status: "active",
       performed_by: user.id,
-      notes: `${isUpgrade ? "ترقية" : "تخفيض"} إلى ${plan.name_ar} - تم الدفع ${finalPrice} ر.س من المحفظة${discountId ? " (مع خصم)" : ""}`,
+      notes: `${isUpgrade ? "ترقية" : "تخفيض"} إلى ${plan.name_ar} - تم الدفع ${finalPrice} ر.س من المحفظة${appliedDiscountId ? " (مع خصم)" : ""}`,
     });
 
     // 11. Audit log
@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
         original_price: price,
         billing_cycle,
         discount_code: discount_code || null,
-        discount_id: discountId,
+        discount_id: appliedDiscountId,
         wallet_balance_before: balanceBefore,
         wallet_balance_after: balanceAfter,
       },
