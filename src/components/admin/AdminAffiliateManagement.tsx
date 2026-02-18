@@ -356,7 +356,7 @@ const AdminAffiliateManagement = () => {
 
           <Card className="border-border/50 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" dir="rtl">
                 <thead>
                   <tr className="border-b border-border/50 bg-muted/30">
                     <th className="text-start p-3 text-xs font-semibold text-muted-foreground">الشريك</th>
@@ -435,7 +435,7 @@ const AdminAffiliateManagement = () => {
 
           <Card className="border-border/50 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" dir="rtl">
                 <thead>
                   <tr className="border-b border-border/50 bg-muted/30">
                     <th className="text-start p-3 text-xs font-semibold text-muted-foreground">الشريك</th>
@@ -564,7 +564,7 @@ const AdminAffiliateManagement = () => {
               </CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" dir="rtl">
                 <thead>
                   <tr className="border-b border-border/50 bg-muted/30">
                     <th className="text-start p-3 text-xs font-semibold text-muted-foreground">التاريخ</th>
