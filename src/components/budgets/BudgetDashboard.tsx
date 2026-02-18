@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import {
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Target,
   DollarSign, ArrowUpRight, ArrowDownRight, Plus, Calendar, RefreshCw,
+  Bell, Filter, Check, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -64,6 +65,12 @@ interface AlertEvent {
   created_at: string;
 }
 
+type AlertFilter = {
+  month: string;
+  status: string;
+  lineType: string;
+};
+
 const MONTH_LABELS_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTH_KEYS = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
@@ -98,6 +105,8 @@ const BudgetDashboard = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [newBudget, setNewBudget] = useState({ name_ar: "", fiscal_year: new Date().getFullYear() });
 
+  const [alertFilter, setAlertFilter] = useState<AlertFilter>({ month: "all", status: "all", lineType: "all" });
+
   const monthLabels = currentLang === "ar" ? MONTH_LABELS_AR : MONTH_LABELS_EN;
 
   // Fetch budgets
@@ -125,7 +134,7 @@ const BudgetDashboard = () => {
       const [linesRes, actualsRes, alertsRes] = await Promise.all([
         supabase.from("budget_lines").select("*").eq("budget_id", selectedBudgetId),
         supabase.from("budget_actuals_cache").select("*").eq("budget_id", selectedBudgetId),
-        supabase.from("budget_alert_events").select("*").eq("budget_id", selectedBudgetId).order("created_at", { ascending: false }).limit(20),
+        supabase.from("budget_alert_events").select("*").eq("budget_id", selectedBudgetId).order("created_at", { ascending: false }).limit(100),
       ]);
       setLines((linesRes.data || []) as BudgetLine[]);
       setActuals((actualsRes.data || []) as BudgetActual[]);
@@ -281,6 +290,41 @@ const BudgetDashboard = () => {
       setSyncing(false);
     }
   };
+
+  const handleAcknowledge = useCallback(async (alertId: string) => {
+    const { error } = await supabase
+      .from("budget_alert_events")
+      .update({ status: "acknowledged" as any })
+      .eq("id", alertId);
+    if (error) { toast.error(error.message); return; }
+    setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: "acknowledged" } : a));
+    toast.success(currentLang === "ar" ? "تم تأكيد المراجعة" : "Alert acknowledged");
+  }, [currentLang]);
+
+  const handleResolve = useCallback(async (alertId: string) => {
+    const { error } = await supabase
+      .from("budget_alert_events")
+      .update({ status: "resolved" as any })
+      .eq("id", alertId);
+    if (error) { toast.error(error.message); return; }
+    setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: "resolved" } : a));
+    toast.success(currentLang === "ar" ? "تم حل التنبيه" : "Alert resolved");
+  }, [currentLang]);
+
+  const filteredAlerts = useMemo(() => {
+    return alerts.filter(a => {
+      if (alertFilter.status !== "all" && a.status !== alertFilter.status) return false;
+      if (alertFilter.month !== "all" && a.period) {
+        const monthPart = a.period.split("-").pop();
+        if (monthPart !== alertFilter.month) return false;
+      }
+      if (alertFilter.lineType !== "all" && a.line_id) {
+        const line = lines.find(l => l.id === a.line_id);
+        if (line && line.line_type !== alertFilter.lineType) return false;
+      }
+      return true;
+    });
+  }, [alerts, alertFilter, lines]);
 
   if (loading) {
     return (
@@ -628,41 +672,132 @@ const BudgetDashboard = () => {
             {/* Alerts */}
             <TabsContent value="alerts">
               <Card>
-                <CardHeader>
-                  <CardTitle>{currentLang === "ar" ? "تنبيهات الميزانية" : "Budget Alerts"}</CardTitle>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    {currentLang === "ar" ? "تنبيهات الميزانية" : "Budget Alerts"}
+                    {alerts.filter(a => a.status === "triggered").length > 0 && (
+                      <Badge variant="destructive" className="text-[10px]">
+                        {alerts.filter(a => a.status === "triggered").length}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={alertFilter.status} onValueChange={v => setAlertFilter(p => ({ ...p, status: v }))}>
+                      <SelectTrigger className="w-[130px] h-8 text-xs">
+                        <Filter className="h-3 w-3 me-1" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{currentLang === "ar" ? "كل الحالات" : "All Status"}</SelectItem>
+                        <SelectItem value="triggered">{currentLang === "ar" ? "مُطلق" : "Triggered"}</SelectItem>
+                        <SelectItem value="acknowledged">{currentLang === "ar" ? "تم الاطلاع" : "Acknowledged"}</SelectItem>
+                        <SelectItem value="resolved">{currentLang === "ar" ? "محلول" : "Resolved"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={alertFilter.month} onValueChange={v => setAlertFilter(p => ({ ...p, month: v }))}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs">
+                        <Calendar className="h-3 w-3 me-1" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{currentLang === "ar" ? "كل الأشهر" : "All Months"}</SelectItem>
+                        {MONTH_KEYS.map((k, i) => (
+                          <SelectItem key={k} value={k}>{monthLabels[i]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={alertFilter.lineType} onValueChange={v => setAlertFilter(p => ({ ...p, lineType: v }))}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{currentLang === "ar" ? "كل الأنواع" : "All Types"}</SelectItem>
+                        <SelectItem value="expense">{currentLang === "ar" ? "مصروفات" : "Expense"}</SelectItem>
+                        <SelectItem value="revenue">{currentLang === "ar" ? "إيرادات" : "Revenue"}</SelectItem>
+                        <SelectItem value="capex">{currentLang === "ar" ? "رأسمالية" : "CapEx"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {alerts.length > 0 ? (
+                  {filteredAlerts.length > 0 ? (
                     <div className="space-y-3">
-                      {alerts.map(alert => (
-                        <div key={alert.id} className={`flex items-start gap-3 p-4 rounded-lg border ${alert.percent_used > 100 ? "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800" : alert.percent_used > 80 ? "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800" : "bg-muted/30 border-border"}`}>
-                          {alert.percent_used > 100 ? (
-                            <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-                          ) : (
-                            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                          )}
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">{alert.message_ar || `${currentLang === "ar" ? "تجاوز الحد" : "Threshold exceeded"}: ${alert.percent_used}%`}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {alert.period && `${currentLang === "ar" ? "الفترة" : "Period"}: ${alert.period}`}
-                              {" • "}
-                              <Badge variant={alert.status === "triggered" ? "destructive" : alert.status === "acknowledged" ? "secondary" : "default"} className="text-[10px]">
-                                {alert.status === "triggered" ? (currentLang === "ar" ? "مُطلق" : "Triggered") :
-                                 alert.status === "acknowledged" ? (currentLang === "ar" ? "تم الاطلاع" : "Acknowledged") :
-                                 (currentLang === "ar" ? "محلول" : "Resolved")}
-                              </Badge>
-                            </p>
+                      {filteredAlerts.map(alert => {
+                        const line = lines.find(l => l.id === alert.line_id);
+                        return (
+                          <div key={alert.id} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
+                            alert.status === "resolved" ? "bg-muted/20 border-border opacity-60" :
+                            alert.percent_used > 100 ? "bg-destructive/5 border-destructive/30" :
+                            alert.percent_used > 80 ? "bg-accent/10 border-accent/30" :
+                            "bg-muted/30 border-border"
+                          }`}>
+                            <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
+                              alert.percent_used > 100 ? "bg-destructive/10" : "bg-accent/10"
+                            }`}>
+                              <AlertTriangle className={`h-5 w-5 ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">
+                                {alert.message_ar || `${currentLang === "ar" ? "تجاوز الحد" : "Threshold exceeded"}: ${alert.percent_used}%`}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                {alert.period && (
+                                  <span className="text-xs text-muted-foreground">
+                                    <Calendar className="inline h-3 w-3 me-1" />
+                                    {alert.period}
+                                  </span>
+                                )}
+                                {line && (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    {line.line_type === "expense" ? (currentLang === "ar" ? "مصروف" : "Expense") :
+                                     line.line_type === "revenue" ? (currentLang === "ar" ? "إيراد" : "Revenue") :
+                                     (currentLang === "ar" ? "رأسمالي" : "CapEx")}
+                                  </Badge>
+                                )}
+                                <Badge variant={
+                                  alert.status === "triggered" ? "destructive" :
+                                  alert.status === "acknowledged" ? "secondary" : "default"
+                                } className="text-[10px]">
+                                  {alert.status === "triggered" ? (currentLang === "ar" ? "مُطلق" : "Triggered") :
+                                   alert.status === "acknowledged" ? (currentLang === "ar" ? "تم الاطلاع" : "Acknowledged") :
+                                   (currentLang === "ar" ? "محلول" : "Resolved")}
+                                </Badge>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(alert.created_at).toLocaleDateString(currentLang === "ar" ? "ar-SA" : "en-US")}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <span className={`text-lg font-bold ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`}>
+                                {Number(alert.percent_used).toFixed(0)}%
+                              </span>
+                              {alert.status === "triggered" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleAcknowledge(alert.id)}>
+                                  <Eye className="h-3 w-3 me-1" />
+                                  {currentLang === "ar" ? "تمت المراجعة" : "Acknowledge"}
+                                </Button>
+                              )}
+                              {alert.status === "acknowledged" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleResolve(alert.id)}>
+                                  <Check className="h-3 w-3 me-1" />
+                                  {currentLang === "ar" ? "حل" : "Resolve"}
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          <span className={`text-lg font-bold ${alert.percent_used > 100 ? "text-red-600" : "text-amber-600"}`}>
-                            {Number(alert.percent_used).toFixed(0)}%
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
-                      <CheckCircle className="h-10 w-10 mb-3 text-green-500/50" />
+                      <CheckCircle className="h-10 w-10 mb-3 opacity-50" />
                       <p>{currentLang === "ar" ? "لا توجد تنبيهات حالياً" : "No alerts currently"}</p>
+                      {alertFilter.status !== "all" || alertFilter.month !== "all" || alertFilter.lineType !== "all" ? (
+                        <Button variant="link" size="sm" className="mt-2" onClick={() => setAlertFilter({ month: "all", status: "all", lineType: "all" })}>
+                          {currentLang === "ar" ? "إزالة الفلاتر" : "Clear Filters"}
+                        </Button>
+                      ) : null}
                     </div>
                   )}
                 </CardContent>
