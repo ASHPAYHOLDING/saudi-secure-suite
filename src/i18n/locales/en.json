@@ -99,6 +99,7 @@
     "support": "Support",
     "approvals": "Approval Workflows",
     "budgets": "Budgets",
+    "dataQuality": "Data Quality",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",

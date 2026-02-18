@@ -4877,6 +4877,152 @@ export type Database = {
           },
         ]
       }
+      reconciliation_issues: {
+        Row: {
+          actual_value: number | null
+          created_at: string
+          description: string
+          description_en: string | null
+          difference: number | null
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string | null
+          expected_value: number | null
+          id: string
+          is_resolved: boolean
+          issue_type: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string
+          severity: string
+          tenant_id: string
+        }
+        Insert: {
+          actual_value?: number | null
+          created_at?: string
+          description: string
+          description_en?: string | null
+          difference?: number | null
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          expected_value?: number | null
+          id?: string
+          is_resolved?: boolean
+          issue_type: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id: string
+          severity?: string
+          tenant_id: string
+        }
+        Update: {
+          actual_value?: number | null
+          created_at?: string
+          description?: string
+          description_en?: string | null
+          difference?: number | null
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          expected_value?: number | null
+          id?: string
+          is_resolved?: boolean
+          issue_type?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string
+          severity?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_issues_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_issues_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          critical_count: number
+          date_from: string | null
+          date_to: string | null
+          id: string
+          info_count: number
+          run_type: string
+          started_at: string
+          status: string
+          summary: Json | null
+          tenant_id: string
+          total_checked: number
+          total_issues: number
+          total_matched: number
+          triggered_by: string | null
+          warning_count: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          critical_count?: number
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          info_count?: number
+          run_type: string
+          started_at?: string
+          status?: string
+          summary?: Json | null
+          tenant_id: string
+          total_checked?: number
+          total_issues?: number
+          total_matched?: number
+          triggered_by?: string | null
+          warning_count?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          critical_count?: number
+          date_from?: string | null
+          date_to?: string | null
+          id?: string
+          info_count?: number
+          run_type?: string
+          started_at?: string
+          status?: string
+          summary?: Json | null
+          tenant_id?: string
+          total_checked?: number
+          total_issues?: number
+          total_matched?: number
+          triggered_by?: string | null
+          warning_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_presets: {
         Row: {
           created_at: string
@@ -7199,6 +7345,22 @@ export type Database = {
           p_type: string
           p_wallet_id: string
         }
+        Returns: string
+      }
+      reconcile_invoices_vs_payments: {
+        Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
+        Returns: string
+      }
+      reconcile_subscription_revenue: {
+        Args: { p_tenant_id: string }
+        Returns: string
+      }
+      reconcile_vat_totals: {
+        Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
+        Returns: string
+      }
+      reconcile_wallet_vs_journal: {
+        Args: { p_tenant_id: string }
         Returns: string
       }
       record_stock_movement: {
