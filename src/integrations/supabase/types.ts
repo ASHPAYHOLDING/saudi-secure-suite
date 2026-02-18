@@ -2553,6 +2553,172 @@ export type Database = {
         }
         Relationships: []
       }
+      goods_receipt_items: {
+        Row: {
+          description: string | null
+          id: string
+          line_total: number
+          product_id: string
+          quantity: number
+          receipt_id: string
+          sort_order: number
+          tenant_id: string
+          unit_cost: number
+          variant_id: string | null
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          line_total?: number
+          product_id: string
+          quantity?: number
+          receipt_id: string
+          sort_order?: number
+          tenant_id: string
+          unit_cost?: number
+          variant_id?: string | null
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          line_total?: number
+          product_id?: string
+          quantity?: number
+          receipt_id?: string
+          sort_order?: number
+          tenant_id?: string
+          unit_cost?: number
+          variant_id?: string | null
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipt_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipt_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "goods_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipt_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipt_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goods_receipts: {
+        Row: {
+          branch_id: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string
+          grand_total: number
+          id: string
+          notes: string | null
+          purchase_order_id: string | null
+          receipt_date: string
+          receipt_number: string
+          status: string
+          subtotal: number
+          supplier_id: string | null
+          tenant_id: string
+          updated_at: string
+          vat_total: number
+          warehouse_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by: string
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          purchase_order_id?: string | null
+          receipt_date?: string
+          receipt_number: string
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          vat_total?: number
+          warehouse_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string
+          grand_total?: number
+          id?: string
+          notes?: string | null
+          purchase_order_id?: string | null
+          receipt_date?: string
+          receipt_number?: string
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          vat_total?: number
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_sync_logs: {
         Row: {
           completed_at: string | null
@@ -2609,6 +2775,185 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_balances: {
+        Row: {
+          id: string
+          last_movement_at: string | null
+          product_id: string
+          quantity_available: number | null
+          quantity_on_hand: number
+          quantity_reserved: number
+          tenant_id: string
+          total_value: number | null
+          updated_at: string
+          variant_id: string | null
+          warehouse_id: string
+          weighted_avg_cost: number
+        }
+        Insert: {
+          id?: string
+          last_movement_at?: string | null
+          product_id: string
+          quantity_available?: number | null
+          quantity_on_hand?: number
+          quantity_reserved?: number
+          tenant_id: string
+          total_value?: number | null
+          updated_at?: string
+          variant_id?: string | null
+          warehouse_id: string
+          weighted_avg_cost?: number
+        }
+        Update: {
+          id?: string
+          last_movement_at?: string | null
+          product_id?: string
+          quantity_available?: number | null
+          quantity_on_hand?: number
+          quantity_reserved?: number
+          tenant_id?: string
+          total_value?: number | null
+          updated_at?: string
+          variant_id?: string | null
+          warehouse_id?: string
+          weighted_avg_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_balances_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_balances_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_balances_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          journal_entry_id: string | null
+          movement_type: string
+          new_avg_cost: number | null
+          new_qty: number | null
+          notes: string | null
+          previous_avg_cost: number | null
+          previous_qty: number | null
+          product_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+          total_cost: number | null
+          transfer_id: string | null
+          unit_cost: number | null
+          variant_id: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          journal_entry_id?: string | null
+          movement_type: string
+          new_avg_cost?: number | null
+          new_qty?: number | null
+          notes?: string | null
+          previous_avg_cost?: number | null
+          previous_qty?: number | null
+          product_id: string
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+          total_cost?: number | null
+          transfer_id?: string | null
+          unit_cost?: number | null
+          variant_id?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          journal_entry_id?: string | null
+          movement_type?: string
+          new_avg_cost?: number | null
+          new_qty?: number | null
+          notes?: string | null
+          previous_avg_cost?: number | null
+          previous_qty?: number | null
+          product_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+          total_cost?: number | null
+          transfer_id?: string | null
+          unit_cost?: number | null
+          variant_id?: string | null
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -4407,6 +4752,69 @@ export type Database = {
           },
         ]
       }
+      product_variants: {
+        Row: {
+          attributes: Json | null
+          barcode: string | null
+          cost_price: number | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          product_id: string
+          sku: string | null
+          tenant_id: string
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json | null
+          barcode?: string | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_en?: string | null
+          product_id: string
+          sku?: string | null
+          tenant_id: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json | null
+          barcode?: string | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          product_id?: string
+          sku?: string | null
+          tenant_id?: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           barcode: string | null
@@ -5513,6 +5921,134 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stocktake_items: {
+        Row: {
+          counted_qty: number | null
+          difference: number | null
+          id: string
+          notes: string | null
+          product_id: string
+          sort_order: number
+          stocktake_id: string
+          system_qty: number
+          tenant_id: string
+          variant_id: string | null
+        }
+        Insert: {
+          counted_qty?: number | null
+          difference?: number | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          sort_order?: number
+          stocktake_id: string
+          system_qty?: number
+          tenant_id: string
+          variant_id?: string | null
+        }
+        Update: {
+          counted_qty?: number | null
+          difference?: number | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          sort_order?: number
+          stocktake_id?: string
+          system_qty?: number
+          tenant_id?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stocktake_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stocktake_items_stocktake_id_fkey"
+            columns: ["stocktake_id"]
+            isOneToOne: false
+            referencedRelation: "stocktakes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stocktake_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stocktake_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stocktakes: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          status: string
+          stocktake_date: string
+          stocktake_number: string
+          tenant_id: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          status?: string
+          stocktake_date?: string
+          stocktake_number: string
+          tenant_id: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          stocktake_date?: string
+          stocktake_number?: string
+          tenant_id?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stocktakes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stocktakes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -6883,6 +7419,198 @@ export type Database = {
           },
         ]
       }
+      warehouse_transfer_items: {
+        Row: {
+          id: string
+          product_id: string
+          quantity: number
+          sort_order: number
+          tenant_id: string
+          transfer_id: string
+          variant_id: string | null
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          quantity?: number
+          sort_order?: number
+          tenant_id: string
+          transfer_id: string
+          variant_id?: string | null
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          quantity?: number
+          sort_order?: number
+          tenant_id?: string
+          transfer_id?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_transfer_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_transfer_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_transfer_items_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_transfers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_transfer_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_transfers: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          from_warehouse_id: string
+          id: string
+          notes: string | null
+          status: string
+          tenant_id: string
+          to_warehouse_id: string
+          transfer_date: string
+          transfer_number: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          from_warehouse_id: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id: string
+          to_warehouse_id: string
+          transfer_date?: string
+          transfer_number: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          from_warehouse_id?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id?: string
+          to_warehouse_id?: string
+          transfer_date?: string
+          transfer_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_transfers_from_warehouse_id_fkey"
+            columns: ["from_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_transfers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_transfers_to_warehouse_id_fkey"
+            columns: ["to_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouses: {
+        Row: {
+          address: string | null
+          branch_id: string | null
+          code: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          manager_id: string | null
+          name: string
+          name_en: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          branch_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          manager_id?: string | null
+          name: string
+          name_en?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          branch_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          manager_id?: string | null
+          name?: string
+          name_en?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zatca_certificates: {
         Row: {
           certificate: string | null
@@ -7382,6 +8110,10 @@ export type Database = {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: boolean
       }
+      generate_inventory_number: {
+        Args: { p_prefix: string; p_tenant_id: string }
+        Returns: string
+      }
       generate_smart_notifications: { Args: never; Returns: undefined }
       get_metric_breakdown: {
         Args: {
@@ -7433,6 +8165,23 @@ export type Database = {
       process_affiliate_payout: {
         Args: { _action: string; _admin_notes?: string; _payout_id: string }
         Returns: Json
+      }
+      process_inventory_movement: {
+        Args: {
+          p_created_by: string
+          p_movement_type: string
+          p_notes: string
+          p_product_id: string
+          p_quantity: number
+          p_reference_id: string
+          p_reference_type: string
+          p_tenant_id: string
+          p_transfer_id: string
+          p_unit_cost: number
+          p_variant_id: string
+          p_warehouse_id: string
+        }
+        Returns: string
       }
       process_subscription_expiry: { Args: never; Returns: undefined }
       process_wallet_transaction: {
