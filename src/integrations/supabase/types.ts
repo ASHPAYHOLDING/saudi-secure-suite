@@ -5852,6 +5852,7 @@ export type Database = {
           paylink_enabled: boolean
           paylink_enabled_at: string | null
           phone: string | null
+          referral_code: string | null
           slug: string
           stamp_company_name: string | null
           stamp_cr_number: string | null
@@ -5893,6 +5894,7 @@ export type Database = {
           paylink_enabled?: boolean
           paylink_enabled_at?: string | null
           phone?: string | null
+          referral_code?: string | null
           slug: string
           stamp_company_name?: string | null
           stamp_cr_number?: string | null
@@ -5934,6 +5936,7 @@ export type Database = {
           paylink_enabled?: boolean
           paylink_enabled_at?: string | null
           phone?: string | null
+          referral_code?: string | null
           slug?: string
           stamp_company_name?: string | null
           stamp_cr_number?: string | null
@@ -6317,6 +6320,7 @@ export type Database = {
         Args: { _code: string; _plan_id: string; _tenant_id: string }
         Returns: Json
       }
+      approve_matured_commissions: { Args: never; Returns: Json }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
@@ -6330,6 +6334,10 @@ export type Database = {
           fee_type: string
           net_amount: number
         }[]
+      }
+      cancel_affiliate_commissions: {
+        Args: { _reason?: string; _subscription_id: string }
+        Returns: Json
       }
       check_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
@@ -6388,6 +6396,19 @@ export type Database = {
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      lock_affiliate_commission: {
+        Args: { _cooling_days?: number; _subscription_id: string }
+        Returns: Json
+      }
+      process_affiliate_commission: {
+        Args: {
+          _paid_amount: number
+          _plan_id: string
+          _subscription_id: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       process_subscription_expiry: { Args: never; Returns: undefined }
       process_wallet_transaction: {
         Args: {
