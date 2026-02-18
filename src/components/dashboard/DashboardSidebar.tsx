@@ -65,6 +65,7 @@ const navGroups: NavGroup[] = [
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
       { icon: Receipt, key: "nav.wallet", path: "/dashboard/wallet", module: "finance" },
       { icon: Wallet, key: "nav.numaxioPay", path: "/dashboard/numaxio-pay", module: "finance" },
+      { icon: Crown, key: "nav.affiliate", path: "/dashboard/affiliate", module: "finance" },
     ],
   },
   {
