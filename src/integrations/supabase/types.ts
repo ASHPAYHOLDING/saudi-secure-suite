@@ -652,6 +652,8 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          after_value: Json | null
+          before_value: Json | null
           changes: Json | null
           created_at: string
           entity_id: string | null
@@ -664,6 +666,8 @@ export type Database = {
         }
         Insert: {
           action: string
+          after_value?: Json | null
+          before_value?: Json | null
           changes?: Json | null
           created_at?: string
           entity_id?: string | null
@@ -676,6 +680,8 @@ export type Database = {
         }
         Update: {
           action?: string
+          after_value?: Json | null
+          before_value?: Json | null
           changes?: Json | null
           created_at?: string
           entity_id?: string | null
@@ -1031,6 +1037,8 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          deleted_at: string | null
+          deleted_by: string | null
           fiscal_year: number
           id: string
           name_ar: string
@@ -1044,6 +1052,8 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           fiscal_year: number
           id?: string
           name_ar: string
@@ -1057,6 +1067,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           fiscal_year?: number
           id?: string
           name_ar?: string
@@ -1502,6 +1514,8 @@ export type Database = {
           credit_note_number: string
           currency: string
           customer_id: string
+          deleted_at: string | null
+          deleted_by: string | null
           grand_total: number
           id: string
           invoice_id: string | null
@@ -1521,6 +1535,8 @@ export type Database = {
           credit_note_number: string
           currency?: string
           customer_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           grand_total?: number
           id?: string
           invoice_id?: string | null
@@ -1540,6 +1556,8 @@ export type Database = {
           credit_note_number?: string
           currency?: string
           customer_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           grand_total?: number
           id?: string
           invoice_id?: string | null
@@ -2397,6 +2415,8 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           expense_date: string
           expense_number: string
@@ -2423,6 +2443,8 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           expense_date?: string
           expense_number: string
@@ -2449,6 +2471,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           expense_date?: string
           expense_number?: string
@@ -2911,6 +2935,8 @@ export type Database = {
           created_by: string
           currency: string
           customer_id: string
+          deleted_at: string | null
+          deleted_by: string | null
           discount_total: number
           due_date: string
           grand_total: number
@@ -2946,6 +2972,8 @@ export type Database = {
           created_by: string
           currency?: string
           customer_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           discount_total?: number
           due_date?: string
           grand_total?: number
@@ -2981,6 +3009,8 @@ export type Database = {
           created_by?: string
           currency?: string
           customer_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           discount_total?: number
           due_date?: string
           grand_total?: number
@@ -3037,6 +3067,8 @@ export type Database = {
           branch_id: string | null
           created_at: string
           created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           entry_date: string
           entry_number: string
@@ -3055,6 +3087,8 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           entry_date?: string
           entry_number: string
@@ -3073,6 +3107,8 @@ export type Database = {
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           entry_date?: string
           entry_number?: string
@@ -5803,6 +5839,8 @@ export type Database = {
           created_at: string
           current_period_end: string
           current_period_start: string
+          deleted_at: string | null
+          deleted_by: string | null
           grace_ends_at: string | null
           id: string
           plan_id: string
@@ -5819,6 +5857,8 @@ export type Database = {
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           grace_ends_at?: string | null
           id?: string
           plan_id: string
@@ -5835,6 +5875,8 @@ export type Database = {
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           grace_ends_at?: string | null
           id?: string
           plan_id?: string
@@ -6789,6 +6831,8 @@ export type Database = {
           balance_before: number | null
           created_at: string
           created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           reason: string
           reference_id: string
@@ -6803,6 +6847,8 @@ export type Database = {
           balance_before?: number | null
           created_at?: string
           created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           reason: string
           reference_id: string
@@ -6817,6 +6863,8 @@ export type Database = {
           balance_before?: number | null
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           reason?: string
           reference_id?: string
