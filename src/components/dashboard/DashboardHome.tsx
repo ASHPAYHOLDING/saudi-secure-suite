@@ -285,7 +285,7 @@ const DashboardHome = () => {
       supabase.from("contracts").select("status").eq("tenant_id", tenantId!),
       supabase.from("customers").select("id").eq("tenant_id", tenantId!),
       supabase.from("expenses").select("total_amount, expense_date, status").eq("tenant_id", tenantId!),
-      supabase.from("audit_logs").select("id, action, entity_type, entity_label, created_at, user_id").eq("tenant_id", tenantId!).order("created_at", { ascending: false }).limit(10),
+      supabase.from("audit_logs").select("id, action, entity_type, entity_label, created_at, user_id").eq("tenant_id", tenantId!).order("created_at", { ascending: false }).limit(5),
       supabase.from("tenants").select("name").eq("id", tenantId!).single(),
     ]);
 
@@ -343,6 +343,11 @@ const DashboardHome = () => {
       sign: t("dashboard.actionSign"),
       cancel: t("dashboard.actionCancel"),
       mark_paid: t("dashboard.actionMarkPaid"),
+      wallet_tx_credit: "إيداع",
+      wallet_tx_debit: "خصم",
+      wallet_balance_update: "تحديث رصيد",
+      affiliate_commission: "عمولة شريك",
+      affiliate_payout: "صرف عمولة",
     };
     const entityMap: Record<string, string> = {
       invoice: t("dashboard.entityInvoice"),
@@ -350,6 +355,13 @@ const DashboardHome = () => {
       customer: t("dashboard.entityCustomer"),
       stamp: t("dashboard.entityStamp"),
       expense: t("dashboard.entityExpense") || "مصروف",
+      wallet: "المحفظة",
+      wallet_transaction: "معاملة محفظة",
+      subscription: "الاشتراك",
+      affiliate: "الشريك",
+      affiliate_commission: "عمولة",
+      affiliate_payout: "صرف عمولة",
+      paylink_transaction: "معاملة دفع",
     };
     return `${actionMap[action] || action} ${entityMap[entityType] || entityType}`;
   };
@@ -361,6 +373,13 @@ const DashboardHome = () => {
       customer: Users,
       stamp: CheckCircle2,
       expense: Receipt,
+      wallet: CreditCard,
+      wallet_transaction: CreditCard,
+      subscription: CheckCircle2,
+      affiliate: Users,
+      affiliate_commission: Receipt,
+      affiliate_payout: CreditCard,
+      paylink_transaction: CreditCard,
     };
     return icons[entityType] || FileText;
   };
