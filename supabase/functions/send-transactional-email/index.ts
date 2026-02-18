@@ -646,7 +646,7 @@ Deno.serve(async (req) => {
         .update({ status: "retrying", retry_count: 1, last_retry_at: new Date().toISOString() })
         .eq("id", logRow.id);
 
-      const retry = await sendViaResend(fromAddress, recipient_email, tpl.subject, tpl.html);
+      const retry = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html);
       await serviceClient
         .from("email_logs")
         .update({
