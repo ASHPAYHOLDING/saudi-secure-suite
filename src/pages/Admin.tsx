@@ -21,6 +21,7 @@ import AdminSupportTickets from "@/components/admin/AdminSupportTickets";
 import AdminPaidIntegrations from "@/components/admin/AdminPaidIntegrations";
 import AdminWalletRequests from "@/components/admin/AdminWalletRequests";
 import AdminDiscountCodes from "@/components/admin/AdminDiscountCodes";
+import AdminAffiliateManagement from "@/components/admin/AdminAffiliateManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ const Admin = () => {
     if (path === "/admin/paid-integrations") return <AdminPaidIntegrations />;
     if (path === "/admin/wallet-requests") return <AdminWalletRequests />;
     if (path === "/admin/discount-codes") return <AdminDiscountCodes />;
+    if (path === "/admin/affiliates") return <AdminAffiliateManagement />;
     return <AdminDashboard />;
   };
 

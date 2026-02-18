@@ -18,6 +18,7 @@ import {
   Wallet,
   Headphones,
   Tag,
+  Crown,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ const menuItems = [
   { icon: Wallet, label: "التكاملات المدفوعة", path: "/admin/paid-integrations" },
   { icon: Wallet, label: "طلبات شحن المحفظة", path: "/admin/wallet-requests" },
   { icon: Tag, label: "أكواد الخصم", path: "/admin/discount-codes" },
+  { icon: Crown, label: "إدارة الشركاء", path: "/admin/affiliates" },
 ];
 
 interface AdminSidebarProps {
