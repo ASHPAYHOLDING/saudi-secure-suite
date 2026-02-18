@@ -14,11 +14,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import DiscountCodeInput from "./DiscountCodeInput";
 import BankTransferForm from "./BankTransferForm";
 
@@ -111,11 +113,12 @@ const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: 
 
 const AnimatedPrice = ({ value }: { value: number }) => {
   const animated = useCountUp(value, 600);
-  return <span className="text-3xl font-bold text-foreground">{animated.toLocaleString("ar-SA")}</span>;
+  return <span className="text-3xl sm:text-3xl font-bold text-foreground">{animated.toLocaleString("ar-SA")}</span>;
 };
 
 const SubscriptionPage = () => {
   const { user, tenantId } = useAuth();
+  const isMobile = useIsMobile();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [logs, setLogs] = useState<SubLog[]>([]);
@@ -190,7 +193,6 @@ const SubscriptionPage = () => {
 
       const finalAmount = discountedPrice ?? getPlanPrice(plan, selectedCycle);
 
-      // ── Wallet Payment ──
       if (paymentMethod === "wallet") {
         const response = await supabase.functions.invoke("upgrade-subscription", {
           body: {
@@ -226,14 +228,9 @@ const SubscriptionPage = () => {
         }
 
         toast({ title: "تم بنجاح ✅", description: response.data.message });
-      }
-
-      // ── Paylink (Card Payment) ──
-      else if (paymentMethod === "paylink") {
+      } else if (paymentMethod === "paylink") {
         const orderNum = `SUB-${Date.now()}`;
-        // Webhook URL for Paylink to call after payment (server-side verification)
         const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/subscription-webhook?action=webhook`;
-        // Redirect URL for user after payment (just UI feedback)
         const callbackUrl = `${window.location.origin}/dashboard/subscription?upgrade=pending&plan_id=${plan.id}&cycle=${selectedCycle}`;
 
         const { data: profile } = await supabase
@@ -261,7 +258,6 @@ const SubscriptionPage = () => {
           return;
         }
 
-        // Store pending request so we can activate after callback
         await supabase.from("subscription_upgrade_requests").insert({
           tenant_id: tenantId,
           requested_by: user.id,
@@ -275,13 +271,9 @@ const SubscriptionPage = () => {
           notes: `Paylink Transaction: ${response.data.transactionNo}`,
         });
 
-        // Redirect to payment page
         window.open(response.data.paymentUrl, "_blank");
         toast({ title: "تم إنشاء رابط الدفع", description: "تم فتح صفحة الدفع في نافذة جديدة" });
-      }
-
-      // ── Bank Transfer ──
-      else if (paymentMethod === "bank_transfer") {
+      } else if (paymentMethod === "bank_transfer") {
         if (!bankReference.trim()) {
           toast({ title: "خطأ", description: "يرجى إدخال رقم مرجع التحويل", variant: "destructive" });
           setUpgrading(false);
@@ -356,24 +348,31 @@ const SubscriptionPage = () => {
     }
   };
 
+  const resetDialogState = () => {
+    setUpgradeDialog(null);
+    setDiscountedPrice(null);
+    setDiscountCode("");
+    setPaymentMethod("wallet");
+    setBankReference("");
+    setReceiptFile(null);
+  };
+
   if (loading) {
     return (
-      <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
-        {/* Skeleton: Current Plan */}
+      <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
         <div className="space-y-2">
           <div className="h-6 w-40 bg-muted animate-pulse rounded-md" />
           <div className="h-4 w-60 bg-muted/60 animate-pulse rounded-md" />
         </div>
-        <div className="rounded-xl border bg-card p-6 space-y-4">
+        <div className="rounded-xl border bg-card p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 bg-muted animate-pulse rounded-xl" />
             <div className="space-y-2 flex-1">
               <div className="h-5 w-32 bg-muted animate-pulse rounded" />
               <div className="h-4 w-24 bg-muted/60 animate-pulse rounded" />
             </div>
-            <div className="h-8 w-28 bg-muted animate-pulse rounded" />
           </div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="rounded-lg bg-muted/40 p-3 space-y-2">
                 <div className="h-5 w-10 bg-muted animate-pulse rounded mx-auto" />
@@ -383,7 +382,7 @@ const SubscriptionPage = () => {
           </div>
         </div>
         {/* Skeleton: Plan Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="rounded-xl border bg-card p-5 space-y-4">
               <div className="h-5 w-24 bg-muted animate-pulse rounded" />
@@ -393,7 +392,7 @@ const SubscriptionPage = () => {
                   <div key={j} className="h-3.5 w-full bg-muted/50 animate-pulse rounded" />
                 ))}
               </div>
-              <div className="h-9 w-full bg-muted animate-pulse rounded-lg" />
+              <div className="h-11 sm:h-9 w-full bg-muted animate-pulse rounded-lg" />
             </div>
           ))}
         </div>
@@ -401,11 +400,150 @@ const SubscriptionPage = () => {
     );
   }
 
+  // Payment content shared between Dialog and Drawer
+  const PaymentContent = () => upgradeDialog ? (
+    <div className="space-y-4">
+      <div className="rounded-lg bg-muted/50 p-3 sm:p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">من:</span>
+          <span className="font-medium">{currentPlan?.name_ar}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">إلى:</span>
+          <span className="font-bold text-accent">{upgradeDialog.name_ar}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">الدورة:</span>
+          <span>{CYCLE_LABELS[selectedCycle]}</span>
+        </div>
+        <div className="border-t pt-2 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">السعر:</span>
+          <div className="text-left">
+            {discountedPrice !== null ? (
+              <>
+                <span className="text-sm text-muted-foreground line-through mr-2">
+                  {getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س
+                </span>
+                <span className="text-lg font-bold text-accent">{discountedPrice.toLocaleString("ar-SA")} ر.س</span>
+              </>
+            ) : (
+              <span className="text-lg font-bold">{getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <DiscountCodeInput
+        planId={upgradeDialog.id}
+        originalPrice={getPlanPrice(upgradeDialog, selectedCycle)}
+        onDiscountApplied={(res) => {
+          if (res.success && res.amount_after !== undefined) {
+            setDiscountedPrice(res.amount_after);
+            setDiscountCode(res.code || "");
+          } else {
+            setDiscountedPrice(null);
+            setDiscountCode("");
+          }
+        }}
+      />
+
+      {/* Payment Method - Segmented Control on mobile */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/60 rounded-xl">
+          {([
+            { value: "paylink" as const, icon: CreditCard, label: "بطاقة" },
+            { value: "wallet" as const, icon: Wallet, label: "محفظة" },
+            { value: "bank_transfer" as const, icon: Building2, label: "تحويل" },
+          ]).map((method) => (
+            <button
+              key={method.value}
+              onClick={() => setPaymentMethod(method.value)}
+              className={`flex flex-col items-center gap-1 py-2.5 sm:py-2 px-2 rounded-lg text-xs font-medium transition-all duration-200 min-h-[52px] sm:min-h-0 sm:flex-row sm:gap-1.5 ${
+                paymentMethod === method.value
+                  ? "bg-background shadow-md text-accent"
+                  : "text-muted-foreground active:scale-95"
+              }`}
+            >
+              <method.icon size={18} className="sm:w-4 sm:h-4" />
+              <span>{method.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={paymentMethod}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {paymentMethod === "wallet" && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+                <div className="flex items-center gap-2 mb-1">
+                  <Wallet size={16} className="text-primary" />
+                  <span className="font-semibold">الدفع من المحفظة الرقمية</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  سيتم خصم <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك فوراً.
+                </p>
+              </div>
+            )}
+
+            {paymentMethod === "paylink" && (
+              <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-foreground space-y-2">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} className="text-accent" />
+                  <span className="font-semibold">الدفع عبر بوابة الدفع الإلكتروني</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  سيتم فتح صفحة دفع آمنة لإتمام العملية بالبطاقة البنكية. المبلغ: <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
+                </p>
+              </div>
+            )}
+
+            {paymentMethod === "bank_transfer" && (
+              <BankTransferForm
+                amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
+                bankReference={bankReference}
+                onBankReferenceChange={setBankReference}
+                receiptFile={receiptFile}
+                onReceiptFileChange={setReceiptFile}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  ) : null;
+
+  const PaymentFooter = () => (
+    <div className="flex flex-col-reverse sm:flex-row gap-2 w-full">
+      <Button variant="outline" onClick={resetDialogState} className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm">
+        إلغاء
+      </Button>
+      <Button
+        onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)}
+        disabled={upgrading}
+        className="w-full sm:w-auto gap-1.5 h-12 sm:h-10 text-base sm:text-sm"
+      >
+        {upgrading ? <Loader2 size={16} className="animate-spin" /> : (
+          paymentMethod === "wallet" ? <Wallet size={16} /> :
+          paymentMethod === "paylink" ? <CreditCard size={16} /> :
+          <Building2 size={16} />
+        )}
+        {paymentMethod === "wallet" ? "دفع وتأكيد الترقية" :
+         paymentMethod === "paylink" ? "الدفع بالبطاقة" :
+         "إرسال طلب الترقية"}
+      </Button>
+    </div>
+  );
+
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
+    <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 max-w-5xl mx-auto" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       <div className="text-right">
-        <h1 className="text-2xl font-bold text-foreground text-right">إدارة الاشتراك</h1>
-        <p className="text-sm text-muted-foreground text-right">عرض وإدارة خطة اشتراكك الحالية</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">إدارة الاشتراك</h1>
+        <p className="text-sm text-muted-foreground">عرض وإدارة خطة اشتراكك الحالية</p>
       </div>
 
       {/* Current Subscription Card */}
@@ -413,16 +551,16 @@ const SubscriptionPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-l from-accent via-accent/60 to-transparent" />
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
-                      <Crown className="h-6 w-6 text-accent" />
+                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-accent/10 shrink-0">
+                      <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-foreground">{currentPlan.name_ar}</h2>
-                      <div className="flex items-center gap-2 mt-1">
+                    <div className="min-w-0">
+                      <h2 className="text-lg sm:text-xl font-bold text-foreground">{currentPlan.name_ar}</h2>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <Badge className={STATUS_MAP[subscription.status]?.class || ""}>
                           {STATUS_MAP[subscription.status]?.icon}
                           <span className="mr-1">{STATUS_MAP[subscription.status]?.label || subscription.status}</span>
@@ -435,38 +573,38 @@ const SubscriptionPage = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-sm">
                     {currentPlan.max_users && (
-                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                      <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                         <Users size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_users}</p>
                         <p className="text-xs text-muted-foreground">مستخدم</p>
-                      </motion.div>
+                      </div>
                     )}
                     {currentPlan.max_invoices && (
-                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                      <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                         <FileText size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_invoices}</p>
                         <p className="text-xs text-muted-foreground">فاتورة/شهر</p>
-                      </motion.div>
+                      </div>
                     )}
                     {currentPlan.max_storage_gb && (
-                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                      <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                         <HardDrive size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_storage_gb} GB</p>
                         <p className="text-xs text-muted-foreground">تخزين</p>
-                      </motion.div>
+                      </div>
                     )}
-                    <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                    <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                       <ShieldCheck size={14} className="mx-auto mb-1 text-accent" />
                       <p className="text-lg font-bold text-foreground">{currentPlan.grace_period_days}</p>
                       <p className="text-xs text-muted-foreground">يوم سماح</p>
-                    </motion.div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-start space-y-2 min-w-[180px]">
-                  <p className="text-3xl font-bold text-foreground">
+                <div className="space-y-2">
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">
                     {getPlanPrice(currentPlan, subscription.billing_cycle).toLocaleString("ar-SA")}
                     <span className="text-sm font-normal text-muted-foreground mr-1">ر.س/{CYCLE_LABELS[subscription.billing_cycle]}</span>
                   </p>
@@ -495,21 +633,22 @@ const SubscriptionPage = () => {
       )}
 
       <Tabs defaultValue="plans" className="space-y-4" dir="rtl">
-        <TabsList>
-          <TabsTrigger value="plans" className="gap-1"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
-          <TabsTrigger value="history" className="gap-1"><History size={14} /> سجل الاشتراك</TabsTrigger>
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="plans" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
+          <TabsTrigger value="history" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><History size={14} /> سجل الاشتراك</TabsTrigger>
         </TabsList>
 
         {/* Plans Tab */}
         <TabsContent value="plans">
-          {/* Cycle Selector */}
-          <div className="flex items-center justify-center gap-2 mb-6">
+          {/* Cycle Selector - full width on mobile */}
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-6">
             {(["monthly", "quarterly", "yearly"] as const).map((cycle) => (
               <Button
                 key={cycle}
                 size="sm"
                 variant={selectedCycle === cycle ? "default" : "outline"}
                 onClick={() => setSelectedCycle(cycle)}
+                className="flex-1 sm:flex-initial h-10 sm:h-9 text-sm"
               >
                 {CYCLE_LABELS[cycle]}
                 {cycle === "yearly" && <Badge className="mr-1 bg-emerald-100 text-emerald-700 text-[10px]">وفّر 20%</Badge>}
@@ -517,7 +656,8 @@ const SubscriptionPage = () => {
             ))}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
+          {/* Plan Cards - stacked on mobile, grid on desktop */}
+          <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
             {plans.map((plan, i) => {
               const isCurrent = plan.id === subscription?.plan_id;
               const price = getPlanPrice(plan, selectedCycle);
@@ -532,11 +672,10 @@ const SubscriptionPage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className={isPopular ? "relative z-10 lg:scale-[1.03]" : ""}
+                  className={isPopular ? "relative z-10 sm:lg:scale-[1.03]" : ""}
                 >
                   <Card
-                    className={`relative h-full flex flex-col transition-shadow duration-300 hover:shadow-lg overflow-hidden ${
+                    className={`relative h-full flex flex-col transition-shadow duration-300 overflow-hidden ${
                       isCurrent ? "border-accent ring-1 ring-accent/30" :
                       isPopular ? "border-accent/50 ring-2 ring-accent/20 shadow-md" : ""
                     }`}
@@ -589,32 +728,31 @@ const SubscriptionPage = () => {
                       <div className="flex flex-wrap gap-2">
                         {plan.max_users && (
                           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.15 }}
-                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
                             <Users size={12} className="text-accent" />
                             <span>{plan.max_users} مستخدم</span>
                           </motion.div>
                         )}
                         {plan.max_invoices && (
                           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.2 }}
-                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
                             <FileText size={12} className="text-accent" />
                             <span>{plan.max_invoices} فاتورة/شهر</span>
                           </motion.div>
                         )}
                         {plan.max_storage_gb && (
                           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.25 }}
-                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
                             <HardDrive size={12} className="text-accent" />
                             <span>{plan.max_storage_gb} GB تخزين</span>
                           </motion.div>
                         )}
                       </div>
 
-                      {/* Divider */}
                       <div className="border-t border-border/50" />
 
-                      {/* Feature list with icons */}
-                      <div className="space-y-2.5 text-sm text-right">
+                      {/* Feature list */}
+                      <div className="space-y-2.5 sm:space-y-2 text-sm text-right">
                         {features.map((f: string, fi: number) => {
                           const mapped = FEATURE_ICON_MAP[f];
                           const IconComp = mapped?.icon || CheckCircle2;
@@ -627,71 +765,58 @@ const SubscriptionPage = () => {
                               initial={{ opacity: 0, x: 10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.1 + 0.2 + fi * 0.04 }}
-                              className={`flex items-center gap-2.5 ${isHighlight ? "font-medium" : ""}`}
+                              className={`flex items-center gap-2.5 py-0.5 ${isHighlight ? "font-medium" : ""}`}
                               style={{ direction: "rtl" }}
                             >
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: i * 0.1 + 0.25 + fi * 0.04, type: "spring", stiffness: 300 }}
-                                className={`flex items-center justify-center rounded-md shrink-0 ${
-                                  isHighlight ? "h-6 w-6 bg-accent/15" : "h-5 w-5"
-                                }`}
-                              >
-                                <IconComp size={isHighlight ? 14 : 13} className={isHighlight ? "text-accent" : "text-muted-foreground"} />
-                              </motion.div>
-                              <span className={isHighlight ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                              <div className={`flex items-center justify-center rounded-md shrink-0 ${
+                                isHighlight ? "h-7 w-7 sm:h-6 sm:w-6 bg-accent/15" : "h-6 w-6 sm:h-5 sm:w-5"
+                              }`}>
+                                <IconComp size={isHighlight ? 15 : 14} className={isHighlight ? "text-accent" : "text-muted-foreground"} />
+                              </div>
+                              <span className={`${isHighlight ? "text-foreground" : "text-muted-foreground"} text-sm`}>{label}</span>
                               {isHighlight && (
-                                <motion.div initial={{ width: 0 }} animate={{ width: "auto" }} className="overflow-hidden">
-                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent/30 text-accent">
-                                    مميز
-                                  </Badge>
-                                </motion.div>
+                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent/30 text-accent shrink-0">
+                                  مميز
+                                </Badge>
                               )}
                             </motion.div>
                           );
                         })}
 
                         {/* Grace period */}
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: i * 0.1 + 0.5 }}
-                          className="flex items-center gap-2.5 pt-1 border-t border-border/30"
-                          style={{ direction: "rtl" }}
-                        >
-                          <div className="flex items-center justify-center h-5 w-5 shrink-0">
-                            <ShieldCheck size={13} className="text-muted-foreground" />
+                        <div className="flex items-center gap-2.5 pt-1 border-t border-border/30" style={{ direction: "rtl" }}>
+                          <div className="flex items-center justify-center h-6 w-6 sm:h-5 sm:w-5 shrink-0">
+                            <ShieldCheck size={14} className="text-muted-foreground" />
                           </div>
-                          <span className="text-muted-foreground">فترة سماح {plan.grace_period_days} يوم</span>
-                        </motion.div>
+                          <span className="text-muted-foreground text-sm">فترة سماح {plan.grace_period_days} يوم</span>
+                        </div>
                       </div>
 
-                      {/* CTA Button */}
+                      {/* CTA Button - larger on mobile */}
                       <div className="pt-3">
                         {isCurrent ? (
-                          <Button variant="outline" className="w-full gap-1.5" disabled>
-                            <CheckCircle2 size={14} />
+                          <Button variant="outline" className="w-full gap-1.5 h-12 sm:h-10 text-base sm:text-sm" disabled>
+                            <CheckCircle2 size={16} />
                             خطتك الحالية
                           </Button>
                         ) : plan.slug === "enterprise" ? (
                           <Button
-                            className="w-full gap-1.5"
+                            className="w-full gap-1.5 h-12 sm:h-10 text-base sm:text-sm"
                             variant="outline"
                             onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
                           >
-                            <Building2 size={14} /> تواصل مع المبيعات
+                            <Building2 size={16} /> تواصل مع المبيعات
                           </Button>
                         ) : (
                           <Button
-                            className={`w-full gap-1.5 ${isPopular ? "shadow-sm" : ""}`}
+                            className={`w-full gap-1.5 h-12 sm:h-10 text-base sm:text-sm ${isPopular ? "shadow-sm" : ""}`}
                             variant={(currentPlan?.sort_order || 0) < plan.sort_order ? "default" : "outline"}
                             onClick={() => setUpgradeDialog(plan)}
                           >
                             {(currentPlan?.sort_order || 0) < plan.sort_order ? (
-                              <><ArrowUpRight size={14} /> ترقية الآن</>
+                              <><ArrowUpRight size={16} /> ترقية الآن</>
                             ) : (
-                              <><ArrowDownRight size={14} /> تخفيض</>
+                              <><ArrowDownRight size={16} /> تخفيض</>
                             )}
                           </Button>
                         )}
@@ -705,7 +830,7 @@ const SubscriptionPage = () => {
 
           {subscription && !subscription.cancel_at_period_end && subscription.status === "active" && (
             <div className="mt-6 text-center">
-              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={handleCancel}>
+              <Button variant="ghost" className="text-destructive hover:text-destructive h-11 sm:h-10" onClick={handleCancel}>
                 إلغاء الاشتراك عند نهاية الفترة
               </Button>
             </div>
@@ -734,7 +859,7 @@ const SubscriptionPage = () => {
                           <Calendar size={14} className="text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0 space-y-0.5">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
                             <span className="font-medium text-sm">{ACTION_LABELS[log.action] || log.action}</span>
                             <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString("ar-SA")}</span>
                           </div>
@@ -758,169 +883,38 @@ const SubscriptionPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Upgrade/Downgrade Dialog */}
-      <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) { setUpgradeDialog(null); setDiscountedPrice(null); setDiscountCode(""); setPaymentMethod("wallet"); setBankReference(""); setReceiptFile(null); } }}>
-        <DialogContent dir="rtl" className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {upgradeDialog && (currentPlan?.sort_order || 0) < upgradeDialog.sort_order ? "ترقية" : "تخفيض"} الاشتراك
-            </DialogTitle>
-          </DialogHeader>
-          {upgradeDialog && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">من:</span>
-                  <span className="font-medium">{currentPlan?.name_ar}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">إلى:</span>
-                  <span className="font-bold text-accent">{upgradeDialog.name_ar}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">الدورة:</span>
-                  <span>{CYCLE_LABELS[selectedCycle]}</span>
-                </div>
-                <div className="border-t pt-2 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">السعر:</span>
-                  <div className="text-left">
-                    {discountedPrice !== null ? (
-                      <>
-                        <span className="text-sm text-muted-foreground line-through mr-2">
-                          {getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س
-                        </span>
-                        <span className="text-lg font-bold text-accent">{discountedPrice.toLocaleString("ar-SA")} ر.س</span>
-                      </>
-                    ) : (
-                      <span className="text-lg font-bold">{getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Discount Code Input */}
-              <DiscountCodeInput
-                planId={upgradeDialog.id}
-                originalPrice={getPlanPrice(upgradeDialog, selectedCycle)}
-                onDiscountApplied={(res) => {
-                  if (res.success && res.amount_after !== undefined) {
-                    setDiscountedPrice(res.amount_after);
-                    setDiscountCode(res.code || "");
-                  } else {
-                    setDiscountedPrice(null);
-                    setDiscountCode("");
-                  }
-                }}
-              />
-
-              {/* Payment Method Tabs */}
-              <Tabs value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as any)} dir="rtl">
-                <TabsList className="w-full grid grid-cols-3 h-12 p-1 bg-muted/60 rounded-xl gap-1">
-                  <TabsTrigger
-                    value="paylink"
-                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-accent transition-all duration-300 ease-out"
-                  >
-                    <motion.div
-                      animate={paymentMethod === "paylink" ? { rotate: [0, -8, 8, 0], scale: 1.15 } : { rotate: 0, scale: 1 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <CreditCard size={15} />
-                    </motion.div>
-                    الدفع الإلكتروني
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="wallet"
-                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-300 ease-out"
-                  >
-                    <motion.div
-                      animate={paymentMethod === "wallet" ? { y: [0, -3, 0], scale: 1.15 } : { y: 0, scale: 1 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <Wallet size={15} />
-                    </motion.div>
-                    المحفظة
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="bank_transfer"
-                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-foreground transition-all duration-300 ease-out"
-                  >
-                    <motion.div
-                      animate={paymentMethod === "bank_transfer" ? { scale: [1, 1.2, 1.1], rotate: [0, 3, 0] } : { scale: 1, rotate: 0 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    >
-                      <Building2 size={15} />
-                    </motion.div>
-                    تحويل بنكي
-                  </TabsTrigger>
-                </TabsList>
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={paymentMethod}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                  >
-                    <TabsContent value="wallet" className="mt-3" forceMount={paymentMethod === "wallet" ? true : undefined}>
-                      {paymentMethod === "wallet" && (
-                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Wallet size={16} className="text-primary" />
-                            <span className="font-semibold">الدفع من المحفظة الرقمية</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            سيتم خصم <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك فوراً.
-                          </p>
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="paylink" className="mt-3" forceMount={paymentMethod === "paylink" ? true : undefined}>
-                      {paymentMethod === "paylink" && (
-                        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-foreground space-y-2">
-                          <div className="flex items-center gap-2">
-                            <CreditCard size={16} className="text-accent" />
-                            <span className="font-semibold">الدفع عبر بوابة الدفع الإلكتروني</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            سيتم فتح صفحة دفع آمنة لإتمام العملية بالبطاقة البنكية. المبلغ: <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
-                          </p>
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="bank_transfer" className="mt-3" forceMount={paymentMethod === "bank_transfer" ? true : undefined}>
-                      {paymentMethod === "bank_transfer" && (
-                        <BankTransferForm
-                          amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
-                          bankReference={bankReference}
-                          onBankReferenceChange={setBankReference}
-                          receiptFile={receiptFile}
-                          onReceiptFileChange={setReceiptFile}
-                        />
-                      )}
-                    </TabsContent>
-                  </motion.div>
-                </AnimatePresence>
-              </Tabs>
+      {/* Upgrade/Downgrade - Drawer on mobile, Dialog on desktop */}
+      {isMobile ? (
+        <Drawer open={!!upgradeDialog} onOpenChange={(open) => { if (!open) resetDialogState(); }}>
+          <DrawerContent dir="rtl" className="max-h-[90vh]">
+            <DrawerHeader className="text-right">
+              <DrawerTitle>
+                {upgradeDialog && (currentPlan?.sort_order || 0) < upgradeDialog.sort_order ? "ترقية" : "تخفيض"} الاشتراك
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-2 overflow-y-auto">
+              <PaymentContent />
             </div>
-          )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setUpgradeDialog(null); setDiscountedPrice(null); setDiscountCode(""); setPaymentMethod("wallet"); setBankReference(""); setReceiptFile(null); }}>إلغاء</Button>
-            <Button onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)} disabled={upgrading} className="gap-1">
-              {upgrading ? <Loader2 size={14} className="animate-spin" /> : (
-                paymentMethod === "wallet" ? <Wallet size={14} /> :
-                paymentMethod === "paylink" ? <CreditCard size={14} /> :
-                <Building2 size={14} />
-              )}
-              {paymentMethod === "wallet" ? "دفع وتأكيد الترقية" :
-               paymentMethod === "paylink" ? "الدفع بالبطاقة" :
-               "إرسال طلب الترقية"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DrawerFooter>
+              <PaymentFooter />
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) resetDialogState(); }}>
+          <DialogContent dir="rtl" className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                {upgradeDialog && (currentPlan?.sort_order || 0) < upgradeDialog.sort_order ? "ترقية" : "تخفيض"} الاشتراك
+              </DialogTitle>
+            </DialogHeader>
+            <PaymentContent />
+            <DialogFooter className="gap-2">
+              <PaymentFooter />
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
