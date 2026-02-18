@@ -1,4 +1,4 @@
-import { usePaidIntegration } from "@/hooks/usePaidIntegration";
+import { useFeatureGate, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import { Loader2, Lock, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,11 @@ interface Props {
 
 /**
  * Wraps advanced accounting pages.
- * If `accounting_advanced` integration is not active, shows upgrade prompt.
+ * Uses backend entitlements to check if `accounting_advanced` is enabled.
  * Data is never deleted — only hidden.
  */
 const AdvancedAccountingGate = ({ children }: Props) => {
-  const { active, loading } = usePaidIntegration("accounting_advanced");
+  const { allowed, loading } = useFeatureGate(FEATURE_KEYS.ACCOUNTING_ADVANCED);
   const navigate = useNavigate();
 
   if (loading) {
@@ -24,7 +24,7 @@ const AdvancedAccountingGate = ({ children }: Props) => {
     );
   }
 
-  if (!active) {
+  if (!allowed) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4 text-center" dir="rtl">
         <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center">
@@ -33,7 +33,7 @@ const AdvancedAccountingGate = ({ children }: Props) => {
         <div className="space-y-2 max-w-md">
           <h2 className="text-xl font-bold text-foreground">المحاسبة المتقدمة</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            هذه الميزة تتطلب تفعيل إضافة <strong>المحاسبة المتقدمة</strong> من التكاملات المدفوعة.
+            هذه الميزة تتطلب الترقية إلى باقة <strong>الاحترافي</strong> أو أعلى.
             تشمل: القيود اليومية، التقارير المالية المتقدمة، التحليلات، وإقرار ضريبة القيمة المضافة.
           </p>
           <p className="text-xs text-muted-foreground">
@@ -41,9 +41,9 @@ const AdvancedAccountingGate = ({ children }: Props) => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => navigate("/dashboard/paid-integrations")} className="gap-2">
+          <Button onClick={() => navigate("/dashboard/subscription")} className="gap-2">
             <Lock size={14} />
-            تفعيل الإضافة
+            ترقية الباقة
           </Button>
           <Button variant="outline" onClick={() => navigate("/dashboard/finance")}>
             العودة للملخص المالي
