@@ -49,6 +49,7 @@ import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
 import BudgetListPage from "@/components/budgets/BudgetListPage";
 import BudgetDetailPage from "@/components/budgets/BudgetDetailPage";
+import DataQualityCenterPage from "@/components/reconciliation/DataQualityCenterPage";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -82,6 +83,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   finance: "finance",
   "journal-entries": "journal-entries",
   budgets: "budgets",
+  "data-quality": "finance",
   "supplier-inbox": "supplier-inbox",
   "payment-reminders": "payment-reminders",
   approvals: "billing",
@@ -170,6 +172,9 @@ const Dashboard = () => {
     }
     if (path.startsWith("/dashboard/budgets/")) {
       return <BudgetDetailPage />;
+    }
+    if (path === "/dashboard/data-quality") {
+      return <DataQualityCenterPage />;
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
