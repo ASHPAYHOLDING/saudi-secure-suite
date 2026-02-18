@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import { toast } from "@/hooks/use-toast";
 import {
   Plug, CheckCircle2, Monitor, ShoppingBag, Users, CreditCard, Package,
   Power, PowerOff, Key, BookOpen, MessageSquare, Radio,
   ShieldCheck, Loader2, AlertTriangle, Zap, Settings2, CircleDot,
-  ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet,
+  ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet, Crown, Sparkles,
 } from "lucide-react";
 
 interface PaidIntegration {
@@ -71,9 +72,16 @@ const FLOW_STEPS: { key: FlowStep; label: string; icon: any }[] = [
 
 const PaidIntegrationsPage = () => {
   const { tenantId, user } = useAuth();
+  const { entitlements, loading: loadingEntitlements, planSlug } = useEntitlements([
+    FEATURE_KEYS.PAID_INTEGRATIONS,
+  ]);
   const [integrations, setIntegrations] = useState<PaidIntegration[]>([]);
   const [subscriptions, setSubscriptions] = useState<TenantSubscription[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Plan-derived access
+  const isEnterprise = planSlug === "enterprise";
+  const canPurchase = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.allowed ?? false;
 
   // Flow state
   const [flowItem, setFlowItem] = useState<PaidIntegration | null>(null);
@@ -89,14 +97,14 @@ const PaidIntegrationsPage = () => {
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (tenantId) {
+    if (tenantId && !loadingEntitlements) {
       fetchAll();
-      fetchWalletBalance();
+      if (!isEnterprise) fetchWalletBalance();
     }
     return () => {
       if (paymentCheckInterval) clearInterval(paymentCheckInterval);
     };
-  }, [tenantId]);
+  }, [tenantId, loadingEntitlements]);
 
   const fetchWalletBalance = async () => {
     try {
@@ -136,8 +144,24 @@ const PaidIntegrationsPage = () => {
     setFlowItem(item);
     setApiKeyValue("");
     setTestResult("idle");
-    // Auto-select wallet if balance is sufficient
     setPaymentMethod(walletExists && walletBalance !== null && walletBalance >= item.price_once ? "wallet" : "paylink");
+
+    // Enterprise: auto-activate, skip payment
+    if (isEnterprise) {
+      const existing = getPurchased(item.id);
+      if (existing) {
+        if (item.requires_api_keys && !existing.api_key_encrypted) {
+          setFlowStep("api_keys");
+        } else {
+          setFlowStep("testing");
+          setTimeout(() => runConnectionTest(), 100);
+        }
+      } else {
+        // Auto-create record for enterprise
+        handleEnterpriseAutoActivate(item);
+      }
+      return;
+    }
 
     // If already purchased, skip to appropriate step
     const existing = getPurchased(item.id);
@@ -151,6 +175,40 @@ const PaidIntegrationsPage = () => {
     } else {
       setFlowStep("preview");
     }
+  };
+
+  const handleEnterpriseAutoActivate = async (item: PaidIntegration) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("tenant_paid_integrations").upsert({
+        tenant_id: tenantId,
+        integration_id: item.id,
+        status: item.requires_api_keys ? "disabled" : "active",
+        activated_by: user!.id,
+        purchased_at: new Date().toISOString(),
+        activated_at: new Date().toISOString(),
+        activation_source: "enterprise_auto",
+      } as any, { onConflict: "tenant_id,integration_id" });
+
+      if (error) {
+        toast({ title: "خطأ في التفعيل", description: error.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      toast({ title: "تم التفعيل تلقائياً ✅", description: `${item.name_ar} — مضمّن في باقة المؤسسات` });
+      fetchAll();
+
+      if (item.requires_api_keys) {
+        setFlowStep("api_keys");
+      } else {
+        setFlowStep("testing");
+        setTimeout(() => runConnectionTest(), 100);
+      }
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    }
+    setSaving(false);
   };
 
   const closeFlow = () => {
@@ -479,6 +537,12 @@ const PaidIntegrationsPage = () => {
           <p className="text-muted-foreground mt-1">فعّل تكاملات خارجية لتوسيع قدرات نظامك</p>
         </div>
         <div className="flex items-center gap-3">
+          {isEnterprise && (
+            <Badge className="gap-1 text-sm py-1.5 px-3 bg-amber-500/10 text-amber-600 border-amber-200">
+              <Crown size={14} />
+              جميع التكاملات مضمّنة
+            </Badge>
+          )}
           <Badge variant="outline" className="gap-1 text-sm py-1.5 px-3">
             <Plug size={14} />
             {activeSubscriptions.length} تكامل نشط
@@ -559,9 +623,18 @@ const PaidIntegrationsPage = () => {
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div>
-                            <span className="text-lg font-bold text-foreground">{item.price_once}</span>
-                            <span className="text-sm text-muted-foreground mr-1">ر.س</span>
-                            <span className="text-[10px] text-muted-foreground mr-1">(مرة واحدة)</span>
+                            {isEnterprise ? (
+                              <>
+                                <span className="text-lg font-bold text-green-600">مجاني</span>
+                                <span className="text-[10px] text-muted-foreground mr-2">(مضمّن في باقة المؤسسات)</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-lg font-bold text-foreground">{item.price_once}</span>
+                                <span className="text-sm text-muted-foreground mr-1">ر.س</span>
+                                <span className="text-[10px] text-muted-foreground mr-1">(مرة واحدة)</span>
+                              </>
+                            )}
                           </div>
                           {sub ? (
                             <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDeactivate(item.id)}>
@@ -576,7 +649,7 @@ const PaidIntegrationsPage = () => {
                             >
                               <Settings2 size={14} /> إكمال التفعيل
                             </Button>
-                          ) : (
+                          ) : isEnterprise ? (
                             <Button
                               size="sm"
                               className="gap-1"
@@ -584,6 +657,27 @@ const PaidIntegrationsPage = () => {
                               onClick={() => openFlow(item)}
                             >
                               {item.is_ready ? (
+                                <>
+                                  <Sparkles size={14} /> تفعيل فوري
+                                </>
+                              ) : (
+                                <>
+                                  <Lock size={14} /> غير متاح حالياً
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="gap-1"
+                              disabled={!item.is_ready || !canPurchase}
+                              onClick={() => openFlow(item)}
+                            >
+                              {!canPurchase ? (
+                                <>
+                                  <Lock size={14} /> ترقية الباقة
+                                </>
+                              ) : item.is_ready ? (
                                 <>
                                   <Power size={14} /> شراء وتفعيل
                                 </>
@@ -704,7 +798,11 @@ const PaidIntegrationsPage = () => {
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">السعر</span>
-                    <span className="font-bold">{flowItem.price_once} ر.س <span className="text-xs font-normal text-muted-foreground">(مرة واحدة)</span></span>
+                    {isEnterprise ? (
+                      <span className="font-bold text-green-600">مجاني <span className="text-xs font-normal text-muted-foreground">(مضمّن في باقة المؤسسات)</span></span>
+                    ) : (
+                      <span className="font-bold">{flowItem.price_once} ر.س <span className="text-xs font-normal text-muted-foreground">(مرة واحدة)</span></span>
+                    )}
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">النوع</span>
@@ -899,12 +997,19 @@ const PaidIntegrationsPage = () => {
             {flowStep === "preview" && (
               <>
                 <Button variant="outline" onClick={closeFlow}>إلغاء</Button>
-                <Button onClick={() => setFlowStep("payment")} className="gap-2">
-                  متابعة للدفع <ArrowRight size={14} />
-                </Button>
+                {isEnterprise ? (
+                  <Button onClick={() => flowItem && handleEnterpriseAutoActivate(flowItem)} disabled={saving} className="gap-2">
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    {saving ? "جاري التفعيل..." : "تفعيل فوري مجاني"}
+                  </Button>
+                ) : (
+                  <Button onClick={() => setFlowStep("payment")} className="gap-2">
+                    متابعة للدفع <ArrowRight size={14} />
+                  </Button>
+                )}
               </>
             )}
-            {flowStep === "payment" && (
+            {flowStep === "payment" && !isEnterprise && (
               <>
                 <Button variant="outline" onClick={() => setFlowStep("preview")}>رجوع</Button>
                 {paymentMethod === "wallet" ? (
