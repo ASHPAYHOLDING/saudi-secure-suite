@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Sparkles, Building2, User, Briefcase, Crown, TrendingDown } from "lucide-react";
+import { Check, X, Sparkles, Building2, User, Briefcase, Crown, TrendingDown, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,10 +42,42 @@ const PLAN_DESCRIPTIONS: Record<string, string> = {
   enterprise: "للمنشآت الكبرى والجهات الحكومية",
 };
 
+// Collect all unique features across plans for comparison
+const getAllFeatures = (plans: Plan[]): string[] => {
+  const allFeatures: string[] = [];
+  plans.forEach((plan) => {
+    const features = Array.isArray(plan.features) ? plan.features : [];
+    features.forEach((f: string) => {
+      // Skip meta-features like "كل مميزات الاحترافي"
+      if (!f.includes("كل مميزات") && !allFeatures.includes(f)) {
+        allFeatures.push(f);
+      }
+    });
+  });
+  return allFeatures;
+};
+
+const planHasFeature = (plan: Plan, feature: string, allPlans: Plan[]): boolean => {
+  const features = Array.isArray(plan.features) ? (plan.features as string[]) : [];
+  if (features.includes(feature)) return true;
+  // Enterprise inherits professional features
+  if (plan.slug === "enterprise") {
+    const proPlan = allPlans.find((p) => p.slug === "professional");
+    if (proPlan) {
+      const proFeatures = Array.isArray(proPlan.features) ? (proPlan.features as string[]) : [];
+      return proFeatures.includes(feature);
+    }
+  }
+  return false;
+};
+
+const INITIAL_FEATURES_COUNT = 4;
+
 const DynamicPricingSection = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const [loading, setLoading] = useState(true);
+  const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     supabase
@@ -58,6 +90,10 @@ const DynamicPricingSection = () => {
         setLoading(false);
       });
   }, []);
+
+  const toggleExpand = (planId: string) => {
+    setExpandedPlans((prev) => ({ ...prev, [planId]: !prev[planId] }));
+  };
 
   const getPrice = (plan: Plan): number => {
     if (cycle === "yearly" && plan.price_yearly) return plan.price_yearly;
@@ -98,6 +134,8 @@ const DynamicPricingSection = () => {
       </section>
     );
   }
+
+  const allFeatures = getAllFeatures(plans);
 
   return (
     <section id="pricing" className="py-20 sm:py-28 bg-secondary/30" dir="rtl">
@@ -173,6 +211,16 @@ const DynamicPricingSection = () => {
             const isEnterprise = plan.slug === "enterprise" && plan.price_monthly === 0;
             const PlanIcon = PLAN_ICONS[plan.slug] || User;
             const description = PLAN_DESCRIPTIONS[plan.slug] || "";
+            const isExpanded = expandedPlans[plan.id] || false;
+
+            // Build comparison: show which of allFeatures this plan has
+            const comparisonItems = allFeatures.map((f) => ({
+              label: f,
+              has: planHasFeature(plan, f, plans),
+            }));
+
+            const visibleItems = isExpanded ? comparisonItems : comparisonItems.slice(0, INITIAL_FEATURES_COUNT);
+            const hasMore = comparisonItems.length > INITIAL_FEATURES_COUNT;
 
             return (
               <motion.div
@@ -196,14 +244,14 @@ const DynamicPricingSection = () => {
                     className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
                   >
                     <Crown size={12} className="inline ml-1 -mt-0.5" />
-                    الأكثر طلباً
+                    الأكثر شيوعاً
                   </motion.div>
                 )}
 
                 {/* Plan Name */}
                 <div className="mb-5 pt-1">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isPopular ? "bg-accent/20" : "bg-accent/10"}`}>
                       <PlanIcon size={16} className="text-accent" />
                     </div>
                     <div>
@@ -310,17 +358,53 @@ const DynamicPricingSection = () => {
                   </motion.div>
                 </Link>
 
-                {/* Features */}
-                <ul className="space-y-2.5">
-                  {features.map((f: string, fi: number) => (
-                    <li key={fi} className="flex items-center gap-2.5 text-sm text-foreground">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
-                        <Check size={12} className="text-accent" />
-                      </div>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                {/* Feature Comparison: ✔️ / ❌ */}
+                <div className="space-y-0">
+                  <AnimatePresence initial={false}>
+                    {visibleItems.map((item, fi) => (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, delay: fi * 0.02 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2.5 py-2 text-sm border-b border-border/30 last:border-b-0">
+                          {item.has ? (
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
+                              <Check size={12} className="text-accent" />
+                            </div>
+                          ) : (
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/60 shrink-0">
+                              <X size={12} className="text-muted-foreground/50" />
+                            </div>
+                          )}
+                          <span className={item.has ? "text-foreground" : "text-muted-foreground/60 line-through decoration-muted-foreground/30"}>
+                            {item.label}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {/* Expand / Collapse */}
+                  {hasMore && (
+                    <motion.button
+                      onClick={() => toggleExpand(plan.id)}
+                      className="flex items-center justify-center gap-1.5 w-full pt-3 pb-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors min-h-[44px]"
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <span>{isExpanded ? "عرض أقل" : `عرض الكل (${comparisonItems.length})`}</span>
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChevronDown size={14} />
+                      </motion.div>
+                    </motion.button>
+                  )}
+                </div>
               </motion.div>
             );
           })}

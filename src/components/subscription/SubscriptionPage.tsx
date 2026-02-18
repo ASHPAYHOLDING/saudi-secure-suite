@@ -6,7 +6,8 @@ import {
   Wallet, Building2, Loader2, Upload, Copy, Sparkles, TrendingUp,
   Users, FileText, HardDrive, ShieldCheck, Star, BarChart3,
   Stamp, Headphones, Phone, ScrollText, Palette, UserCog,
-  Globe, GraduationCap, Server, Handshake, Award, Lock, QrCode
+  Globe, GraduationCap, Server, Handshake, Award, Lock, QrCode,
+  ChevronDown, Check, X
 } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -79,37 +80,40 @@ const ACTION_LABELS: Record<string, string> = {
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
 };
 
-// Feature icon mapping for intelligent display
-const FEATURE_ICON_MAP: Record<string, { icon: React.ElementType; label: string; highlight?: boolean }> = {
-  "فواتير إلكترونية": { icon: FileText, label: "فواتير إلكترونية متوافقة" },
-  "إدارة العملاء": { icon: Users, label: "إدارة شاملة للعملاء" },
-  "QR متوافق مع ZATCA": { icon: QrCode, label: "رمز QR متوافق مع زاتكا", highlight: true },
-  "تقارير أساسية": { icon: BarChart3, label: "تقارير مالية أساسية" },
-  "دعم عبر البريد": { icon: Headphones, label: "دعم فني عبر البريد" },
-  "فواتير غير محدودة": { icon: FileText, label: "فواتير غير محدودة", highlight: true },
-  "إدارة العقود والعملاء": { icon: ScrollText, label: "إدارة العقود والعملاء" },
-  "ختم إلكتروني رسمي": { icon: Stamp, label: "ختم إلكتروني رسمي" },
-  "تقارير متقدمة وتحليلات": { icon: BarChart3, label: "تقارير متقدمة وتحليلات", highlight: true },
-  "دعم أولوية عبر الهاتف": { icon: Phone, label: "دعم أولوية عبر الهاتف", highlight: true },
-  "سجل مراجعة كامل": { icon: ScrollText, label: "سجل مراجعة وتدقيق كامل" },
-  "تخصيص هوية الشركة": { icon: Palette, label: "تخصيص كامل لهوية الشركة" },
-  "إدارة الموارد البشرية": { icon: UserCog, label: "إدارة الموارد البشرية" },
-  "numaxio_pay": { icon: CreditCard, label: "بوابة نيوماكسيو باي للدفع", highlight: true },
-  "كل مميزات الاحترافي": { icon: Crown, label: "جميع مميزات الباقة الاحترافية", highlight: true },
-  "مستخدمين غير محدود": { icon: Users, label: "عدد مستخدمين غير محدود", highlight: true },
-  "مدير حساب مخصص": { icon: Handshake, label: "مدير حساب مخصص لمنشأتك" },
-  "تكامل API كامل": { icon: Globe, label: "تكامل API كامل مع أنظمتك" },
-  "SLA مضمون 99.9%": { icon: Award, label: "اتفاقية مستوى خدمة 99.9%", highlight: true },
-  "تدريب وتأهيل الفريق": { icon: GraduationCap, label: "تدريب وتأهيل شامل للفريق" },
-  "بيئة مخصصة": { icon: Server, label: "بيئة سحابية مخصصة ومعزولة" },
-  "توظيف متقدم": { icon: UserCog, label: "أدوات توظيف واستقطاب متقدمة" },
-};
-
 const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string }> = {
   starter: { tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-muted/50 to-transparent" },
   professional: { popular: true, tagline: "الأكثر طلباً للشركات المتوسطة", gradient: "from-accent/10 to-transparent" },
   enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/10 to-transparent" },
 };
+
+// Collect all unique features across plans for comparison
+const getAllFeatures = (plans: Plan[]): string[] => {
+  const allFeatures: string[] = [];
+  plans.forEach((plan) => {
+    const features = Array.isArray(plan.features) ? plan.features : [];
+    features.forEach((f: string) => {
+      if (!f.includes("كل مميزات") && !allFeatures.includes(f)) {
+        allFeatures.push(f);
+      }
+    });
+  });
+  return allFeatures;
+};
+
+const planHasFeature = (plan: Plan, feature: string, allPlans: Plan[]): boolean => {
+  const features = Array.isArray(plan.features) ? (plan.features as string[]) : [];
+  if (features.includes(feature)) return true;
+  if (plan.slug === "enterprise") {
+    const proPlan = allPlans.find((p) => p.slug === "professional");
+    if (proPlan) {
+      const proFeatures = Array.isArray(proPlan.features) ? (proPlan.features as string[]) : [];
+      return proFeatures.includes(feature);
+    }
+  }
+  return false;
+};
+
+const INITIAL_VISIBLE = 4;
 
 const AnimatedPrice = ({ value }: { value: number }) => {
   const animated = useCountUp(value, 600);
@@ -131,6 +135,7 @@ const SubscriptionPage = () => {
   const [bankReference, setBankReference] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [upgrading, setUpgrading] = useState(false);
+  const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
   const fetchData = async () => {
     if (!tenantId) return;
@@ -677,9 +682,16 @@ const SubscriptionPage = () => {
               const isCurrent = plan.id === subscription?.plan_id;
               const price = getPlanPrice(plan, selectedCycle);
               const monthlyEq = getMonthlyEquivalent(plan, selectedCycle);
-              const features = Array.isArray(plan.features) ? plan.features : [];
               const meta = PLAN_META[plan.slug] || { tagline: "", gradient: "from-muted/50 to-transparent" };
               const isPopular = meta.popular && !isCurrent;
+              const allFeatures = getAllFeatures(plans);
+              const comparisonItems = allFeatures.map((f) => ({
+                label: f,
+                has: planHasFeature(plan, f, plans),
+              }));
+              const isExpanded = expandedPlans[plan.id] || false;
+              const visibleItems = isExpanded ? comparisonItems : comparisonItems.slice(0, INITIAL_VISIBLE);
+              const hasMore = comparisonItems.length > INITIAL_VISIBLE;
 
               return (
                 <motion.div
@@ -766,40 +778,55 @@ const SubscriptionPage = () => {
 
                       <div className="border-t border-border/50" />
 
-                      {/* Feature list */}
-                      <div className="space-y-2.5 sm:space-y-2 text-sm text-right">
-                        {features.map((f: string, fi: number) => {
-                          const mapped = FEATURE_ICON_MAP[f];
-                          const IconComp = mapped?.icon || CheckCircle2;
-                          const label = mapped?.label || f;
-                          const isHighlight = mapped?.highlight;
-
-                          return (
+                      {/* Feature Comparison ✔️/❌ */}
+                      <div className="space-y-0 text-sm text-right">
+                        <AnimatePresence initial={false}>
+                          {visibleItems.map((item, fi) => (
                             <motion.div
-                              key={fi}
-                              initial={{ opacity: 0, x: 10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: i * 0.1 + 0.2 + fi * 0.04 }}
-                              className={`flex items-center gap-2.5 py-0.5 ${isHighlight ? "font-medium" : ""}`}
-                              style={{ direction: "rtl" }}
+                              key={item.label}
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2, delay: fi * 0.02 }}
+                              className="overflow-hidden"
                             >
-                              <div className={`flex items-center justify-center rounded-md shrink-0 ${
-                                isHighlight ? "h-7 w-7 sm:h-6 sm:w-6 bg-accent/15" : "h-6 w-6 sm:h-5 sm:w-5"
-                              }`}>
-                                <IconComp size={isHighlight ? 15 : 14} className={isHighlight ? "text-accent" : "text-muted-foreground"} />
+                              <div
+                                className="flex items-center gap-2.5 py-2 border-b border-border/20 last:border-b-0"
+                                style={{ direction: "rtl" }}
+                              >
+                                {item.has ? (
+                                  <div className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
+                                    <Check size={13} className="text-accent" />
+                                  </div>
+                                ) : (
+                                  <div className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-muted/60 shrink-0">
+                                    <X size={13} className="text-muted-foreground/40" />
+                                  </div>
+                                )}
+                                <span className={item.has ? "text-foreground" : "text-muted-foreground/50 line-through decoration-muted-foreground/20"}>
+                                  {item.label}
+                                </span>
                               </div>
-                              <span className={`${isHighlight ? "text-foreground" : "text-muted-foreground"} text-sm`}>{label}</span>
-                              {isHighlight && (
-                                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent/30 text-accent shrink-0">
-                                  مميز
-                                </Badge>
-                              )}
                             </motion.div>
-                          );
-                        })}
+                          ))}
+                        </AnimatePresence>
+
+                        {/* Expand / Collapse */}
+                        {hasMore && (
+                          <motion.button
+                            onClick={() => setExpandedPlans((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
+                            className="flex items-center justify-center gap-1.5 w-full pt-2.5 pb-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors min-h-[44px]"
+                            whileTap={{ scale: 0.97 }}
+                          >
+                            <span>{isExpanded ? "عرض أقل" : `عرض الكل (${comparisonItems.length})`}</span>
+                            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                              <ChevronDown size={14} />
+                            </motion.div>
+                          </motion.button>
+                        )}
 
                         {/* Grace period */}
-                        <div className="flex items-center gap-2.5 pt-1 border-t border-border/30" style={{ direction: "rtl" }}>
+                        <div className="flex items-center gap-2.5 pt-2 border-t border-border/30" style={{ direction: "rtl" }}>
                           <div className="flex items-center justify-center h-6 w-6 sm:h-5 sm:w-5 shrink-0">
                             <ShieldCheck size={14} className="text-muted-foreground" />
                           </div>
