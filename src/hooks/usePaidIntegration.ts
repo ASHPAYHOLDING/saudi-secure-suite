@@ -4,6 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * Check if a paid integration is active for the current tenant.
+ * 
+ * Access rules (single source of truth — plan_entitlements):
+ *   - basic:      cannot access paid integrations at all
+ *   - pro:        can buy & activate (wallet / paylink)
+ *   - enterprise: auto-activated (included_in_plans)
+ *   - trial:      all integrations accessible
+ *
  * Active means:
  *   1. Tenant has explicitly activated it (tenant_paid_integrations.status = 'active'), OR
  *   2. The tenant's subscription plan includes it for free (included_in_plans contains plan slug)
@@ -22,7 +29,21 @@ export const usePaidIntegration = (integrationKey: string) => {
     }
 
     const check = async () => {
-      // Check 0: Integration must be ready
+      // Step 0: Check plan entitlement for paid_integrations feature
+      const { data: entitlement } = await supabase.rpc("check_entitlement", {
+        _tenant_id: tenantId,
+        _feature_key: "paid_integrations",
+      });
+
+      const ent = entitlement as unknown as { allowed: boolean; reason: string } | null;
+      if (!ent?.allowed) {
+        // Plan doesn't include paid integrations access (basic plan)
+        setActive(false);
+        setLoading(false);
+        return;
+      }
+
+      // Step 1: Integration must be ready
       const { data: readyCheck } = await supabase
         .from("paid_integrations")
         .select("is_ready")
@@ -35,7 +56,7 @@ export const usePaidIntegration = (integrationKey: string) => {
         return;
       }
 
-      // Check 1: Explicit activation
+      // Step 2: Explicit activation (purchased or enterprise_auto)
       const { data: explicit } = await supabase
         .from("tenant_paid_integrations")
         .select("status, paid_integrations!inner(key, is_ready)")
@@ -49,7 +70,7 @@ export const usePaidIntegration = (integrationKey: string) => {
         return;
       }
 
-      // Check 2: Included in subscription plan
+      // Step 3: Included in subscription plan (enterprise auto-include)
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("plan_id, status, subscription_plans!inner(slug)")
