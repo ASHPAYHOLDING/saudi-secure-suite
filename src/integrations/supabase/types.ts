@@ -6676,6 +6676,15 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
       }
+      budget_incremental_update: {
+        Args: {
+          p_line_type: string
+          p_month: number
+          p_tenant_id: string
+          p_year: number
+        }
+        Returns: undefined
+      }
       calculate_paylink_fee: {
         Args: { _gross_amount: number; _tenant_id: string }
         Returns: {
@@ -6816,6 +6825,10 @@ export type Database = {
           subject_template: string
           variables: Json
         }[]
+      }
+      sync_budget_actuals_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: Json
       }
       user_has_permission: {
         Args: { _permission_key: string }
