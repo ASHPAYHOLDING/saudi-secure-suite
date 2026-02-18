@@ -54,6 +54,7 @@ import FeatureGate from "@/components/subscription/FeatureGate";
 import GroupDashboardPage from "@/components/group/GroupDashboardPage";
 import CustomReportBuilder from "@/components/reports/CustomReportBuilder";
 import ForecastingPage from "@/components/forecasting/ForecastingPage";
+import PeriodLockManagement from "@/components/accounting/PeriodLockManagement";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -87,6 +88,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   analytics: "analytics",
   finance: "finance",
   "journal-entries": "journal-entries",
+  "period-lock": "journal-entries",
   budgets: "budgets",
   "data-quality": "finance",
   "supplier-inbox": "supplier-inbox",
@@ -283,6 +285,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/forecasting") {
       return withGate("analytics", <ForecastingPage />);
+    }
+    if (path === "/dashboard/period-lock") {
+      return withGate("journal-entries", <PeriodLockManagement />);
     }
     return <DashboardHome />;
   };
