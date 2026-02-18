@@ -51,6 +51,7 @@ import BudgetListPage from "@/components/budgets/BudgetListPage";
 import BudgetDetailPage from "@/components/budgets/BudgetDetailPage";
 import DataQualityCenterPage from "@/components/reconciliation/DataQualityCenterPage";
 import FeatureGate from "@/components/subscription/FeatureGate";
+import GroupDashboardPage from "@/components/group/GroupDashboardPage";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -101,6 +102,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   settings: "settings",
   help: "help",
   support: "help",
+  group: "company",
 };
 
 const Dashboard = () => {
@@ -268,6 +270,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/support") {
       return <SupportTicketsPage />;
+    }
+    if (path === "/dashboard/group") {
+      return <GroupDashboardPage />;
     }
     return <DashboardHome />;
   };
