@@ -112,7 +112,7 @@ const AffiliateOnboardingWizard = ({ userId, tenantId, userEmail, userName, onCo
         code,
         status: "pending",
         commission_rate: 10,
-        tier: "bronze",
+        tier: "silver",
         bank_name: data.bankName.trim(),
         bank_iban: data.bankIban.replace(/\s/g, "").toUpperCase(),
         bank_account_name: data.bankAccountName.trim(),
