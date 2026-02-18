@@ -46,6 +46,8 @@ import NumaxioPay from "@/pages/NumaxioPay";
 import WalletPage from "@/components/wallet/WalletPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
+import FeatureGate from "@/components/subscription/FeatureGate";
+import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
@@ -106,91 +108,105 @@ const Dashboard = () => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
 
+  /** Wrap content with FeatureGate if a feature mapping exists for the route segment */
+  const withGate = (segment: string, content: React.ReactNode) => {
+    const mapping = ROUTE_FEATURE_MAP[segment];
+    if (!mapping) return content;
+    return (
+      <FeatureGate
+        featureKey={mapping.featureKey}
+        featureLabel={mapping.label}
+        featureDescription={mapping.description}
+      >
+        {content}
+      </FeatureGate>
+    );
+  };
+
   const renderContent = () => {
     const path = location.pathname;
-    // Extract the sub-path after /dashboard/
     const segment = path.replace("/dashboard/", "").replace("/dashboard", "");
     const module = PATH_MODULE_MAP[segment];
 
-    // If we have a module mapping and it's not allowed, redirect to dashboard home
+    // Tenant-type module check (individual vs freelancer vs company)
     if (module && !isModuleAllowed(tenantType, module)) {
       return <Navigate to="/dashboard" replace />;
     }
 
     if (path === "/dashboard/billing" || path === "/dashboard/invoices") {
-      return <InvoicesPage />;
+      return withGate("billing", <InvoicesPage />);
     }
     if (path === "/dashboard/contracts") {
-      return <ContractsPage />;
+      return withGate("contracts", <ContractsPage />);
     }
     if (path === "/dashboard/inventory") {
-      return <InventoryPage />;
+      return withGate("inventory", <InventoryPage />);
     }
     if (path === "/dashboard/quotations") {
-      return <QuotationsPage />;
+      return withGate("quotations", <QuotationsPage />);
     }
     if (path === "/dashboard/sales-orders") {
-      return <SalesOrdersPage />;
+      return withGate("sales-orders", <SalesOrdersPage />);
     }
     if (path === "/dashboard/purchase-orders") {
-      return <PurchaseOrdersPage />;
+      return withGate("purchase-orders", <PurchaseOrdersPage />);
     }
     if (path === "/dashboard/expenses") {
-      return <ExpensesPage />;
+      return withGate("expenses", <ExpensesPage />);
     }
     if (path === "/dashboard/delivery-notes") {
-      return <DeliveryNotesPage />;
+      return withGate("delivery-notes", <DeliveryNotesPage />);
     }
     if (path === "/dashboard/journal-entries") {
-      return <AdvancedAccountingGate><JournalEntriesPage /></AdvancedAccountingGate>;
+      return withGate("journal-entries", <JournalEntriesPage />);
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
     }
     if (path === "/dashboard/supplier-inbox") {
-      return <SupplierInboxPage />;
+      return withGate("supplier-inbox", <SupplierInboxPage />);
     }
     if (path === "/dashboard/payment-reminders") {
-      return <PaymentRemindersPage />;
+      return withGate("payment-reminders", <PaymentRemindersPage />);
     }
     if (path === "/dashboard/approvals") {
       return <ApprovalWorkflowsPage />;
     }
     if (path === "/dashboard/credit-notes") {
-      return <CreditNotesPage />;
+      return withGate("credit-notes", <CreditNotesPage />);
     }
     if (path === "/dashboard/stamp") {
-      return <StampManagement />;
+      return withGate("stamp", <StampManagement />);
     }
     if (path === "/dashboard/audit") {
-      return <AuditLogViewer />;
+      return withGate("audit", <AuditLogViewer />);
     }
     if (path === "/dashboard/branding") {
-      return <BrandingSettings />;
+      return withGate("branding", <BrandingSettings />);
     }
     if (path === "/dashboard/compliance") {
-      return <ComplianceSettings />;
+      return withGate("compliance", <ComplianceSettings />);
     }
     if (path === "/dashboard/customers") {
-      return <CustomersPage />;
+      return withGate("customers", <CustomersPage />);
     }
     if (path === "/dashboard/company") {
       return <CompanySettings />;
     }
     if (path === "/dashboard/team") {
-      return <TeamMembersPage />;
+      return withGate("team", <TeamMembersPage />);
     }
     if (path === "/dashboard/reports") {
-      return <AdvancedAccountingGate><ReportsPage /></AdvancedAccountingGate>;
+      return withGate("reports", <ReportsPage />);
     }
     if (path === "/dashboard/vat-return") {
-      return <AdvancedAccountingGate><VatReturnGenerator /></AdvancedAccountingGate>;
+      return withGate("vat-return", <VatReturnGenerator />);
     }
     if (path === "/dashboard/analytics") {
-      return <AdvancedAccountingGate><AnalyticsPage /></AdvancedAccountingGate>;
+      return withGate("analytics", <AnalyticsPage />);
     }
     if (path === "/dashboard/smart-query") {
-      return <AdvancedAccountingGate><NaturalLanguageQuery /></AdvancedAccountingGate>;
+      return withGate("smart-query", <NaturalLanguageQuery />);
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;
@@ -202,16 +218,16 @@ const Dashboard = () => {
       return <IntegrationsPage />;
     }
     if (path === "/dashboard/paid-integrations") {
-      return <PaidIntegrationsPage />;
+      return withGate("paid-integrations", <PaidIntegrationsPage />);
     }
     if (path === "/dashboard/sheet-view") {
       return <SheetViewPage />;
     }
     if (path === "/dashboard/branches") {
-      return <BranchManagement />;
+      return withGate("branches", <BranchManagement />);
     }
     if (path === "/dashboard/permissions") {
-      return <PermissionsManagement />;
+      return withGate("permissions", <PermissionsManagement />);
     }
     if (path === "/dashboard/chat") {
       return <ChatPage />;
@@ -223,10 +239,10 @@ const Dashboard = () => {
       return <HelpPage />;
     }
     if (path === "/dashboard/wallet") {
-      return <WalletPage />;
+      return withGate("wallet", <WalletPage />);
     }
     if (path === "/dashboard/numaxio-pay") {
-      return <NumaxioPay embedded />;
+      return withGate("numaxio-pay", <NumaxioPay embedded />);
     }
     if (path === "/dashboard/support/new") {
       return <CreateTicketPage />;

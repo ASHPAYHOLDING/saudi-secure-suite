@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntitlements";
+import { NAV_PATH_TO_FEATURE } from "@/lib/feature-route-map";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItemDef {
@@ -116,21 +117,13 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const { entitlements, loading: loadingEntitlements } = useEntitlements();
 
-  // Check if a feature is entitled (backend-driven)
-  const isEntitled = (featureKey?: FeatureKey): boolean => {
-    if (!featureKey) return true; // No feature key = always show
+  // Check if a feature is entitled (backend-driven) using NAV_PATH_TO_FEATURE map
+  const isPathLocked = (path: string): boolean => {
+    const featureKey = NAV_PATH_TO_FEATURE[path];
+    if (!featureKey) return false; // No feature key = always accessible
     const ent = entitlements[featureKey];
-    return ent?.allowed ?? false;
+    return !(ent?.allowed ?? false);
   };
-
-  // Paths that require advanced accounting entitlement
-  const ADVANCED_ACCOUNTING_PATHS = new Set([
-    "/dashboard/journal-entries",
-    "/dashboard/reports",
-    "/dashboard/vat-return",
-    "/dashboard/analytics",
-    "/dashboard/smart-query",
-  ]);
 
   // Initialize open groups based on current route
   const getInitialOpenGroups = () => {
@@ -174,7 +167,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
 
   const NavItem = ({ icon: Icon, label, path, badge }: { icon: any; label: string; path: string; badge?: string }) => {
     const isActive = location.pathname === path;
-    const isLocked = !isEntitled(FEATURE_KEYS.ACCOUNTING_ADVANCED) && ADVANCED_ACCOUNTING_PATHS.has(path);
+    const isLocked = isPathLocked(path);
     return (
       <Link
         to={path}
