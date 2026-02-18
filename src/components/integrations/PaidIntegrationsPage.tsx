@@ -80,8 +80,11 @@ const PaidIntegrationsPage = () => {
   const [loading, setLoading] = useState(true);
 
   // Plan-derived access
+  const isTrial = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.reason === "trial";
   const isEnterprise = planSlug === "enterprise";
   const canPurchase = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.allowed ?? false;
+  // Trial OR Enterprise = free access to all integrations
+  const hasFreeAccess = isTrial || isEnterprise;
 
   // Flow state
   const [flowItem, setFlowItem] = useState<PaidIntegration | null>(null);
@@ -99,7 +102,7 @@ const PaidIntegrationsPage = () => {
   useEffect(() => {
     if (tenantId && !loadingEntitlements) {
       fetchAll();
-      if (!isEnterprise) fetchWalletBalance();
+      if (!hasFreeAccess) fetchWalletBalance();
     }
     return () => {
       if (paymentCheckInterval) clearInterval(paymentCheckInterval);
@@ -146,8 +149,8 @@ const PaidIntegrationsPage = () => {
     setTestResult("idle");
     setPaymentMethod(walletExists && walletBalance !== null && walletBalance >= item.price_once ? "wallet" : "paylink");
 
-    // Enterprise: auto-activate, skip payment
-    if (isEnterprise) {
+    // Enterprise or Trial: auto-activate, skip payment
+    if (hasFreeAccess) {
       const existing = getPurchased(item.id);
       if (existing) {
         if (item.requires_api_keys && !existing.api_key_encrypted) {
@@ -157,8 +160,8 @@ const PaidIntegrationsPage = () => {
           setTimeout(() => runConnectionTest(), 100);
         }
       } else {
-        // Auto-create record for enterprise
-        handleEnterpriseAutoActivate(item);
+        // Auto-create record for enterprise/trial
+        handleFreeAutoActivate(item);
       }
       return;
     }
@@ -177,8 +180,10 @@ const PaidIntegrationsPage = () => {
     }
   };
 
-  const handleEnterpriseAutoActivate = async (item: PaidIntegration) => {
+  const handleFreeAutoActivate = async (item: PaidIntegration) => {
     setSaving(true);
+    const source = isTrial ? "trial_auto" : "enterprise_auto";
+    const label = isTrial ? "الفترة التجريبية" : "باقة المؤسسات";
     try {
       const { error } = await supabase.from("tenant_paid_integrations").upsert({
         tenant_id: tenantId,
@@ -187,7 +192,7 @@ const PaidIntegrationsPage = () => {
         activated_by: user!.id,
         purchased_at: new Date().toISOString(),
         activated_at: new Date().toISOString(),
-        activation_source: "enterprise_auto",
+        activation_source: source,
       } as any, { onConflict: "tenant_id,integration_id" });
 
       if (error) {
@@ -196,7 +201,7 @@ const PaidIntegrationsPage = () => {
         return;
       }
 
-      toast({ title: "تم التفعيل تلقائياً ✅", description: `${item.name_ar} — مضمّن في باقة المؤسسات` });
+      toast({ title: "تم التفعيل تلقائياً ✅", description: `${item.name_ar} — مضمّن في ${label}` });
       fetchAll();
 
       if (item.requires_api_keys) {
@@ -537,7 +542,13 @@ const PaidIntegrationsPage = () => {
           <p className="text-muted-foreground mt-1">فعّل تكاملات خارجية لتوسيع قدرات نظامك</p>
         </div>
         <div className="flex items-center gap-3">
-          {isEnterprise && (
+          {isTrial && (
+            <Badge className="gap-1 text-sm py-1.5 px-3 bg-blue-500/10 text-blue-600 border-blue-200">
+              <Zap size={14} />
+              فترة تجريبية — جميع الميزات مفعّلة
+            </Badge>
+          )}
+          {isEnterprise && !isTrial && (
             <Badge className="gap-1 text-sm py-1.5 px-3 bg-amber-500/10 text-amber-600 border-amber-200">
               <Crown size={14} />
               جميع التكاملات مضمّنة
@@ -623,10 +634,12 @@ const PaidIntegrationsPage = () => {
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div>
-                            {isEnterprise ? (
+                            {hasFreeAccess ? (
                               <>
                                 <span className="text-lg font-bold text-green-600">مجاني</span>
-                                <span className="text-[10px] text-muted-foreground mr-2">(مضمّن في باقة المؤسسات)</span>
+                                <span className="text-[10px] text-muted-foreground mr-2">
+                                  {isTrial ? "(فترة تجريبية)" : "(مضمّن في باقة المؤسسات)"}
+                                </span>
                               </>
                             ) : (
                               <>
@@ -649,7 +662,7 @@ const PaidIntegrationsPage = () => {
                             >
                               <Settings2 size={14} /> إكمال التفعيل
                             </Button>
-                          ) : isEnterprise ? (
+                          ) : hasFreeAccess ? (
                             <Button
                               size="sm"
                               className="gap-1"
@@ -997,8 +1010,8 @@ const PaidIntegrationsPage = () => {
             {flowStep === "preview" && (
               <>
                 <Button variant="outline" onClick={closeFlow}>إلغاء</Button>
-                {isEnterprise ? (
-                  <Button onClick={() => flowItem && handleEnterpriseAutoActivate(flowItem)} disabled={saving} className="gap-2">
+                {hasFreeAccess ? (
+                  <Button onClick={() => flowItem && handleFreeAutoActivate(flowItem)} disabled={saving} className="gap-2">
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                     {saving ? "جاري التفعيل..." : "تفعيل فوري مجاني"}
                   </Button>
