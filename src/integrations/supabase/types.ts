@@ -1645,6 +1645,71 @@ export type Database = {
           },
         ]
       }
+      custom_report_configs: {
+        Row: {
+          created_at: string
+          description: string | null
+          filters: Json
+          group_by: string[]
+          id: string
+          is_shared: boolean | null
+          name: string
+          period_from: string | null
+          period_to: string | null
+          selected_columns: string[]
+          sort_by: string | null
+          sort_direction: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          view_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          filters?: Json
+          group_by?: string[]
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          period_from?: string | null
+          period_to?: string | null
+          selected_columns?: string[]
+          sort_by?: string | null
+          sort_direction?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          view_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          filters?: Json
+          group_by?: string[]
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          period_from?: string | null
+          period_to?: string | null
+          selected_columns?: string[]
+          sort_by?: string | null
+          sort_direction?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          view_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_report_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_roles: {
         Row: {
           base_role: Database["public"]["Enums"]["app_role"] | null
@@ -8413,6 +8478,21 @@ export type Database = {
           p_wallet_id: string
         }
         Returns: string
+      }
+      query_analytics_view: {
+        Args: {
+          _branch_id?: string
+          _columns?: string[]
+          _group_by?: string[]
+          _limit?: number
+          _period_from?: string
+          _period_to?: string
+          _sort_by?: string
+          _sort_direction?: string
+          _tenant_id: string
+          _view_name: string
+        }
+        Returns: Json
       }
       reconcile_invoices_vs_payments: {
         Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }

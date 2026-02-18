@@ -67,6 +67,7 @@
     "inventory": "Inventory",
     "finance": "Financial Overview",
     "reports": "Reports",
+    "reportBuilder": "Report Builder",
     "vatReturn": "VAT Return",
     "analytics": "Analytics",
     "smartQuery": "Smart Query",
