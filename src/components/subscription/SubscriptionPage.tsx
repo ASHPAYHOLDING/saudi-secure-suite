@@ -4,7 +4,9 @@ import {
   CreditCard, Crown, Clock, ArrowUpRight, ArrowDownRight,
   CheckCircle2, AlertTriangle, History, Zap, Shield, Calendar,
   Wallet, Building2, Loader2, Upload, Copy, Sparkles, TrendingUp,
-  Users, FileText, HardDrive, ShieldCheck
+  Users, FileText, HardDrive, ShieldCheck, Star, BarChart3,
+  Stamp, Headphones, Phone, ScrollText, Palette, UserCog,
+  Globe, GraduationCap, Server, Handshake, Award, Lock, QrCode
 } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -73,6 +75,38 @@ const CYCLE_LABELS: Record<string, string> = { monthly: "شهري", quarterly: "
 const ACTION_LABELS: Record<string, string> = {
   upgrade: "ترقية", downgrade: "تخفيض", cancel: "إلغاء", renew: "تجديد",
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
+};
+
+// Feature icon mapping for intelligent display
+const FEATURE_ICON_MAP: Record<string, { icon: React.ElementType; label: string; highlight?: boolean }> = {
+  "فواتير إلكترونية": { icon: FileText, label: "فواتير إلكترونية متوافقة" },
+  "إدارة العملاء": { icon: Users, label: "إدارة شاملة للعملاء" },
+  "QR متوافق مع ZATCA": { icon: QrCode, label: "رمز QR متوافق مع زاتكا", highlight: true },
+  "تقارير أساسية": { icon: BarChart3, label: "تقارير مالية أساسية" },
+  "دعم عبر البريد": { icon: Headphones, label: "دعم فني عبر البريد" },
+  "فواتير غير محدودة": { icon: FileText, label: "فواتير غير محدودة", highlight: true },
+  "إدارة العقود والعملاء": { icon: ScrollText, label: "إدارة العقود والعملاء" },
+  "ختم إلكتروني رسمي": { icon: Stamp, label: "ختم إلكتروني رسمي" },
+  "تقارير متقدمة وتحليلات": { icon: BarChart3, label: "تقارير متقدمة وتحليلات", highlight: true },
+  "دعم أولوية عبر الهاتف": { icon: Phone, label: "دعم أولوية عبر الهاتف", highlight: true },
+  "سجل مراجعة كامل": { icon: ScrollText, label: "سجل مراجعة وتدقيق كامل" },
+  "تخصيص هوية الشركة": { icon: Palette, label: "تخصيص كامل لهوية الشركة" },
+  "إدارة الموارد البشرية": { icon: UserCog, label: "إدارة الموارد البشرية" },
+  "numaxio_pay": { icon: CreditCard, label: "بوابة نيوماكسيو باي للدفع", highlight: true },
+  "كل مميزات الاحترافي": { icon: Crown, label: "جميع مميزات الباقة الاحترافية", highlight: true },
+  "مستخدمين غير محدود": { icon: Users, label: "عدد مستخدمين غير محدود", highlight: true },
+  "مدير حساب مخصص": { icon: Handshake, label: "مدير حساب مخصص لمنشأتك" },
+  "تكامل API كامل": { icon: Globe, label: "تكامل API كامل مع أنظمتك" },
+  "SLA مضمون 99.9%": { icon: Award, label: "اتفاقية مستوى خدمة 99.9%", highlight: true },
+  "تدريب وتأهيل الفريق": { icon: GraduationCap, label: "تدريب وتأهيل شامل للفريق" },
+  "بيئة مخصصة": { icon: Server, label: "بيئة سحابية مخصصة ومعزولة" },
+  "توظيف متقدم": { icon: UserCog, label: "أدوات توظيف واستقطاب متقدمة" },
+};
+
+const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string }> = {
+  starter: { tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-muted/50 to-transparent" },
+  professional: { popular: true, tagline: "الأكثر طلباً للشركات المتوسطة", gradient: "from-accent/10 to-transparent" },
+  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/10 to-transparent" },
 };
 
 const AnimatedPrice = ({ value }: { value: number }) => {
@@ -483,12 +517,14 @@ const SubscriptionPage = () => {
             ))}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
             {plans.map((plan, i) => {
               const isCurrent = plan.id === subscription?.plan_id;
               const price = getPlanPrice(plan, selectedCycle);
               const monthlyEq = getMonthlyEquivalent(plan, selectedCycle);
               const features = Array.isArray(plan.features) ? plan.features : [];
+              const meta = PLAN_META[plan.slug] || { tagline: "", gradient: "from-muted/50 to-transparent" };
+              const isPopular = meta.popular && !isCurrent;
 
               return (
                 <motion.div
@@ -497,91 +533,165 @@ const SubscriptionPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className={isPopular ? "relative z-10 lg:scale-[1.03]" : ""}
                 >
-                  <Card className={`relative h-full flex flex-col transition-shadow duration-300 hover:shadow-lg ${isCurrent ? "border-accent ring-1 ring-accent/30" : ""}`} dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
-                    {isCurrent && (
-                      <div className="absolute -top-3 right-4">
+                  <Card
+                    className={`relative h-full flex flex-col transition-shadow duration-300 hover:shadow-lg overflow-hidden ${
+                      isCurrent ? "border-accent ring-1 ring-accent/30" :
+                      isPopular ? "border-accent/50 ring-2 ring-accent/20 shadow-md" : ""
+                    }`}
+                    dir="rtl"
+                    style={{ direction: "rtl", textAlign: "right" }}
+                  >
+                    {/* Top gradient stripe */}
+                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${meta.gradient}`} />
+
+                    {/* Badges */}
+                    <div className="absolute -top-3 right-4 flex items-center gap-2">
+                      {isCurrent && (
                         <Badge className="bg-accent text-accent-foreground flex items-center gap-1">
                           <Sparkles size={10} />
                           خطتك الحالية
                         </Badge>
-                      </div>
-                    )}
-                    <CardHeader className="pb-3">
+                      )}
+                      {isPopular && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: "spring" }}>
+                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1">
+                            <Star size={10} />
+                            الأكثر طلباً
+                          </Badge>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <CardHeader className="pb-2 pt-5">
                       <CardTitle className="text-lg text-right">{plan.name_ar}</CardTitle>
-                      <div className="mt-2 text-right">
-                        <AnimatedPrice value={price} />
-                        <span className="text-sm text-muted-foreground me-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
-                        {selectedCycle !== "monthly" && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
-                          </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{meta.tagline}</p>
+                      <div className="mt-3 text-right">
+                        {plan.slug === "enterprise" ? (
+                          <span className="text-2xl font-bold text-foreground">تواصل معنا</span>
+                        ) : (
+                          <>
+                            <AnimatedPrice value={price} />
+                            <span className="text-sm text-muted-foreground me-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
+                            {selectedCycle !== "monthly" && (
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
+                              </p>
+                            )}
+                          </>
                         )}
                       </div>
                     </CardHeader>
+
                     <CardContent className="flex-1 space-y-3">
-                      <div className="space-y-2 text-sm text-right">
+                      {/* Quota badges */}
+                      <div className="flex flex-wrap gap-2">
                         {plan.max_users && (
-                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.15 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.2, type: "spring", stiffness: 300 }}>
-                              <Users size={14} className="text-accent shrink-0" />
-                            </motion.div>
+                          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.15 }}
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            <Users size={12} className="text-accent" />
                             <span>{plan.max_users} مستخدم</span>
                           </motion.div>
                         )}
                         {plan.max_invoices && (
-                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.2 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.25, type: "spring", stiffness: 300 }}>
-                              <FileText size={14} className="text-accent shrink-0" />
-                            </motion.div>
+                          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.2 }}
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            <FileText size={12} className="text-accent" />
                             <span>{plan.max_invoices} فاتورة/شهر</span>
                           </motion.div>
                         )}
                         {plan.max_storage_gb && (
-                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.25 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.3, type: "spring", stiffness: 300 }}>
-                              <HardDrive size={14} className="text-accent shrink-0" />
-                            </motion.div>
+                          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.25 }}
+                            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+                            <HardDrive size={12} className="text-accent" />
                             <span>{plan.max_storage_gb} GB تخزين</span>
                           </motion.div>
                         )}
-                        {features.map((f: string, fi: number) => (
-                          <motion.div key={fi} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3 + fi * 0.04 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.35 + fi * 0.04, type: "spring", stiffness: 300 }}>
-                              <CheckCircle2 size={14} className="text-accent shrink-0" />
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-border/50" />
+
+                      {/* Feature list with icons */}
+                      <div className="space-y-2.5 text-sm text-right">
+                        {features.map((f: string, fi: number) => {
+                          const mapped = FEATURE_ICON_MAP[f];
+                          const IconComp = mapped?.icon || CheckCircle2;
+                          const label = mapped?.label || f;
+                          const isHighlight = mapped?.highlight;
+
+                          return (
+                            <motion.div
+                              key={fi}
+                              initial={{ opacity: 0, x: 10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.1 + 0.2 + fi * 0.04 }}
+                              className={`flex items-center gap-2.5 ${isHighlight ? "font-medium" : ""}`}
+                              style={{ direction: "rtl" }}
+                            >
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: i * 0.1 + 0.25 + fi * 0.04, type: "spring", stiffness: 300 }}
+                                className={`flex items-center justify-center rounded-md shrink-0 ${
+                                  isHighlight ? "h-6 w-6 bg-accent/15" : "h-5 w-5"
+                                }`}
+                              >
+                                <IconComp size={isHighlight ? 14 : 13} className={isHighlight ? "text-accent" : "text-muted-foreground"} />
+                              </motion.div>
+                              <span className={isHighlight ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                              {isHighlight && (
+                                <motion.div initial={{ width: 0 }} animate={{ width: "auto" }} className="overflow-hidden">
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent/30 text-accent">
+                                    مميز
+                                  </Badge>
+                                </motion.div>
+                              )}
                             </motion.div>
-                            <span>{f}</span>
-                          </motion.div>
-                        ))}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 + 0.4 }} className="flex items-center gap-2 text-muted-foreground" style={{ direction: "rtl" }}>
-                          <ShieldCheck size={14} className="shrink-0" />
-                          <span>فترة سماح {plan.grace_period_days} يوم</span>
+                          );
+                        })}
+
+                        {/* Grace period */}
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: i * 0.1 + 0.5 }}
+                          className="flex items-center gap-2.5 pt-1 border-t border-border/30"
+                          style={{ direction: "rtl" }}
+                        >
+                          <div className="flex items-center justify-center h-5 w-5 shrink-0">
+                            <ShieldCheck size={13} className="text-muted-foreground" />
+                          </div>
+                          <span className="text-muted-foreground">فترة سماح {plan.grace_period_days} يوم</span>
                         </motion.div>
                       </div>
 
+                      {/* CTA Button */}
                       <div className="pt-3">
                         {isCurrent ? (
-                          <Button variant="outline" className="w-full" disabled>
+                          <Button variant="outline" className="w-full gap-1.5" disabled>
+                            <CheckCircle2 size={14} />
                             خطتك الحالية
                           </Button>
                         ) : plan.slug === "enterprise" ? (
                           <Button
-                            className="w-full"
+                            className="w-full gap-1.5"
                             variant="outline"
                             onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
                           >
-                            <Building2 size={16} className="ml-1" /> تواصل مع المبيعات
+                            <Building2 size={14} /> تواصل مع المبيعات
                           </Button>
                         ) : (
                           <Button
-                            className="w-full"
+                            className={`w-full gap-1.5 ${isPopular ? "shadow-sm" : ""}`}
                             variant={(currentPlan?.sort_order || 0) < plan.sort_order ? "default" : "outline"}
                             onClick={() => setUpgradeDialog(plan)}
                           >
                             {(currentPlan?.sort_order || 0) < plan.sort_order ? (
-                              <><ArrowUpRight size={16} className="ml-1" /> ترقية</>
+                              <><ArrowUpRight size={14} /> ترقية الآن</>
                             ) : (
-                              <><ArrowDownRight size={16} className="ml-1" /> تخفيض</>
+                              <><ArrowDownRight size={14} /> تخفيض</>
                             )}
                           </Button>
                         )}
