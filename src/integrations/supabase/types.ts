@@ -2719,6 +2719,53 @@ export type Database = {
           },
         ]
       }
+      group_admins: {
+        Row: {
+          can_access_subsidiaries: boolean | null
+          can_manage_subsidiaries: boolean | null
+          can_manage_users: boolean | null
+          can_view_consolidated: boolean | null
+          created_at: string
+          id: string
+          parent_tenant_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_access_subsidiaries?: boolean | null
+          can_manage_subsidiaries?: boolean | null
+          can_manage_users?: boolean | null
+          can_view_consolidated?: boolean | null
+          created_at?: string
+          id?: string
+          parent_tenant_id: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_access_subsidiaries?: boolean | null
+          can_manage_subsidiaries?: boolean | null
+          can_manage_users?: boolean | null
+          can_view_consolidated?: boolean | null
+          created_at?: string
+          id?: string
+          parent_tenant_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_admins_parent_tenant_id_fkey"
+            columns: ["parent_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_sync_logs: {
         Row: {
           completed_at: string | null
@@ -2772,6 +2819,81 @@ export type Database = {
           },
           {
             foreignKeyName: "integration_sync_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intercompany_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          id: string
+          is_active: boolean | null
+          link_type: string
+          linked_tenant_id: string
+          parent_tenant_id: string
+          supplier_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          link_type?: string
+          linked_tenant_id: string
+          parent_tenant_id: string
+          supplier_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          link_type?: string
+          linked_tenant_id?: string
+          parent_tenant_id?: string
+          supplier_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intercompany_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercompany_links_linked_tenant_id_fkey"
+            columns: ["linked_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercompany_links_parent_tenant_id_fkey"
+            columns: ["parent_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercompany_links_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercompany_links_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -7088,6 +7210,7 @@ export type Database = {
           logo_url: string | null
           name: string
           name_en: string | null
+          parent_tenant_id: string | null
           paylink_enabled: boolean
           paylink_enabled_at: string | null
           phone: string | null
@@ -7130,6 +7253,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           name_en?: string | null
+          parent_tenant_id?: string | null
           paylink_enabled?: boolean
           paylink_enabled_at?: string | null
           phone?: string | null
@@ -7172,6 +7296,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           name_en?: string | null
+          parent_tenant_id?: string | null
           paylink_enabled?: boolean
           paylink_enabled_at?: string | null
           phone?: string | null
@@ -7197,7 +7322,15 @@ export type Database = {
           zatca_production_csid?: string | null
           zatca_request_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_parent_tenant_id_fkey"
+            columns: ["parent_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_replies: {
         Row: {
@@ -8115,6 +8248,50 @@ export type Database = {
         Returns: string
       }
       generate_smart_notifications: { Args: never; Returns: undefined }
+      get_consolidated_balance_sheet: {
+        Args: { _as_of_date?: string; _parent_tenant_id: string }
+        Returns: {
+          account_name: string
+          balance: number
+          category: string
+          is_intercompany: boolean
+          tenant_id: string
+          tenant_name: string
+          total_credit: number
+          total_debit: number
+        }[]
+      }
+      get_consolidated_pl: {
+        Args: {
+          _date_from?: string
+          _date_to?: string
+          _parent_tenant_id: string
+        }
+        Returns: {
+          account_name: string
+          category: string
+          is_intercompany: boolean
+          net_amount: number
+          tenant_id: string
+          tenant_name: string
+          total_credit: number
+          total_debit: number
+        }[]
+      }
+      get_group_subsidiaries: {
+        Args: { _parent_tenant_id: string }
+        Returns: {
+          cr_number: string
+          created_at: string
+          id: string
+          industry: string
+          name: string
+          name_en: string
+          status: string
+          vat_number: string
+        }[]
+      }
+      get_group_summary: { Args: { _parent_tenant_id: string }; Returns: Json }
       get_metric_breakdown: {
         Args: {
           p_date_from: string
@@ -8145,6 +8322,10 @@ export type Database = {
       is_authorized_finance: { Args: { _tenant_id: string }; Returns: boolean }
       is_authorized_hr: { Args: { _tenant_id: string }; Returns: boolean }
       is_branch_member: { Args: { _branch_id: string }; Returns: boolean }
+      is_group_admin: {
+        Args: { _parent_tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: never; Returns: boolean }
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
