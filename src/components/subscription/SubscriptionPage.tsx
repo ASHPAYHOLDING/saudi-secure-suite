@@ -184,7 +184,7 @@ const SubscriptionPage = () => {
           .eq("id", user.id)
           .maybeSingle();
 
-        const response = await supabase.functions.invoke("paylink-gateway", {
+        const response = await supabase.functions.invoke("paylink-gateway?action=create-invoice", {
           body: {
             amount: finalAmount,
             clientName: profile?.full_name || "عميل",
