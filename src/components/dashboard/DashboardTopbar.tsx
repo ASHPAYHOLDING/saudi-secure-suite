@@ -38,11 +38,11 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
           <BranchSelector />
         </div>
         <div className="relative hidden lg:block">
-          <Search size={16} className={`absolute ${dir === "rtl" ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 text-muted-foreground`} />
+          <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder={t("dashboard.searchPlaceholder")}
-            className={`h-9 w-72 rounded-lg border border-input bg-secondary/50 ${dir === "rtl" ? "pr-9 pl-4" : "pl-9 pr-4"} text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent`}
+            className="h-9 w-72 rounded-lg border border-input bg-secondary/50 ps-9 pe-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
       </div>
