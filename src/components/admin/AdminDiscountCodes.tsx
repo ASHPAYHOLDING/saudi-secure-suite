@@ -106,7 +106,10 @@ const AdminDiscountCodes = () => {
     });
 
     if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+      const msg = error.message.includes("unique_discount_code")
+        ? "هذا الكود موجود مسبقاً، يرجى اختيار كود مختلف"
+        : error.message;
+      toast({ title: "خطأ", description: msg, variant: "destructive" });
       return;
     }
 
