@@ -7,7 +7,7 @@ import {
   Users, FileText, HardDrive, ShieldCheck, Star, BarChart3,
   Stamp, Headphones, Phone, ScrollText, Palette, UserCog,
   Globe, GraduationCap, Server, Handshake, Award, Lock, QrCode,
-  ChevronDown, Check, X
+  ChevronDown, Check, X, Plug
 } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -66,6 +66,13 @@ interface SubLog {
   new_plan_id: string | null;
 }
 
+interface PlanEntitlement {
+  plan_id: string;
+  feature_key: string;
+  is_enabled: boolean;
+  limit_value: number | null;
+}
+
 const STATUS_MAP: Record<string, { label: string; class: string; icon: React.ReactNode }> = {
   active: { label: "نشط", class: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={14} /> },
   trial: { label: "تجريبي", class: "bg-amber-100 text-amber-700", icon: <Clock size={14} /> },
@@ -80,40 +87,54 @@ const ACTION_LABELS: Record<string, string> = {
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
 };
 
-const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string }> = {
+const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string }> = {
   starter: { tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-muted/50 to-transparent" },
-  professional: { popular: true, tagline: "الأكثر طلباً للشركات المتوسطة", gradient: "from-accent/10 to-transparent" },
-  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/10 to-transparent" },
+  professional: { popular: true, tagline: "الأكثر طلباً للشركات المتوسطة", gradient: "from-accent/10 to-transparent", summaryBadge: "جميع الميزات مضمّنة" },
+  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/10 to-transparent", summaryBadge: "جميع الميزات + التكاملات" },
 };
 
-// Collect all unique features across plans for comparison
-const getAllFeatures = (plans: Plan[]): string[] => {
-  const allFeatures: string[] = [];
-  plans.forEach((plan) => {
-    const features = Array.isArray(plan.features) ? plan.features : [];
-    features.forEach((f: string) => {
-      if (!f.includes("كل مميزات") && !allFeatures.includes(f)) {
-        allFeatures.push(f);
-      }
-    });
-  });
-  return allFeatures;
+/** Human-readable labels for feature keys from plan_entitlements */
+const FEATURE_LABELS: Record<string, string> = {
+  invoices_basic: "الفواتير الإلكترونية",
+  customers: "إدارة العملاء",
+  zatca_phase1: "توافق ZATCA المرحلة 1",
+  limited_reports: "تقارير أساسية",
+  expenses: "إدارة المصروفات",
+  quotations: "عروض الأسعار",
+  payment_reminders: "تذكيرات الدفع",
+  contracts: "إدارة العقود",
+  advanced_reports: "تقارير متقدمة",
+  hr: "الموارد البشرية",
+  accounting_advanced: "المحاسبة المتقدمة",
+  wallet: "المحفظة الرقمية",
+  paid_integrations: "التكاملات المدفوعة",
+  inventory: "إدارة المخزون",
+  branches: "إدارة الفروع",
+  sales_orders: "أوامر البيع",
+  purchase_orders: "أوامر الشراء",
+  delivery_notes: "إشعارات التوصيل",
+  journal_entries: "القيود اليومية",
+  stamp: "الختم الإلكتروني",
+  branding: "تخصيص الهوية",
+  audit_log: "سجل المراجعة",
+  team_management: "إدارة الفريق",
+  analytics: "التحليلات",
+  numaxio_pay: "نيوماكسيو باي",
+  max_users: "عدد المستخدمين",
+  max_storage_gb: "مساحة التخزين",
+  sla_support: "دعم SLA مضمون",
+  dedicated_support: "مدير حساب مخصص",
+  api_access: "وصول API كامل",
+  unlimited_everything: "كل شيء غير محدود",
 };
 
-const planHasFeature = (plan: Plan, feature: string, allPlans: Plan[]): boolean => {
-  const features = Array.isArray(plan.features) ? (plan.features as string[]) : [];
-  if (features.includes(feature)) return true;
-  if (plan.slug === "enterprise") {
-    const proPlan = allPlans.find((p) => p.slug === "professional");
-    if (proPlan) {
-      const proFeatures = Array.isArray(proPlan.features) ? (proPlan.features as string[]) : [];
-      return proFeatures.includes(feature);
-    }
-  }
-  return false;
-};
+/** Feature keys that are quota-based (shown as badges, not checkmarks) */
+const QUOTA_KEYS = new Set(["max_users", "max_storage_gb", "max_invoices"]);
 
-const INITIAL_VISIBLE = 4;
+/** Feature keys to exclude from the checklist (they're shown as quota badges) */
+const EXCLUDED_FROM_LIST = new Set(["max_users", "max_storage_gb"]);
+
+const INITIAL_VISIBLE = 5;
 
 const AnimatedPrice = ({ value }: { value: number }) => {
   const animated = useCountUp(value, 600);
@@ -124,6 +145,7 @@ const SubscriptionPage = () => {
   const { user, tenantId } = useAuth();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [planEntitlements, setPlanEntitlements] = useState<PlanEntitlement[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [logs, setLogs] = useState<SubLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,10 +161,11 @@ const SubscriptionPage = () => {
 
   const fetchData = async () => {
     if (!tenantId) return;
-    const [plansRes, subRes, logsRes] = await Promise.all([
+    const [plansRes, subRes, logsRes, entRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order"),
       supabase.from("subscriptions").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("subscription_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(20),
+      supabase.from("plan_entitlements").select("plan_id, feature_key, is_enabled, limit_value"),
     ]);
     if (plansRes.data) setPlans(plansRes.data as Plan[]);
     if (subRes.data) {
@@ -150,12 +173,40 @@ const SubscriptionPage = () => {
       setSelectedCycle(subRes.data.billing_cycle);
     }
     if (logsRes.data) setLogs(logsRes.data as SubLog[]);
+    if (entRes.data) setPlanEntitlements(entRes.data as PlanEntitlement[]);
     setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, [tenantId]);
 
   const currentPlan = plans.find((p) => p.id === subscription?.plan_id);
+
+  /** Get entitlements for a specific plan */
+  const getEntitlementsForPlan = (planId: string) =>
+    planEntitlements.filter((e) => e.plan_id === planId);
+
+  /** Check if a feature is enabled for a plan (from backend entitlements) */
+  const isFeatureEnabled = (planId: string, featureKey: string): boolean => {
+    const ent = planEntitlements.find((e) => e.plan_id === planId && e.feature_key === featureKey);
+    return ent?.is_enabled ?? false;
+  };
+
+  /** Get limit value for a feature */
+  const getFeatureLimit = (planId: string, featureKey: string): number | null => {
+    const ent = planEntitlements.find((e) => e.plan_id === planId && e.feature_key === featureKey);
+    return ent?.limit_value ?? null;
+  };
+
+  /** Get all unique feature keys across all plans (for comparison matrix) */
+  const getAllFeatureKeys = (): string[] => {
+    const keys = new Set<string>();
+    planEntitlements.forEach((e) => {
+      if (!EXCLUDED_FROM_LIST.has(e.feature_key)) {
+        keys.add(e.feature_key);
+      }
+    });
+    return Array.from(keys);
+  };
 
   const getPlanPrice = (plan: Plan, cycle: string) => {
     if (cycle === "yearly" && plan.price_yearly) return plan.price_yearly;
@@ -386,7 +437,6 @@ const SubscriptionPage = () => {
             ))}
           </div>
         </div>
-        {/* Skeleton: Plan Cards */}
         <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="rounded-xl border bg-card p-5 space-y-4">
@@ -404,6 +454,9 @@ const SubscriptionPage = () => {
       </div>
     );
   }
+
+  // All feature keys for comparison matrix
+  const allFeatureKeys = getAllFeatureKeys();
 
   // Payment content shared between Dialog and Drawer
   const PaymentContent = () => upgradeDialog ? (
@@ -544,6 +597,10 @@ const SubscriptionPage = () => {
     </div>
   );
 
+  /** Count enabled features for a plan */
+  const countEnabledFeatures = (planId: string) =>
+    planEntitlements.filter((e) => e.plan_id === planId && e.is_enabled && !EXCLUDED_FROM_LIST.has(e.feature_key)).length;
+
   return (
     <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 max-w-5xl mx-auto" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       <div className="text-right">
@@ -579,10 +636,10 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-sm">
-                    {currentPlan.max_users && (
+                    {getFeatureLimit(currentPlan.id, "max_users") && (
                       <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                         <Users size={14} className="mx-auto mb-1 text-accent" />
-                        <p className="text-lg font-bold text-foreground">{currentPlan.max_users}</p>
+                        <p className="text-lg font-bold text-foreground">{getFeatureLimit(currentPlan.id, "max_users")}</p>
                         <p className="text-xs text-muted-foreground">مستخدم</p>
                       </div>
                     )}
@@ -593,10 +650,10 @@ const SubscriptionPage = () => {
                         <p className="text-xs text-muted-foreground">فاتورة/شهر</p>
                       </div>
                     )}
-                    {currentPlan.max_storage_gb && (
+                    {getFeatureLimit(currentPlan.id, "max_storage_gb") && (
                       <div className="rounded-lg bg-muted/50 p-2.5 text-center active:scale-95 sm:active:scale-100 transition-transform">
                         <HardDrive size={14} className="mx-auto mb-1 text-accent" />
-                        <p className="text-lg font-bold text-foreground">{currentPlan.max_storage_gb} GB</p>
+                        <p className="text-lg font-bold text-foreground">{getFeatureLimit(currentPlan.id, "max_storage_gb")} GB</p>
                         <p className="text-xs text-muted-foreground">تخزين</p>
                       </div>
                     )}
@@ -627,7 +684,7 @@ const SubscriptionPage = () => {
               </div>
 
               {subscription.status === "past_due" && subscription.grace_ends_at && (
-                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                   <AlertTriangle size={16} className="inline ml-1" />
                   فترة السماح تنتهي في {new Date(subscription.grace_ends_at).toLocaleDateString("ar-SA")} — يرجى تجديد الاشتراك لتجنب الإيقاف
                 </div>
@@ -640,15 +697,15 @@ const SubscriptionPage = () => {
       <Tabs defaultValue="plans" className="space-y-4" dir="rtl">
         <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="plans" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
-          <TabsTrigger value="history" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><History size={14} /> سجل الاشتراك</TabsTrigger>
+          <TabsTrigger value="compare" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><BarChart3 size={14} /> مقارنة الميزات</TabsTrigger>
+          <TabsTrigger value="history" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><History size={14} /> السجل</TabsTrigger>
         </TabsList>
 
         {/* Plans Tab */}
         <TabsContent value="plans">
-          {/* Cycle Selector - full width on mobile */}
+          {/* Cycle Selector */}
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-6">
           {(["monthly", "quarterly", "yearly"] as const).map((cycle) => {
-              // Calculate max savings across all plans for this cycle
               const maxSavings = plans.reduce((max, plan) => {
                 if (cycle === "yearly" && plan.price_yearly && plan.price_monthly > 0) {
                   const full = plan.price_monthly * 12;
@@ -676,7 +733,7 @@ const SubscriptionPage = () => {
             })}
           </div>
 
-          {/* Plan Cards - stacked on mobile, grid on desktop */}
+          {/* Plan Cards */}
           <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 lg:grid-cols-3" dir="rtl" style={{ direction: "rtl" }}>
             {plans.map((plan, i) => {
               const isCurrent = plan.id === subscription?.plan_id;
@@ -684,14 +741,26 @@ const SubscriptionPage = () => {
               const monthlyEq = getMonthlyEquivalent(plan, selectedCycle);
               const meta = PLAN_META[plan.slug] || { tagline: "", gradient: "from-muted/50 to-transparent" };
               const isPopular = meta.popular && !isCurrent;
-              const allFeatures = getAllFeatures(plans);
-              const comparisonItems = allFeatures.map((f) => ({
-                label: f,
-                has: planHasFeature(plan, f, plans),
+
+              // Build feature list from backend entitlements
+              const planFeatures = allFeatureKeys.map((key) => ({
+                key,
+                label: FEATURE_LABELS[key] || key,
+                enabled: isFeatureEnabled(plan.id, key),
+                limit: getFeatureLimit(plan.id, key),
               }));
+
+              // Sort: enabled first, then disabled
+              const sortedFeatures = [...planFeatures].sort((a, b) => {
+                if (a.enabled && !b.enabled) return -1;
+                if (!a.enabled && b.enabled) return 1;
+                return 0;
+              });
+
               const isExpanded = expandedPlans[plan.id] || false;
-              const visibleItems = isExpanded ? comparisonItems : comparisonItems.slice(0, INITIAL_VISIBLE);
-              const hasMore = comparisonItems.length > INITIAL_VISIBLE;
+              const visibleItems = isExpanded ? sortedFeatures : sortedFeatures.slice(0, INITIAL_VISIBLE);
+              const hasMore = sortedFeatures.length > INITIAL_VISIBLE;
+              const enabledCount = countEnabledFeatures(plan.id);
 
               return (
                 <motion.div
@@ -733,6 +802,29 @@ const SubscriptionPage = () => {
                     <CardHeader className="pb-2 pt-5">
                       <CardTitle className="text-lg text-right">{plan.name_ar}</CardTitle>
                       <p className="text-xs text-muted-foreground mt-0.5">{meta.tagline}</p>
+
+                      {/* Summary badge for Pro/Enterprise */}
+                      {meta.summaryBadge && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.1 + 0.2 }}
+                          className="mt-2"
+                        >
+                          <Badge
+                            variant="outline"
+                            className={`gap-1.5 text-xs py-1 px-2.5 ${
+                              plan.slug === "enterprise"
+                                ? "border-primary/30 bg-primary/5 text-primary"
+                                : "border-accent/30 bg-accent/5 text-accent"
+                            }`}
+                          >
+                            {plan.slug === "enterprise" ? <Plug size={12} /> : <CheckCircle2 size={12} />}
+                            {meta.summaryBadge}
+                          </Badge>
+                        </motion.div>
+                      )}
+
                       <div className="mt-3 text-right">
                         {plan.slug === "enterprise" ? (
                           <span className="text-2xl font-bold text-foreground">تواصل معنا</span>
@@ -751,13 +843,13 @@ const SubscriptionPage = () => {
                     </CardHeader>
 
                     <CardContent className="flex-1 space-y-3">
-                      {/* Quota badges */}
+                      {/* Quota badges from entitlements */}
                       <div className="flex flex-wrap gap-2">
-                        {plan.max_users && (
+                        {getFeatureLimit(plan.id, "max_users") && (
                           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.15 }}
                             className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
                             <Users size={12} className="text-accent" />
-                            <span>{plan.max_users} مستخدم</span>
+                            <span>{getFeatureLimit(plan.id, "max_users") || "∞"} مستخدم</span>
                           </motion.div>
                         )}
                         {plan.max_invoices && (
@@ -767,23 +859,28 @@ const SubscriptionPage = () => {
                             <span>{plan.max_invoices} فاتورة/شهر</span>
                           </motion.div>
                         )}
-                        {plan.max_storage_gb && (
+                        {getFeatureLimit(plan.id, "max_storage_gb") && (
                           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.25 }}
                             className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
                             <HardDrive size={12} className="text-accent" />
-                            <span>{plan.max_storage_gb} GB تخزين</span>
+                            <span>{getFeatureLimit(plan.id, "max_storage_gb")} GB تخزين</span>
                           </motion.div>
                         )}
+                        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.3 }}
+                          className="flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1.5 sm:py-1 text-xs font-medium">
+                          <CheckCircle2 size={12} className="text-accent" />
+                          <span>{enabledCount} ميزة مفعّلة</span>
+                        </motion.div>
                       </div>
 
                       <div className="border-t border-border/50" />
 
-                      {/* Feature Comparison ✔️/❌ */}
+                      {/* Feature Comparison from backend entitlements */}
                       <div className="space-y-0 text-sm text-right">
                         <AnimatePresence initial={false}>
                           {visibleItems.map((item, fi) => (
                             <motion.div
-                              key={item.label}
+                              key={item.key}
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
@@ -794,7 +891,7 @@ const SubscriptionPage = () => {
                                 className="flex items-center gap-2.5 py-2 border-b border-border/20 last:border-b-0"
                                 style={{ direction: "rtl" }}
                               >
-                                {item.has ? (
+                                {item.enabled ? (
                                   <div className="flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
                                     <Check size={13} className="text-accent" />
                                   </div>
@@ -803,22 +900,24 @@ const SubscriptionPage = () => {
                                     <X size={13} className="text-muted-foreground/40" />
                                   </div>
                                 )}
-                                <span className={item.has ? "text-foreground" : "text-muted-foreground/50 line-through decoration-muted-foreground/20"}>
+                                <span className={item.enabled ? "text-foreground" : "text-muted-foreground/50 line-through decoration-muted-foreground/20"}>
                                   {item.label}
+                                  {item.enabled && item.limit !== null && (
+                                    <span className="text-xs text-muted-foreground mr-1">({item.limit})</span>
+                                  )}
                                 </span>
                               </div>
                             </motion.div>
                           ))}
                         </AnimatePresence>
 
-                        {/* Expand / Collapse */}
                         {hasMore && (
                           <motion.button
                             onClick={() => setExpandedPlans((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
                             className="flex items-center justify-center gap-1.5 w-full pt-2.5 pb-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors min-h-[44px]"
                             whileTap={{ scale: 0.97 }}
                           >
-                            <span>{isExpanded ? "عرض أقل" : `عرض الكل (${comparisonItems.length})`}</span>
+                            <span>{isExpanded ? "عرض أقل" : `عرض الكل (${sortedFeatures.length})`}</span>
                             <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
                               <ChevronDown size={14} />
                             </motion.div>
@@ -834,7 +933,7 @@ const SubscriptionPage = () => {
                         </div>
                       </div>
 
-                      {/* CTA Button - larger on mobile */}
+                      {/* CTA Button */}
                       <div className="pt-3">
                         {isCurrent ? (
                           <Button variant="outline" className="w-full gap-1.5 h-12 sm:h-10 text-base sm:text-sm" disabled>
@@ -877,6 +976,81 @@ const SubscriptionPage = () => {
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        {/* Feature Comparison Matrix Tab */}
+        <TabsContent value="compare">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 size={18} className="text-accent" />
+                مصفوفة مقارنة الميزات
+              </CardTitle>
+              <CardDescription>مقارنة شاملة لجميع الميزات حسب الباقة — مبنية من بيانات النظام</CardDescription>
+            </CardHeader>
+            <CardContent className="-mx-2 sm:mx-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" dir="rtl">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-right py-3 px-2 sm:px-4 font-medium text-muted-foreground min-w-[140px] sm:min-w-[180px]">الميزة</th>
+                      {plans.map((plan) => (
+                        <th key={plan.id} className="text-center py-3 px-2 sm:px-4 font-semibold text-foreground min-w-[80px] sm:min-w-[100px]">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs sm:text-sm">{plan.name_ar}</span>
+                            {plan.id === subscription?.plan_id && (
+                              <Badge className="bg-accent text-accent-foreground text-[9px] px-1.5 py-0">
+                                الحالية
+                              </Badge>
+                            )}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allFeatureKeys.map((key, idx) => (
+                      <motion.tr
+                        key={key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.02 }}
+                        className="border-b border-border/30 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="py-2.5 px-2 sm:px-4 text-right text-foreground text-xs sm:text-sm">
+                          {FEATURE_LABELS[key] || key}
+                        </td>
+                        {plans.map((plan) => {
+                          const enabled = isFeatureEnabled(plan.id, key);
+                          const limit = getFeatureLimit(plan.id, key);
+                          return (
+                            <td key={plan.id} className="py-2.5 px-2 sm:px-4 text-center">
+                              {enabled ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10">
+                                    <Check size={12} className="text-accent" />
+                                  </div>
+                                  {limit !== null && (
+                                    <span className="text-[10px] text-muted-foreground">{limit}</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center">
+                                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/50">
+                                    <X size={12} className="text-muted-foreground/30" />
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* History Tab */}
