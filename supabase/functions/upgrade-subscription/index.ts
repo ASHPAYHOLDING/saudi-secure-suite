@@ -38,13 +38,34 @@ Deno.serve(async (req) => {
     // Admin client for DB operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { plan_id, billing_cycle, discount_code } = await req.json();
+    const { plan_id, billing_cycle, discount_code, idempotency_key } = await req.json();
 
     if (!plan_id || !billing_cycle) {
       return new Response(JSON.stringify({ error: "بيانات ناقصة" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ── IDEMPOTENCY CHECK: Prevent double-charge ──
+    if (idempotency_key) {
+      const { data: existingLog } = await supabase
+        .from("subscription_logs")
+        .select("id")
+        .eq("notes", `idempotency:${idempotency_key}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingLog) {
+        return new Response(JSON.stringify({
+          success: true,
+          message: "تمت معالجة هذا الطلب مسبقاً",
+          already_processed: true,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // 1. Get user's tenant
@@ -75,6 +96,17 @@ Deno.serve(async (req) => {
 
     if (!plan) {
       return new Response(JSON.stringify({ error: "الخطة غير موجودة أو غير متاحة" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── GUARD: Block Enterprise direct purchase (price = 0, custom pricing) ──
+    if (plan.slug === "enterprise") {
+      return new Response(JSON.stringify({
+        error: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات. لا يمكن شراؤها مباشرة.",
+        requires_sales_contact: true,
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -115,6 +147,14 @@ Deno.serve(async (req) => {
       price = plan.price_monthly;
     }
 
+    // ── GUARD: Price must be positive ──
+    if (price <= 0) {
+      return new Response(JSON.stringify({ error: "سعر الباقة غير صالح" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // 5. Validate discount code (without consuming it)
     let finalPrice = price;
     let appliedDiscountId: string | null = null;
@@ -137,6 +177,14 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    }
+
+    // ── GUARD: Final price must be positive even after discount ──
+    if (finalPrice <= 0) {
+      return new Response(JSON.stringify({ error: "السعر النهائي غير صالح بعد الخصم" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // 6. Check wallet balance
@@ -165,22 +213,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 7. Deduct from wallet (atomic)
+    // 7. Deduct from wallet (atomic with optimistic lock)
     const balanceBefore = wallet.balance_available;
     const balanceAfter = balanceBefore - finalPrice;
 
-    const { error: walletUpdateErr } = await supabase
+    const { data: walletUpdateResult, error: walletUpdateErr } = await supabase
       .from("tenant_wallets")
       .update({
         balance_available: balanceAfter,
         updated_at: new Date().toISOString(),
       })
       .eq("id", wallet.id)
-      .eq("balance_available", balanceBefore); // Optimistic lock
+      .eq("balance_available", balanceBefore) // Optimistic lock
+      .select("id")
+      .maybeSingle();
 
-    if (walletUpdateErr) {
-      return new Response(JSON.stringify({ error: "فشل في خصم المبلغ. حاول مرة أخرى" }), {
-        status: 500,
+    if (walletUpdateErr || !walletUpdateResult) {
+      return new Response(JSON.stringify({ error: "فشل في خصم المبلغ - يرجى المحاولة مرة أخرى (قد يكون الرصيد تغير)" }), {
+        status: 409, // Conflict - indicates race condition
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -227,6 +277,7 @@ Deno.serve(async (req) => {
         current_period_end: newEnd,
         status: "active",
         grace_ends_at: null,
+        cancel_at_period_end: false,
       })
       .eq("id", currentSub.id);
 
@@ -243,7 +294,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 10. NOW consume the discount code (only after successful payment + subscription update)
+    // 10. Consume the discount code (only after successful payment + subscription update)
     if (appliedDiscountCode) {
       await supabase.rpc("apply_subscription_discount", {
         _code: appliedDiscountCode,
@@ -252,7 +303,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 11. Log the change
+    // 11. Log the change with idempotency marker
+    const idempotencyNote = idempotency_key ? ` | idempotency:${idempotency_key}` : "";
     await supabase.from("subscription_logs").insert({
       subscription_id: currentSub.id,
       tenant_id: tenantId,
@@ -262,10 +314,10 @@ Deno.serve(async (req) => {
       old_status: currentSub.status,
       new_status: "active",
       performed_by: user.id,
-      notes: `${isUpgrade ? "ترقية" : "تخفيض"} إلى ${plan.name_ar} - تم الدفع ${finalPrice} ر.س من المحفظة${appliedDiscountId ? " (مع خصم)" : ""}`,
+      notes: `${isUpgrade ? "ترقية" : "تخفيض"} إلى ${plan.name_ar} - ${CYCLE_LABELS[billing_cycle]} - تم الدفع ${finalPrice} ر.س من المحفظة${appliedDiscountId ? " (مع خصم)" : ""}${idempotencyNote}`,
     });
 
-    // 11. Audit log
+    // 12. Audit log
     await supabase.from("audit_logs").insert({
       tenant_id: tenantId,
       user_id: user.id,
@@ -282,6 +334,7 @@ Deno.serve(async (req) => {
         discount_id: appliedDiscountId,
         wallet_balance_before: balanceBefore,
         wallet_balance_after: balanceAfter,
+        idempotency_key: idempotency_key || null,
       },
     });
 
@@ -304,3 +357,5 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+const CYCLE_LABELS: Record<string, string> = { monthly: "شهري", quarterly: "ربع سنوي", yearly: "سنوي" };

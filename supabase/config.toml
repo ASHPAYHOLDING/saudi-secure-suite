@@ -26,3 +26,12 @@ verify_jwt = false
 
 [functions.wallet-purchase]
 verify_jwt = false
+
+[functions.upgrade-subscription]
+verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = false
+
+[functions.subscription-webhook]
+verify_jwt = false
