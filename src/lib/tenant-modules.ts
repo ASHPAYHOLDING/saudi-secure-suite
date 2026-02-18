@@ -23,6 +23,7 @@ export type Module =
   | "inventory"
   | "finance"
   | "journal-entries"
+  | "budgets"
   | "reports"
   | "analytics"
   | "team"
@@ -57,6 +58,7 @@ const MODULE_ACCESS: Record<TenantType, Module[]> = {
     "inventory",
     "finance",
     "journal-entries",
+    "budgets",
     "supplier-inbox",
     "payment-reminders",
     "reports",

@@ -743,6 +743,290 @@ export type Database = {
           },
         ]
       }
+      budget_actuals_cache: {
+        Row: {
+          actual_amount: number
+          budget_id: string
+          id: string
+          line_id: string
+          period: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_amount?: number
+          budget_id: string
+          id?: string
+          line_id: string
+          period: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_amount?: number
+          budget_id?: string
+          id?: string
+          line_id?: string
+          period?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_actuals_cache_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_actuals_cache_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_actuals_cache_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_alert_events: {
+        Row: {
+          budget_id: string
+          created_at: string
+          id: string
+          line_id: string | null
+          message_ar: string | null
+          percent_used: number | null
+          period: string | null
+          status: Database["public"]["Enums"]["budget_alert_event_status"]
+          tenant_id: string
+        }
+        Insert: {
+          budget_id: string
+          created_at?: string
+          id?: string
+          line_id?: string | null
+          message_ar?: string | null
+          percent_used?: number | null
+          period?: string | null
+          status?: Database["public"]["Enums"]["budget_alert_event_status"]
+          tenant_id: string
+        }
+        Update: {
+          budget_id?: string
+          created_at?: string
+          id?: string
+          line_id?: string | null
+          message_ar?: string | null
+          percent_used?: number | null
+          period?: string | null
+          status?: Database["public"]["Enums"]["budget_alert_event_status"]
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_alert_events_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_alert_events_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_alert_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_alert_rules: {
+        Row: {
+          budget_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          notify_channels: Json
+          scope: Database["public"]["Enums"]["budget_alert_scope"]
+          tenant_id: string
+          threshold_percent: number
+        }
+        Insert: {
+          budget_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notify_channels?: Json
+          scope?: Database["public"]["Enums"]["budget_alert_scope"]
+          tenant_id: string
+          threshold_percent?: number
+        }
+        Update: {
+          budget_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          notify_channels?: Json
+          scope?: Database["public"]["Enums"]["budget_alert_scope"]
+          tenant_id?: string
+          threshold_percent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_alert_rules_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_alert_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_lines: {
+        Row: {
+          account_id: string | null
+          budget_id: string
+          cost_center_id: string | null
+          created_at: string
+          department_id: string | null
+          description_ar: string | null
+          description_en: string | null
+          id: string
+          line_type: Database["public"]["Enums"]["budget_line_type"]
+          months: Json | null
+          notes: string | null
+          period_type: Database["public"]["Enums"]["budget_period_type"]
+          planned_amount: number | null
+          project_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          budget_id: string
+          cost_center_id?: string | null
+          created_at?: string
+          department_id?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          line_type?: Database["public"]["Enums"]["budget_line_type"]
+          months?: Json | null
+          notes?: string | null
+          period_type?: Database["public"]["Enums"]["budget_period_type"]
+          planned_amount?: number | null
+          project_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          account_id?: string | null
+          budget_id?: string
+          cost_center_id?: string | null
+          created_at?: string
+          department_id?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          line_type?: Database["public"]["Enums"]["budget_line_type"]
+          months?: Json | null
+          notes?: string | null
+          period_type?: Database["public"]["Enums"]["budget_period_type"]
+          planned_amount?: number | null
+          project_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_lines_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          fiscal_year: number
+          id: string
+          name_ar: string
+          name_en: string | null
+          status: Database["public"]["Enums"]["budget_status"]
+          tenant_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          fiscal_year: number
+          id?: string
+          name_ar: string
+          name_en?: string | null
+          status?: Database["public"]["Enums"]["budget_status"]
+          tenant_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          fiscal_year?: number
+          id?: string
+          name_ar?: string
+          name_en?: string | null
+          status?: Database["public"]["Enums"]["budget_status"]
+          tenant_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_channels: {
         Row: {
           created_at: string
@@ -6370,6 +6654,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_budget: { Args: { p_budget_id: string }; Returns: Json }
       admin_review_topup_request: {
         Args: {
           p_action: string
@@ -6552,6 +6837,11 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
+      budget_alert_event_status: "triggered" | "acknowledged" | "resolved"
+      budget_alert_scope: "budget_total" | "line" | "cost_center" | "department"
+      budget_line_type: "revenue" | "expense" | "capex"
+      budget_period_type: "monthly" | "quarterly" | "yearly"
+      budget_status: "draft" | "active" | "locked" | "archived"
       tenant_type: "company" | "individual" | "freelancer"
     }
     CompositeTypes: {
@@ -6681,6 +6971,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "manager", "hr", "accountant", "member"],
+      budget_alert_event_status: ["triggered", "acknowledged", "resolved"],
+      budget_alert_scope: ["budget_total", "line", "cost_center", "department"],
+      budget_line_type: ["revenue", "expense", "capex"],
+      budget_period_type: ["monthly", "quarterly", "yearly"],
+      budget_status: ["draft", "active", "locked", "archived"],
       tenant_type: ["company", "individual", "freelancer"],
     },
   },

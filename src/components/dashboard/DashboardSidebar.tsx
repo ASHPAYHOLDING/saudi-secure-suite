@@ -5,7 +5,7 @@ import {
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock, Target,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,7 @@ const navGroups: NavGroup[] = [
       { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
       { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
       { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
+      { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
       { icon: Receipt, key: "nav.wallet", path: "/dashboard/wallet", module: "finance" },
