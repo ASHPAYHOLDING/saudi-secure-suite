@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Target,
-  DollarSign, ArrowUpRight, ArrowDownRight, Plus, Calendar,
+  DollarSign, ArrowUpRight, ArrowDownRight, Plus, Calendar, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -94,6 +94,7 @@ const BudgetDashboard = () => {
   const [actuals, setActuals] = useState<BudgetActual[]>([]);
   const [alerts, setAlerts] = useState<AlertEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newBudget, setNewBudget] = useState({ name_ar: "", fiscal_year: new Date().getFullYear() });
 
@@ -259,6 +260,28 @@ const BudgetDashboard = () => {
     }
   };
 
+  const handleSyncActuals = async () => {
+    if (!tenantId) return;
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.rpc("sync_budget_actuals_for_tenant", { p_tenant_id: tenantId });
+      if (error) { toast.error(error.message); return; }
+      const result = data as { success: boolean; records_updated?: number };
+      if (result?.success) {
+        toast.success(currentLang === "ar" ? `تم مزامنة ${result.records_updated} سجل` : `Synced ${result.records_updated} records`);
+        // Refresh actuals
+        if (selectedBudgetId) {
+          const { data: refreshedActuals } = await supabase.from("budget_actuals_cache").select("*").eq("budget_id", selectedBudgetId);
+          setActuals((refreshedActuals || []) as BudgetActual[]);
+          const { data: refreshedAlerts } = await supabase.from("budget_alert_events").select("*").eq("budget_id", selectedBudgetId).order("created_at", { ascending: false }).limit(20);
+          setAlerts((refreshedAlerts || []) as AlertEvent[]);
+        }
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -296,6 +319,12 @@ const BudgetDashboard = () => {
             <Button variant="outline" onClick={handleActivate} size="sm">
               <CheckCircle className="h-4 w-4 me-1" />
               {currentLang === "ar" ? "تفعيل" : "Activate"}
+            </Button>
+          )}
+          {selectedBudget && (
+            <Button variant="outline" onClick={handleSyncActuals} size="sm" disabled={syncing}>
+              <RefreshCw className={`h-4 w-4 me-1 ${syncing ? "animate-spin" : ""}`} />
+              {currentLang === "ar" ? "مزامنة الفعلي" : "Sync Actuals"}
             </Button>
           )}
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -440,6 +469,48 @@ const BudgetDashboard = () => {
                       <Bar dataKey="actual" name={currentLang === "ar" ? "الفعلي" : "Actual"} fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                  {/* Monthly Detail Table */}
+                  <div className="border rounded-lg overflow-hidden mt-6">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "الشهر" : "Month"}</th>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "المخطط" : "Planned"}</th>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "الفعلي" : "Actual"}</th>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "الانحراف" : "Variance"}</th>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "النسبة" : "Var %"}</th>
+                          <th className="text-start p-3 font-medium">{currentLang === "ar" ? "الحالة" : "Status"}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {monthlyData.map((row, idx) => {
+                          const pct = row.planned > 0 ? (row.actual / row.planned) * 100 : 0;
+                          const varianceAmt = row.actual - row.planned;
+                          return (
+                            <tr key={idx} className="border-t">
+                              <td className="p-3 font-medium">{row.month}</td>
+                              <td className="p-3">{formatCurrency(row.planned)}</td>
+                              <td className="p-3">{formatCurrency(row.actual)}</td>
+                              <td className={`p-3 font-medium ${varianceAmt > 0 ? "text-destructive" : varianceAmt < 0 ? "text-primary" : ""}`}>
+                                {varianceAmt > 0 && <ArrowUpRight className="inline h-3.5 w-3.5 me-1" />}
+                                {varianceAmt < 0 && <ArrowDownRight className="inline h-3.5 w-3.5 me-1" />}
+                                {formatCurrency(Math.abs(varianceAmt))}
+                              </td>
+                              <td className="p-3">{pct.toFixed(1)}%</td>
+                              <td className="p-3">
+                                <Badge variant={pct > 100 ? "destructive" : pct > 80 ? "secondary" : "default"} className="text-[10px]">
+                                  {pct > 100 ? (currentLang === "ar" ? "تجاوز" : "Over") :
+                                   pct > 80 ? (currentLang === "ar" ? "تحذير" : "Warning") :
+                                   pct > 0 ? (currentLang === "ar" ? "طبيعي" : "Normal") :
+                                   (currentLang === "ar" ? "لا يوجد" : "None")}
+                                </Badge>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
