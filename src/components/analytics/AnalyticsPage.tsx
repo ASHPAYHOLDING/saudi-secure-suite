@@ -26,6 +26,7 @@ import { format, subMonths, startOfMonth, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCountUp } from "@/hooks/useCountUp";
+import ExplainKPI from "@/components/analytics/ExplainKPI";
 // Branch context used via filters
 
 const CHART_COLORS = [
@@ -511,12 +512,13 @@ const AnalyticsPage = () => {
           {/* KPI Cards */}
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
-              { label: isRTL ? "إجمالي الإيرادات" : "Total Revenue", value: totals.revenue, prev: totals.prevRevenue, icon: TrendingUp, positive: true, sub: `${totals.paidCount} ${isRTL ? "فاتورة" : "invoices"}`, color: "text-accent" },
-              { label: isRTL ? "صافي الربح" : "Net Profit", value: totals.profit, prev: totals.prevProfit, icon: totals.profit >= 0 ? ArrowUpRight : ArrowDownRight, positive: totals.profit >= 0, sub: `${totals.profitMargin.toFixed(1)}% ${isRTL ? "هامش" : "margin"}`, color: totals.profit >= 0 ? "text-accent" : "text-destructive" },
-              { label: isRTL ? "الذمم المدينة" : "Receivables", value: totals.receivables, prev: 0, icon: Clock, positive: false, sub: `${totals.overdueCount} ${isRTL ? "متأخرة" : "overdue"}`, color: "text-amber-500" },
-              { label: isRTL ? "النمو الشهري" : "MoM Growth", value: totals.momGrowth, prev: 0, icon: TrendingUp, positive: totals.momGrowth >= 0, sub: isRTL ? "مقارنة بالشهر السابق" : "vs last month", color: totals.momGrowth >= 0 ? "text-accent" : "text-destructive", isPercent: true },
+              { label: isRTL ? "إجمالي الإيرادات" : "Total Revenue", value: totals.revenue, prev: totals.prevRevenue, icon: TrendingUp, positive: true, sub: `${totals.paidCount} ${isRTL ? "فاتورة" : "invoices"}`, color: "text-accent", metricKey: "revenue", drilldown: [{ label: isRTL ? "الفواتير" : "Invoices", path: "/dashboard/invoices" }] },
+              { label: isRTL ? "صافي الربح" : "Net Profit", value: totals.profit, prev: totals.prevProfit, icon: totals.profit >= 0 ? ArrowUpRight : ArrowDownRight, positive: totals.profit >= 0, sub: `${totals.profitMargin.toFixed(1)}% ${isRTL ? "هامش" : "margin"}`, color: totals.profit >= 0 ? "text-accent" : "text-destructive", metricKey: "net_profit", drilldown: [{ label: isRTL ? "التقارير" : "Reports", path: "/dashboard/reports" }] },
+              { label: isRTL ? "الذمم المدينة" : "Receivables", value: totals.receivables, prev: 0, icon: Clock, positive: false, sub: `${totals.overdueCount} ${isRTL ? "متأخرة" : "overdue"}`, color: "text-amber-500", metricKey: "ar_aging", drilldown: [{ label: isRTL ? "الفواتير" : "Invoices", path: "/dashboard/invoices" }] },
+              { label: isRTL ? "النمو الشهري" : "MoM Growth", value: totals.momGrowth, prev: 0, icon: TrendingUp, positive: totals.momGrowth >= 0, sub: isRTL ? "مقارنة بالشهر السابق" : "vs last month", color: totals.momGrowth >= 0 ? "text-accent" : "text-destructive", isPercent: true, metricKey: "revenue", drilldown: [] },
             ].map((card, i) => {
               const change = card.prev > 0 ? pctChange(card.value, card.prev) : null;
+              const periodLbl = `${isRTL ? "آخر" : "Last"} ${filters.period} ${isRTL ? "أشهر" : "months"}`;
               return (
                 <MotionCard key={card.label} delay={i * 0.06}>
                   <Card className="hover:shadow-md transition-shadow h-full">
@@ -525,12 +527,15 @@ const AnalyticsPage = () => {
                         <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${card.positive ? "bg-accent/10" : "bg-destructive/10"} ${card.color}`}>
                           <card.icon size={18} />
                         </div>
-                        {change !== null && (
-                          <Badge variant={change >= 0 ? "default" : "destructive"} className="text-[10px] gap-0.5 h-5">
-                            {change >= 0 ? <ArrowUpRight size={9} /> : <ArrowDownRight size={9} />}
-                            {Math.abs(change)}%
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1">
+                          <ExplainKPI metricKey={card.metricKey} periodLabel={periodLbl} drilldownRoutes={card.drilldown} />
+                          {change !== null && (
+                            <Badge variant={change >= 0 ? "default" : "destructive"} className="text-[10px] gap-0.5 h-5">
+                              {change >= 0 ? <ArrowUpRight size={9} /> : <ArrowDownRight size={9} />}
+                              {Math.abs(change)}%
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xl md:text-2xl font-bold text-foreground">
                         {(card as any).isPercent ? (
@@ -551,27 +556,32 @@ const AnalyticsPage = () => {
           {/* Additional KPIs row */}
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
-              { label: isRTL ? "التدفق النقدي" : "Cash Flow", value: totals.cashFlow, icon: Wallet, color: totals.cashFlow >= 0 ? "text-emerald-500" : "text-destructive" },
-              { label: isRTL ? "هامش الربح" : "Profit Margin", value: totals.profitMargin, icon: Percent, color: "text-primary", isPercent: true },
-              { label: isRTL ? "إجمالي المصروفات" : "Total Expenses", value: totals.expenses, icon: TrendingDown, color: "text-destructive" },
-              { label: isRTL ? "الذمم الدائنة" : "Payables", value: totals.payables, icon: DollarSign, color: "text-muted-foreground" },
-            ].map((card, i) => (
+              { label: isRTL ? "التدفق النقدي" : "Cash Flow", value: totals.cashFlow, icon: Wallet, color: totals.cashFlow >= 0 ? "text-emerald-500" : "text-destructive", metricKey: "cashflow", drilldown: [{ label: isRTL ? "التقارير" : "Reports", path: "/dashboard/reports" }] },
+              { label: isRTL ? "هامش الربح" : "Profit Margin", value: totals.profitMargin, icon: Percent, color: "text-primary", isPercent: true, metricKey: "net_profit", drilldown: [] },
+              { label: isRTL ? "إجمالي المصروفات" : "Total Expenses", value: totals.expenses, icon: TrendingDown, color: "text-destructive", metricKey: "expenses", drilldown: [{ label: isRTL ? "المصروفات" : "Expenses", path: "/dashboard/expenses" }] },
+              { label: isRTL ? "الذمم الدائنة" : "Payables", value: totals.payables, icon: DollarSign, color: "text-muted-foreground", metricKey: "ap_aging", drilldown: [{ label: isRTL ? "أوامر الشراء" : "POs", path: "/dashboard/purchase-orders" }] },
+            ].map((card, i) => {
+              const periodLbl = `${isRTL ? "آخر" : "Last"} ${filters.period} ${isRTL ? "أشهر" : "months"}`;
+              return (
               <MotionCard key={card.label} delay={0.3 + i * 0.06}>
                 <Card>
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className={`h-9 w-9 rounded-lg bg-muted flex items-center justify-center ${card.color}`}>
                       <card.icon size={16} />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-lg font-bold text-foreground truncate">
-                        {(card as any).isPercent ? `${card.value.toFixed(1)}%` : <>{fmt(Math.abs(card.value))} <span className="text-[10px] font-normal text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</span></>}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <p className="text-lg font-bold text-foreground truncate">
+                          {(card as any).isPercent ? `${card.value.toFixed(1)}%` : <>{fmt(Math.abs(card.value))} <span className="text-[10px] font-normal text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</span></>}
+                        </p>
+                        <ExplainKPI metricKey={card.metricKey} periodLabel={periodLbl} drilldownRoutes={card.drilldown} />
+                      </div>
                       <p className="text-[10px] text-muted-foreground truncate">{card.label}</p>
                     </div>
                   </CardContent>
                 </Card>
               </MotionCard>
-            ))}
+            );})}
           </div>
 
           {/* Revenue vs Expenses Chart */}
@@ -925,9 +935,12 @@ const AnalyticsPage = () => {
               <Card className="border-emerald-500/30">
                 <CardContent className="p-5 text-center">
                   <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto mb-3"><ArrowUpRight size={24} /></div>
-                  <p className="text-2xl font-bold">{fmt(totals.vatCollected)}</p>
-                  <p className="text-xs text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{isRTL ? "ضريبة محصّلة (مخرجات)" : "VAT Collected (Output)"}</p>
+                   <p className="text-2xl font-bold">{fmt(totals.vatCollected)}</p>
+                   <p className="text-xs text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</p>
+                   <div className="flex items-center justify-center gap-1 mt-1">
+                     <p className="text-sm text-muted-foreground">{isRTL ? "ضريبة محصّلة (مخرجات)" : "VAT Collected (Output)"}</p>
+                     <ExplainKPI metricKey="vat_payable" periodLabel={`${isRTL ? "آخر" : "Last"} ${filters.period} ${isRTL ? "أشهر" : "months"}`} drilldownRoutes={[{ label: isRTL ? "التقارير" : "Reports", path: "/dashboard/reports" }]} />
+                   </div>
                 </CardContent>
               </Card>
             </MotionCard>
@@ -989,10 +1002,10 @@ const AnalyticsPage = () => {
         <TabsContent value="subscriptions" className="space-y-5 mt-4">
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "MRR", value: subscriptionData.mrr, icon: Repeat, color: "text-accent", isCurrency: true },
-              { label: "ARR", value: subscriptionData.arr, icon: TrendingUp, color: "text-primary", isCurrency: true },
-              { label: isRTL ? "معدل الإلغاء" : "Churn Rate", value: subscriptionData.churnRate, icon: TrendingDown, color: "text-destructive", isPercent: true },
-              { label: isRTL ? "القيمة العمرية" : "Avg LTV", value: subscriptionData.avgLTV, icon: DollarSign, color: "text-emerald-500", isCurrency: true },
+              { label: "MRR", value: subscriptionData.mrr, icon: Repeat, color: "text-accent", isCurrency: true, metricKey: "subscription_revenue" },
+              { label: "ARR", value: subscriptionData.arr, icon: TrendingUp, color: "text-primary", isCurrency: true, metricKey: "subscription_revenue" },
+              { label: isRTL ? "معدل الإلغاء" : "Churn Rate", value: subscriptionData.churnRate, icon: TrendingDown, color: "text-destructive", isPercent: true, metricKey: "subscription_revenue" },
+              { label: isRTL ? "القيمة العمرية" : "Avg LTV", value: subscriptionData.avgLTV, icon: DollarSign, color: "text-emerald-500", isCurrency: true, metricKey: "subscription_revenue" },
             ].map((card, i) => (
               <MotionCard key={card.label} delay={i * 0.08}>
                 <Card>
@@ -1003,7 +1016,10 @@ const AnalyticsPage = () => {
                     <p className="text-xl font-bold">
                       {card.isPercent ? `${card.value.toFixed(1)}%` : <>{fmt(Math.round(card.value))} <span className="text-[10px] font-normal text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</span></>}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{card.label}</p>
+                    <div className="flex items-center justify-center gap-1 mt-1">
+                      <p className="text-[11px] text-muted-foreground">{card.label}</p>
+                      <ExplainKPI metricKey={card.metricKey} drilldownRoutes={[{ label: isRTL ? "الاشتراكات" : "Subscriptions", path: "/dashboard/subscription" }]} />
+                    </div>
                   </CardContent>
                 </Card>
               </MotionCard>
@@ -1045,7 +1061,7 @@ const AnalyticsPage = () => {
                   <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent mx-auto mb-3"><Wallet size={24} /></div>
                   <p className="text-2xl font-bold"><AnimatedKPI value={walletData.balance} /></p>
                   <p className="text-xs text-muted-foreground">{isRTL ? "ر.س" : "SAR"}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{isRTL ? "صافي الرصيد" : "Net Balance"}</p>
+                  <div className="flex items-center justify-center gap-1 mt-1"><p className="text-sm text-muted-foreground">{isRTL ? "صافي الرصيد" : "Net Balance"}</p><ExplainKPI metricKey="wallet_activity" drilldownRoutes={[{ label: isRTL ? "المحفظة" : "Wallet", path: "/dashboard/wallet" }]} /></div>
                 </CardContent>
               </Card>
             </MotionCard>
