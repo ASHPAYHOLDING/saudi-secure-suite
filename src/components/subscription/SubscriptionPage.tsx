@@ -642,18 +642,33 @@ const SubscriptionPage = () => {
         <TabsContent value="plans">
           {/* Cycle Selector - full width on mobile */}
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-6">
-            {(["monthly", "quarterly", "yearly"] as const).map((cycle) => (
-              <Button
-                key={cycle}
-                size="sm"
-                variant={selectedCycle === cycle ? "default" : "outline"}
-                onClick={() => setSelectedCycle(cycle)}
-                className="flex-1 sm:flex-initial h-10 sm:h-9 text-sm"
-              >
-                {CYCLE_LABELS[cycle]}
-                {cycle === "yearly" && <Badge className="mr-1 bg-emerald-100 text-emerald-700 text-[10px]">وفّر 20%</Badge>}
-              </Button>
-            ))}
+          {(["monthly", "quarterly", "yearly"] as const).map((cycle) => {
+              // Calculate max savings across all plans for this cycle
+              const maxSavings = plans.reduce((max, plan) => {
+                if (cycle === "yearly" && plan.price_yearly && plan.price_monthly > 0) {
+                  const full = plan.price_monthly * 12;
+                  return Math.max(max, Math.round(((full - plan.price_yearly) / full) * 100));
+                }
+                if (cycle === "quarterly" && plan.price_quarterly && plan.price_monthly > 0) {
+                  const full = plan.price_monthly * 3;
+                  return Math.max(max, Math.round(((full - plan.price_quarterly) / full) * 100));
+                }
+                return max;
+              }, 0);
+
+              return (
+                <Button
+                  key={cycle}
+                  size="sm"
+                  variant={selectedCycle === cycle ? "default" : "outline"}
+                  onClick={() => setSelectedCycle(cycle)}
+                  className="flex-1 sm:flex-initial h-10 sm:h-9 text-sm"
+                >
+                  {CYCLE_LABELS[cycle]}
+                  {maxSavings > 0 && <Badge className="mr-1 bg-emerald-100 text-emerald-700 text-[10px]">وفّر {maxSavings}%</Badge>}
+                </Button>
+              );
+            })}
           </div>
 
           {/* Plan Cards - stacked on mobile, grid on desktop */}
