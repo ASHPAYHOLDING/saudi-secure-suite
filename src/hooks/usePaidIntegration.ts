@@ -9,11 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
  *   - basic:      cannot access paid integrations at all
  *   - pro:        can buy & activate (wallet / paylink)
  *   - enterprise: auto-activated (included_in_plans)
- *   - trial:      all integrations accessible
+ *   - trial:      ALL integrations accessible — bypasses plan limits & pricing
  *
  * Active means:
- *   1. Tenant has explicitly activated it (tenant_paid_integrations.status = 'active'), OR
- *   2. The tenant's subscription plan includes it for free (included_in_plans contains plan slug)
+ *   1. Tenant is on trial (all features unlocked), OR
+ *   2. Tenant has explicitly activated it (tenant_paid_integrations.status = 'active'), OR
+ *   3. The tenant's subscription plan includes it for free (included_in_plans contains plan slug)
  *
  * Data is never deleted — only the status flag controls access.
  */
@@ -36,6 +37,14 @@ export const usePaidIntegration = (integrationKey: string) => {
       });
 
       const ent = entitlement as unknown as { allowed: boolean; reason: string } | null;
+
+      // Trial bypasses ALL restrictions — every integration is active
+      if (ent?.allowed && ent.reason === "trial") {
+        setActive(true);
+        setLoading(false);
+        return;
+      }
+
       if (!ent?.allowed) {
         // Plan doesn't include paid integrations access (basic plan)
         setActive(false);

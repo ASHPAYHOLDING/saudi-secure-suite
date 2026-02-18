@@ -5485,6 +5485,8 @@ export type Database = {
           api_key_encrypted: string | null
           config: Json | null
           created_at: string
+          deactivated_at: string | null
+          deactivation_reason: string | null
           id: string
           integration_id: string
           purchased_at: string | null
@@ -5499,6 +5501,8 @@ export type Database = {
           api_key_encrypted?: string | null
           config?: Json | null
           created_at?: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           id?: string
           integration_id: string
           purchased_at?: string | null
@@ -5513,6 +5517,8 @@ export type Database = {
           api_key_encrypted?: string | null
           config?: Json | null
           created_at?: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           id?: string
           integration_id?: string
           purchased_at?: string | null
