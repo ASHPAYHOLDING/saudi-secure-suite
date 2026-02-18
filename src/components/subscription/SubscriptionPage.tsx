@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import DiscountCodeInput from "./DiscountCodeInput";
+import BankTransferForm from "./BankTransferForm";
 
 interface Plan {
   id: string;
@@ -678,71 +679,14 @@ const SubscriptionPage = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="bank_transfer" className="mt-3 space-y-3">
-                  <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm space-y-2">
-                    <p className="font-medium flex items-center gap-1.5">
-                      <Building2 size={14} className="text-muted-foreground" />
-                      بيانات الحساب البنكي
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">البنك:</span>
-                        <p className="font-medium">البنك الأهلي السعودي</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">اسم الحساب:</span>
-                        <p className="font-medium">شركة نيوماكسيو</p>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-muted-foreground">IBAN:</span>
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-mono font-medium text-xs">SA00 0000 0000 0000 0000 0000</p>
-                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => { navigator.clipboard.writeText("SA0000000000000000000000"); toast({ title: "تم النسخ" }); }}>
-                            <Copy size={10} />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground border-t pt-2">
-                      المبلغ المطلوب: <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">رقم مرجع التحويل *</label>
-                    <Input
-                      placeholder="أدخل رقم المرجع من إيصال التحويل"
-                      value={bankReference}
-                      onChange={(e) => setBankReference(e.target.value)}
-                      className="font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">إرفاق إيصال التحويل (اختياري)</label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1.5"
-                        onClick={() => document.getElementById("receipt-upload")?.click()}
-                      >
-                        <Upload size={14} />
-                        {receiptFile ? receiptFile.name : "اختر ملف"}
-                      </Button>
-                      <input
-                        id="receipt-upload"
-                        type="file"
-                        accept="image/*,.pdf"
-                        className="hidden"
-                        onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
-                    ⚠️ سيتم مراجعة طلبك واعتماد الترقية بعد التحقق من التحويل البنكي (خلال 24 ساعة عمل)
-                  </div>
+                <TabsContent value="bank_transfer" className="mt-3">
+                  <BankTransferForm
+                    amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
+                    bankReference={bankReference}
+                    onBankReferenceChange={setBankReference}
+                    receiptFile={receiptFile}
+                    onReceiptFileChange={setReceiptFile}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
