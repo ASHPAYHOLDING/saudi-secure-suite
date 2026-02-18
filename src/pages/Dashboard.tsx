@@ -47,7 +47,8 @@ import WalletPage from "@/components/wallet/WalletPage";
 import AffiliateDashboardPage from "@/components/affiliate/AffiliateDashboardPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
-import BudgetDashboard from "@/components/budgets/BudgetDashboard";
+import BudgetListPage from "@/components/budgets/BudgetListPage";
+import BudgetDetailPage from "@/components/budgets/BudgetDetailPage";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -165,7 +166,10 @@ const Dashboard = () => {
       return withGate("journal-entries", <JournalEntriesPage />);
     }
     if (path === "/dashboard/budgets") {
-      return <BudgetDashboard />;
+      return <BudgetListPage />;
+    }
+    if (path.startsWith("/dashboard/budgets/")) {
+      return <BudgetDetailPage />;
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
