@@ -158,14 +158,16 @@ const SubscriptionPage = () => {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [upgrading, setUpgrading] = useState(false);
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
+  const [usage, setUsage] = useState<any>(null);
 
   const fetchData = async () => {
     if (!tenantId) return;
-    const [plansRes, subRes, logsRes, entRes] = await Promise.all([
+    const [plansRes, subRes, logsRes, entRes, usageRes] = await Promise.all([
       supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order"),
       supabase.from("subscriptions").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("subscription_logs").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(20),
       supabase.from("plan_entitlements").select("plan_id, feature_key, is_enabled, limit_value"),
+      supabase.rpc("get_tenant_usage_summary", { _tenant_id: tenantId }),
     ]);
     if (plansRes.data) setPlans(plansRes.data as Plan[]);
     if (subRes.data) {
@@ -174,6 +176,7 @@ const SubscriptionPage = () => {
     }
     if (logsRes.data) setLogs(logsRes.data as SubLog[]);
     if (entRes.data) setPlanEntitlements(entRes.data as PlanEntitlement[]);
+    if (usageRes.data) setUsage(usageRes.data);
     setLoading(false);
   };
 
@@ -696,8 +699,9 @@ const SubscriptionPage = () => {
 
       <Tabs defaultValue="plans" className="space-y-4" dir="rtl">
         <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="plans" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><Zap size={14} /> الخطط المتاحة</TabsTrigger>
-          <TabsTrigger value="compare" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><BarChart3 size={14} /> مقارنة الميزات</TabsTrigger>
+          <TabsTrigger value="plans" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><Zap size={14} /> الخطط</TabsTrigger>
+          <TabsTrigger value="usage" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><TrendingUp size={14} /> الاستخدام</TabsTrigger>
+          <TabsTrigger value="compare" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><BarChart3 size={14} /> مقارنة</TabsTrigger>
           <TabsTrigger value="history" className="gap-1 flex-1 sm:flex-initial h-10 sm:h-9 text-sm"><History size={14} /> السجل</TabsTrigger>
         </TabsList>
 
@@ -1049,6 +1053,135 @@ const SubscriptionPage = () => {
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Usage Tab */}
+        <TabsContent value="usage">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp size={18} className="text-accent" />
+                استخدام الموارد
+              </CardTitle>
+              <CardDescription>
+                {usage?.is_trial
+                  ? "الفترة التجريبية — جميع الحدود غير مفعّلة"
+                  : "مراقبة استهلاك الموارد حسب باقتك الحالية"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {usage ? (
+                <>
+                  {([
+                    {
+                      key: "users",
+                      label: "المستخدمون",
+                      icon: Users,
+                      current: usage.users?.current ?? 0,
+                      limit: usage.users?.limit,
+                      unlimited: usage.users?.unlimited,
+                      unit: "مستخدم",
+                    },
+                    {
+                      key: "invoices",
+                      label: "الفواتير الشهرية",
+                      icon: FileText,
+                      current: usage.invoices_monthly?.current ?? 0,
+                      limit: usage.invoices_monthly?.limit,
+                      unlimited: usage.invoices_monthly?.unlimited,
+                      unit: "فاتورة",
+                    },
+                    {
+                      key: "storage",
+                      label: "التخزين",
+                      icon: HardDrive,
+                      current: usage.storage_gb?.current ?? 0,
+                      limit: usage.storage_gb?.limit,
+                      unlimited: usage.storage_gb?.unlimited,
+                      unit: "GB",
+                    },
+                  ] as const).map((item, idx) => {
+                    const pct = item.unlimited || !item.limit
+                      ? 0
+                      : Math.min(100, Math.round((item.current / item.limit) * 100));
+                    const isWarning = !item.unlimited && item.limit && pct >= 80 && pct < 100;
+                    const isCritical = !item.unlimited && item.limit && pct >= 100;
+
+                    return (
+                      <motion.div
+                        key={item.key}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                              isCritical ? "bg-destructive/10" : isWarning ? "bg-amber-100" : "bg-accent/10"
+                            }`}>
+                              <item.icon size={16} className={
+                                isCritical ? "text-destructive" : isWarning ? "text-amber-600" : "text-accent"
+                              } />
+                            </div>
+                            <span className="font-medium text-sm text-foreground">{item.label}</span>
+                          </div>
+                          <div className="text-left text-sm">
+                            {usage.is_trial ? (
+                              <Badge className="bg-amber-100 text-amber-700 text-xs">غير محدود (تجريبي)</Badge>
+                            ) : item.unlimited ? (
+                              <Badge variant="outline" className="text-xs">غير محدود</Badge>
+                            ) : (
+                              <span className={`font-bold ${isCritical ? "text-destructive" : isWarning ? "text-amber-600" : "text-foreground"}`}>
+                                {item.current} / {item.limit} {item.unit}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {!usage.is_trial && !item.unlimited && item.limit && (
+                          <>
+                            <Progress
+                              value={pct}
+                              className={`h-2.5 ${
+                                isCritical ? "[&>div]:bg-destructive" : isWarning ? "[&>div]:bg-amber-500" : ""
+                              }`}
+                            />
+                            <AnimatePresence>
+                              {isWarning && !isCritical && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-700"
+                                >
+                                  <AlertTriangle size={14} className="shrink-0" />
+                                  <span>تحذير: وصلت إلى {pct}% من الحد المسموح. يُنصح بالترقية قريباً.</span>
+                                </motion.div>
+                              )}
+                              {isCritical && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-2.5 text-xs text-destructive"
+                                >
+                                  <AlertTriangle size={14} className="shrink-0" />
+                                  <span>تم الوصول للحد الأقصى! لن تتمكن من إضافة المزيد. يرجى ترقية الباقة.</span>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">جارٍ تحميل بيانات الاستخدام...</div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
