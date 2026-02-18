@@ -443,7 +443,7 @@ const AffiliateDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [masked, setMasked] = useState(true);
-  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState<boolean>(false);
 
   // Filters
   const [commissionFilter, setCommissionFilter] = useState("all");
