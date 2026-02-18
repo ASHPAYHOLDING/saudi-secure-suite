@@ -124,6 +124,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               await loadUserTenants(session.user.id);
               if (profileData.tenant_id) {
                 await loadTenantData(profileData.tenant_id, session.user.id);
+                // Run subscription integrity check on login (fire-and-forget)
+                supabase.rpc("check_subscription_integrity", { _tenant_id: profileData.tenant_id }).then(({ data, error }) => {
+                  if (data && (data as any).fixes_count > 0) {
+                    console.warn("[Integrity] Auto-corrected", (data as any).fixes_count, "issues");
+                  }
+                });
               }
             }
           }, 0);

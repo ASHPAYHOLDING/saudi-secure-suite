@@ -6096,6 +6096,10 @@ export type Database = {
         Args: { _file_size_bytes?: number; _tenant_id: string }
         Returns: Json
       }
+      check_subscription_integrity: {
+        Args: { _tenant_id: string }
+        Returns: Json
+      }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       create_document_access_token: {
         Args: {
