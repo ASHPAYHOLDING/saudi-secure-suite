@@ -520,15 +520,15 @@ const NumaxioPayDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="text-right font-semibold">رقم العملية</TableHead>
-                      <TableHead className="text-right font-semibold">التاريخ</TableHead>
-                      <TableHead className="text-right font-semibold">النوع</TableHead>
-                      <TableHead className="text-right font-semibold">الوصف</TableHead>
-                      <TableHead className="text-right font-semibold">طريقة الدفع</TableHead>
-                      <TableHead className="text-right font-semibold">المبلغ</TableHead>
-                      <TableHead className="text-right font-semibold">الرسوم</TableHead>
-                      <TableHead className="text-right font-semibold">الصافي</TableHead>
-                      <TableHead className="text-right font-semibold">الحالة</TableHead>
+                      <TableHead className="font-semibold">رقم العملية</TableHead>
+                      <TableHead className="font-semibold">التاريخ</TableHead>
+                      <TableHead className="font-semibold">النوع</TableHead>
+                      <TableHead className="font-semibold">الوصف</TableHead>
+                      <TableHead className="font-semibold">طريقة الدفع</TableHead>
+                      <TableHead className="font-semibold">المبلغ</TableHead>
+                      <TableHead className="font-semibold">الرسوم</TableHead>
+                      <TableHead className="font-semibold">الصافي</TableHead>
+                      <TableHead className="font-semibold">الحالة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -551,9 +551,9 @@ const NumaxioPayDashboard = () => {
                             tx.status === "completed" ? "text-success border-success/30" :
                             tx.status === "pending" ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
                           }`}>
-                            {tx.status === "completed" ? <><CheckCircle2 className="w-3 h-3 ml-1" /> مكتمل</> :
-                             tx.status === "pending" ? <><Clock className="w-3 h-3 ml-1" /> معلّق</> :
-                             <><XCircle className="w-3 h-3 ml-1" /> فشل</>}
+                            {tx.status === "completed" ? <><CheckCircle2 className="w-3 h-3 mie-1" /> مكتمل</> :
+                             tx.status === "pending" ? <><Clock className="w-3 h-3 mie-1" /> معلّق</> :
+                             <><XCircle className="w-3 h-3 mie-1" /> فشل</>}
                           </Badge>
                         </TableCell>
                       </TableRow>

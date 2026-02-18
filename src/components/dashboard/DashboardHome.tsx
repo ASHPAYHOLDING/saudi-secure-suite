@@ -590,7 +590,7 @@ const DashboardHome = () => {
             <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-5">
               <CardTitle className="text-sm flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-accent" /> الإيرادات والمصروفات
-                <Badge variant="secondary" className="text-[10px] mr-auto">آخر ٦ أشهر</Badge>
+                <Badge variant="secondary" className="text-[10px] ms-auto">آخر ٦ أشهر</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-2 sm:px-4 pb-4">
@@ -710,7 +710,7 @@ const DashboardHome = () => {
               </div>
               <p className={`text-2xl font-bold font-[IBM_Plex_Sans_Arabic] ${netProfit >= 0 ? "text-success" : "text-destructive"}`}>
                 <AnimatedCounter value={Math.abs(netProfit)} />
-                <span className="text-xs font-normal text-muted-foreground mr-1">{sar}</span>
+                <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
               </p>
               <div className="flex items-center gap-1 mt-2">
                 {netProfit >= 0 ? (
@@ -740,12 +740,12 @@ const DashboardHome = () => {
               </p>
               {s.overdueInvoices > 0 && (
                 <Badge variant="outline" className="text-[10px] mt-2 text-destructive border-destructive/30">
-                  <AlertTriangle className="w-3 h-3 ml-1" /> تحتاج متابعة
+                  <AlertTriangle className="w-3 h-3 mie-1" /> تحتاج متابعة
                 </Badge>
               )}
               {s.overdueInvoices === 0 && (
                 <Badge variant="outline" className="text-[10px] mt-2 text-success border-success/30">
-                  <CheckCircle2 className="w-3 h-3 ml-1" /> ممتاز
+                  <CheckCircle2 className="w-3 h-3 mie-1" /> ممتاز
                 </Badge>
               )}
             </CardContent>

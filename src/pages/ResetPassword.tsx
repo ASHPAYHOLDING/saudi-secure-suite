@@ -113,7 +113,7 @@ const ResetPassword = () => {
                 <div>
                   <Label htmlFor="password" className="text-xs text-muted-foreground">كلمة المرور الجديدة</Label>
                   <div className="relative mt-1.5">
-                    <Lock size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Lock size={16} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -121,11 +121,11 @@ const ResetPassword = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       dir="ltr"
-                      className="pr-10 pl-10 text-left"
+                      className="pe-10 ps-10 text-start"
                       minLength={6}
                       required
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
@@ -144,7 +144,7 @@ const ResetPassword = () => {
                 <div>
                   <Label htmlFor="confirmPassword" className="text-xs text-muted-foreground">تأكيد كلمة المرور</Label>
                   <div className="relative mt-1.5">
-                    <Lock size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Lock size={16} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
                       type={showConfirm ? "text" : "password"}
@@ -152,11 +152,11 @@ const ResetPassword = () => {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
                       dir="ltr"
-                      className="pr-10 pl-10 text-left"
+                      className="pe-10 ps-10 text-start"
                       minLength={6}
                       required
                     />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
