@@ -4656,6 +4656,62 @@ export type Database = {
           },
         ]
       }
+      period_locks: {
+        Row: {
+          created_at: string
+          id: string
+          is_locked: boolean
+          lock_reason: string | null
+          locked_at: string
+          locked_by: string
+          period_month: number
+          period_year: number
+          tenant_id: string
+          unlock_reason: string | null
+          unlocked_at: string | null
+          unlocked_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_locked?: boolean
+          lock_reason?: string | null
+          locked_at?: string
+          locked_by: string
+          period_month: number
+          period_year: number
+          tenant_id: string
+          unlock_reason?: string | null
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_locked?: boolean
+          lock_reason?: string | null
+          locked_at?: string
+          locked_by?: string
+          period_month?: number
+          period_year?: number
+          tenant_id?: string
+          unlock_reason?: string | null
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "period_locks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permission_definitions: {
         Row: {
           category: string
@@ -8425,6 +8481,10 @@ export type Database = {
       is_branch_member: { Args: { _branch_id: string }; Returns: boolean }
       is_group_admin: {
         Args: { _parent_tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_period_locked: {
+        Args: { _date: string; _tenant_id: string }
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
