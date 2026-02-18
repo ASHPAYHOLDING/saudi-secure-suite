@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard, Crown, Clock, ArrowUpRight, ArrowDownRight,
   CheckCircle2, AlertTriangle, History, Zap, Shield, Calendar,
@@ -645,49 +645,94 @@ const SubscriptionPage = () => {
 
               {/* Payment Method Tabs */}
               <Tabs value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as any)} dir="rtl">
-                <TabsList className="w-full grid grid-cols-3">
-                  <TabsTrigger value="wallet" className="gap-1 text-xs">
-                    <Wallet size={14} />
+                <TabsList className="w-full grid grid-cols-3 h-12 p-1 bg-muted/60 rounded-xl gap-1">
+                  <TabsTrigger
+                    value="paylink"
+                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-accent transition-all duration-300 ease-out"
+                  >
+                    <motion.div
+                      animate={paymentMethod === "paylink" ? { rotate: [0, -8, 8, 0], scale: 1.15 } : { rotate: 0, scale: 1 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <CreditCard size={15} />
+                    </motion.div>
+                    الدفع الإلكتروني
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="wallet"
+                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-300 ease-out"
+                  >
+                    <motion.div
+                      animate={paymentMethod === "wallet" ? { y: [0, -3, 0], scale: 1.15 } : { y: 0, scale: 1 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <Wallet size={15} />
+                    </motion.div>
                     المحفظة
                   </TabsTrigger>
-                  <TabsTrigger value="paylink" className="gap-1 text-xs">
-                    <CreditCard size={14} />
-                    بطاقة دفع
-                  </TabsTrigger>
-                  <TabsTrigger value="bank_transfer" className="gap-1 text-xs">
-                    <Building2 size={14} />
+                  <TabsTrigger
+                    value="bank_transfer"
+                    className="relative gap-1.5 text-xs rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-foreground transition-all duration-300 ease-out"
+                  >
+                    <motion.div
+                      animate={paymentMethod === "bank_transfer" ? { scale: [1, 1.2, 1.1], rotate: [0, 3, 0] } : { scale: 1, rotate: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    >
+                      <Building2 size={15} />
+                    </motion.div>
                     تحويل بنكي
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="wallet" className="mt-3">
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-foreground">
-                    <Wallet size={14} className="inline ml-1 text-primary" />
-                    سيتم خصم <span className="font-bold">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك الرقمية.
-                  </div>
-                </TabsContent>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={paymentMethod}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <TabsContent value="wallet" className="mt-3" forceMount={paymentMethod === "wallet" ? true : undefined}>
+                      {paymentMethod === "wallet" && (
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Wallet size={16} className="text-primary" />
+                            <span className="font-semibold">الدفع من المحفظة الرقمية</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            سيتم خصم <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك فوراً.
+                          </p>
+                        </div>
+                      )}
+                    </TabsContent>
 
-                <TabsContent value="paylink" className="mt-3">
-                  <div className="rounded-lg border border-accent/20 bg-accent/5 p-3 text-sm text-foreground space-y-2">
-                    <div className="flex items-center gap-2">
-                      <CreditCard size={14} className="text-accent" />
-                      <span className="font-medium">الدفع عبر بوابة الدفع الإلكتروني</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      سيتم فتح صفحة دفع آمنة لإتمام العملية بالبطاقة البنكية. المبلغ: <span className="font-bold">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
-                    </p>
-                  </div>
-                </TabsContent>
+                    <TabsContent value="paylink" className="mt-3" forceMount={paymentMethod === "paylink" ? true : undefined}>
+                      {paymentMethod === "paylink" && (
+                        <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-foreground space-y-2">
+                          <div className="flex items-center gap-2">
+                            <CreditCard size={16} className="text-accent" />
+                            <span className="font-semibold">الدفع عبر بوابة الدفع الإلكتروني</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            سيتم فتح صفحة دفع آمنة لإتمام العملية بالبطاقة البنكية. المبلغ: <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
+                          </p>
+                        </div>
+                      )}
+                    </TabsContent>
 
-                <TabsContent value="bank_transfer" className="mt-3">
-                  <BankTransferForm
-                    amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
-                    bankReference={bankReference}
-                    onBankReferenceChange={setBankReference}
-                    receiptFile={receiptFile}
-                    onReceiptFileChange={setReceiptFile}
-                  />
-                </TabsContent>
+                    <TabsContent value="bank_transfer" className="mt-3" forceMount={paymentMethod === "bank_transfer" ? true : undefined}>
+                      {paymentMethod === "bank_transfer" && (
+                        <BankTransferForm
+                          amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
+                          bankReference={bankReference}
+                          onBankReferenceChange={setBankReference}
+                          receiptFile={receiptFile}
+                          onReceiptFileChange={setReceiptFile}
+                        />
+                      )}
+                    </TabsContent>
+                  </motion.div>
+                </AnimatePresence>
               </Tabs>
             </div>
           )}
