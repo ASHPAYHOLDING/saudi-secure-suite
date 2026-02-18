@@ -21,6 +21,7 @@ const DOCUMENT_TYPES = [
   { value: "expense", labelAr: "مصروف", labelEn: "Expense" },
   { value: "purchase_order", labelAr: "أمر شراء", labelEn: "Purchase Order" },
   { value: "contract", labelAr: "عقد", labelEn: "Contract" },
+  { value: "discount", labelAr: "خصم", labelEn: "Discount" },
 ];
 
 const APPROVER_ROLES = [
@@ -166,6 +167,34 @@ const ApprovalWorkflowsPage = () => {
       } else {
         await supabase.from("approval_requests").update({ current_step: request.current_step + 1, updated_at: new Date().toISOString() }).eq("id", requestId);
       }
+
+      // Create notification for the requester
+      const finalStatus = decision === "rejected" ? "rejected" : (request.current_step >= request.total_steps ? "approved" : "pending");
+      const docLabel = DOCUMENT_TYPES.find(d => d.value === request.document_type);
+      const notifMessage = decision === "approved"
+        ? `تمت الموافقة على ${docLabel?.labelAr || request.document_type} ${request.document_number || ""} - المستوى ${request.current_step}`
+        : `تم رفض ${docLabel?.labelAr || request.document_type} ${request.document_number || ""}`;
+
+      await supabase.from("collaboration_notifications").insert({
+        tenant_id: tenantId!,
+        user_id: request.requested_by,
+        actor_id: user!.id,
+        type: "approval_decision",
+        entity_type: "approval_request",
+        entity_id: requestId,
+        message: notifMessage,
+      });
+
+      // Log to audit
+      await supabase.from("audit_logs").insert({
+        tenant_id: tenantId!,
+        user_id: user!.id,
+        entity_type: "approval_request",
+        action: decision,
+        entity_id: requestId,
+        entity_label: `${request.document_type} ${request.document_number || ""}`,
+        after_value: { decision, step: request.current_step, final_status: finalStatus },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["approval-requests"] });
