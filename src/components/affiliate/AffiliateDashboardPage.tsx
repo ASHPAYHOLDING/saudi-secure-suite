@@ -29,6 +29,7 @@ import {
   BarChart, Bar, Cell, PieChart as RePieChart, Pie,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import AffiliateOnboardingWizard from "./AffiliateOnboardingWizard";
 
 // ── Types ──
 interface AffiliateData {
@@ -151,7 +152,23 @@ const KPICard = ({ icon: Icon, title, value, suffix, trend, trendLabel, delay = 
 // ═══════════════════════════════════════════════════════════
 // ── STATE 1: Marketing / No Affiliate ──
 // ═══════════════════════════════════════════════════════════
-const MarketingState = ({ onJoin, loading: joinLoading }: { onJoin: () => void; loading: boolean }) => {
+const MarketingState = ({ userId, tenantId, userEmail, userName, onComplete }: { userId: string; tenantId: string; userEmail: string; userName: string; onComplete: () => void }) => {
+  const [showWizard, setShowWizard] = useState(false);
+  
+  if (showWizard) {
+    return (
+      <AffiliateOnboardingWizard
+        userId={userId}
+        tenantId={tenantId}
+        userEmail={userEmail}
+        userName={userName}
+        onComplete={onComplete}
+        onCancel={() => setShowWizard(false)}
+      />
+    );
+  }
+  
+  const onJoin = () => setShowWizard(true);
   const benefits = [
     { icon: DollarSign, title: "عمولة شهرية مستمرة", desc: "احصل على عمولة متكررة مع كل تجديد اشتراك" },
     { icon: Globe, title: "نظام عالمي", desc: "شارك مع عملاء من أي مكان في العالم" },
@@ -189,15 +206,10 @@ const MarketingState = ({ onJoin, loading: joinLoading }: { onJoin: () => void; 
           <Button
             size="lg"
             onClick={onJoin}
-            disabled={joinLoading}
             className="gap-2 text-base px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
-            {joinLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-              <>
-                <Star className="w-5 h-5" />
-                انضم الآن
-              </>
-            )}
+            <Star className="w-5 h-5" />
+            انضم الآن
           </Button>
         </div>
         {/* Decorative elements */}
@@ -488,32 +500,7 @@ const AffiliateDashboardPage = () => {
     return () => { supabase.removeChannel(channel); };
   }, [affiliate?.id, affiliate?.status, fetchData]);
 
-  // Join handler
-  const handleJoin = async () => {
-    if (!user || !tenantId) return;
-    setJoinLoading(true);
-    try {
-      const code = `NMX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const { error } = await supabase.from("affiliates").insert({
-        user_id: user.id,
-        tenant_id: tenantId,
-        email: user.email || "",
-        full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Partner",
-        code,
-        status: "pending",
-        commission_rate: 10,
-        tier: "bronze",
-      });
-      if (error) throw error;
-      toast.success(isRTL ? "تم تقديم طلب الانضمام بنجاح!" : "Application submitted!");
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to submit");
-    }
-    setJoinLoading(false);
-  };
-
-  // Resubmit handler
+  // Resubmit handler (join is now handled by the wizard)
   const handleResubmit = async () => {
     if (!affiliate) return;
     setJoinLoading(true);
@@ -651,7 +638,7 @@ const AffiliateDashboardPage = () => {
 
   // ── STATE ROUTING ──
   if (!affiliate) {
-    return <div className="p-4 sm:p-6"><MarketingState onJoin={handleJoin} loading={joinLoading} /></div>;
+    return <div className="p-4 sm:p-6"><MarketingState userId={user!.id} tenantId={tenantId!} userEmail={user?.email || ""} userName={user?.user_metadata?.full_name || user?.email?.split("@")[0] || ""} onComplete={fetchData} /></div>;
   }
 
   if (affiliate.status === "pending") {
