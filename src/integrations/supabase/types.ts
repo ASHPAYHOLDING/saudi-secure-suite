@@ -5064,6 +5064,59 @@ export type Database = {
           },
         ]
       }
+      report_versions: {
+        Row: {
+          created_at: string
+          date_range: string
+          filters: Json
+          generated_by: string
+          generated_by_name: string
+          has_critical_issues: boolean
+          id: string
+          report_key: string
+          report_name_ar: string
+          row_count: number
+          tenant_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          date_range?: string
+          filters?: Json
+          generated_by: string
+          generated_by_name?: string
+          has_critical_issues?: boolean
+          id?: string
+          report_key: string
+          report_name_ar: string
+          row_count?: number
+          tenant_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          date_range?: string
+          filters?: Json
+          generated_by?: string
+          generated_by_name?: string
+          has_critical_issues?: boolean
+          id?: string
+          report_key?: string
+          report_name_ar?: string
+          row_count?: number
+          tenant_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
