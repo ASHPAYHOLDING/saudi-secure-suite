@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,17 +7,21 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plug, CheckCircle2, Monitor, ShoppingBag, Users, CreditCard, Package,
   Power, PowerOff, Key, BookOpen, MessageSquare, Radio,
   ShieldCheck, Loader2, AlertTriangle, Zap, Settings2, CircleDot,
   ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet, Crown, Sparkles,
+  Layers, TrendingUp, ArrowLeft,
 } from "lucide-react";
 
+// ─── Types ───
 interface PaidIntegration {
   id: string;
   key: string;
@@ -49,16 +53,16 @@ interface TenantSubscription {
 type PaymentMethod = "wallet" | "paylink";
 type FlowStep = "preview" | "payment" | "paying" | "api_keys" | "testing" | "done";
 
-const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string }> = {
-  payment: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
-  payment_gateway: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600" },
-  whatsapp: { label: "واتساب", icon: MessageSquare, color: "bg-green-500/10 text-green-600" },
-  accounting: { label: "محاسبة", icon: BookOpen, color: "bg-accent/10 text-accent" },
-  sms: { label: "رسائل SMS", icon: Radio, color: "bg-blue-500/10 text-blue-600" },
-  pos: { label: "نقاط البيع", icon: Monitor, color: "bg-purple-500/10 text-purple-600" },
-  ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag, color: "bg-indigo-500/10 text-indigo-600" },
-  hr_payroll: { label: "موارد بشرية", icon: Users, color: "bg-emerald-500/10 text-emerald-600" },
-  other: { label: "أخرى", icon: Package, color: "bg-muted text-muted-foreground" },
+const CATEGORY_MAP: Record<string, { label: string; icon: any; color: string; gradient: string }> = {
+  payment: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600", gradient: "from-amber-500/20 to-orange-500/10" },
+  payment_gateway: { label: "بوابات دفع", icon: CreditCard, color: "bg-amber-500/10 text-amber-600", gradient: "from-amber-500/20 to-orange-500/10" },
+  whatsapp: { label: "واتساب", icon: MessageSquare, color: "bg-green-500/10 text-green-600", gradient: "from-green-500/20 to-emerald-500/10" },
+  accounting: { label: "محاسبة", icon: BookOpen, color: "bg-accent/10 text-accent", gradient: "from-accent/20 to-accent/5" },
+  sms: { label: "رسائل SMS", icon: Radio, color: "bg-blue-500/10 text-blue-600", gradient: "from-blue-500/20 to-sky-500/10" },
+  pos: { label: "نقاط البيع", icon: Monitor, color: "bg-purple-500/10 text-purple-600", gradient: "from-purple-500/20 to-violet-500/10" },
+  ecommerce: { label: "متاجر إلكترونية", icon: ShoppingBag, color: "bg-indigo-500/10 text-indigo-600", gradient: "from-indigo-500/20 to-blue-500/10" },
+  hr_payroll: { label: "موارد بشرية", icon: Users, color: "bg-emerald-500/10 text-emerald-600", gradient: "from-emerald-500/20 to-green-500/10" },
+  other: { label: "أخرى", icon: Package, color: "bg-muted text-muted-foreground", gradient: "from-muted/50 to-muted/20" },
 };
 
 const FLOW_STEPS: { key: FlowStep; label: string; icon: any }[] = [
@@ -70,6 +74,208 @@ const FLOW_STEPS: { key: FlowStep; label: string; icon: any }[] = [
   { key: "done", label: "مفعّل", icon: CheckCircle2 },
 ];
 
+// ─── Animation Variants ───
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 30 },
+  },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+};
+
+// ─── Skeleton Loader ───
+const IntegrationSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    {[1, 2, 3, 4, 5, 6].map((i) => (
+      <Card key={i} className="overflow-hidden">
+        <div className="p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-3/4" />
+          <div className="flex items-center justify-between pt-3">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-9 w-28 rounded-md" />
+          </div>
+        </div>
+      </Card>
+    ))}
+  </div>
+);
+
+// ─── Integration Card Component ───
+const IntegrationCard = ({
+  item, sub, purchased, hasFreeAccess, isTrial, canPurchase,
+  onActivate, onDeactivate, onComplete,
+}: {
+  item: PaidIntegration;
+  sub: TenantSubscription | undefined;
+  purchased: TenantSubscription | undefined;
+  hasFreeAccess: boolean;
+  isTrial: boolean;
+  canPurchase: boolean;
+  onActivate: () => void;
+  onDeactivate: () => void;
+  onComplete: () => void;
+}) => {
+  const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
+  const CatIcon = cat.icon;
+  const isActive = !!sub;
+
+  return (
+    <motion.div variants={cardVariants} layout>
+      <Card className={`group relative overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col h-full ${
+        isActive ? "ring-1 ring-accent/30" : ""
+      }`}>
+        {/* Gradient accent top strip */}
+        <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-l ${cat.gradient} ${
+          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        } transition-opacity duration-300`} />
+
+        <div className="p-5 sm:p-6 flex flex-col flex-1 gap-4">
+          {/* Header */}
+          <div className="flex items-start gap-3">
+            <motion.div
+              whileHover={{ scale: 1.08, rotate: -3 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl ${cat.color} shrink-0`}
+            >
+              <CatIcon size={24} />
+            </motion.div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-foreground text-sm sm:text-base leading-tight flex items-center gap-2">
+                {item.name_ar}
+                {!item.is_ready && <Lock size={12} className="text-muted-foreground shrink-0" />}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5 font-english" dir="ltr">{item.name_en}</p>
+            </div>
+            <div className="flex flex-col items-start gap-1 shrink-0">
+              {isActive && (
+                <Badge className="gap-1 bg-accent/10 text-accent border-accent/20 text-[11px]">
+                  <CheckCircle2 size={11} /> مفعّل
+                </Badge>
+              )}
+              {!isActive && purchased && (
+                <Badge variant="outline" className="gap-1 border-amber-300 text-amber-600 bg-amber-50/50 text-[11px]">
+                  <Settings2 size={11} /> تم الشراء
+                </Badge>
+              )}
+              {!item.is_ready && (
+                <Badge variant="secondary" className="gap-1 text-[10px]">
+                  <AlertTriangle size={10} /> قريباً
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-sm text-muted-foreground leading-relaxed flex-1">{item.description_ar}</p>
+
+          {/* Meta tags */}
+          <div className="flex flex-wrap gap-2">
+            {item.requires_api_keys && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-md px-2 py-0.5">
+                <Key size={10} /> يتطلب مفاتيح API
+              </span>
+            )}
+            {item.trial_days > 0 && !purchased && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-accent bg-accent/5 rounded-md px-2 py-0.5">
+                <Zap size={10} /> تجربة {item.trial_days} يوم
+              </span>
+            )}
+          </div>
+
+          {/* Price + Action */}
+          <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto">
+            <div>
+              {hasFreeAccess ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-bold text-accent">مجاني</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {isTrial ? "(تجريبي)" : "(مؤسسي)"}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-bold text-foreground">{item.price_once}</span>
+                  <span className="text-xs text-muted-foreground">ر.س</span>
+                  <span className="text-[10px] text-muted-foreground">(مرة واحدة)</span>
+                </div>
+              )}
+            </div>
+
+            {isActive ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs h-9"
+                onClick={onDeactivate}
+              >
+                <PowerOff size={14} /> إيقاف
+              </Button>
+            ) : purchased ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5 text-xs h-9"
+                onClick={onComplete}
+              >
+                <Settings2 size={14} /> إكمال التفعيل
+              </Button>
+            ) : hasFreeAccess ? (
+              <Button
+                size="sm"
+                className="gap-1.5 text-xs h-9"
+                disabled={!item.is_ready}
+                onClick={onActivate}
+              >
+                {item.is_ready ? (
+                  <><Sparkles size={14} /> تفعيل فوري</>
+                ) : (
+                  <><Lock size={14} /> غير متاح</>
+                )}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="gap-1.5 text-xs h-9"
+                disabled={!item.is_ready || !canPurchase}
+                onClick={onActivate}
+              >
+                {!canPurchase ? (
+                  <><Lock size={14} /> ترقية الباقة</>
+                ) : (
+                  <><Power size={14} /> شراء وتفعيل</>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+};
+
+// ─── Main Page ───
 const PaidIntegrationsPage = () => {
   const { tenantId, user } = useAuth();
   const { entitlements, loading: loadingEntitlements, planSlug } = useEntitlements([
@@ -79,11 +285,9 @@ const PaidIntegrationsPage = () => {
   const [subscriptions, setSubscriptions] = useState<TenantSubscription[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Plan-derived access
   const isTrial = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.reason === "trial";
   const isEnterprise = planSlug === "enterprise";
   const canPurchase = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.allowed ?? false;
-  // Trial OR Enterprise = free access to all integrations
   const hasFreeAccess = isTrial || isEnterprise;
 
   // Flow state
@@ -109,6 +313,7 @@ const PaidIntegrationsPage = () => {
     };
   }, [tenantId, loadingEntitlements]);
 
+  // ─── Data Fetchers (unchanged logic) ───
   const fetchWalletBalance = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -142,14 +347,13 @@ const PaidIntegrationsPage = () => {
   const getPurchased = (integrationId: string) =>
     subscriptions.find((s) => s.integration_id === integrationId);
 
-  // ─── Flow Handlers ───
+  // ─── Flow Handlers (ALL unchanged business logic) ───
   const openFlow = (item: PaidIntegration) => {
     setFlowItem(item);
     setApiKeyValue("");
     setTestResult("idle");
     setPaymentMethod(walletExists && walletBalance !== null && walletBalance >= item.price_once ? "wallet" : "paylink");
 
-    // Enterprise or Trial: auto-activate, skip payment
     if (hasFreeAccess) {
       const existing = getPurchased(item.id);
       if (existing) {
@@ -160,13 +364,11 @@ const PaidIntegrationsPage = () => {
           setTimeout(() => runConnectionTest(), 100);
         }
       } else {
-        // Auto-create record for enterprise/trial
         handleFreeAutoActivate(item);
       }
       return;
     }
 
-    // If already purchased, skip to appropriate step
     const existing = getPurchased(item.id);
     if (existing) {
       if (item.requires_api_keys && !existing.api_key_encrypted) {
@@ -227,43 +429,33 @@ const PaidIntegrationsPage = () => {
     setPaymentCheckInterval(null);
   };
 
-  // ─── Wallet Purchase ───
   const handleWalletPurchase = async () => {
     if (!flowItem || !tenantId || !user) return;
     setSaving(true);
-
     try {
       const { data: session } = await supabase.auth.getSession();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-purchase?action=purchase-integration`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.session?.access_token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.session?.access_token}` },
           body: JSON.stringify({ integrationId: flowItem.id }),
         }
       );
-
       const result = await res.json();
-
       if (!res.ok || !result.success) {
         toast({ title: "فشل الشراء", description: result.error || "حدث خطأ", variant: "destructive" });
         setSaving(false);
         return;
       }
-
       toast({ title: "تم الشراء بنجاح ✅", description: `${flowItem.name_ar} — الرصيد المتبقي: ${result.new_balance} ر.س` });
       setWalletBalance(result.new_balance);
-
       if (result.requires_api_keys) {
         setFlowStep("api_keys");
       } else {
         setFlowStep("testing");
         runConnectionTest();
       }
-
       fetchAll();
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" });
@@ -274,27 +466,15 @@ const PaidIntegrationsPage = () => {
   const handlePayment = async () => {
     if (!flowItem || !tenantId || !user) return;
     setSaving(true);
-
     try {
-      // Get user profile for payment info
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .maybeSingle();
-
+      const { data: profile } = await supabase.from("profiles").select("full_name, email").eq("id", user.id).maybeSingle();
       const orderNumber = `INT-${flowItem.key}-${Date.now()}`;
-
-      // Create Paylink invoice via edge function
       const { data: session } = await supabase.auth.getSession();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=create-invoice`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.session?.access_token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.session?.access_token}` },
           body: JSON.stringify({
             amount: flowItem.price_once,
             clientName: profile?.full_name || "عميل",
@@ -303,87 +483,48 @@ const PaidIntegrationsPage = () => {
             orderNumber,
             note: `شراء تكامل: ${flowItem.name_ar}`,
             callBackUrl: window.location.href,
-            products: [
-              {
-                title: flowItem.name_ar,
-                price: flowItem.price_once,
-                qty: 1,
-                description: `تكامل ${flowItem.name_en} - دفعة واحدة`,
-              },
-            ],
+            products: [{ title: flowItem.name_ar, price: flowItem.price_once, qty: 1, description: `تكامل ${flowItem.name_en} - دفعة واحدة` }],
           }),
         }
       );
-
       const result = await res.json();
-
       if (!res.ok || !result.success) {
         toast({ title: "خطأ في إنشاء الفاتورة", description: result.error || "حدث خطأ", variant: "destructive" });
         setSaving(false);
         return;
       }
-
-      // Save payment URL and transaction number
       setPaymentUrl(result.paymentUrl);
       setPaylinkTransactionNo(result.transactionNo);
       setFlowStep("paying");
       setSaving(false);
-
-      // Open payment URL in new tab
       window.open(result.paymentUrl, "_blank");
-
-      // Start polling for payment status
       const interval = setInterval(async () => {
         try {
           const statusRes = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=check-status&transactionNo=${result.transactionNo}`,
-            {
-              headers: {
-                Authorization: `Bearer ${session?.session?.access_token}`,
-              },
-            }
+            { headers: { Authorization: `Bearer ${session?.session?.access_token}` } }
           );
           const statusData = await statusRes.json();
-
           if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
             clearInterval(interval);
             setPaymentCheckInterval(null);
-
-            // NOW record the purchase after confirmed payment
             const { error } = await supabase.from("tenant_paid_integrations").upsert({
-              tenant_id: tenantId,
-              integration_id: flowItem.id,
+              tenant_id: tenantId, integration_id: flowItem.id,
               status: flowItem.requires_api_keys ? "disabled" : "active",
-              activated_by: user.id,
-              purchased_at: new Date().toISOString(),
-              activated_at: new Date().toISOString(),
-              activation_source: "purchase",
+              activated_by: user.id, purchased_at: new Date().toISOString(),
+              activated_at: new Date().toISOString(), activation_source: "purchase",
             } as any, { onConflict: "tenant_id,integration_id" });
-
-            if (error) {
-              toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" });
-              return;
-            }
-
+            if (error) { toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" }); return; }
             toast({ title: "تم الدفع بنجاح ✅", description: `${flowItem.name_ar} - ${flowItem.price_once} ر.س` });
-
-            if (flowItem.requires_api_keys) {
-              setFlowStep("api_keys");
-            } else {
-              setFlowStep("testing");
-              runConnectionTest();
-            }
+            if (flowItem.requires_api_keys) { setFlowStep("api_keys"); } else { setFlowStep("testing"); runConnectionTest(); }
           } else if (statusData.orderStatus === "Canceled" || statusData.orderStatus === "canceled") {
             clearInterval(interval);
             setPaymentCheckInterval(null);
             toast({ title: "تم إلغاء الدفع", variant: "destructive" });
             setFlowStep("payment");
           }
-        } catch (e) {
-          // Silently retry
-        }
-      }, 5000); // Check every 5 seconds
-
+        } catch { /* Silently retry */ }
+      }, 5000);
       setPaymentCheckInterval(interval);
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" });
@@ -392,50 +533,27 @@ const PaidIntegrationsPage = () => {
   };
 
   const handleConfirmPayment = async () => {
-    // Manual check when user clicks "لقد دفعت"
     if (!paylinkTransactionNo || !flowItem || !tenantId || !user) return;
     setSaving(true);
-
     try {
       const { data: session } = await supabase.auth.getSession();
       const statusRes = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paylink-gateway?action=check-status&transactionNo=${paylinkTransactionNo}`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.session?.access_token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${session?.session?.access_token}` } }
       );
       const statusData = await statusRes.json();
-
       if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
         if (paymentCheckInterval) clearInterval(paymentCheckInterval);
         setPaymentCheckInterval(null);
-
         const { error } = await supabase.from("tenant_paid_integrations").upsert({
-          tenant_id: tenantId,
-          integration_id: flowItem.id,
+          tenant_id: tenantId, integration_id: flowItem.id,
           status: flowItem.requires_api_keys ? "disabled" : "active",
-          activated_by: user.id,
-          purchased_at: new Date().toISOString(),
-          activated_at: new Date().toISOString(),
-          activation_source: "purchase",
+          activated_by: user.id, purchased_at: new Date().toISOString(),
+          activated_at: new Date().toISOString(), activation_source: "purchase",
         } as any, { onConflict: "tenant_id,integration_id" });
-
-        if (error) {
-          toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" });
-          setSaving(false);
-          return;
-        }
-
+        if (error) { toast({ title: "خطأ في تسجيل الشراء", description: error.message, variant: "destructive" }); setSaving(false); return; }
         toast({ title: "تم الدفع بنجاح ✅", description: `${flowItem.name_ar} - ${flowItem.price_once} ر.س` });
-
-        if (flowItem.requires_api_keys) {
-          setFlowStep("api_keys");
-        } else {
-          setFlowStep("testing");
-          runConnectionTest();
-        }
+        if (flowItem.requires_api_keys) { setFlowStep("api_keys"); } else { setFlowStep("testing"); runConnectionTest(); }
       } else {
         toast({ title: "لم يتم الدفع بعد", description: "يرجى إتمام الدفع أولاً ثم المحاولة مجدداً", variant: "destructive" });
       }
@@ -451,13 +569,11 @@ const PaidIntegrationsPage = () => {
       return;
     }
     setSaving(true);
-
     await supabase
       .from("tenant_paid_integrations")
       .update({ api_key_encrypted: apiKeyValue } as any)
       .eq("tenant_id", tenantId)
       .eq("integration_id", flowItem.id);
-
     setSaving(false);
     setFlowStep("testing");
     runConnectionTest();
@@ -465,7 +581,6 @@ const PaidIntegrationsPage = () => {
 
   const runConnectionTest = async () => {
     setTestResult("testing");
-
     if (flowItem && tenantId) {
       try {
         const { data: session } = await supabase.auth.getSession();
@@ -473,19 +588,11 @@ const PaidIntegrationsPage = () => {
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paid-gateway?action=test-connection`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.session?.access_token}`,
-            },
-            body: JSON.stringify({
-              gatewayKey: flowItem.key,
-              apiKey: apiKeyValue,
-            }),
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.session?.access_token}` },
+            body: JSON.stringify({ gatewayKey: flowItem.key, apiKey: apiKeyValue }),
           }
         );
-
         const result = await res.json();
-
         if (result.success) {
           setTestResult("success");
           setFlowStep("done");
@@ -516,8 +623,7 @@ const PaidIntegrationsPage = () => {
   const activeSubscriptions = subscriptions.filter((s) => s.status === "active");
   const categories = [...new Set(integrations.map((i) => i.integration_type))];
 
-  // ─── Flow Step Index for progress ───
-  const currentStepIndex = FLOW_STEPS.findIndex((s) => s.key === flowStep);
+  // Flow progress
   const visibleSteps = flowItem?.requires_api_keys
     ? FLOW_STEPS.filter((s) => s.key !== "paying")
     : FLOW_STEPS.filter((s) => s.key !== "api_keys" && s.key !== "paying");
@@ -526,249 +632,217 @@ const PaidIntegrationsPage = () => {
     ? Math.max(0, (visibleIndex / (visibleSteps.length - 1)) * 100)
     : 100;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  // ─── Render ───
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">التكاملات المدفوعة</h1>
-          <p className="text-muted-foreground mt-1">فعّل تكاملات خارجية لتوسيع قدرات نظامك</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isTrial && (
-            <Badge className="gap-1 text-sm py-1.5 px-3 bg-blue-500/10 text-blue-600 border-blue-200">
-              <Zap size={14} />
-              فترة تجريبية — جميع الميزات مفعّلة
-            </Badge>
-          )}
-          {isEnterprise && !isTrial && (
-            <Badge className="gap-1 text-sm py-1.5 px-3 bg-amber-500/10 text-amber-600 border-amber-200">
-              <Crown size={14} />
-              جميع التكاملات مضمّنة
-            </Badge>
-          )}
-          <Badge variant="outline" className="gap-1 text-sm py-1.5 px-3">
-            <Plug size={14} />
-            {activeSubscriptions.length} تكامل نشط
-          </Badge>
-        </div>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto" dir="rtl">
+      {/* ═══ Hero Header ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/[0.04] via-accent/[0.06] to-primary/[0.02] border border-border/50 p-6 sm:p-8"
+      >
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                  <Layers size={22} className="text-accent" />
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">التكاملات المدفوعة</h1>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md">
+                وسّع أعمالك مع بوابات دفع احترافية — فعّل التكامل خلال دقائق وابدأ استقبال المدفوعات فوراً
+              </p>
+            </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+              {isTrial && (
+                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-blue-500/10 text-blue-600 border-blue-200">
+                  <Zap size={13} />
+                  فترة تجريبية — كل الميزات مفعّلة
+                </Badge>
+              )}
+              {isEnterprise && !isTrial && (
+                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-amber-500/10 text-amber-600 border-amber-200">
+                  <Crown size={13} />
+                  جميع التكاملات مضمّنة
+                </Badge>
+              )}
+              <Badge variant="outline" className="gap-1.5 text-xs py-1.5 px-3 bg-background">
+                <Plug size={13} />
+                {activeSubscriptions.length} تكامل نشط
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative circles */}
+        <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full bg-accent/5 blur-2xl" />
+        <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-primary/5 blur-xl" />
+      </motion.div>
+
+      {/* ═══ Motivational Banner ═══ */}
+      {!canPurchase && !hasFreeAccess && (
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-200/50"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 shrink-0">
+            <TrendingUp size={18} className="text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">ترقية الباقة مطلوبة</p>
+            <p className="text-xs text-muted-foreground">
+              التكاملات المدفوعة متاحة في الباقة الاحترافية وباقة المؤسسات. قم بالترقية لبدء استقبال المدفوعات.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="shrink-0 gap-1 text-xs border-amber-300 text-amber-700 hover:bg-amber-50">
+            <Crown size={13} /> ترقية
+          </Button>
+        </motion.div>
+      )}
+
+      {/* ═══ Tabs ═══ */}
       <Tabs defaultValue="all" dir="rtl">
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all">الكل</TabsTrigger>
-          {categories.map((cat) => (
-            <TabsTrigger key={cat} value={cat}>{CATEGORY_MAP[cat]?.label || cat}</TabsTrigger>
-          ))}
-          <TabsTrigger value="active">اشتراكاتي</TabsTrigger>
-        </TabsList>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+        >
+          <TabsList className="flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="all" className="rounded-lg text-xs sm:text-sm">الكل</TabsTrigger>
+            {categories.map((cat) => (
+              <TabsTrigger key={cat} value={cat} className="rounded-lg text-xs sm:text-sm">
+                {CATEGORY_MAP[cat]?.label || cat}
+              </TabsTrigger>
+            ))}
+            <TabsTrigger value="active" className="rounded-lg text-xs sm:text-sm">اشتراكاتي</TabsTrigger>
+          </TabsList>
+        </motion.div>
 
+        {/* Integration grid tabs */}
         {["all", ...categories].map((tab) => (
           <TabsContent key={tab} value={tab} className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {integrations
-                .filter((i) => tab === "all" || i.integration_type === tab)
-                .map((item) => {
-                  const sub = getSubscription(item.id);
-                  const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
-                  const CatIcon = cat.icon;
-                  const purchased = getPurchased(item.id);
-                  return (
-                    <Card key={item.id} className={`transition-all flex flex-col ${sub ? "border-primary/30 bg-primary/[0.02]" : ""} ${!item.is_ready ? "opacity-70" : ""}`}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${cat.color}`}>
-                              <CatIcon size={22} />
-                            </div>
-                            <div>
-                              <CardTitle className="text-base flex items-center gap-2">
-                                {item.name_ar}
-                                {!item.is_ready && <Lock size={12} className="text-muted-foreground" />}
-                              </CardTitle>
-                              <p className="text-xs text-muted-foreground">{item.name_en}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            {sub && (
-                              <Badge className="gap-1 bg-green-500/10 text-green-600 border-green-200">
-                                <CheckCircle2 size={12} /> مفعّل
-                              </Badge>
-                            )}
-                            {!sub && purchased && (
-                              <Badge variant="outline" className="gap-1 border-amber-300 text-amber-600 bg-amber-50">
-                                <Settings2 size={12} /> تم الشراء
-                              </Badge>
-                            )}
-                            {!item.is_ready && (
-                              <Badge variant="secondary" className="gap-1 text-[10px]">
-                                <AlertTriangle size={10} /> قريباً
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4 flex-1 flex flex-col">
-                        <CardDescription className="text-sm leading-relaxed flex-1">{item.description_ar}</CardDescription>
-                        
-                        {item.requires_api_keys && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Key size={12} />
-                            يتطلب مفاتيح API
-                          </div>
-                        )}
-
-                        {item.trial_days > 0 && !purchased && (
-                          <Badge variant="outline" className="gap-1 text-xs bg-accent/5 text-accent border-accent/20">
-                            <Zap size={10} />
-                            تجربة مجانية {item.trial_days} يوم
-                          </Badge>
-                        )}
-
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <div>
-                            {hasFreeAccess ? (
-                              <>
-                                <span className="text-lg font-bold text-green-600">مجاني</span>
-                                <span className="text-[10px] text-muted-foreground mr-2">
-                                  {isTrial ? "(فترة تجريبية)" : "(مضمّن في باقة المؤسسات)"}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="text-lg font-bold text-foreground">{item.price_once}</span>
-                                <span className="text-sm text-muted-foreground mr-1">ر.س</span>
-                                <span className="text-[10px] text-muted-foreground mr-1">(مرة واحدة)</span>
-                              </>
-                            )}
-                          </div>
-                          {sub ? (
-                            <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDeactivate(item.id)}>
-                              <PowerOff size={14} /> إيقاف
-                            </Button>
-                          ) : purchased ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 border-primary/30 text-primary"
-                              onClick={() => openFlow(item)}
-                            >
-                              <Settings2 size={14} /> إكمال التفعيل
-                            </Button>
-                          ) : hasFreeAccess ? (
-                            <Button
-                              size="sm"
-                              className="gap-1"
-                              disabled={!item.is_ready}
-                              onClick={() => openFlow(item)}
-                            >
-                              {item.is_ready ? (
-                                <>
-                                  <Sparkles size={14} /> تفعيل فوري
-                                </>
-                              ) : (
-                                <>
-                                  <Lock size={14} /> غير متاح حالياً
-                                </>
-                              )}
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              className="gap-1"
-                              disabled={!item.is_ready || !canPurchase}
-                              onClick={() => openFlow(item)}
-                            >
-                              {!canPurchase ? (
-                                <>
-                                  <Lock size={14} /> ترقية الباقة
-                                </>
-                              ) : item.is_ready ? (
-                                <>
-                                  <Power size={14} /> شراء وتفعيل
-                                </>
-                              ) : (
-                                <>
-                                  <Lock size={14} /> غير متاح حالياً
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-            </div>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <IntegrationSkeleton />
+              ) : (
+                <motion.div
+                  key={tab}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                >
+                  {integrations
+                    .filter((i) => tab === "all" || i.integration_type === tab)
+                    .map((item) => (
+                      <IntegrationCard
+                        key={item.id}
+                        item={item}
+                        sub={getSubscription(item.id)}
+                        purchased={getPurchased(item.id)}
+                        hasFreeAccess={hasFreeAccess}
+                        isTrial={isTrial}
+                        canPurchase={canPurchase}
+                        onActivate={() => openFlow(item)}
+                        onDeactivate={() => handleDeactivate(item.id)}
+                        onComplete={() => openFlow(item)}
+                      />
+                    ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </TabsContent>
         ))}
 
+        {/* Active tab */}
         <TabsContent value="active" className="mt-6">
-          {activeSubscriptions.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <Plug size={48} className="text-muted-foreground/20 mb-4" />
-                <p className="text-muted-foreground font-medium">لا توجد تكاملات نشطة</p>
-                <p className="text-xs text-muted-foreground mt-1">تصفح التكاملات المتاحة وفعّل ما تحتاجه</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeSubscriptions.map((sub) => {
-                const item = integrations.find((i) => i.id === sub.integration_id);
-                if (!item) return null;
-                const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
-                const CatIcon = cat.icon;
-                return (
-                  <Card key={sub.id} className="border-primary/30">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${cat.color}`}>
-                          <CatIcon size={22} />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold">{item.name_ar}</p>
-                          <p className="text-xs text-muted-foreground">{item.price_once} ر.س</p>
-                        </div>
-                        <Badge className="gap-1 bg-green-500/10 text-green-600 border-green-200 text-[10px]">
-                          <Wifi size={10} /> متصل
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-muted-foreground">
-                          مفعّل منذ {new Date(sub.activated_at).toLocaleDateString("ar-SA")}
-                        </p>
-                        <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDeactivate(item.id)}>
-                          إيقاف
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {activeSubscriptions.length === 0 ? (
+              <motion.div variants={fadeUp} initial="hidden" animate="visible">
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                      <Plug size={32} className="text-muted-foreground/30" />
+                    </div>
+                    <p className="text-muted-foreground font-medium">لا توجد تكاملات نشطة</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                      تصفح التكاملات المتاحة وفعّل ما تحتاجه لبدء استقبال المدفوعات
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+              >
+                {activeSubscriptions.map((sub) => {
+                  const item = integrations.find((i) => i.id === sub.integration_id);
+                  if (!item) return null;
+                  const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
+                  const CatIcon = cat.icon;
+                  return (
+                    <motion.div key={sub.id} variants={cardVariants}>
+                      <Card className="ring-1 ring-accent/20 overflow-hidden">
+                        <div className={`h-1 bg-gradient-to-l ${cat.gradient}`} />
+                        <CardContent className="pt-5 pb-5">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${cat.color}`}>
+                              <CatIcon size={22} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm">{item.name_ar}</p>
+                              <p className="text-xs text-muted-foreground">
+                                مفعّل منذ {new Date(sub.activated_at).toLocaleDateString("ar-SA")}
+                              </p>
+                            </div>
+                            <Badge className="gap-1 bg-accent/10 text-accent border-accent/20 text-[10px]">
+                              <Wifi size={10} /> متصل
+                            </Badge>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:bg-destructive/10 text-xs h-8"
+                              onClick={() => handleDeactivate(item.id)}
+                            >
+                              <PowerOff size={13} className="mie-1" /> إيقاف
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </TabsContent>
       </Tabs>
 
-      {/* ─── Activation Flow Dialog ─── */}
+      {/* ═══ Activation Flow Dialog ═══ */}
       <Dialog open={!!flowItem} onOpenChange={() => closeFlow()}>
         <DialogContent dir="rtl" className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2.5">
               {flowItem && (
                 <>
                   {(() => {
                     const cat = CATEGORY_MAP[flowItem.integration_type] || CATEGORY_MAP.other;
                     const CatIcon = cat.icon;
-                    return <CatIcon size={20} className="text-primary" />;
+                    return (
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${cat.color}`}>
+                        <CatIcon size={18} />
+                      </div>
+                    );
                   })()}
                   {flowItem.name_ar}
                 </>
@@ -793,7 +867,7 @@ const PaidIntegrationsPage = () => {
                 const isPast = i < visibleIndex;
                 const StepIcon = step.icon;
                 return (
-                  <div key={step.key} className={`flex flex-col items-center gap-1 text-[10px] ${isActive ? "text-primary font-bold" : isPast ? "text-green-600" : "text-muted-foreground"}`}>
+                  <div key={step.key} className={`flex flex-col items-center gap-1 text-[10px] transition-colors ${isActive ? "text-accent font-bold" : isPast ? "text-green-600" : "text-muted-foreground"}`}>
                     <StepIcon size={14} />
                     {step.label}
                   </div>
@@ -803,208 +877,215 @@ const PaidIntegrationsPage = () => {
           </div>
 
           {/* Step Content */}
-          <div className="py-4 min-h-[160px]">
-            {/* Preview */}
-            {flowStep === "preview" && flowItem && (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground leading-relaxed">{flowItem.description_ar}</p>
-                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">السعر</span>
-                    {isEnterprise ? (
-                      <span className="font-bold text-green-600">مجاني <span className="text-xs font-normal text-muted-foreground">(مضمّن في باقة المؤسسات)</span></span>
-                    ) : (
-                      <span className="font-bold">{flowItem.price_once} ر.س <span className="text-xs font-normal text-muted-foreground">(مرة واحدة)</span></span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={flowStep}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.2 }}
+              className="py-4 min-h-[160px]"
+            >
+              {/* Preview */}
+              {flowStep === "preview" && flowItem && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{flowItem.description_ar}</p>
+                  <div className="bg-muted/30 rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">السعر</span>
+                      {isEnterprise ? (
+                        <span className="font-bold text-accent">مجاني <span className="text-xs font-normal text-muted-foreground">(مضمّن في باقة المؤسسات)</span></span>
+                      ) : (
+                        <span className="font-bold">{flowItem.price_once} ر.س <span className="text-xs font-normal text-muted-foreground">(مرة واحدة)</span></span>
+                      )}
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">النوع</span>
+                      <span>{CATEGORY_MAP[flowItem.integration_type]?.label || flowItem.integration_type}</span>
+                    </div>
+                    {flowItem.requires_api_keys && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">مفاتيح API</span>
+                        <Badge variant="outline" className="text-[10px] gap-1"><Key size={10} /> مطلوبة</Badge>
+                      </div>
+                    )}
+                    {flowItem.trial_days > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">تجربة مجانية</span>
+                        <Badge variant="outline" className="text-[10px] gap-1 bg-accent/5 text-accent"><Zap size={10} /> {flowItem.trial_days} يوم</Badge>
+                      </div>
                     )}
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">النوع</span>
-                    <span>{CATEGORY_MAP[flowItem.integration_type]?.label || flowItem.integration_type}</span>
+                  <div className="bg-accent/5 border border-accent/10 rounded-xl p-3">
+                    <p className="text-xs text-accent font-medium flex items-center gap-1.5">
+                      <ShieldCheck size={14} />
+                      يعمل في: الفواتير • العقود • المدفوعات • المشاريع
+                    </p>
                   </div>
-                  {flowItem.requires_api_keys && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">مفاتيح API</span>
-                      <Badge variant="outline" className="text-[10px] gap-1"><Key size={10} /> مطلوبة</Badge>
-                    </div>
-                  )}
-                  {flowItem.trial_days > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">تجربة مجانية</span>
-                      <Badge variant="outline" className="text-[10px] gap-1 bg-accent/5 text-accent"><Zap size={10} /> {flowItem.trial_days} يوم</Badge>
-                    </div>
-                  )}
                 </div>
-                <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
-                  <p className="text-xs text-primary font-medium flex items-center gap-1.5">
-                    <ShieldCheck size={14} />
-                    يعمل في: الفواتير • العقود • المدفوعات • المشاريع
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Payment */}
-            {flowStep === "payment" && flowItem && (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground">{flowItem.price_once} ر.س</p>
-                  <p className="text-sm text-muted-foreground mt-1">دفعة واحدة — {flowItem.name_ar}</p>
+              {/* Payment */}
+              {flowStep === "payment" && flowItem && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-foreground">{flowItem.price_once} <span className="text-base font-medium text-muted-foreground">ر.س</span></p>
+                    <p className="text-sm text-muted-foreground mt-1">دفعة واحدة — {flowItem.name_ar}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">طريقة الدفع</Label>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("wallet")}
+                      className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all text-right ${
+                        paymentMethod === "wallet" ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"
+                      }`}
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                        <Wallet size={20} className="text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-foreground">المحفظة</p>
+                        <p className="text-xs text-muted-foreground">
+                          {walletExists ? `الرصيد: ${walletBalance?.toFixed(2)} ر.س` : "لا توجد محفظة"}
+                        </p>
+                      </div>
+                      {walletExists && walletBalance !== null && walletBalance >= flowItem.price_once && (
+                        <Badge variant="outline" className="text-[10px] bg-accent/5 text-accent border-accent/20">كافٍ</Badge>
+                      )}
+                      {walletExists && walletBalance !== null && walletBalance < flowItem.price_once && (
+                        <Badge variant="outline" className="text-[10px] bg-destructive/5 text-destructive border-destructive/20">غير كافٍ</Badge>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("paylink")}
+                      className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all text-right ${
+                        paymentMethod === "paylink" ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"
+                      }`}
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 shrink-0">
+                        <CreditCard size={20} className="text-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-foreground">Paylink (بطاقة / تحويل)</p>
+                        <p className="text-xs text-muted-foreground">ادفع عبر بوابة Paylink الآمنة</p>
+                      </div>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                    <ShieldCheck size={12} /> دفع آمن ومشفّر
+                  </div>
                 </div>
+              )}
 
-                {/* Payment method selector */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">طريقة الدفع</Label>
-                  
-                  {/* Wallet option */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("wallet")}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-right ${
-                      paymentMethod === "wallet"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground/30"
-                    }`}
+              {/* Paying */}
+              {flowStep === "paying" && flowItem && (
+                <div className="space-y-4 text-center">
+                  <motion.div
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-                      <Wallet size={20} className="text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-foreground">المحفظة</p>
-                      <p className="text-xs text-muted-foreground">
-                        {walletExists
-                          ? `الرصيد: ${walletBalance?.toFixed(2)} ر.س`
-                          : "لا توجد محفظة"}
-                      </p>
-                    </div>
-                    {walletExists && walletBalance !== null && walletBalance >= flowItem.price_once && (
-                      <Badge variant="outline" className="text-[10px] bg-green-500/5 text-green-600 border-green-200">كافٍ</Badge>
-                    )}
-                    {walletExists && walletBalance !== null && walletBalance < flowItem.price_once && (
-                      <Badge variant="outline" className="text-[10px] bg-destructive/5 text-destructive border-destructive/20">غير كافٍ</Badge>
-                    )}
-                  </button>
+                    <CreditCard size={32} className="text-amber-600" />
+                  </motion.div>
+                  <div>
+                    <p className="font-bold text-foreground">في انتظار إتمام الدفع...</p>
+                    <p className="text-sm text-muted-foreground mt-1">أكمل الدفع في الصفحة التي فُتحت لك</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 size={12} className="animate-spin" /> يتم التحقق تلقائياً
+                  </div>
+                  {paymentUrl && (
+                    <Button variant="outline" size="sm" onClick={() => window.open(paymentUrl, "_blank")} className="gap-2">
+                      <ArrowLeft size={14} className="rtl-mirror" /> فتح صفحة الدفع مجدداً
+                    </Button>
+                  )}
+                </div>
+              )}
 
-                  {/* Paylink option */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("paylink")}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-right ${
-                      paymentMethod === "paylink"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground/30"
-                    }`}
+              {/* API Keys */}
+              {flowStep === "api_keys" && flowItem && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3.5 bg-accent/5 border border-accent/10 rounded-xl">
+                    <Settings2 size={18} className="text-accent shrink-0" />
+                    <p className="text-xs text-accent">هذا التكامل يتطلب مفاتيح API لربطه مع الخدمة الخارجية</p>
+                  </div>
+                  <div>
+                    <Label className="flex items-center gap-1.5 mb-2">
+                      <Key size={14} />
+                      {flowItem.api_key_label || "مفتاح API"}
+                    </Label>
+                    <Input
+                      type="password"
+                      value={apiKeyValue}
+                      onChange={(e) => setApiKeyValue(e.target.value)}
+                      placeholder="أدخل مفتاح API الخاص بك"
+                      className="h-11"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                      <Lock size={10} /> يُخزّن بشكل آمن ومشفّر
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Testing */}
+              {flowStep === "testing" && testResult === "testing" && (
+                <div className="flex flex-col items-center justify-center gap-4 py-6">
+                  <motion.div
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 shrink-0">
-                      <CreditCard size={20} className="text-accent" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-foreground">Paylink (بطاقة / تحويل)</p>
-                      <p className="text-xs text-muted-foreground">ادفع عبر بوابة Paylink الآمنة</p>
-                    </div>
-                  </button>
+                    <Wifi size={32} className="text-accent" />
+                  </motion.div>
+                  <div className="text-center">
+                    <p className="font-medium text-foreground">جاري اختبار الاتصال...</p>
+                    <p className="text-xs text-muted-foreground mt-1">يتم التحقق من صلاحية المفاتيح والربط مع البوابة</p>
+                  </div>
+                  <Loader2 className="h-5 w-5 animate-spin text-accent" />
                 </div>
+              )}
 
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck size={12} />
-                  دفع آمن ومشفّر
+              {flowStep === "testing" && testResult === "fail" && (
+                <div className="flex flex-col items-center justify-center gap-4 py-6">
+                  <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
+                    <WifiOff size={32} className="text-destructive" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium text-foreground">فشل اختبار الاتصال</p>
+                    <p className="text-xs text-muted-foreground mt-1">تحقق من مفتاح API وحاول مجدداً</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Paying - waiting for Paylink */}
-            {flowStep === "paying" && flowItem && (
-              <div className="space-y-4 text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center animate-pulse">
-                  <CreditCard size={32} className="text-amber-600" />
+              {/* Done */}
+              {flowStep === "done" && flowItem && (
+                <div className="flex flex-col items-center justify-center gap-4 py-6">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                    className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center"
+                  >
+                    <CheckCircle2 size={40} className="text-accent" />
+                  </motion.div>
+                  <div className="text-center space-y-1">
+                    <p className="text-lg font-bold text-foreground">تم تفعيل {flowItem.name_ar} ✅</p>
+                    <p className="text-sm text-muted-foreground">التكامل يعمل الآن في جميع أقسام النظام</p>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                    {["الفواتير", "العقود", "المدفوعات", "المشاريع"].map((area) => (
+                      <Badge key={area} variant="outline" className="gap-1 text-xs bg-accent/5 text-accent border-accent/20">
+                        <CheckCircle2 size={10} /> {area}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-foreground">في انتظار إتمام الدفع...</p>
-                  <p className="text-sm text-muted-foreground mt-1">أكمل الدفع في الصفحة التي فُتحت لك</p>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 size={12} className="animate-spin" />
-                  يتم التحقق من حالة الدفع تلقائياً
-                </div>
-                {paymentUrl && (
-                  <Button variant="outline" size="sm" onClick={() => window.open(paymentUrl, "_blank")} className="gap-2">
-                    <ArrowRight size={14} />
-                    فتح صفحة الدفع مجدداً
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {/* API Keys Setup */}
-            {flowStep === "api_keys" && flowItem && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-accent/5 border border-accent/10 rounded-lg">
-                  <Settings2 size={18} className="text-accent shrink-0" />
-                  <p className="text-xs text-accent">هذا التكامل يتطلب مفاتيح API لربطه مع الخدمة الخارجية</p>
-                </div>
-                <div>
-                  <Label className="flex items-center gap-1.5 mb-1.5">
-                    <Key size={14} />
-                    {flowItem.api_key_label || "مفتاح API"}
-                  </Label>
-                  <Input
-                    type="password"
-                    value={apiKeyValue}
-                    onChange={(e) => setApiKeyValue(e.target.value)}
-                    placeholder="أدخل مفتاح API الخاص بك"
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
-                    <Lock size={10} /> يُخزّن بشكل آمن ومشفّر
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Testing Connection */}
-            {flowStep === "testing" && testResult === "testing" && (
-              <div className="flex flex-col items-center justify-center gap-4 py-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
-                  <Wifi size={32} className="text-primary" />
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-foreground">جاري اختبار الاتصال...</p>
-                  <p className="text-xs text-muted-foreground mt-1">يتم التحقق من صلاحية المفاتيح والربط مع البوابة</p>
-                </div>
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            )}
-
-            {flowStep === "testing" && testResult === "fail" && (
-              <div className="flex flex-col items-center justify-center gap-4 py-6">
-                <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
-                  <WifiOff size={32} className="text-destructive" />
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-foreground">فشل اختبار الاتصال</p>
-                  <p className="text-xs text-muted-foreground mt-1">تحقق من مفتاح API وحاول مجدداً</p>
-                </div>
-              </div>
-            )}
-
-            {/* Done */}
-            {flowStep === "done" && flowItem && (
-              <div className="flex flex-col items-center justify-center gap-4 py-6">
-                <div className="w-20 h-20 rounded-2xl bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle2 size={40} className="text-green-600" />
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-lg font-bold text-foreground">تم تفعيل {flowItem.name_ar} ✅</p>
-                  <p className="text-sm text-muted-foreground">التكامل يعمل الآن في جميع أقسام النظام</p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  {["الفواتير", "العقود", "المدفوعات", "المشاريع"].map((area) => (
-                    <Badge key={area} variant="outline" className="gap-1 text-xs bg-green-500/5 text-green-600 border-green-200">
-                      <CheckCircle2 size={10} /> {area}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           <DialogFooter className="gap-2">
             {flowStep === "preview" && (
@@ -1017,7 +1098,7 @@ const PaidIntegrationsPage = () => {
                   </Button>
                 ) : (
                   <Button onClick={() => setFlowStep("payment")} className="gap-2">
-                    متابعة للدفع <ArrowRight size={14} />
+                    متابعة للدفع <ArrowLeft size={14} className="rtl-mirror" />
                   </Button>
                 )}
               </>
@@ -1062,7 +1143,7 @@ const PaidIntegrationsPage = () => {
             )}
             {flowStep === "testing" && testResult === "testing" && (
               <Button variant="outline" disabled>
-                <Loader2 size={14} className="animate-spin ml-2" />
+                <Loader2 size={14} className="animate-spin mie-2" />
                 جاري الاختبار...
               </Button>
             )}
