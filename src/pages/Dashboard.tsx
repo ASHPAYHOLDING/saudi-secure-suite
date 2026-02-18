@@ -47,6 +47,7 @@ import WalletPage from "@/components/wallet/WalletPage";
 import AffiliateDashboardPage from "@/components/affiliate/AffiliateDashboardPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
+import BudgetDashboard from "@/components/budgets/BudgetDashboard";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -79,6 +80,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   analytics: "analytics",
   finance: "finance",
   "journal-entries": "journal-entries",
+  budgets: "budgets",
   "supplier-inbox": "supplier-inbox",
   "payment-reminders": "payment-reminders",
   approvals: "billing",
@@ -161,6 +163,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/journal-entries") {
       return withGate("journal-entries", <JournalEntriesPage />);
+    }
+    if (path === "/dashboard/budgets") {
+      return <BudgetDashboard />;
     }
     if (path === "/dashboard/productivity") {
       return <AccountantDashboard />;
