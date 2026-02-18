@@ -6339,7 +6339,7 @@ export type Database = {
         Args: { _code: string; _plan_id: string; _tenant_id: string }
         Returns: Json
       }
-      approve_matured_commissions: { Args: never; Returns: Json }
+      approve_matured_commissions: { Args: never; Returns: number }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
