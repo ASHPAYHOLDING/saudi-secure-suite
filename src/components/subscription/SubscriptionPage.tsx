@@ -119,7 +119,7 @@ const FEATURE_LABELS: Record<string, string> = {
   audit_log: "سجل المراجعة",
   team_management: "إدارة الفريق",
   analytics: "التحليلات",
-  numaxio_pay: "نيوماكسيو باي",
+  numaxio_pay: "بوابة دفع نيوماكسيو",
   max_users: "عدد المستخدمين",
   max_storage_gb: "مساحة التخزين",
   sla_support: "دعم SLA مضمون",
