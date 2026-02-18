@@ -6092,6 +6092,10 @@ export type Database = {
         Args: { _feature_keys: string[]; _tenant_id: string }
         Returns: Json
       }
+      check_storage_limit: {
+        Args: { _file_size_bytes?: number; _tenant_id: string }
+        Returns: Json
+      }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       create_document_access_token: {
         Args: {
@@ -6108,6 +6112,7 @@ export type Database = {
         Returns: boolean
       }
       generate_smart_notifications: { Args: never; Returns: undefined }
+      get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
         Args: { _tenant_id: string }
