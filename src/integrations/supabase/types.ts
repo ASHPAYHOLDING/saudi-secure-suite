@@ -6093,6 +6093,10 @@ export type Database = {
         }
         Returns: string
       }
+      enforce_feature_entitlement: {
+        Args: { _feature_key: string; _tenant_id: string }
+        Returns: boolean
+      }
       generate_smart_notifications: { Args: never; Returns: undefined }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
