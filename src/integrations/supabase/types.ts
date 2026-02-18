@@ -6052,6 +6052,10 @@ export type Database = {
           tenant_id: string
         }[]
       }
+      validate_subscription_discount: {
+        Args: { _code: string; _plan_id: string; _tenant_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
