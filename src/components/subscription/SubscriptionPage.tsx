@@ -79,6 +79,7 @@ const SubscriptionPage = () => {
   const [upgradeDialog, setUpgradeDialog] = useState<Plan | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<string>("monthly");
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
+  const [discountCode, setDiscountCode] = useState<string>("");
 
   const fetchData = async () => {
     if (!tenantId) return;
@@ -124,40 +125,50 @@ const SubscriptionPage = () => {
 
   const handleUpgrade = async (plan: Plan) => {
     if (!subscription || !user) return;
-    const isUpgrade = (currentPlan?.sort_order || 0) < plan.sort_order;
 
-    const periodDays = selectedCycle === "yearly" ? 365 : selectedCycle === "quarterly" ? 90 : 30;
-    const newEnd = new Date(Date.now() + periodDays * 86400000).toISOString();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "خطأ", description: "يرجى تسجيل الدخول أولاً", variant: "destructive" });
+        return;
+      }
 
-    const { error } = await supabase.from("subscriptions").update({
-      plan_id: plan.id,
-      billing_cycle: selectedCycle,
-      current_period_start: new Date().toISOString(),
-      current_period_end: newEnd,
-      status: "active",
-      grace_ends_at: null,
-    }).eq("id", subscription.id);
+      const response = await supabase.functions.invoke("upgrade-subscription", {
+        body: {
+          plan_id: plan.id,
+          billing_cycle: selectedCycle,
+          discount_code: discountedPrice !== null ? discountCode : undefined,
+        },
+      });
 
-    if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
-      return;
+      if (response.error || !response.data?.success) {
+        const errMsg = response.data?.error || response.error?.message || "فشلت العملية";
+        
+        if (response.data?.insufficient_balance) {
+          toast({
+            title: "رصيد غير كافي",
+            description: `المطلوب: ${response.data.required} ر.س — المتاح: ${response.data.available} ر.س. يرجى شحن المحفظة أولاً`,
+            variant: "destructive",
+          });
+        } else if (response.data?.needs_wallet) {
+          toast({ title: "خطأ", description: "يرجى إنشاء محفظة رقمية أولاً من قسم المحفظة", variant: "destructive" });
+        } else {
+          toast({ title: "خطأ", description: errMsg, variant: "destructive" });
+        }
+        return;
+      }
+
+      toast({
+        title: "تم بنجاح ✅",
+        description: response.data.message,
+      });
+      setUpgradeDialog(null);
+      setDiscountedPrice(null);
+      setDiscountCode("");
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message || "حدث خطأ غير متوقع", variant: "destructive" });
     }
-
-    await supabase.from("subscription_logs").insert({
-      subscription_id: subscription.id,
-      tenant_id: subscription.tenant_id,
-      action: isUpgrade ? "upgrade" : "downgrade",
-      old_plan_id: subscription.plan_id,
-      new_plan_id: plan.id,
-      old_status: subscription.status,
-      new_status: "active",
-      performed_by: user.id,
-      notes: `${isUpgrade ? "ترقية" : "تخفيض"} إلى ${plan.name_ar} - ${CYCLE_LABELS[selectedCycle]}`,
-    });
-
-    toast({ title: "تم بنجاح", description: `تم ${isUpgrade ? "الترقية" : "التخفيض"} إلى ${plan.name_ar}` });
-    setUpgradeDialog(null);
-    fetchData();
   };
 
   const handleCancel = async () => {
@@ -451,7 +462,7 @@ const SubscriptionPage = () => {
       </Tabs>
 
       {/* Upgrade/Downgrade Dialog */}
-      <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) { setUpgradeDialog(null); setDiscountedPrice(null); } }}>
+      <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) { setUpgradeDialog(null); setDiscountedPrice(null); setDiscountCode(""); } }}>
         <DialogContent dir="rtl" className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -497,20 +508,26 @@ const SubscriptionPage = () => {
                 onDiscountApplied={(res) => {
                   if (res.success && res.amount_after !== undefined) {
                     setDiscountedPrice(res.amount_after);
+                    setDiscountCode(res.code || "");
                   } else {
                     setDiscountedPrice(null);
+                    setDiscountCode("");
                   }
                 }}
               />
 
-              <p className="text-xs text-muted-foreground">
-                سيتم تحديث اشتراكك فوراً وتبدأ فترة جديدة من اليوم.
-              </p>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-foreground">
+                <CreditCard size={14} className="inline ml-1 text-primary" />
+                سيتم خصم <span className="font-bold">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك الرقمية.
+              </div>
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setUpgradeDialog(null); setDiscountedPrice(null); }}>إلغاء</Button>
-            <Button onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)}>تأكيد التغيير</Button>
+            <Button variant="outline" onClick={() => { setUpgradeDialog(null); setDiscountedPrice(null); setDiscountCode(""); }}>إلغاء</Button>
+            <Button onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)} className="gap-1">
+              <CreditCard size={14} />
+              دفع وتأكيد الترقية
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
