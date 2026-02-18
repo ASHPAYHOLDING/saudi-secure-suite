@@ -44,6 +44,7 @@ import CreateTicketPage from "@/components/support/CreateTicketPage";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import NumaxioPay from "@/pages/NumaxioPay";
 import WalletPage from "@/components/wallet/WalletPage";
+import AffiliateDashboardPage from "@/components/affiliate/AffiliateDashboardPage";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import AdvancedAccountingGate from "@/components/accounting/AdvancedAccountingGate";
 import FeatureGate from "@/components/subscription/FeatureGate";
@@ -90,6 +91,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   "paid-integrations": "integrations",
   "smart-query": "analytics",
   wallet: "finance",
+  affiliate: "finance",
   subscription: "subscription",
   settings: "settings",
   help: "help",
@@ -240,6 +242,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/wallet") {
       return withGate("wallet", <WalletPage />);
+    }
+    if (path === "/dashboard/affiliate") {
+      return <AffiliateDashboardPage />;
     }
     if (path === "/dashboard/numaxio-pay") {
       return withGate("numaxio-pay", <NumaxioPay embedded />);
