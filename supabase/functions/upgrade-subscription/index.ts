@@ -115,12 +115,13 @@ Deno.serve(async (req) => {
       price = plan.price_monthly;
     }
 
-    // 5. Apply discount code if provided (server-side validation)
+    // 5. Validate discount code (without consuming it)
     let finalPrice = price;
     let discountId: string | null = null;
+    let discountCode: string | null = null;
 
     if (discount_code) {
-      const { data: discountResult } = await supabase.rpc("apply_subscription_discount", {
+      const { data: discountResult } = await supabase.rpc("validate_subscription_discount", {
         _code: discount_code,
         _tenant_id: tenantId,
         _plan_id: plan_id,
@@ -129,6 +130,7 @@ Deno.serve(async (req) => {
       if (discountResult && discountResult.success) {
         finalPrice = discountResult.amount_after;
         discountId = discountResult.discount_id;
+        discountCode = discountResult.code;
       } else {
         return new Response(JSON.stringify({ error: discountResult?.error || "كود الخصم غير صالح" }), {
           status: 400,
@@ -241,7 +243,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 10. Log the change
+    // 10. NOW consume the discount code (only after successful payment + subscription update)
+    if (discountCode) {
+      await supabase.rpc("apply_subscription_discount", {
+        _code: discountCode,
+        _tenant_id: tenantId,
+        _plan_id: plan_id,
+      });
+    }
+
+    // 11. Log the change
     await supabase.from("subscription_logs").insert({
       subscription_id: currentSub.id,
       tenant_id: tenantId,
