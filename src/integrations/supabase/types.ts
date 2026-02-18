@@ -137,6 +137,53 @@ export type Database = {
           },
         ]
       }
+      affiliate_fraud_attempts: {
+        Row: {
+          affiliate_id: string | null
+          created_at: string
+          details: Json | null
+          fraud_type: string
+          id: string
+          ip_address: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          affiliate_id?: string | null
+          created_at?: string
+          details?: Json | null
+          fraud_type: string
+          id?: string
+          ip_address?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Update: {
+          affiliate_id?: string | null
+          created_at?: string
+          details?: Json | null
+          fraud_type?: string
+          id?: string
+          ip_address?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_fraud_attempts_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_payouts: {
         Row: {
           affiliate_id: string
