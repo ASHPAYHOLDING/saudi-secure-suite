@@ -184,11 +184,11 @@ Deno.serve(async (req) => {
     }
 
     // 8. Record wallet transaction
-    await supabase.from("wallet_transactions").insert({
+    const { error: txnErr } = await supabase.from("wallet_transactions").insert({
       wallet_id: wallet.id,
       type: "debit",
-      source: "subscription_upgrade",
-      reason: `ترقية الاشتراك إلى ${plan.name_ar} - ${billing_cycle === "yearly" ? "سنوي" : billing_cycle === "quarterly" ? "ربع سنوي" : "شهري"}`,
+      source: "system",
+      reason: "subscription",
       amount: finalPrice,
       balance_before: balanceBefore,
       balance_after: balanceAfter,
@@ -196,6 +196,20 @@ Deno.serve(async (req) => {
       reference_id: currentSub.id,
       created_by: user.id,
     });
+
+    if (txnErr) {
+      // Rollback wallet balance
+      await supabase
+        .from("tenant_wallets")
+        .update({ balance_available: balanceBefore })
+        .eq("id", wallet.id);
+
+      console.error("Wallet transaction insert error:", txnErr);
+      return new Response(JSON.stringify({ error: "فشل تسجيل العملية المالية" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // 9. Update subscription
     const periodDays = billing_cycle === "yearly" ? 365 : billing_cycle === "quarterly" ? 90 : 30;
