@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard, Crown, Clock, ArrowUpRight, ArrowDownRight,
   CheckCircle2, AlertTriangle, History, Zap, Shield, Calendar,
-  Wallet, Building2, Loader2, Upload, Copy
+  Wallet, Building2, Loader2, Upload, Copy, Sparkles, TrendingUp,
+  Users, FileText, HardDrive, ShieldCheck
 } from "lucide-react";
+import { useCountUp } from "@/hooks/useCountUp";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,6 +73,11 @@ const CYCLE_LABELS: Record<string, string> = { monthly: "شهري", quarterly: "
 const ACTION_LABELS: Record<string, string> = {
   upgrade: "ترقية", downgrade: "تخفيض", cancel: "إلغاء", renew: "تجديد",
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
+};
+
+const AnimatedPrice = ({ value }: { value: number }) => {
+  const animated = useCountUp(value, 600);
+  return <span className="text-3xl font-bold text-foreground">{animated.toLocaleString("ar-SA")}</span>;
 };
 
 const SubscriptionPage = () => {
@@ -317,8 +324,45 @@ const SubscriptionPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      <div className="p-6 space-y-6 max-w-5xl mx-auto" dir="rtl">
+        {/* Skeleton: Current Plan */}
+        <div className="space-y-2">
+          <div className="h-6 w-40 bg-muted animate-pulse rounded-md" />
+          <div className="h-4 w-60 bg-muted/60 animate-pulse rounded-md" />
+        </div>
+        <div className="rounded-xl border bg-card p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 bg-muted animate-pulse rounded-xl" />
+            <div className="space-y-2 flex-1">
+              <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-24 bg-muted/60 animate-pulse rounded" />
+            </div>
+            <div className="h-8 w-28 bg-muted animate-pulse rounded" />
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg bg-muted/40 p-3 space-y-2">
+                <div className="h-5 w-10 bg-muted animate-pulse rounded mx-auto" />
+                <div className="h-3 w-12 bg-muted/60 animate-pulse rounded mx-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Skeleton: Plan Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="rounded-xl border bg-card p-5 space-y-4">
+              <div className="h-5 w-24 bg-muted animate-pulse rounded" />
+              <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+              <div className="space-y-2">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="h-3.5 w-full bg-muted/50 animate-pulse rounded" />
+                ))}
+              </div>
+              <div className="h-9 w-full bg-muted animate-pulse rounded-lg" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -359,27 +403,31 @@ const SubscriptionPage = () => {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                     {currentPlan.max_users && (
-                      <div className="rounded-lg bg-muted/50 p-2.5 text-center">
+                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                        <Users size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_users}</p>
                         <p className="text-xs text-muted-foreground">مستخدم</p>
-                      </div>
+                      </motion.div>
                     )}
                     {currentPlan.max_invoices && (
-                      <div className="rounded-lg bg-muted/50 p-2.5 text-center">
+                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                        <FileText size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_invoices}</p>
                         <p className="text-xs text-muted-foreground">فاتورة/شهر</p>
-                      </div>
+                      </motion.div>
                     )}
                     {currentPlan.max_storage_gb && (
-                      <div className="rounded-lg bg-muted/50 p-2.5 text-center">
+                      <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                        <HardDrive size={14} className="mx-auto mb-1 text-accent" />
                         <p className="text-lg font-bold text-foreground">{currentPlan.max_storage_gb} GB</p>
                         <p className="text-xs text-muted-foreground">تخزين</p>
-                      </div>
+                      </motion.div>
                     )}
-                    <div className="rounded-lg bg-muted/50 p-2.5 text-center">
+                    <motion.div whileHover={{ scale: 1.04 }} className="rounded-lg bg-muted/50 p-2.5 text-center transition-colors hover:bg-muted/70">
+                      <ShieldCheck size={14} className="mx-auto mb-1 text-accent" />
                       <p className="text-lg font-bold text-foreground">{currentPlan.grace_period_days}</p>
                       <p className="text-xs text-muted-foreground">يوم سماح</p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
 
@@ -448,17 +496,21 @@ const SubscriptionPage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 >
-                  <Card className={`relative h-full flex flex-col ${isCurrent ? "border-accent ring-1 ring-accent/30" : ""}`} dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
+                  <Card className={`relative h-full flex flex-col transition-shadow duration-300 hover:shadow-lg ${isCurrent ? "border-accent ring-1 ring-accent/30" : ""}`} dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
                     {isCurrent && (
                       <div className="absolute -top-3 right-4">
-                        <Badge className="bg-accent text-accent-foreground">خطتك الحالية</Badge>
+                        <Badge className="bg-accent text-accent-foreground flex items-center gap-1">
+                          <Sparkles size={10} />
+                          خطتك الحالية
+                        </Badge>
                       </div>
                     )}
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg text-right">{plan.name_ar}</CardTitle>
                       <div className="mt-2 text-right">
-                        <span className="text-3xl font-bold text-foreground">{price.toLocaleString("ar-SA")}</span>
+                        <AnimatedPrice value={price} />
                         <span className="text-sm text-muted-foreground me-1">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
                         {selectedCycle !== "monthly" && (
                           <p className="text-xs text-muted-foreground mt-0.5">
@@ -470,33 +522,41 @@ const SubscriptionPage = () => {
                     <CardContent className="flex-1 space-y-3">
                       <div className="space-y-2 text-sm text-right">
                         {plan.max_users && (
-                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <CheckCircle2 size={14} className="text-accent shrink-0" />
+                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.15 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.2, type: "spring", stiffness: 300 }}>
+                              <Users size={14} className="text-accent shrink-0" />
+                            </motion.div>
                             <span>{plan.max_users} مستخدم</span>
-                          </div>
+                          </motion.div>
                         )}
                         {plan.max_invoices && (
-                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <CheckCircle2 size={14} className="text-accent shrink-0" />
+                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.2 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.25, type: "spring", stiffness: 300 }}>
+                              <FileText size={14} className="text-accent shrink-0" />
+                            </motion.div>
                             <span>{plan.max_invoices} فاتورة/شهر</span>
-                          </div>
+                          </motion.div>
                         )}
                         {plan.max_storage_gb && (
-                          <div className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <CheckCircle2 size={14} className="text-accent shrink-0" />
+                          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.25 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.3, type: "spring", stiffness: 300 }}>
+                              <HardDrive size={14} className="text-accent shrink-0" />
+                            </motion.div>
                             <span>{plan.max_storage_gb} GB تخزين</span>
-                          </div>
+                          </motion.div>
                         )}
                         {features.map((f: string, fi: number) => (
-                          <div key={fi} className="flex items-center gap-2" style={{ direction: "rtl" }}>
-                            <CheckCircle2 size={14} className="text-accent shrink-0" />
+                          <motion.div key={fi} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 + 0.3 + fi * 0.04 }} className="flex items-center gap-2" style={{ direction: "rtl" }}>
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 + 0.35 + fi * 0.04, type: "spring", stiffness: 300 }}>
+                              <CheckCircle2 size={14} className="text-accent shrink-0" />
+                            </motion.div>
                             <span>{f}</span>
-                          </div>
+                          </motion.div>
                         ))}
-                        <div className="flex items-center gap-2 text-muted-foreground" style={{ direction: "rtl" }}>
-                          <Shield size={14} className="shrink-0" />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.1 + 0.4 }} className="flex items-center gap-2 text-muted-foreground" style={{ direction: "rtl" }}>
+                          <ShieldCheck size={14} className="shrink-0" />
                           <span>فترة سماح {plan.grace_period_days} يوم</span>
-                        </div>
+                        </motion.div>
                       </div>
 
                       <div className="pt-3">
