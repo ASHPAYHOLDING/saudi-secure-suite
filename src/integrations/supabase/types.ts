@@ -4772,6 +4772,87 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_upgrade_requests: {
+        Row: {
+          amount: number
+          bank_reference: string | null
+          billing_cycle: string
+          created_at: string
+          discount_code: string | null
+          discount_id: string | null
+          id: string
+          notes: string | null
+          payment_method: string
+          plan_id: string
+          receipt_filename: string | null
+          receipt_url: string | null
+          rejection_reason: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          bank_reference?: string | null
+          billing_cycle?: string
+          created_at?: string
+          discount_code?: string | null
+          discount_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          plan_id: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          rejection_reason?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_reference?: string | null
+          billing_cycle?: string
+          created_at?: string
+          discount_code?: string | null
+          discount_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          plan_id?: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          rejection_reason?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_upgrade_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_upgrade_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           billing_cycle: string
