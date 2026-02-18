@@ -38,6 +38,9 @@ export const FEATURE_KEYS = {
   DEDICATED_SUPPORT: "dedicated_support",
   API_ACCESS: "api_access",
   UNLIMITED_EVERYTHING: "unlimited_everything",
+  BUDGETS_BASIC: "budgets_basic",
+  BUDGETS_ALERTS: "budgets_alerts",
+  BUDGETS_ADVANCED: "budgets_advanced",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];

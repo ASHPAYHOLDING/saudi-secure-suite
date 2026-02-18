@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import { supabase } from "@/integrations/supabase/client";
+import FeatureGate from "@/components/subscription/FeatureGate";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +68,8 @@ const BudgetListPage = () => {
   const { currentLang, isRTL } = useLanguage();
   const { tenantId, user } = useAuth();
   const navigate = useNavigate();
-
+  const { entitlements } = useEntitlements([FEATURE_KEYS.BUDGETS_BASIC]);
+  const budgetLimit = entitlements[FEATURE_KEYS.BUDGETS_BASIC]?.limit ?? null;
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -125,6 +128,13 @@ const BudgetListPage = () => {
 
   const handleCreate = async () => {
     if (!tenantId || !user) return;
+    // Check budget limit for starter plan
+    if (budgetLimit !== null && budgets.length >= budgetLimit) {
+      toast.error(currentLang === "ar"
+        ? `باقتك تسمح بـ ${budgetLimit} ميزانية فقط. قم بالترقية لإنشاء المزيد.`
+        : `Your plan allows only ${budgetLimit} budget(s). Upgrade for more.`);
+      return;
+    }
     const { data, error } = await supabase.from("budgets").insert({
       tenant_id: tenantId,
       fiscal_year: newBudget.fiscal_year,

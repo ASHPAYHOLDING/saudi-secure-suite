@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
+import FeatureGate from "@/components/subscription/FeatureGate";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,6 +100,9 @@ const BudgetDetailPage = () => {
   const navigate = useNavigate();
   const { currentLang, isRTL } = useLanguage();
   const { tenantId } = useAuth();
+  const { entitlements } = useEntitlements([FEATURE_KEYS.BUDGETS_ALERTS, FEATURE_KEYS.BUDGETS_ADVANCED]);
+  const hasAlerts = entitlements[FEATURE_KEYS.BUDGETS_ALERTS]?.allowed ?? false;
+  const hasAdvanced = entitlements[FEATURE_KEYS.BUDGETS_ADVANCED]?.allowed ?? false;
 
   const [budget, setBudget] = useState<Budget | null>(null);
   const [lines, setLines] = useState<BudgetLine[]>([]);
@@ -559,135 +564,162 @@ const BudgetDetailPage = () => {
 
         {/* ═══ Alerts ═══ */}
         <TabsContent value="alerts">
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Bell className="h-5 w-5 text-primary" />
-                {currentLang === "ar" ? "تنبيهات الميزانية" : "Budget Alerts"}
-                {triggeredCount > 0 && <Badge variant="destructive" className="text-[10px]">{triggeredCount}</Badge>}
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select value={alertFilter.status} onValueChange={v => setAlertFilter(p => ({ ...p, status: v }))}>
-                  <SelectTrigger className="w-[130px] h-8 text-xs">
-                    <Filter className="h-3 w-3 me-1" /><SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{currentLang === "ar" ? "كل الحالات" : "All"}</SelectItem>
-                    <SelectItem value="triggered">{currentLang === "ar" ? "مُطلق" : "Triggered"}</SelectItem>
-                    <SelectItem value="acknowledged">{currentLang === "ar" ? "تم الاطلاع" : "Acknowledged"}</SelectItem>
-                    <SelectItem value="resolved">{currentLang === "ar" ? "محلول" : "Resolved"}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={alertFilter.month} onValueChange={v => setAlertFilter(p => ({ ...p, month: v }))}>
-                  <SelectTrigger className="w-[120px] h-8 text-xs">
-                    <Calendar className="h-3 w-3 me-1" /><SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{currentLang === "ar" ? "كل الأشهر" : "All"}</SelectItem>
-                    {MONTH_KEYS.map((k, i) => <SelectItem key={k} value={k}>{monthLabels[i]}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <AnimatePresence>
-                {filteredAlerts.length > 0 ? (
-                  <div className="space-y-3">
-                    {filteredAlerts.map((alert, idx) => {
-                      const line = lines.find(l => l.id === alert.line_id);
-                      return (
-                        <motion.div
-                          key={alert.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ delay: 0.03 * idx }}
-                          className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
-                            alert.status === "resolved" ? "bg-muted/20 border-border opacity-60" :
-                            alert.percent_used > 100 ? "bg-destructive/5 border-destructive/30" :
-                            "bg-accent/5 border-accent/30"
-                          }`}
-                        >
+          {hasAlerts ? (
+            <Card>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-primary" />
+                  {currentLang === "ar" ? "تنبيهات الميزانية" : "Budget Alerts"}
+                  {triggeredCount > 0 && <Badge variant="destructive" className="text-[10px]">{triggeredCount}</Badge>}
+                </CardTitle>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={alertFilter.status} onValueChange={v => setAlertFilter(p => ({ ...p, status: v }))}>
+                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                      <Filter className="h-3 w-3 me-1" /><SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{currentLang === "ar" ? "كل الحالات" : "All"}</SelectItem>
+                      <SelectItem value="triggered">{currentLang === "ar" ? "مُطلق" : "Triggered"}</SelectItem>
+                      <SelectItem value="acknowledged">{currentLang === "ar" ? "تم الاطلاع" : "Acknowledged"}</SelectItem>
+                      <SelectItem value="resolved">{currentLang === "ar" ? "محلول" : "Resolved"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={alertFilter.month} onValueChange={v => setAlertFilter(p => ({ ...p, month: v }))}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                      <Calendar className="h-3 w-3 me-1" /><SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{currentLang === "ar" ? "كل الأشهر" : "All"}</SelectItem>
+                      {MONTH_KEYS.map((k, i) => <SelectItem key={k} value={k}>{monthLabels[i]}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <AnimatePresence>
+                  {filteredAlerts.length > 0 ? (
+                    <div className="space-y-3">
+                      {filteredAlerts.map((alert, idx) => {
+                        const line = lines.find(l => l.id === alert.line_id);
+                        return (
                           <motion.div
-                            animate={alert.status === "triggered" ? { scale: [1, 1.15, 1] } : {}}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
-                              alert.percent_used > 100 ? "bg-destructive/10" : "bg-accent/10"
+                            key={alert.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ delay: 0.03 * idx }}
+                            className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
+                              alert.status === "resolved" ? "bg-muted/20 border-border opacity-60" :
+                              alert.percent_used > 100 ? "bg-destructive/5 border-destructive/30" :
+                              "bg-accent/5 border-accent/30"
                             }`}
                           >
-                            <AlertTriangle className={`h-5 w-5 ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`} />
-                          </motion.div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground">{alert.message_ar || `Threshold: ${alert.percent_used}%`}</p>
-                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                              {alert.period && <span className="text-xs text-muted-foreground"><Calendar className="inline h-3 w-3 me-1" />{alert.period}</span>}
-                              {line && (
-                                <Badge variant="outline" className="text-[10px]">
-                                  {line.line_type === "expense" ? (currentLang === "ar" ? "مصروف" : "Expense") :
-                                   line.line_type === "revenue" ? (currentLang === "ar" ? "إيراد" : "Revenue") : "CapEx"}
+                            <motion.div
+                              animate={alert.status === "triggered" ? { scale: [1, 1.15, 1] } : {}}
+                              transition={{ repeat: Infinity, duration: 2 }}
+                              className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
+                                alert.percent_used > 100 ? "bg-destructive/10" : "bg-accent/10"
+                              }`}
+                            >
+                              <AlertTriangle className={`h-5 w-5 ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`} />
+                            </motion.div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground">{alert.message_ar || `Threshold: ${alert.percent_used}%`}</p>
+                              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                {alert.period && <span className="text-xs text-muted-foreground"><Calendar className="inline h-3 w-3 me-1" />{alert.period}</span>}
+                                {line && (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    {line.line_type === "expense" ? (currentLang === "ar" ? "مصروف" : "Expense") :
+                                     line.line_type === "revenue" ? (currentLang === "ar" ? "إيراد" : "Revenue") : "CapEx"}
+                                  </Badge>
+                                )}
+                                <Badge variant={alert.status === "triggered" ? "destructive" : alert.status === "acknowledged" ? "secondary" : "default"} className="text-[10px]">
+                                  {alert.status === "triggered" ? (currentLang === "ar" ? "مُطلق" : "Triggered") :
+                                   alert.status === "acknowledged" ? (currentLang === "ar" ? "تم الاطلاع" : "Ack") :
+                                   (currentLang === "ar" ? "محلول" : "Resolved")}
                                 </Badge>
-                              )}
-                              <Badge variant={alert.status === "triggered" ? "destructive" : alert.status === "acknowledged" ? "secondary" : "default"} className="text-[10px]">
-                                {alert.status === "triggered" ? (currentLang === "ar" ? "مُطلق" : "Triggered") :
-                                 alert.status === "acknowledged" ? (currentLang === "ar" ? "تم الاطلاع" : "Ack") :
-                                 (currentLang === "ar" ? "محلول" : "Resolved")}
-                              </Badge>
-                              <span className="text-[10px] text-muted-foreground">{new Date(alert.created_at).toLocaleDateString(currentLang === "ar" ? "ar-SA" : "en-US")}</span>
+                                <span className="text-[10px] text-muted-foreground">{new Date(alert.created_at).toLocaleDateString(currentLang === "ar" ? "ar-SA" : "en-US")}</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2 shrink-0">
-                            <span className={`text-lg font-bold ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`}>
-                              {Number(alert.percent_used).toFixed(0)}%
-                            </span>
-                            {alert.status === "triggered" && (
-                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleAcknowledge(alert.id)}>
-                                <Eye className="h-3 w-3 me-1" />{currentLang === "ar" ? "مراجعة" : "Ack"}
-                              </Button>
-                            )}
-                            {alert.status === "acknowledged" && (
-                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleResolve(alert.id)}>
-                                <Check className="h-3 w-3 me-1" />{currentLang === "ar" ? "حل" : "Resolve"}
-                              </Button>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
-                    <CheckCircle className="h-10 w-10 mb-3 opacity-30" />
-                    <p>{currentLang === "ar" ? "لا توجد تنبيهات" : "No alerts"}</p>
-                    {(alertFilter.status !== "all" || alertFilter.month !== "all") && (
-                      <Button variant="link" size="sm" className="mt-2" onClick={() => setAlertFilter({ status: "all", month: "all" })}>
-                        {currentLang === "ar" ? "إزالة الفلاتر" : "Clear Filters"}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </AnimatePresence>
-            </CardContent>
-          </Card>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <span className={`text-lg font-bold ${alert.percent_used > 100 ? "text-destructive" : "text-accent-foreground"}`}>
+                                {Number(alert.percent_used).toFixed(0)}%
+                              </span>
+                              {alert.status === "triggered" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleAcknowledge(alert.id)}>
+                                  <Eye className="h-3 w-3 me-1" />{currentLang === "ar" ? "مراجعة" : "Ack"}
+                                </Button>
+                              )}
+                              {alert.status === "acknowledged" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleResolve(alert.id)}>
+                                  <Check className="h-3 w-3 me-1" />{currentLang === "ar" ? "حل" : "Resolve"}
+                                </Button>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+                      <CheckCircle className="h-10 w-10 mb-3 opacity-30" />
+                      <p>{currentLang === "ar" ? "لا توجد تنبيهات" : "No alerts"}</p>
+                      {(alertFilter.status !== "all" || alertFilter.month !== "all") && (
+                        <Button variant="link" size="sm" className="mt-2" onClick={() => setAlertFilter({ status: "all", month: "all" })}>
+                          {currentLang === "ar" ? "إزالة الفلاتر" : "Clear Filters"}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+          ) : (
+            <FeatureGate featureKey={FEATURE_KEYS.BUDGETS_ALERTS} featureLabel="تنبيهات الميزانية" featureDescription="قم بالترقية إلى الباقة الاحترافية لتفعيل التنبيهات الذكية عند تجاوز حدود الميزانية.">
+              <div />
+            </FeatureGate>
+          )}
         </TabsContent>
 
         {/* ═══ Reports ═══ */}
         <TabsContent value="reports">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleExportCSV}>
-                <CardContent className="flex items-center gap-4 py-8">
-                  <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Download className="h-7 w-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{currentLang === "ar" ? "تصدير CSV / Excel" : "Export CSV / Excel"}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {currentLang === "ar" ? "تصدير جميع بنود الميزانية مع المخطط والفعلي والانحرافات" : "Export all budget lines with planned, actual, and variance data"}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {hasAdvanced ? (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleExportCSV}>
+                  <CardContent className="flex items-center gap-4 py-8">
+                    <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Download className="h-7 w-7 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{currentLang === "ar" ? "تصدير CSV / Excel" : "Export CSV / Excel"}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {currentLang === "ar" ? "تصدير جميع بنود الميزانية مع المخطط والفعلي والانحرافات" : "Export all budget lines with planned, actual, and variance data"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className="border-dashed opacity-60">
+                  <CardContent className="flex items-center gap-4 py-8">
+                    <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center">
+                      <Download className="h-7 w-7 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground flex items-center gap-2">
+                        {currentLang === "ar" ? "تصدير CSV / Excel" : "Export CSV / Excel"}
+                        <Badge variant="secondary" className="text-[10px]">{currentLang === "ar" ? "مؤسسي" : "Enterprise"}</Badge>
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {currentLang === "ar" ? "قم بالترقية لباقة المؤسسات لتصدير البيانات" : "Upgrade to Enterprise to export data"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handlePrint}>
                 <CardContent className="flex items-center gap-4 py-8">
