@@ -59,6 +59,7 @@ export type Database = {
           locked_until: string | null
           net_amount: number
           paid_at: string | null
+          payout_id: string | null
           status: string
           subscription_id: string | null
           tenant_id: string | null
@@ -75,6 +76,7 @@ export type Database = {
           locked_until?: string | null
           net_amount?: number
           paid_at?: string | null
+          payout_id?: string | null
           status?: string
           subscription_id?: string | null
           tenant_id?: string | null
@@ -91,6 +93,7 @@ export type Database = {
           locked_until?: string | null
           net_amount?: number
           paid_at?: string | null
+          payout_id?: string | null
           status?: string
           subscription_id?: string | null
           tenant_id?: string | null
@@ -109,6 +112,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_payouts"
             referencedColumns: ["id"]
           },
           {
@@ -231,6 +241,9 @@ export type Database = {
       }
       affiliates: {
         Row: {
+          bank_account_name: string | null
+          bank_iban: string | null
+          bank_name: string | null
           code: string
           commission_rate: number
           created_at: string
@@ -249,6 +262,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bank_account_name?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           code: string
           commission_rate?: number
           created_at?: string
@@ -267,6 +283,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bank_account_name?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
           code?: string
           commission_rate?: number
           created_at?: string
@@ -6409,6 +6428,10 @@ export type Database = {
         }
         Returns: Json
       }
+      process_affiliate_payout: {
+        Args: { _action: string; _admin_notes?: string; _payout_id: string }
+        Returns: Json
+      }
       process_subscription_expiry: { Args: never; Returns: undefined }
       process_wallet_transaction: {
         Args: {
@@ -6439,6 +6462,14 @@ export type Database = {
       release_stock_reservation: {
         Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
+      }
+      request_affiliate_payout: {
+        Args: {
+          _affiliate_id: string
+          _commission_ids?: string[]
+          _method?: string
+        }
+        Returns: Json
       }
       reserve_stock_for_order: {
         Args: { _sales_order_id: string; _tenant_id: string }
