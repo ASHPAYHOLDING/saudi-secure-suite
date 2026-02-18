@@ -4,7 +4,8 @@ import {
   FileText, Download, Filter, Loader2, TrendingUp, TrendingDown, CreditCard,
   FileSignature, Search, ArrowLeft, Bookmark, BookmarkCheck, Trash2, Save,
   Building2, Users, Package, Wallet, Receipt, BarChart3, Shield, ChevronDown,
-  Calendar, FileSpreadsheet,
+  Calendar, FileSpreadsheet, AlertTriangle, CheckCircle2, Printer, Hash, Clock,
+  User, Stamp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -20,6 +21,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { toast } from "sonner";
+import DigitalStamp from "@/components/stamp/DigitalStamp";
+import type { StampData } from "@/components/stamp/DigitalStamp";
 
 import {
   REPORT_DEFINITIONS,
@@ -69,23 +72,74 @@ const ReportsPage = () => {
   const [showSavePreset, setShowSavePreset] = useState(false);
   const [presetName, setPresetName] = useState("");
 
+  // Versioning & stamp
+  const [reportVersion, setReportVersion] = useState<number | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
+  const [stampData, setStampData] = useState<StampData | null>(null);
+  const [hasCriticalIssues, setHasCriticalIssues] = useState(false);
+  const [criticalCount, setCriticalCount] = useState(0);
+  const [checkingIssues, setCheckingIssues] = useState(false);
+
+  // Version history
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+
   const reportRef = useRef<HTMLDivElement>(null);
 
-  // ─── Load branches, customers, presets ───
+  // ─── Load branches, customers, presets, stamp, profile ───
   useEffect(() => {
-    if (!tenantId) return;
+    if (!tenantId || !user) return;
     const load = async () => {
-      const [branchRes, custRes, presetRes] = await Promise.all([
+      const [branchRes, custRes, presetRes, tenantRes, profileRes] = await Promise.all([
         supabase.from("branches").select("id, name").eq("tenant_id", tenantId).eq("is_active", true),
         supabase.from("customers").select("id, name").eq("tenant_id", tenantId).eq("is_active", true).order("name").limit(500),
         supabase.from("report_presets").select("*").eq("tenant_id", tenantId).eq("user_id", user!.id).order("created_at", { ascending: false }),
+        supabase.from("tenants").select("name, cr_number, vat_number, logo_url, stamp_enabled").eq("id", tenantId).maybeSingle(),
+        supabase.from("profiles").select("full_name").eq("id", user!.id).maybeSingle(),
       ]);
       setBranches(branchRes.data || []);
       setCustomers(custRes.data || []);
       setPresets(presetRes.data || []);
+
+      // Stamp
+      const tenant = tenantRes.data;
+      if (tenant) {
+        setStampData({
+          companyName: tenant.name || "",
+          crNumber: tenant.cr_number || "",
+          vatNumber: tenant.vat_number || "",
+          imageUrl: tenant.logo_url || undefined,
+          enabled: tenant.stamp_enabled ?? true,
+        });
+      }
+
+      // User name
+      setUserName(profileRes.data?.full_name || user!.email || "");
     };
     load();
   }, [tenantId, user]);
+
+  // ─── Check reconciliation issues ───
+  const checkCriticalIssues = useCallback(async () => {
+    if (!tenantId) return false;
+    setCheckingIssues(true);
+    const { data: issues, count } = await supabase
+      .from("reconciliation_issues")
+      .select("id", { count: "exact" })
+      .eq("tenant_id", tenantId)
+      .eq("severity", "critical")
+      .eq("is_resolved", false);
+    const hasCritical = (count || 0) > 0;
+    setHasCriticalIssues(hasCritical);
+    setCriticalCount(count || 0);
+    setCheckingIssues(false);
+    return hasCritical;
+  }, [tenantId]);
+
+  useEffect(() => {
+    checkCriticalIssues();
+  }, [checkCriticalIssues]);
 
   // ─── Filtered report list ───
   const filteredReports = useMemo(() => {
@@ -106,7 +160,7 @@ const ReportsPage = () => {
   // ─── Run Report ───
   const runReport = useCallback(async (report?: ReportDefinition) => {
     const rpt = report || selectedReport;
-    if (!rpt || !tenantId) return;
+    if (!rpt || !tenantId || !user) return;
     setLoading(true);
     try {
       const filters: ReportFilters = {
@@ -117,21 +171,53 @@ const ReportsPage = () => {
       };
       const result = await fetchReportData(rpt.key, tenantId, filters);
       setData(result);
+
+      // Record version
+      const now = new Date();
+      setGeneratedAt(now.toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" }));
+
+      const { data: versionData } = await supabase.from("report_versions").insert({
+        tenant_id: tenantId,
+        report_key: rpt.key,
+        report_name_ar: rpt.nameAr,
+        generated_by: user.id,
+        generated_by_name: userName,
+        filters,
+        date_range: `${dateFrom} — ${dateTo}`,
+        row_count: result.length,
+        has_critical_issues: hasCriticalIssues,
+      } as any).select("version_number").single();
+
+      setReportVersion(versionData?.version_number || null);
     } catch (err: any) {
       toast.error(err.message || "Error");
     }
     setLoading(false);
-  }, [selectedReport, tenantId, dateFrom, dateTo, branchId, customerId]);
+  }, [selectedReport, tenantId, dateFrom, dateTo, branchId, customerId, user, userName, hasCriticalIssues]);
 
   // ─── Select Report ───
   const handleSelectReport = (report: ReportDefinition) => {
     setSelectedReport(report);
     setData([]);
+    setReportVersion(null);
   };
 
-  // ─── Export ───
-  const handleExportPDF = () => {
+  // ─── Export PDF (with reconciliation gate) ───
+  const handleExportPDF = async () => {
     if (!reportRef.current || !selectedReport) return;
+
+    // Re-check critical issues
+    const hasCritical = await checkCriticalIssues();
+    if (hasCritical) {
+      toast.error(
+        isRTL
+          ? `لا يمكن طباعة التقرير — يوجد ${criticalCount} مشكلة حرجة في مركز جودة البيانات تحتاج حل أولاً`
+          : `Cannot print report — ${criticalCount} critical data quality issues must be resolved first`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     exportReportPDF(reportRef.current, selectedReport, `${dateFrom} — ${dateTo}`);
   };
 
@@ -154,7 +240,6 @@ const ReportsPage = () => {
     toast.success(isRTL ? "تم حفظ الإعداد المسبق" : "Preset saved");
     setShowSavePreset(false);
     setPresetName("");
-    // Refresh presets
     const { data: fresh } = await supabase.from("report_presets").select("*").eq("tenant_id", tenantId).eq("user_id", user.id);
     setPresets(fresh || []);
   };
@@ -169,6 +254,7 @@ const ReportsPage = () => {
     if (f.branchId) setBranchId(f.branchId);
     if (f.customerId) setCustomerId(f.customerId);
     setData([]);
+    setReportVersion(null);
     toast.info(isRTL ? `تم تحميل: ${preset.name}` : `Loaded: ${preset.name}`);
   };
 
@@ -176,6 +262,20 @@ const ReportsPage = () => {
     await supabase.from("report_presets").delete().eq("id", id);
     setPresets((prev) => prev.filter((p) => p.id !== id));
     toast.success(isRTL ? "تم الحذف" : "Deleted");
+  };
+
+  // ─── Load version history ───
+  const loadVersionHistory = async () => {
+    if (!tenantId || !selectedReport) return;
+    const { data: versions } = await supabase
+      .from("report_versions")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("report_key", selectedReport.key)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setVersionHistory(versions || []);
+    setShowVersionHistory(true);
   };
 
   // ─── Format cell value ───
@@ -201,16 +301,16 @@ const ReportsPage = () => {
     return data.reduce((s, row) => s + (Number(row[col.key]) || 0), 0);
   };
 
-  // ─── Render ───
+  // ─── Render Report View ───
   if (selectedReport) {
     return (
-      <div dir="rtl" className="space-y-4 p-6">
+      <div dir="rtl" className="space-y-4 p-4 md:p-6">
         {/* Back + Title */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => { setSelectedReport(null); setData([]); }}
+            onClick={() => { setSelectedReport(null); setData([]); setReportVersion(null); }}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -220,6 +320,29 @@ const ReportsPage = () => {
           </div>
           <Badge variant="outline">{REPORT_CATEGORIES.find((c) => c.key === selectedReport.category)?.nameAr}</Badge>
         </div>
+
+        {/* Critical Issues Warning */}
+        {hasCriticalIssues && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="p-3 flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-destructive">
+                    {isRTL ? `تم اكتشاف ${criticalCount} مشكلة حرجة في جودة البيانات` : `${criticalCount} critical data quality issues detected`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {isRTL ? "لا يمكن طباعة PDF حتى يتم حل جميع المشاكل الحرجة في مركز جودة البيانات" : "PDF printing is blocked until all critical issues are resolved in Data Quality Center"}
+                  </p>
+                </div>
+                <Badge variant="destructive" className="shrink-0">
+                  <AlertTriangle className="h-3 w-3 me-1" />
+                  {isRTL ? "الطباعة محظورة" : "Print Blocked"}
+                </Badge>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Filters */}
         <Card>
@@ -263,8 +386,14 @@ const ReportsPage = () => {
               </Button>
               {data.length > 0 && (
                 <>
-                  <Button variant="outline" onClick={handleExportPDF}>
-                    <Download className="h-4 w-4 me-1" />PDF
+                  <Button
+                    variant={hasCriticalIssues ? "destructive" : "outline"}
+                    onClick={handleExportPDF}
+                    disabled={hasCriticalIssues}
+                    title={hasCriticalIssues ? (isRTL ? "الطباعة محظورة بسبب مشاكل حرجة" : "Printing blocked due to critical issues") : ""}
+                  >
+                    {hasCriticalIssues ? <AlertTriangle className="h-4 w-4 me-1" /> : <Printer className="h-4 w-4 me-1" />}
+                    PDF
                   </Button>
                   <Button variant="outline" onClick={handleExportExcel}>
                     <FileSpreadsheet className="h-4 w-4 me-1" />Excel
@@ -274,6 +403,10 @@ const ReportsPage = () => {
               <Button variant="ghost" size="icon" onClick={() => setShowSavePreset(true)} title={isRTL ? "حفظ إعداد مسبق" : "Save Preset"}>
                 <Bookmark className="h-4 w-4" />
               </Button>
+              <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={loadVersionHistory}>
+                <Hash className="h-3.5 w-3.5" />
+                {isRTL ? "الإصدارات" : "Versions"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -282,10 +415,49 @@ const ReportsPage = () => {
         {data.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div ref={reportRef}>
-              {/* Print header (hidden on screen) */}
-              <div className="report-print-header hidden print:block text-center border-b-2 border-foreground pb-3 mb-4">
-                <h1 className="text-xl font-bold">{selectedReport.nameAr}</h1>
-                <p className="sub text-sm text-muted-foreground">{dateFrom} — {dateTo}</p>
+              {/* ── Official Print Header ── */}
+              <div className="report-print-header hidden print:block">
+                <div style={{ textAlign: "center", borderBottom: "3px solid #1a1f36", paddingBottom: 16, marginBottom: 16 }}>
+                  {stampData?.companyName && (
+                    <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1a1f36", marginBottom: 4 }}>{stampData.companyName}</h2>
+                  )}
+                  {stampData?.crNumber && (
+                    <p style={{ fontSize: 10, color: "#6b7280" }}>س.ت: {stampData.crNumber} {stampData.vatNumber ? `| ض: ${stampData.vatNumber}` : ""}</p>
+                  )}
+                  <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1a1f36", marginTop: 8 }}>{selectedReport.nameAr}</h1>
+                  <p style={{ fontSize: 12, color: "#6b7280" }}>{dateFrom} — {dateTo}</p>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#9ca3af", marginBottom: 12 }}>
+                  <span>رقم الإصدار: {reportVersion || "—"}</span>
+                  <span>تاريخ الاستخراج: {generatedAt}</span>
+                  <span>أنشئ بواسطة: {userName}</span>
+                </div>
+              </div>
+
+              {/* ── Screen metadata bar ── */}
+              <div className="flex flex-wrap items-center gap-4 mb-3 text-[11px] text-muted-foreground print:hidden">
+                {reportVersion && (
+                  <span className="flex items-center gap-1">
+                    <Hash className="h-3 w-3" />
+                    {isRTL ? `الإصدار: ${reportVersion}` : `Version: ${reportVersion}`}
+                  </span>
+                )}
+                {generatedAt && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {generatedAt}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  {userName}
+                </span>
+                {!hasCriticalIssues && (
+                  <Badge variant="outline" className="text-[10px] h-5 gap-1 border-emerald-500/30 text-emerald-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {isRTL ? "جاهز للطباعة" : "Print Ready"}
+                  </Badge>
+                )}
               </div>
 
               <Card>
@@ -330,15 +502,35 @@ const ReportsPage = () => {
                 </CardContent>
               </Card>
 
-              {/* Print footer */}
-              <div className="footer hidden print:block text-center text-xs text-muted-foreground mt-4 pt-3 border-t">
-                {isRTL ? `تم إنشاء التقرير بتاريخ ${new Date().toLocaleDateString("ar-SA")}` : `Report generated on ${new Date().toLocaleDateString()}`}
+              {/* ── Print Footer with stamp ── */}
+              <div className="footer hidden print:block" style={{ marginTop: 24, borderTop: "1px solid #e5e7eb", paddingTop: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div style={{ fontSize: 10, color: "#9ca3af" }}>
+                    <p>رقم الإصدار: {reportVersion || "—"}</p>
+                    <p>تاريخ الاستخراج: {generatedAt}</p>
+                    <p>أنشئ بواسطة: {userName}</p>
+                    <p style={{ marginTop: 4 }}>عدد السجلات: {data.length}</p>
+                  </div>
+                  {stampData && stampData.enabled && (
+                    <div style={{ textAlign: "center" }}>
+                      <DigitalStamp stamp={stampData} size="sm" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              {isRTL ? `${data.length} سجل` : `${data.length} records`}
-            </p>
+            {/* Screen footer with stamp */}
+            <div className="flex items-center justify-between mt-4 print:hidden">
+              <p className="text-xs text-muted-foreground">
+                {isRTL ? `${data.length} سجل` : `${data.length} records`}
+              </p>
+              {stampData && stampData.enabled && (
+                <div className="opacity-60">
+                  <DigitalStamp stamp={stampData} size="sm" />
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -370,22 +562,73 @@ const ReportsPage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Version History Dialog */}
+        <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Hash className="h-4 w-4" />
+                {isRTL ? `سجل إصدارات: ${selectedReport.nameAr}` : `Version History: ${selectedReport.nameAr}`}
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[400px]">
+              {versionHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">{isRTL ? "لا يوجد إصدارات سابقة" : "No previous versions"}</p>
+              ) : (
+                <div className="space-y-2">
+                  {versionHistory.map((v: any) => (
+                    <Card key={v.id} className="border-muted">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">v{v.version_number}</Badge>
+                            <span className="text-xs text-muted-foreground">{v.date_range}</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(v.created_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-1"><User className="h-3 w-3" />{v.generated_by_name || "—"}</span>
+                          <span>{v.row_count} {isRTL ? "سجل" : "records"}</span>
+                          {v.has_critical_issues && (
+                            <Badge variant="destructive" className="text-[9px] h-4">
+                              <AlertTriangle className="h-2.5 w-2.5 me-0.5" />
+                              {isRTL ? "مشاكل حرجة" : "Critical Issues"}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
 
   // ─── Report Catalog ───
   return (
-    <div dir="rtl" className="space-y-6 p-6">
+    <div dir="rtl" className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{isRTL ? "التقارير المتقدمة" : "Advanced Reports"}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{isRTL ? "التقارير المتقدمة" : "Advanced Reports"}</h1>
           <p className="text-sm text-muted-foreground">
             {isRTL ? `${REPORT_DEFINITIONS.length}+ تقرير مالي وتشغيلي` : `${REPORT_DEFINITIONS.length}+ financial & operational reports`}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {hasCriticalIssues && (
+            <Badge variant="destructive" className="text-xs gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {isRTL ? `${criticalCount} مشكلة حرجة` : `${criticalCount} critical`}
+            </Badge>
+          )}
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input

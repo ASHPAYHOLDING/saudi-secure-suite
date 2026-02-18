@@ -15,15 +15,17 @@ export const exportReportPDF = (
     extraStyles: `
       ${INVOICE_PRINT_STYLES}
       body { direction: rtl; font-family: 'IBM Plex Sans Arabic', sans-serif; }
-      .report-print-header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #1a1f36; padding-bottom: 12px; }
+      .report-print-header { display: block !important; text-align: center; margin-bottom: 20px; }
       .report-print-header h1 { font-size: 20px; font-weight: 700; color: #1a1f36; }
+      .report-print-header h2 { font-size: 16px; font-weight: 700; color: #1a1f36; margin-bottom: 4px; }
       .report-print-header .sub { font-size: 12px; color: #6b7280; }
       table { width: 100%; border-collapse: collapse; font-size: 12px; }
       th { background: #1a1f36; color: #fff; padding: 8px 10px; text-align: right; font-weight: 600; }
       td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
       tr:nth-child(even) { background: #f9fafb; }
       tfoot td { background: #f3f4f6; font-weight: 700; }
-      .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+      .footer { display: block !important; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+      .footer p { font-size: 10px; color: #9ca3af; margin: 2px 0; }
     `,
   });
 };
