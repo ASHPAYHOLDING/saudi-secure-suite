@@ -186,12 +186,12 @@ const PrivacyPolicy = () => {
                   </motion.div>
                   <div>
                     <h2 className="text-lg font-bold text-foreground mb-1">
-                      <span className="text-accent/60 font-english ml-2">{String(i + 1).padStart(2, "0")}.</span>
+                      <span className="text-accent/60 font-english mie-2">{String(i + 1).padStart(2, "0")}.</span>
                       {section.title}
                     </h2>
                   </div>
                 </div>
-                <ul className="space-y-3 mr-16">
+                <ul className="space-y-3" style={{ marginInlineStart: '4rem' }}>
                   {section.content.map((item, j) => (
                     <motion.li
                       key={j}

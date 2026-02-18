@@ -368,8 +368,8 @@ const Auth = () => {
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                         <Label htmlFor="fullName" className="text-sm font-medium text-foreground mb-2 block">الاسم الكامل</Label>
                         <div className="relative">
-                          <User size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
-                          <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="أحمد محمد" className="h-12 pr-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors" required />
+                          <User size={18} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                          <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="أحمد محمد" className="h-12 pe-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors" required />
                         </div>
                       </motion.div>
                     )}
@@ -407,8 +407,8 @@ const Auth = () => {
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: mode === "signup" ? 0.2 : 0.05 }}>
                       <Label htmlFor="email" className="text-sm font-medium text-foreground mb-2 block">البريد الإلكتروني</Label>
                       <div className="relative">
-                        <Mail size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
-                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" dir="ltr" className="h-12 pr-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-left font-english transition-colors" required />
+                        <Mail size={18} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" dir="ltr" className="h-12 pe-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-start font-english transition-colors" required />
                       </div>
                     </motion.div>
 
@@ -417,7 +417,7 @@ const Auth = () => {
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: mode === "signup" ? 0.25 : 0.1 }}>
                         <Label htmlFor="password" className="text-sm font-medium text-foreground mb-2 block">كلمة المرور</Label>
                         <div className="relative">
-                          <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                          <Lock size={18} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
                           <Input
                             id="password"
                             type={showPassword ? "text" : "password"}
@@ -425,11 +425,11 @@ const Auth = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                             dir="ltr"
-                            className="h-12 pr-11 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-left font-english transition-colors"
+                            className="h-12 pe-11 ps-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-start font-english transition-colors"
                             minLength={6}
                             required
                           />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
                         </div>
@@ -457,7 +457,7 @@ const Auth = () => {
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                         <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground mb-2 block">تأكيد كلمة المرور</Label>
                         <div className="relative">
-                          <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                          <Lock size={18} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
                           <Input
                             id="confirmPassword"
                             type={showConfirm ? "text" : "password"}
@@ -465,11 +465,11 @@ const Auth = () => {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="••••••••"
                             dir="ltr"
-                            className="h-12 pr-11 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-left font-english transition-colors"
+                            className="h-12 pe-11 ps-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background text-start font-english transition-colors"
                             minLength={6}
                             required
                           />
-                          <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
+                          <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors">
                             {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
                         </div>
