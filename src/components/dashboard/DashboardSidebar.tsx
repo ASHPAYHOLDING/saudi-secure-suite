@@ -74,6 +74,7 @@ const navGroups: NavGroup[] = [
     labelKey: "nav.group.reports",
     items: [
       { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
+      { icon: BarChart3, key: "nav.reportBuilder", path: "/dashboard/report-builder", module: "reports" },
       { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
       { icon: Sparkles, key: "nav.smartQuery", path: "/dashboard/smart-query", module: "analytics" },
       { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },

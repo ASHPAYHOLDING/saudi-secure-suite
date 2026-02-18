@@ -52,6 +52,7 @@ import BudgetDetailPage from "@/components/budgets/BudgetDetailPage";
 import DataQualityCenterPage from "@/components/reconciliation/DataQualityCenterPage";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import GroupDashboardPage from "@/components/group/GroupDashboardPage";
+import CustomReportBuilder from "@/components/reports/CustomReportBuilder";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -79,6 +80,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   company: "company",
   team: "team",
   reports: "reports",
+  "report-builder": "reports",
   "vat-return": "reports",
   analytics: "analytics",
   finance: "finance",
@@ -273,6 +275,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/group") {
       return <GroupDashboardPage />;
+    }
+    if (path === "/dashboard/report-builder") {
+      return withGate("reports", <CustomReportBuilder />);
     }
     return <DashboardHome />;
   };
