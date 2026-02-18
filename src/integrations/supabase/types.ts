@@ -7803,8 +7803,36 @@ export type Database = {
           },
         ]
       }
+      zatca_icv_counter: {
+        Row: {
+          last_icv: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          last_icv?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          last_icv?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_icv_counter_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zatca_submission_log: {
         Row: {
+          certificate_used: string | null
+          digital_signature: string | null
           errors: Json | null
           http_status: number | null
           id: string
@@ -7813,6 +7841,7 @@ export type Database = {
           invoice_uuid: string
           request_payload: Json | null
           response_payload: Json | null
+          signed_xml: string | null
           submission_type: string
           submitted_at: string
           submitted_by: string
@@ -7821,6 +7850,8 @@ export type Database = {
           zatca_status: string | null
         }
         Insert: {
+          certificate_used?: string | null
+          digital_signature?: string | null
           errors?: Json | null
           http_status?: number | null
           id?: string
@@ -7829,6 +7860,7 @@ export type Database = {
           invoice_uuid: string
           request_payload?: Json | null
           response_payload?: Json | null
+          signed_xml?: string | null
           submission_type: string
           submitted_at?: string
           submitted_by: string
@@ -7837,6 +7869,8 @@ export type Database = {
           zatca_status?: string | null
         }
         Update: {
+          certificate_used?: string | null
+          digital_signature?: string | null
           errors?: Json | null
           http_status?: number | null
           id?: string
@@ -7845,6 +7879,7 @@ export type Database = {
           invoice_uuid?: string
           request_payload?: Json | null
           response_payload?: Json | null
+          signed_xml?: string | null
           submission_type?: string
           submitted_at?: string
           submitted_by?: string
@@ -8301,6 +8336,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_next_icv: { Args: { _tenant_id: string }; Returns: number }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
