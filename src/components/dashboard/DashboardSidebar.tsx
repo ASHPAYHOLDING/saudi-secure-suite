@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
-import { usePaidIntegration } from "@/hooks/usePaidIntegration";
+import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntitlements";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItemDef {
@@ -21,6 +21,7 @@ interface NavItemDef {
   key: string;
   path: string;
   module: Module;
+  featureKey?: FeatureKey;
 }
 
 interface NavGroup {
@@ -113,9 +114,16 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const { user, tenantType } = useAuth();
   const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const { active: hasAdvancedAccounting, loading: loadingAccounting } = usePaidIntegration("accounting_advanced");
+  const { entitlements, loading: loadingEntitlements } = useEntitlements();
 
-  // Paths that require advanced accounting integration
+  // Check if a feature is entitled (backend-driven)
+  const isEntitled = (featureKey?: FeatureKey): boolean => {
+    if (!featureKey) return true; // No feature key = always show
+    const ent = entitlements[featureKey];
+    return ent?.allowed ?? false;
+  };
+
+  // Paths that require advanced accounting entitlement
   const ADVANCED_ACCOUNTING_PATHS = new Set([
     "/dashboard/journal-entries",
     "/dashboard/reports",
@@ -166,7 +174,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
 
   const NavItem = ({ icon: Icon, label, path, badge }: { icon: any; label: string; path: string; badge?: string }) => {
     const isActive = location.pathname === path;
-    const isLocked = !hasAdvancedAccounting && ADVANCED_ACCOUNTING_PATHS.has(path);
+    const isLocked = !isEntitled(FEATURE_KEYS.ACCOUNTING_ADVANCED) && ADVANCED_ACCOUNTING_PATHS.has(path);
     return (
       <Link
         to={path}

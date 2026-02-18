@@ -3463,6 +3463,41 @@ export type Database = {
           },
         ]
       }
+      plan_entitlements: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          is_enabled: boolean
+          limit_value: number | null
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          is_enabled?: boolean
+          limit_value?: number | null
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          is_enabled?: boolean
+          limit_value?: number | null
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_entitlements_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           created_at: string
@@ -6038,6 +6073,14 @@ export type Database = {
           fee_type: string
           net_amount: number
         }[]
+      }
+      check_entitlement: {
+        Args: { _feature_key: string; _tenant_id: string }
+        Returns: Json
+      }
+      check_entitlements_bulk: {
+        Args: { _feature_keys: string[]; _tenant_id: string }
+        Returns: Json
       }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       create_document_access_token: {
