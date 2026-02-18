@@ -131,7 +131,12 @@ const SubscriptionPage = () => {
 
   const handleUpgrade = async (plan: Plan) => {
     if (!subscription || !user || !tenantId) return;
+    if (plan.slug === "enterprise") {
+      toast({ title: "تواصل معنا", description: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات", variant: "default" });
+      return;
+    }
     setUpgrading(true);
+    const idempotencyKey = `${tenantId}-${plan.id}-${selectedCycle}-${Date.now()}`;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -150,10 +155,18 @@ const SubscriptionPage = () => {
             plan_id: plan.id,
             billing_cycle: selectedCycle,
             discount_code: discountedPrice !== null ? discountCode : undefined,
+            idempotency_key: idempotencyKey,
           },
         });
 
         if (response.error || !response.data?.success) {
+          if (response.data?.already_processed) {
+            toast({ title: "تنبيه", description: "تمت معالجة هذا الطلب مسبقاً" });
+            setUpgradeDialog(null);
+            fetchData();
+            setUpgrading(false);
+            return;
+          }
           const errMsg = response.data?.error || response.error?.message || "فشلت العملية";
           if (response.data?.insufficient_balance) {
             toast({
@@ -176,7 +189,10 @@ const SubscriptionPage = () => {
       // ── Paylink (Card Payment) ──
       else if (paymentMethod === "paylink") {
         const orderNum = `SUB-${Date.now()}`;
-        const callbackUrl = `${window.location.origin}/dashboard/subscription?upgrade=success&plan_id=${plan.id}&cycle=${selectedCycle}`;
+        // Webhook URL for Paylink to call after payment (server-side verification)
+        const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/subscription-webhook?action=webhook`;
+        // Redirect URL for user after payment (just UI feedback)
+        const callbackUrl = `${window.location.origin}/dashboard/subscription?upgrade=pending&plan_id=${plan.id}&cycle=${selectedCycle}`;
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -281,27 +297,21 @@ const SubscriptionPage = () => {
 
   const handleCancel = async () => {
     if (!subscription || !user) return;
-    const { error } = await supabase.from("subscriptions").update({
-      cancel_at_period_end: true,
-    }).eq("id", subscription.id);
 
-    if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
-      return;
+    try {
+      const response = await supabase.functions.invoke("cancel-subscription");
+
+      if (response.error || !response.data?.success) {
+        const errMsg = response.data?.error || response.error?.message || "فشلت العملية";
+        toast({ title: "خطأ", description: errMsg, variant: "destructive" });
+        return;
+      }
+
+      toast({ title: "تم", description: response.data.message });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message || "حدث خطأ غير متوقع", variant: "destructive" });
     }
-
-    await supabase.from("subscription_logs").insert({
-      subscription_id: subscription.id,
-      tenant_id: subscription.tenant_id,
-      action: "cancel",
-      old_status: subscription.status,
-      new_status: subscription.status,
-      performed_by: user.id,
-      notes: "طلب إلغاء - سيتم الإلغاء عند نهاية الفترة الحالية",
-    });
-
-    toast({ title: "تم", description: "سيتم إلغاء اشتراكك عند نهاية الفترة الحالية" });
-    fetchData();
   };
 
   if (loading) {
@@ -492,6 +502,14 @@ const SubscriptionPage = () => {
                         {isCurrent ? (
                           <Button variant="outline" className="w-full" disabled>
                             خطتك الحالية
+                          </Button>
+                        ) : plan.slug === "enterprise" ? (
+                          <Button
+                            className="w-full"
+                            variant="outline"
+                            onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
+                          >
+                            <Building2 size={16} className="ml-1" /> تواصل مع المبيعات
                           </Button>
                         ) : (
                           <Button
