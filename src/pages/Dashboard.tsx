@@ -53,6 +53,7 @@ import DataQualityCenterPage from "@/components/reconciliation/DataQualityCenter
 import FeatureGate from "@/components/subscription/FeatureGate";
 import GroupDashboardPage from "@/components/group/GroupDashboardPage";
 import CustomReportBuilder from "@/components/reports/CustomReportBuilder";
+import ForecastingPage from "@/components/forecasting/ForecastingPage";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -81,6 +82,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   team: "team",
   reports: "reports",
   "report-builder": "reports",
+  forecasting: "analytics",
   "vat-return": "reports",
   analytics: "analytics",
   finance: "finance",
@@ -278,6 +280,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/report-builder") {
       return withGate("reports", <CustomReportBuilder />);
+    }
+    if (path === "/dashboard/forecasting") {
+      return withGate("analytics", <ForecastingPage />);
     }
     return <DashboardHome />;
   };
