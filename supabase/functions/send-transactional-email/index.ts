@@ -28,6 +28,10 @@ const TYPE_SENDER: Record<string, string> = {
   integration_activation: "no-reply",
   financial_notification: "billing",
   admin_alert: "no-reply",
+  // Affiliate
+  affiliate_application_received: "no-reply",
+  affiliate_application_approved: "no-reply",
+  affiliate_application_rejected: "no-reply",
   // Financial (formal)
   financial_invoice: "billing",
   financial_payment_receipt: "billing",
@@ -354,6 +358,73 @@ function getEmailTemplate(
              <p style="margin:0;color:#991b1b;font-size:15px;font-weight:600;">${d.title || ""}</p>
              <p style="margin:8px 0 0;color:#7f1d1d;font-size:14px;">${d.message || ""}</p>
            </div>`
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // AFFILIATE EMAILS
+    // ═══════════════════════════════════════
+
+    case "affiliate_application_received":
+      return {
+        subject: "تم استلام طلب الانضمام لبرنامج الشركاء – Numaxio",
+        html: generalWrap(
+          "تم استلام طلبك بنجاح",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.full_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">شكراً لاهتمامك ببرنامج شركاء نيوماكسيو! تم استلام طلبك بنجاح وهو الآن قيد المراجعة.</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:18px;font-weight:700;color:#166534;">✓ تم الاستلام</p>
+             <p style="margin:4px 0 0;color:#15803d;font-size:13px;">كود الشريك: <strong>${d.code || ""}</strong></p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">الاسم:</td><td style="text-align:left;font-weight:600;">${d.full_name || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">البريد:</td><td style="text-align:left;font-weight:600;">${d.email || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">المستوى:</td><td style="text-align:left;font-weight:600;">${d.tier || "فضي"}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">نسبة العمولة:</td><td style="text-align:left;font-weight:600;">${d.commission_rate || 10}%</td></tr>
+             </table>
+           </div>
+           <p style="color:#6b7280;font-size:14px;">سيتم مراجعة طلبك خلال 24-48 ساعة عمل وستصلك رسالة بالنتيجة.</p>`
+        ),
+      };
+
+    case "affiliate_application_approved":
+      return {
+        subject: "🎉 تمت الموافقة على طلبك – برنامج شركاء Numaxio",
+        html: generalWrap(
+          "تهانينا! تمت الموافقة على طلبك",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.full_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">يسعدنا إبلاغك بأنه تمت الموافقة على انضمامك لبرنامج شركاء نيوماكسيو! 🎉</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:24px;font-weight:700;color:#166534;">✓ تمت الموافقة</p>
+             <p style="margin:8px 0 0;color:#15803d;font-size:14px;">حسابك نشط الآن ويمكنك البدء بالإحالة</p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">كود الإحالة:</td><td style="text-align:left;font-weight:600;">${d.code || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">نسبة العمولة:</td><td style="text-align:left;font-weight:600;">${d.commission_rate || 10}%</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">المستوى:</td><td style="text-align:left;font-weight:600;">${d.tier || "فضي"}</td></tr>
+             </table>
+           </div>
+           <p style="color:#4a5568;font-size:14px;line-height:1.8;">ابدأ الآن بمشاركة رابط الإحالة الخاص بك واكسب عمولة على كل اشتراك ناجح!</p>`
+        ),
+      };
+
+    case "affiliate_application_rejected":
+      return {
+        subject: "تحديث حالة طلبك – برنامج شركاء Numaxio",
+        html: generalWrap(
+          "تحديث حالة طلبك",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.full_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">نأسف لإبلاغك بأنه لم تتم الموافقة على طلبك للانضمام لبرنامج الشركاء في الوقت الحالي.</p>
+           <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:16px;font-weight:600;color:#991b1b;">لم تتم الموافقة</p>
+           </div>
+           ${d.rejection_reason ? `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px;margin:16px 0;">
+             <p style="margin:0;color:#92400e;font-size:14px;font-weight:600;">السبب:</p>
+             <p style="margin:4px 0 0;color:#a16207;font-size:14px;">${d.rejection_reason}</p>
+           </div>` : ''}
+           <p style="color:#6b7280;font-size:14px;">يمكنك إعادة تقديم طلبك بعد استكمال المتطلبات أو التواصل مع فريق الدعم للمساعدة.</p>`
         ),
       };
 
