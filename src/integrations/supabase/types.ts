@@ -8108,6 +8108,7 @@ export type Database = {
         Row: {
           branding_config: Json
           created_at: string
+          email_preferences: Json | null
           id: string
           tenant_id: string
           updated_at: string
@@ -8115,6 +8116,7 @@ export type Database = {
         Insert: {
           branding_config?: Json
           created_at?: string
+          email_preferences?: Json | null
           id?: string
           tenant_id: string
           updated_at?: string
@@ -8122,6 +8124,7 @@ export type Database = {
         Update: {
           branding_config?: Json
           created_at?: string
+          email_preferences?: Json | null
           id?: string
           tenant_id?: string
           updated_at?: string

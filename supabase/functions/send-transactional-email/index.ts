@@ -483,21 +483,83 @@ async function resolveTemplate(
   return { subject: tpl.subject, html: tpl.html, senderKey };
 }
 
+// ─── Email Type → Preference Key Mapping ───
+const TYPE_PREF_KEY: Record<string, string> = {
+  invoice: "send_invoice_email",
+  financial_invoice: "send_invoice_email",
+  payment_receipt: "send_payment_receipt",
+  financial_payment_receipt: "send_payment_receipt",
+  security_alert: "send_security_alert",
+};
+
+// ─── Check tenant email preferences ───
+async function isEmailAllowed(
+  serviceClient: ReturnType<typeof createClient>,
+  emailType: string,
+  tenantId: string | null
+): Promise<boolean> {
+  if (!tenantId) return true; // Platform-level emails always sent
+  const prefKey = TYPE_PREF_KEY[emailType];
+  if (!prefKey) return true; // No preference mapping → always send
+
+  try {
+    const { data } = await serviceClient
+      .from("tenant_settings")
+      .select("email_preferences")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (!data?.email_preferences) return true; // No settings → default to send
+    const prefs = data.email_preferences as Record<string, unknown>;
+    return prefs[prefKey] !== false; // Only block if explicitly false
+  } catch {
+    return true; // On error, default to send
+  }
+}
+
+// ─── Get tenant sender overrides ───
+async function getTenantSenderOverrides(
+  serviceClient: ReturnType<typeof createClient>,
+  tenantId: string | null
+): Promise<{ fromName?: string; replyTo?: string }> {
+  if (!tenantId) return {};
+  try {
+    const { data } = await serviceClient
+      .from("tenant_settings")
+      .select("email_preferences")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (!data?.email_preferences) return {};
+    const prefs = data.email_preferences as Record<string, unknown>;
+    return {
+      fromName: prefs.from_name as string || undefined,
+      replyTo: prefs.reply_to_email as string || undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 // ─── Send via Resend ───
 async function sendViaResend(
   from: string,
   to: string,
   subject: string,
-  html: string
+  html: string,
+  replyTo?: string
 ): Promise<{ success: boolean; providerId?: string; error?: string }> {
   try {
+    const payload: Record<string, unknown> = { from, to: [to], subject, html };
+    if (replyTo) payload.reply_to = replyTo;
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({ from, to: [to], subject, html }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -523,11 +585,24 @@ async function processQueuedEmails(serviceClient: ReturnType<typeof createClient
 
   let processed = 0;
   for (const log of queued) {
+    // Check tenant email preferences
+    const allowed = await isEmailAllowed(serviceClient, log.email_type, log.tenant_id);
+    if (!allowed) {
+      await serviceClient.from("email_logs").update({ status: "skipped", failure_reason: "Disabled by tenant email preferences" }).eq("id", log.id);
+      processed++;
+      continue;
+    }
+
     const meta = (log.metadata || {}) as Record<string, unknown>;
     const resolved = await resolveTemplate(serviceClient, log.email_type, log.tenant_id, meta);
-    const fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+    const overrides = await getTenantSenderOverrides(serviceClient, log.tenant_id);
+    let fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+    if (overrides.fromName) {
+      const email = fromAddress.match(/<(.+)>/)?.[1] || "no-reply@numaxio.com";
+      fromAddress = `${overrides.fromName} <${email}>`;
+    }
 
-    const result = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html);
+    const result = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html, overrides.replyTo);
 
     await serviceClient
       .from("email_logs")
@@ -547,7 +622,7 @@ async function processQueuedEmails(serviceClient: ReturnType<typeof createClient
         .update({ status: "retrying", retry_count: 1, last_retry_at: new Date().toISOString() })
         .eq("id", log.id);
 
-      const retry = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html);
+      const retry = await sendViaResend(fromAddress, log.recipient_email, resolved.subject, resolved.html, overrides.replyTo);
       await serviceClient
         .from("email_logs")
         .update({
@@ -634,9 +709,14 @@ Deno.serve(async (req) => {
 
       const meta = logEntry.metadata || {};
       const resolved = await resolveTemplate(serviceClient, logEntry.email_type, logEntry.tenant_id, meta as Record<string, unknown>);
-      const fromAddr = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+      const retryOverrides = await getTenantSenderOverrides(serviceClient, logEntry.tenant_id);
+      let fromAddr = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+      if (retryOverrides.fromName) {
+        const email = fromAddr.match(/<(.+)>/)?.[1] || "no-reply@numaxio.com";
+        fromAddr = `${retryOverrides.fromName} <${email}>`;
+      }
 
-      const result = await sendViaResend(fromAddr, logEntry.recipient_email, resolved.subject, resolved.html);
+      const result = await sendViaResend(fromAddr, logEntry.recipient_email, resolved.subject, resolved.html, retryOverrides.replyTo);
 
       await serviceClient
         .from("email_logs")
@@ -675,8 +755,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check tenant email preferences
+    const allowed = await isEmailAllowed(serviceClient, email_type, tenant_id);
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ success: false, skipped: true, reason: "Disabled by tenant email preferences" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const resolved = await resolveTemplate(serviceClient, email_type, tenant_id, templateData || {});
-    const fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+    const overrides = await getTenantSenderOverrides(serviceClient, tenant_id);
+    let fromAddress = SENDERS[resolved.senderKey] || SENDERS["no-reply"];
+    if (overrides.fromName) {
+      const email = fromAddress.match(/<(.+)>/)?.[1] || "no-reply@numaxio.com";
+      fromAddress = `${overrides.fromName} <${email}>`;
+    }
     const senderEmail = fromAddress.match(/<(.+)>/)?.[1] || "no-reply@numaxio.com";
 
     // Insert log entry (pending)
@@ -701,7 +795,7 @@ Deno.serve(async (req) => {
       console.error("Failed to create email log:", insertErr);
     }
 
-    const result = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html);
+    const result = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html, overrides.replyTo);
 
     if (logRow) {
       await serviceClient
@@ -723,7 +817,7 @@ Deno.serve(async (req) => {
         .update({ status: "retrying", retry_count: 1, last_retry_at: new Date().toISOString() })
         .eq("id", logRow.id);
 
-      const retry = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html);
+      const retry = await sendViaResend(fromAddress, recipient_email, resolved.subject, resolved.html, overrides.replyTo);
       await serviceClient
         .from("email_logs")
         .update({
