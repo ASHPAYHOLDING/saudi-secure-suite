@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -256,7 +257,7 @@ const BudgetDashboard = () => {
 
   const handleActivate = async () => {
     if (!selectedBudgetId) return;
-    const { data, error } = await supabase.rpc("activate_budget", { p_budget_id: selectedBudgetId });
+    const { data, error } = await secureRpc("activate_budget", { p_budget_id: selectedBudgetId });
     if (error) { toast.error(error.message); return; }
     const result = data as { success: boolean; message?: string; error?: string };
     if (result?.success) {
@@ -273,7 +274,7 @@ const BudgetDashboard = () => {
     if (!tenantId) return;
     setSyncing(true);
     try {
-      const { data, error } = await supabase.rpc("sync_budget_actuals_for_tenant", { p_tenant_id: tenantId });
+      const { data, error } = await secureRpc("sync_budget_actuals_for_tenant", { p_tenant_id: tenantId });
       if (error) { toast.error(error.message); return; }
       const result = data as { success: boolean; records_updated?: number };
       if (result?.success) {

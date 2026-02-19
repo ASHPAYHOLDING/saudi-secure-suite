@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ const Stocktaking = () => {
   const createStocktake = useMutation({
     mutationFn: async () => {
       if (!tenantId || !user) throw new Error("Missing context");
-      const { data: numData } = await supabase.rpc("generate_inventory_number", {
+      const { data: numData } = await secureRpc("generate_inventory_number", {
         p_tenant_id: tenantId, p_prefix: "ST",
       });
 
@@ -144,7 +145,7 @@ const Stocktaking = () => {
           .eq("tenant_id", tenantId)
           .maybeSingle();
 
-        await supabase.rpc("process_inventory_movement", {
+        await secureRpc("process_inventory_movement", {
           p_tenant_id: tenantId, p_warehouse_id: activeStocktake.warehouse_id,
           p_product_id: item.product_id, p_variant_id: item.variant_id || null,
           p_movement_type: "stocktake", p_quantity: diff,

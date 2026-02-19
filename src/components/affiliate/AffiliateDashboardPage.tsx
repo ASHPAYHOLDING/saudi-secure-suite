@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCountUp } from "@/hooks/useCountUp";
 import { Badge } from "@/components/ui/badge";
@@ -593,7 +594,7 @@ const AffiliateDashboardPage = () => {
     }
     setPayoutLoading(true);
     try {
-      const { error } = await supabase.rpc("request_affiliate_payout", { _affiliate_id: affiliate.id, _method: payoutMethod });
+      const { error } = await secureRpc("request_affiliate_payout", { _affiliate_id: affiliate.id, _method: payoutMethod });
       if (error) throw error;
       toast.success(isRTL ? "تم إرسال طلب السحب بنجاح" : "Payout request submitted");
       fetchData();

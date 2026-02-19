@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,7 @@ const AdminWalletRequests = () => {
   const handleApprove = async (requestId: string) => {
     setActionLoading(requestId);
     try {
-      const { data, error } = await supabase.rpc("admin_review_topup_request", {
+      const { data, error } = await secureRpc("admin_review_topup_request", {
         p_request_id: requestId,
         p_action: "approve",
       });
@@ -131,7 +132,7 @@ const AdminWalletRequests = () => {
     if (!rejectDialog.requestId) return;
     setActionLoading(rejectDialog.requestId);
     try {
-      const { error } = await supabase.rpc("admin_review_topup_request", {
+      const { error } = await secureRpc("admin_review_topup_request", {
         p_request_id: rejectDialog.requestId,
         p_action: "reject",
         p_rejection_reason: rejectionReason || null,

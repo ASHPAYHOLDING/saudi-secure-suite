@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import DocumentLifecycleTimeline from "@/components/lifecycle/DocumentLifecycleTimeline";
@@ -50,7 +51,7 @@ const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice, onConvertToD
     setActionLoading(true);
     try {
       // Reserve stock
-      const { error: reserveError } = await supabase.rpc("reserve_stock_for_order", {
+      const { error: reserveError } = await secureRpc("reserve_stock_for_order", {
         _sales_order_id: orderId,
         _tenant_id: tenantId,
       });
@@ -76,7 +77,7 @@ const SalesOrderPreview = ({ orderId, onBack, onConvertedToInvoice, onConvertToD
     try {
       // Release stock if confirmed
       if (order.status !== "pending") {
-        const { error: releaseError } = await supabase.rpc("release_stock_reservation", {
+        const { error: releaseError } = await secureRpc("release_stock_reservation", {
           _sales_order_id: orderId,
           _tenant_id: tenantId,
         });

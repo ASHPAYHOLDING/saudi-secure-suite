@@ -6,6 +6,7 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -207,7 +208,7 @@ const BudgetDetailPage = () => {
     if (!tenantId) return;
     setSyncing(true);
     try {
-      const { data, error } = await supabase.rpc("sync_budget_actuals_for_tenant", { p_tenant_id: tenantId });
+      const { data, error } = await secureRpc("sync_budget_actuals_for_tenant", { p_tenant_id: tenantId });
       if (error) { toast.error(error.message); return; }
       const result = data as { success: boolean; records_updated?: number };
       if (result?.success) toast.success(currentLang === "ar" ? `تم مزامنة ${result.records_updated} سجل` : `Synced ${result.records_updated} records`);
@@ -216,7 +217,7 @@ const BudgetDetailPage = () => {
 
   const handleActivate = async () => {
     if (!id) return;
-    const { data, error } = await supabase.rpc("activate_budget", { p_budget_id: id });
+    const { data, error } = await secureRpc("activate_budget", { p_budget_id: id });
     if (error) { toast.error(error.message); return; }
     const result = data as { success: boolean; message?: string };
     if (result?.success) {

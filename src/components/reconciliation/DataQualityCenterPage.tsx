@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -134,7 +135,7 @@ const DataQualityCenterPage = () => {
         default:
           throw new Error("Unknown run type");
       }
-      const { data, error } = await supabase.rpc(fn as any, params);
+      const { data, error } = await secureRpc(fn, params);
       if (error) throw error;
       return data;
     },
