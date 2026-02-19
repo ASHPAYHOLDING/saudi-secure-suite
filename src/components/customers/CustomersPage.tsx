@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Users, Plus, Search, Edit2, Trash2, X, Building2, User, Phone, Mail,
   MapPin, FileText, Save, Loader2, Eye, Filter, Download, Upload,
   CheckSquare, Square, ChevronUp, ChevronDown, ChevronsUpDown,
@@ -65,6 +70,8 @@ const CustomersPage = () => {
   const [form, setForm] = useState<CustomerForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [viewingCustomerId, setViewingCustomerId] = useState<string | null>(null);
 
   // Filters
@@ -170,7 +177,8 @@ const CustomersPage = () => {
     if (!bulkAction || selected.size === 0) return;
     const ids = Array.from(selected);
     if (bulkAction === "delete") {
-      if (!confirm(`هل أنت متأكد من حذف ${ids.length} عميل؟`)) return;
+      setConfirmBulkDelete(true);
+      return;
       const { error } = await supabase.from("customers").delete().in("id", ids);
       if (!error) { toast({ title: `تم حذف ${ids.length} عميل` }); setSelected(new Set()); fetchCustomers(); }
     } else if (bulkAction === "activate") {
@@ -267,12 +275,22 @@ const CustomersPage = () => {
     setSaving(false); setShowForm(false); fetchCustomers();
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingIds(prev => new Set(prev).add(id));
-    const { error } = await supabase.from("customers").delete().eq("id", id);
+  const confirmDeleteCustomer = async () => {
+    if (!confirmDeleteId) return;
+    setDeletingIds(prev => new Set(prev).add(confirmDeleteId));
+    const { error } = await supabase.from("customers").delete().eq("id", confirmDeleteId);
     if (error) toast({ title: "خطأ", description: error.message, variant: "destructive" });
-    else { toast({ title: "تم الحذف" }); fetchCustomers(); }
-    setDeletingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    else { toast({ title: "تم الحذف بنجاح" }); fetchCustomers(); }
+    setDeletingIds(prev => { const n = new Set(prev); n.delete(confirmDeleteId); return n; });
+    setConfirmDeleteId(null);
+  };
+
+  const confirmBulkDeleteAction = async () => {
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("customers").delete().in("id", ids);
+    if (!error) { toast({ title: `تم حذف ${ids.length} عميل` }); setSelected(new Set()); fetchCustomers(); }
+    setConfirmBulkDelete(false);
+    setBulkAction("");
   };
 
   const updateField = (key: keyof CustomerForm, value: string) =>
@@ -505,7 +523,7 @@ const CustomersPage = () => {
                           <Edit2 size={13} />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          disabled={deletingIds.has(c.id)} onClick={() => handleDelete(c.id)}>
+                          disabled={deletingIds.has(c.id)} onClick={() => setConfirmDeleteId(c.id)}>
                           {deletingIds.has(c.id) ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                         </Button>
                       </div>
@@ -620,6 +638,46 @@ const CustomersPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Confirm Delete Single */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={open => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDeleteCustomer}>
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Bulk Delete */}
+      <AlertDialog open={confirmBulkDelete} onOpenChange={open => !open && setConfirmBulkDelete(false)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">تأكيد الحذف الجماعي</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف <strong>{selected.size}</strong> عميل؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel onClick={() => setBulkAction("")}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmBulkDeleteAction}>
+              حذف الجميع
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
