@@ -364,8 +364,6 @@ Deno.serve(withRequestTimeout(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
-
 }, UPGRADE_TIMEOUT_MS, corsHeaders));
 
 const CYCLE_LABELS: Record<string, string> = { monthly: "شهري", quarterly: "ربع سنوي", yearly: "سنوي" };
