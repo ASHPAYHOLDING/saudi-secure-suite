@@ -5564,6 +5564,36 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          id: string
+          key: string
+          request_count: number
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          key: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          key?: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       reconciliation_issues: {
         Row: {
           actual_value: number | null
@@ -8431,6 +8461,15 @@ export type Database = {
         Args: { _feature_keys: string[]; _tenant_id: string }
         Returns: Json
       }
+      check_rate_limit: {
+        Args: {
+          p_block_seconds?: number
+          p_key: string
+          p_max_requests: number
+          p_window_seconds?: number
+        }
+        Returns: Json
+      }
       check_storage_limit: {
         Args: { _file_size_bytes?: number; _tenant_id: string }
         Returns: Json
@@ -8441,6 +8480,7 @@ export type Database = {
       }
       classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
       create_document_access_token: {
         Args: {
           _document_id: string
