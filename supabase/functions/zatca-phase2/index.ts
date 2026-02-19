@@ -704,23 +704,41 @@ serve(async (req: Request) => {
 
       const isProduction = tenant.zatca_environment === "production";
       const certType = isProduction ? "production" : "compliance";
-      // Use secure RPC to retrieve private key (never exposed via direct SELECT)
-      const { data: certRows } = await supabase.rpc("get_zatca_private_key", {
-        _tenant_id: tenant.id,
-        _certificate_type: certType,
-      });
-      const cert = certRows && certRows.length > 0 ? certRows[0] : null;
+      
+      // Use service_role client to call secure RPC (decrypts private key server-side)
+      const serviceClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const masterKey = Deno.env.get("ZATCA_ENCRYPTION_KEY");
+      
+      // Get certificate info (without private key)
+      const { data: certInfo } = await serviceClient
+        .from("zatca_certificates")
+        .select("id, certificate")
+        .eq("tenant_id", tenant.id)
+        .eq("certificate_type", certType)
+        .eq("is_active", true)
+        .single();
 
-      if (cert?.private_key && cert?.certificate) {
+      let privateKeyDecrypted: string | null = null;
+      if (certInfo?.id && masterKey) {
+        const { data: decryptedKey } = await serviceClient.rpc("get_zatca_private_key", {
+          p_cert_id: certInfo.id,
+          p_master_key: masterKey,
+        });
+        privateKeyDecrypted = decryptedKey;
+      }
+
+      if (privateKeyDecrypted && certInfo?.certificate) {
         try {
-          const sigResult = await generateXAdESSignature(xml, cert.private_key, cert.certificate);
+          const sigResult = await generateXAdESSignature(xml, privateKeyDecrypted, certInfo.certificate);
           finalXml = sigResult.signedXml;
           signatureValue = sigResult.signatureValue;
           digestValue = sigResult.digestValue;
           console.log("✅ Digital signature applied successfully");
         } catch (sigErr: any) {
           console.error("⚠️ Digital signature failed, proceeding without:", sigErr.message);
-          // Still proceed – signature may fail if key format is unsupported
         }
       } else {
         console.log("⚠️ No private key/certificate found, XML generated without digital signature");
@@ -914,20 +932,35 @@ serve(async (req: Request) => {
         icv: icvResult || 1,
       });
 
-      // Sign credit note if possible
+      // Sign credit note if possible (using encrypted key via service_role)
       let finalXml = xml;
-      const certType = tenant?.zatca_environment === "production" ? "production" : "compliance";
-      const { data: cert } = await supabase
+      const cnCertType = tenant?.zatca_environment === "production" ? "production" : "compliance";
+      const cnServiceClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const cnMasterKey = Deno.env.get("ZATCA_ENCRYPTION_KEY");
+
+      const { data: cnCertInfo } = await cnServiceClient
         .from("zatca_certificates")
-        .select("csid, private_key, certificate")
+        .select("id, certificate")
         .eq("tenant_id", creditNote.tenant_id)
-        .eq("certificate_type", certType)
+        .eq("certificate_type", cnCertType)
         .eq("is_active", true)
         .single();
 
-      if (cert?.private_key && cert?.certificate) {
+      let cnPrivateKey: string | null = null;
+      if (cnCertInfo?.id && cnMasterKey) {
+        const { data: dk } = await cnServiceClient.rpc("get_zatca_private_key", {
+          p_cert_id: cnCertInfo.id,
+          p_master_key: cnMasterKey,
+        });
+        cnPrivateKey = dk;
+      }
+
+      if (cnPrivateKey && cnCertInfo?.certificate) {
         try {
-          const sigResult = await generateXAdESSignature(xml, cert.private_key, cert.certificate);
+          const sigResult = await generateXAdESSignature(xml, cnPrivateKey, cnCertInfo.certificate);
           finalXml = sigResult.signedXml;
         } catch (e) {
           console.error("Credit note signing failed:", e);
@@ -985,6 +1018,84 @@ serve(async (req: Request) => {
         hasComplianceCert: hasCompliance,
         hasProductionCert: hasProduction,
         issues,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // ACTION: encrypt-key (encrypt and store private key securely)
+    // ═══════════════════════════════════════════════════════
+    if (action === "encrypt-key") {
+      const { certId, privateKey } = body;
+      if (!certId || !privateKey) {
+        return new Response(JSON.stringify({ error: "certId and privateKey required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const masterKey = Deno.env.get("ZATCA_ENCRYPTION_KEY");
+      if (!masterKey) {
+        return new Response(JSON.stringify({ error: "Encryption key not configured" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const svcClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      const { error: encErr } = await svcClient.rpc("encrypt_zatca_private_key", {
+        p_cert_id: certId,
+        p_private_key: privateKey,
+        p_master_key: masterKey,
+      });
+
+      if (encErr) {
+        return new Response(JSON.stringify({ error: encErr.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // ACTION: test-connection (test ZATCA connectivity)
+    // ═══════════════════════════════════════════════════════
+    if (action === "test-connection") {
+      const { tenantId: testTenantId } = body;
+      const svcClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      const { data: certs } = await svcClient
+        .from("zatca_certificates")
+        .select("id, certificate_type, csid, is_active, environment, private_key_encrypted, private_key_kid")
+        .eq("tenant_id", testTenantId)
+        .eq("is_active", true);
+
+      const results = [];
+      for (const cert of (certs || [])) {
+        const hasEncryptedKey = !!cert.private_key_encrypted;
+        results.push({
+          type: cert.certificate_type,
+          environment: cert.environment,
+          hasEncryptedKey,
+          keyVersion: cert.private_key_kid,
+          status: hasEncryptedKey ? "secure" : "missing_key",
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        certificates: results,
+        totalCerts: results.length,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

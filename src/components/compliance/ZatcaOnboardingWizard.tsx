@@ -80,24 +80,30 @@ const ZatcaOnboardingWizard = () => {
   const handleSaveComplianceCsid = async () => {
     if (!tenantId || !complianceCsid) return;
     setLoading(true);
-    const { error } = await supabase.from("zatca_certificates").upsert({
+    // Save certificate without private key in plaintext
+    const { data: certData, error } = await (supabase as any).from("zatca_certificates").upsert({
       tenant_id: tenantId,
       certificate_type: "compliance",
       csid: complianceCsid,
-      private_key: compliancePrivateKey || null,
       environment,
       created_by: userId,
-    }, { onConflict: "tenant_id,certificate_type,environment" });
+    }, { onConflict: "tenant_id,certificate_type,environment" }).select("id").single();
 
     if (error) {
       toast.error("فشل في حفظ الشهادة");
     } else {
-      // Update tenant flag
+      // Encrypt private key server-side if provided
+      if (compliancePrivateKey && certData?.id) {
+        await supabase.functions.invoke("zatca-phase2", {
+          body: { action: "encrypt-key", certId: certData.id, privateKey: compliancePrivateKey },
+        });
+      }
       await supabase.from("tenants").update({
         zatca_compliance_csid: complianceCsid,
         zatca_phase2_ready: false,
       }).eq("id", tenantId);
       toast.success("تم حفظ شهادة الامتثال بنجاح");
+      setCompliancePrivateKey("");
       await loadCertificates();
       setStep(2);
     }
@@ -107,23 +113,28 @@ const ZatcaOnboardingWizard = () => {
   const handleSaveProductionCsid = async () => {
     if (!tenantId || !productionCsid) return;
     setLoading(true);
-    const { error } = await supabase.from("zatca_certificates").upsert({
+    const { data: certData, error } = await (supabase as any).from("zatca_certificates").upsert({
       tenant_id: tenantId,
       certificate_type: "production",
       csid: productionCsid,
-      private_key: productionPrivateKey || null,
       environment: "production",
       created_by: userId,
-    }, { onConflict: "tenant_id,certificate_type,environment" });
+    }, { onConflict: "tenant_id,certificate_type,environment" }).select("id").single();
 
     if (error) {
       toast.error("فشل في حفظ الشهادة");
     } else {
+      if (productionPrivateKey && certData?.id) {
+        await supabase.functions.invoke("zatca-phase2", {
+          body: { action: "encrypt-key", certId: certData.id, privateKey: productionPrivateKey },
+        });
+      }
       await supabase.from("tenants").update({
         zatca_production_csid: productionCsid,
         zatca_phase2_ready: true,
       }).eq("id", tenantId);
       toast.success("🎉 تم تفعيل ZATCA Phase 2 بنجاح!");
+      setProductionPrivateKey("");
       await loadCertificates();
     }
     setLoading(false);
