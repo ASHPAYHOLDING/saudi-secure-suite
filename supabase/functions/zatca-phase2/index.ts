@@ -699,13 +699,12 @@ serve(async (req: Request) => {
 
       const isProduction = tenant.zatca_environment === "production";
       const certType = isProduction ? "production" : "compliance";
-      const { data: cert } = await supabase
-        .from("zatca_certificates")
-        .select("csid, private_key, certificate")
-        .eq("tenant_id", tenant.id)
-        .eq("certificate_type", certType)
-        .eq("is_active", true)
-        .single();
+      // Use secure RPC to retrieve private key (never exposed via direct SELECT)
+      const { data: certRows } = await supabase.rpc("get_zatca_private_key", {
+        _tenant_id: tenant.id,
+        _certificate_type: certType,
+      });
+      const cert = certRows && certRows.length > 0 ? certRows[0] : null;
 
       if (cert?.private_key && cert?.certificate) {
         try {

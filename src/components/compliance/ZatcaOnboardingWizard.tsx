@@ -50,8 +50,8 @@ const ZatcaOnboardingWizard = () => {
   }, [tenantId]);
 
   const loadCertificates = async () => {
-    const { data } = await supabase
-      .from("zatca_certificates")
+    const { data } = await (supabase as any)
+      .from("zatca_certificates_safe")
       .select("*")
       .eq("tenant_id", tenantId)
       .eq("is_active", true);
