@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { secureRpc } from "@/lib/secure-rpc";
+import { useQueryClient } from "@tanstack/react-query";
+import { ENTITLEMENTS_CACHE_KEY, fetchEntitlementsBulk } from "@/contexts/EntitlementsContext";
 import type { User, Session } from "@supabase/supabase-js";
 import type { TenantType } from "@/lib/tenant-modules";
 import type { AppRole } from "@/lib/roles";
@@ -44,6 +46,7 @@ const AuthContext = createContext<AuthContextValue>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,6 +123,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (profileData) {
               setProfile({ full_name: profileData.full_name, full_name_en: profileData.full_name_en, email: profileData.email, phone: profileData.phone, job_title: profileData.job_title, language: profileData.language, timezone: profileData.timezone });
               setTenantId(profileData.tenant_id);
+
+              // Prefetch entitlements immediately so dashboard renders fast
+              if (profileData.tenant_id) {
+                queryClient.prefetchQuery({
+                  queryKey: [ENTITLEMENTS_CACHE_KEY, profileData.tenant_id, 0],
+                  queryFn: () => fetchEntitlementsBulk(profileData.tenant_id!),
+                  staleTime: 5 * 60 * 1000,
+                });
+              }
 
               // Load all user tenants + current tenant data
               await loadUserTenants(session.user.id);

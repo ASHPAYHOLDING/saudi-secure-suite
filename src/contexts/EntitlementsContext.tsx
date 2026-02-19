@@ -41,14 +41,14 @@ const EntitlementsContext = createContext<EntitlementsState>({
 
 export const useEntitlementsContext = () => useContext(EntitlementsContext);
 
-const CACHE_KEY = "entitlements";
+export const ENTITLEMENTS_CACHE_KEY = "entitlements";
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 const GC_TIME = 15 * 60 * 1000; // 15 minutes
 
 // Track fetch count globally for diagnostics
 let globalFetchCount = 0;
 
-async function fetchEntitlementsBulk(tenantId: string): Promise<{
+export async function fetchEntitlementsBulk(tenantId: string): Promise<{
   entitlements: Record<string, EntitlementResult>;
   planSlug: string | null;
   planStatus: string | null;
@@ -139,7 +139,7 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
   const [subscriptionUpdatedAt, setSubscriptionUpdatedAt] = useState<number>(Date.now());
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [CACHE_KEY, tenantId, subscriptionUpdatedAt],
+    queryKey: [ENTITLEMENTS_CACHE_KEY, tenantId, subscriptionUpdatedAt],
     queryFn: () => fetchEntitlementsBulk(tenantId!),
     enabled: !!tenantId,
     staleTime: STALE_TIME,
@@ -166,7 +166,7 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
         () => {
           console.log("[entitlements] Subscription changed — invalidating cache");
           setSubscriptionUpdatedAt(Date.now());
-          queryClient.invalidateQueries({ queryKey: [CACHE_KEY, tenantId] });
+          queryClient.invalidateQueries({ queryKey: [ENTITLEMENTS_CACHE_KEY, tenantId] });
         }
       )
       .subscribe();
@@ -182,7 +182,7 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
 
   const invalidate = useCallback(() => {
     setSubscriptionUpdatedAt(Date.now());
-    queryClient.invalidateQueries({ queryKey: [CACHE_KEY] });
+    queryClient.invalidateQueries({ queryKey: [ENTITLEMENTS_CACHE_KEY] });
   }, [queryClient]);
 
   return (
