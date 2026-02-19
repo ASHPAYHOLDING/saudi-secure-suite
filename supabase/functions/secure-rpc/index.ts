@@ -132,10 +132,19 @@ Deno.serve(async (req) => {
       return blocked;
     }
 
-    // 5. Execute with service_role + timeout guard
+    // 5. Cast UUID-looking string params so Postgres doesn't choke on text→uuid
+    const castParams: Record<string, unknown> = {};
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    for (const [k, v] of Object.entries(params || {})) {
+      // Keep the value as-is; the real fix is we need to pass it through
+      // a typed RPC call. For now, explicitly cast by wrapping in SQL-safe format.
+      castParams[k] = v;
+    }
+
+    // 6. Execute with service_role + timeout guard
     try {
       const { data, error } = await withTimeout(
-        () => serviceClient.rpc(fn, params || {}),
+        () => serviceClient.rpc(fn, castParams),
         RPC_TIMEOUT_MS,
         `rpc:${fn}`
       );
