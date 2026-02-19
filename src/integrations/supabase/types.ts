@@ -8558,9 +8558,17 @@ export type Database = {
         Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
         Returns: string
       }
+      reconcile_invoices_without_journals: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       reconcile_subscription_revenue: {
         Args: { p_tenant_id: string }
         Returns: string
+      }
+      reconcile_unbalanced_journals: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
       }
       reconcile_vat_totals: {
         Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
