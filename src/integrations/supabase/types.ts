@@ -7895,6 +7895,50 @@ export type Database = {
           },
         ]
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          payload: Json | null
+          processed_at: string
+          provider: string
+          provider_response: Json | null
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          provider: string
+          provider_response?: Json | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          provider?: string
+          provider_response?: Json | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zatca_certificates: {
         Row: {
           certificate: string | null
