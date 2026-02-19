@@ -7908,6 +7908,8 @@ export type Database = {
           is_active: boolean
           issued_at: string | null
           private_key: string | null
+          private_key_encrypted: string | null
+          private_key_kid: string | null
           request_id: string | null
           tenant_id: string
           updated_at: string
@@ -7924,6 +7926,8 @@ export type Database = {
           is_active?: boolean
           issued_at?: string | null
           private_key?: string | null
+          private_key_encrypted?: string | null
+          private_key_kid?: string | null
           request_id?: string | null
           tenant_id: string
           updated_at?: string
@@ -7940,6 +7944,8 @@ export type Database = {
           is_active?: boolean
           issued_at?: string | null
           private_key?: string | null
+          private_key_encrypted?: string | null
+          private_key_kid?: string | null
           request_id?: string | null
           tenant_id?: string
           updated_at?: string
@@ -8361,7 +8367,9 @@ export type Database = {
           expires_at: string | null
           id: string | null
           is_active: boolean | null
+          is_key_encrypted: boolean | null
           issued_at: string | null
+          private_key_kid: string | null
           request_id: string | null
           tenant_id: string | null
           updated_at: string | null
@@ -8376,7 +8384,9 @@ export type Database = {
           expires_at?: string | null
           id?: string | null
           is_active?: boolean | null
+          is_key_encrypted?: never
           issued_at?: string | null
+          private_key_kid?: string | null
           request_id?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -8391,7 +8401,9 @@ export type Database = {
           expires_at?: string | null
           id?: string | null
           is_active?: boolean | null
+          is_key_encrypted?: never
           issued_at?: string | null
+          private_key_kid?: string | null
           request_id?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -8491,6 +8503,10 @@ export type Database = {
         }
         Returns: string
       }
+      encrypt_zatca_private_key: {
+        Args: { p_cert_id: string; p_master_key: string; p_private_key: string }
+        Returns: undefined
+      }
       enforce_feature_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: boolean
@@ -8562,12 +8578,8 @@ export type Database = {
       }
       get_user_tenant_id: { Args: never; Returns: string }
       get_zatca_private_key: {
-        Args: { _certificate_type: string; _tenant_id: string }
-        Returns: {
-          certificate: string
-          csid: string
-          private_key: string
-        }[]
+        Args: { p_cert_id: string; p_master_key: string }
+        Returns: string
       }
       has_role: {
         Args: {
