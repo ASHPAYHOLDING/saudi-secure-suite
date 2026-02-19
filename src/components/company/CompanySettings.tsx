@@ -15,6 +15,7 @@ import {
   Shield, CheckCircle2, Clock, AlertTriangle, XCircle, RefreshCw, Wifi
 } from "lucide-react";
 import FinanceControlPanel from "@/components/company/FinanceControlPanel";
+import EmailPreferencesPanel from "@/components/company/EmailPreferencesPanel";
 
 interface CompanyData {
   name: string;
@@ -545,6 +546,9 @@ const CompanySettings = () => {
 
       {/* Finance Control Panel */}
       <FinanceControlPanel />
+
+      {/* Email Preferences */}
+      <EmailPreferencesPanel />
     </div>
   );
 };
