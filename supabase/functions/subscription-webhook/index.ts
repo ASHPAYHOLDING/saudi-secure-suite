@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { checkIdempotency, markWebhookCompleted, logWebhookAudit } from "../_shared/webhook-verify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,6 +61,21 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "transactionNo is required" }, 400);
       }
 
+      // ── IDEMPOTENCY: Use webhook_events table for atomic dedup ──
+      const eventId = `paylink-sub-${transactionNo}-${orderStatus || "unknown"}`;
+      const { duplicate, existingStatus } = await checkIdempotency(
+        supabase, "paylink-subscription", eventId, null,
+        { transactionNo, orderStatus }
+      );
+
+      if (duplicate) {
+        await logWebhookAudit(supabase, null, "webhook_duplicate", {
+          provider: "paylink-subscription", event_id: eventId,
+          existing_status: existingStatus,
+        });
+        return jsonResponse({ success: true, already_processed: true });
+      }
+
       // Find the pending upgrade request by bank_reference (which stores transactionNo)
       const { data: upgradeReq } = await supabase
         .from("subscription_upgrade_requests")
@@ -72,13 +88,8 @@ Deno.serve(async (req) => {
 
       if (!upgradeReq) {
         console.log("No pending upgrade request found for transaction:", transactionNo);
+        await markWebhookCompleted(supabase, "paylink-subscription", eventId, "no_pending_request", { transactionNo });
         return jsonResponse({ success: true, message: "No matching request" });
-      }
-
-      // ── IDEMPOTENCY: Skip if already processed ──
-      if (upgradeReq.status !== "pending") {
-        console.log("Request already processed:", upgradeReq.id);
-        return jsonResponse({ success: true, already_processed: true });
       }
 
       if (orderStatus === "Paid" || orderStatus === "paid") {
@@ -227,6 +238,7 @@ Deno.serve(async (req) => {
         });
 
         console.log("Subscription activated successfully for tenant:", upgradeReq.tenant_id);
+        await markWebhookCompleted(supabase, "paylink-subscription", eventId, "completed", { transactionNo, plan_id: plan.id });
         return jsonResponse({ success: true, activated: true });
 
       } else if (orderStatus === "Canceled" || orderStatus === "canceled" || orderStatus === "Declined") {
@@ -239,6 +251,7 @@ Deno.serve(async (req) => {
           })
           .eq("id", upgradeReq.id);
 
+        await markWebhookCompleted(supabase, "paylink-subscription", eventId, "cancelled", { transactionNo, orderStatus });
         return jsonResponse({ success: true, cancelled: true });
       }
 
