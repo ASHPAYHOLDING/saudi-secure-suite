@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import {
   ShieldAlert, ShieldCheck, AlertTriangle, Info, Play, Loader2,
   CheckCircle2, XCircle, Clock, FileText, Wallet, Receipt, CreditCard,
-  RefreshCw, ChevronDown, ChevronUp, ExternalLink,
+  RefreshCw, ChevronDown, ChevronUp, ExternalLink, BookOpen, Scale,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -57,6 +57,8 @@ type ReconciliationIssue = {
 
 const RUN_TYPE_CONFIG: Record<string, { icon: any; labelAr: string; labelEn: string; color: string }> = {
   invoice_payments: { icon: FileText, labelAr: "الفواتير والمدفوعات", labelEn: "Invoices vs Payments", color: "text-blue-500" },
+  invoices_without_journals: { icon: BookOpen, labelAr: "فواتير بدون قيود", labelEn: "Invoices Without Journals", color: "text-rose-500" },
+  unbalanced_journals: { icon: Scale, labelAr: "قيود غير متوازنة", labelEn: "Unbalanced Journals", color: "text-orange-500" },
   wallet_journal: { icon: Wallet, labelAr: "المحفظة والقيود", labelEn: "Wallet vs Journal", color: "text-emerald-500" },
   vat_totals: { icon: Receipt, labelAr: "ضريبة القيمة المضافة", labelEn: "VAT Totals", color: "text-amber-500" },
   subscription_revenue: { icon: CreditCard, labelAr: "إيرادات الاشتراكات", labelEn: "Subscription Revenue", color: "text-purple-500" },
@@ -114,6 +116,12 @@ const DataQualityCenterPage = () => {
         case "invoice_payments":
           fn = "reconcile_invoices_vs_payments";
           break;
+        case "invoices_without_journals":
+          fn = "reconcile_invoices_without_journals";
+          break;
+        case "unbalanced_journals":
+          fn = "reconcile_unbalanced_journals";
+          break;
         case "wallet_journal":
           fn = "reconcile_wallet_vs_journal";
           break;
@@ -141,7 +149,7 @@ const DataQualityCenterPage = () => {
   });
 
   const runAll = useCallback(async () => {
-    for (const type of ["invoice_payments", "wallet_journal", "vat_totals", "subscription_revenue"]) {
+    for (const type of ["invoice_payments", "invoices_without_journals", "unbalanced_journals", "wallet_journal", "vat_totals", "subscription_revenue"]) {
       await runReconciliation.mutateAsync(type);
     }
   }, [runReconciliation]);
