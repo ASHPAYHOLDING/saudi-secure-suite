@@ -1,12 +1,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
 import { RequestLogger } from "../_shared/request-logger.ts";
+import { withTimeout, TimeoutError } from "../_shared/timeout-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-correlation-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const RPC_TIMEOUT_MS = 5000;
 
 // Whitelist of functions allowed through this proxy
 const ALLOWED_FUNCTIONS: Record<string, boolean> = {
@@ -129,25 +132,44 @@ Deno.serve(async (req) => {
       return blocked;
     }
 
-    // 5. Execute with service_role
-    const { data, error } = await serviceClient.rpc(fn, params || {});
-
-    if (error) {
-      console.error(`[secure-rpc] ${fn} error:`, error);
-      await logger.flush(400, error.message);
-      return new Response(
-        JSON.stringify({ error: error.message, code: error.code }),
-        {
-          status: 400,
-          headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
-        }
+    // 5. Execute with service_role + timeout guard
+    try {
+      const { data, error } = await withTimeout(
+        () => serviceClient.rpc(fn, params || {}),
+        RPC_TIMEOUT_MS,
+        `rpc:${fn}`
       );
-    }
 
-    await logger.flush(200);
-    return new Response(JSON.stringify({ data }), {
-      headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
-    });
+      if (error) {
+        console.error(`[secure-rpc] ${fn} error:`, error);
+        await logger.flush(400, error.message);
+        return new Response(
+          JSON.stringify({ error: error.message, code: error.code }),
+          {
+            status: 400,
+            headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      await logger.flush(200);
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
+      });
+    } catch (timeoutErr) {
+      if (timeoutErr instanceof TimeoutError) {
+        console.error(`[secure-rpc] ${fn} timed out after ${RPC_TIMEOUT_MS}ms`);
+        await logger.flush(504, `Timeout: ${fn}`);
+        return new Response(
+          JSON.stringify({ error: "انتهت مهلة العملية", code: "TIMEOUT" }),
+          {
+            status: 504,
+            headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
+          }
+        );
+      }
+      throw timeoutErr;
+    }
   } catch (err) {
     console.error("[secure-rpc] Unexpected error:", err);
     await logger.flush(500, String(err));

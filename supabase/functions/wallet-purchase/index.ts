@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
 import { verifyWebhookSignature, checkIdempotency, markWebhookCompleted, logWebhookAudit } from "../_shared/webhook-verify.ts";
+import { withRequestTimeout } from "../_shared/timeout-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +9,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-Deno.serve(async (req) => {
+const WALLET_TIMEOUT_MS = 8000;
+
+Deno.serve(withRequestTimeout(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -72,7 +75,7 @@ Deno.serve(async (req) => {
     console.error("wallet-purchase error:", err);
     return json({ error: err.message || "Internal error" }, 500);
   }
-});
+}, WALLET_TIMEOUT_MS, corsHeaders));
 
 // ===================== GET BALANCE =====================
 async function handleGetBalance(supabase: any, tenantId: string) {
