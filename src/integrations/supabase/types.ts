@@ -52,16 +52,21 @@ export type Database = {
           affiliate_id: string
           commission_amount: number
           commission_rate: number
+          commission_type: string
           created_at: string
           gross_amount: number
           id: string
           invoice_id: string | null
           locked_until: string | null
           net_amount: number
+          original_commission_id: string | null
           paid_at: string | null
           payout_id: string | null
+          recurring_month: number | null
           status: string
           subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_period_start: string | null
           tenant_id: string | null
           updated_at: string
         }
@@ -69,16 +74,21 @@ export type Database = {
           affiliate_id: string
           commission_amount?: number
           commission_rate?: number
+          commission_type?: string
           created_at?: string
           gross_amount?: number
           id?: string
           invoice_id?: string | null
           locked_until?: string | null
           net_amount?: number
+          original_commission_id?: string | null
           paid_at?: string | null
           payout_id?: string | null
+          recurring_month?: number | null
           status?: string
           subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_period_start?: string | null
           tenant_id?: string | null
           updated_at?: string
         }
@@ -86,16 +96,21 @@ export type Database = {
           affiliate_id?: string
           commission_amount?: number
           commission_rate?: number
+          commission_type?: string
           created_at?: string
           gross_amount?: number
           id?: string
           invoice_id?: string | null
           locked_until?: string | null
           net_amount?: number
+          original_commission_id?: string | null
           paid_at?: string | null
           payout_id?: string | null
+          recurring_month?: number | null
           status?: string
           subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_period_start?: string | null
           tenant_id?: string | null
           updated_at?: string
         }
@@ -122,6 +137,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "affiliate_commissions_original_commission_id_fkey"
+            columns: ["original_commission_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_commissions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "affiliate_commissions_payout_id_fkey"
             columns: ["payout_id"]
             isOneToOne: false
@@ -137,6 +159,70 @@ export type Database = {
           },
           {
             foreignKeyName: "affiliate_commissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_conversion_events: {
+        Row: {
+          affiliate_id: string
+          created_at: string
+          event_metadata: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          referral_id: string | null
+          referred_user_id: string | null
+          revenue_amount: number | null
+          tenant_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          created_at?: string
+          event_metadata?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          referral_id?: string | null
+          referred_user_id?: string | null
+          revenue_amount?: number | null
+          tenant_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          created_at?: string
+          event_metadata?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          referral_id?: string | null
+          referred_user_id?: string | null
+          revenue_amount?: number | null
+          tenant_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_conversion_events_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_conversion_events_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_conversion_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -186,6 +272,56 @@ export type Database = {
             foreignKeyName: "affiliate_fraud_attempts_affiliate_id_fkey"
             columns: ["affiliate_id"]
             isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_payout_schedules: {
+        Row: {
+          affiliate_id: string
+          auto_approve: boolean | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_payout_at: string | null
+          min_payout_amount: number | null
+          next_payout_at: string | null
+          payout_day: number | null
+          schedule_type: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          auto_approve?: boolean | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_payout_at?: string | null
+          min_payout_amount?: number | null
+          next_payout_at?: string | null
+          payout_day?: number | null
+          schedule_type?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          auto_approve?: boolean | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_payout_at?: string | null
+          min_payout_amount?: number | null
+          next_payout_at?: string | null
+          payout_day?: number | null
+          schedule_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_payout_schedules_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: true
             referencedRelation: "affiliates"
             referencedColumns: ["id"]
           },
@@ -8790,6 +8926,7 @@ export type Database = {
         Args: { p_prefix: string; p_tenant_id: string }
         Returns: string
       }
+      generate_recurring_commissions: { Args: never; Returns: Json }
       generate_smart_notifications: { Args: never; Returns: undefined }
       get_consolidated_balance_sheet: {
         Args: { _as_of_date?: string; _parent_tenant_id: string }
@@ -8918,6 +9055,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_scheduled_affiliate_payouts: { Args: never; Returns: Json }
       process_subscription_expiry: { Args: never; Returns: undefined }
       process_wallet_transaction: {
         Args: {
