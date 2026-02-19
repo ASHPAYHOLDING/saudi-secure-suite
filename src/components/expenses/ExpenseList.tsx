@@ -82,7 +82,7 @@ const ExpenseList = ({ onCreateNew, onView, onEdit }: ExpenseListProps) => {
   const months = Array.from(new Set(expenses.map((e: any) => e.expense_date?.slice(0, 7)).filter(Boolean))).sort().reverse();
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="p-4 sm:p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">المصروفات</h1>
@@ -110,15 +110,15 @@ const ExpenseList = ({ onCreateNew, onView, onEdit }: ExpenseListProps) => {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <Receipt size={20} />
             المصروفات ({filtered.length})
           </CardTitle>
-          <div className="flex gap-2 flex-wrap">
-            <div className="relative">
-              <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 w-48" />
+          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="ps-9 w-full sm:w-48" />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
