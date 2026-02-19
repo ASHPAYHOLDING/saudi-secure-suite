@@ -77,6 +77,7 @@
     "team": "Team Management",
     "integrations": "Integrations",
     "paidIntegrations": "Paid Integrations",
+    "apiKeys": "Public API",
     "subscription": "Subscription",
     "companySettings": "Company Settings",
     "branches": "Branches",

@@ -66,6 +66,7 @@ const CustomReportBuilder = lazy(() => import("@/components/reports/CustomReport
 const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingPage"));
 const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
 const AdvancedAccountingGate = lazy(() => import("@/components/accounting/AdvancedAccountingGate"));
+const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -113,6 +114,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   help: "help",
   support: "help",
   group: "company",
+  "api-keys": "integrations",
 };
 
 const Dashboard = () => {
@@ -201,6 +203,7 @@ const Dashboard = () => {
     if (path === "/dashboard/report-builder") return withGate("reports", <CustomReportBuilder />);
     if (path === "/dashboard/forecasting") return withGate("analytics", <ForecastingPage />);
     if (path === "/dashboard/period-lock") return withGate("journal-entries", <PeriodLockManagement />);
+    if (path === "/dashboard/api-keys") return <ApiKeysManagement />;
     return <DashboardHome />;
   };
 
