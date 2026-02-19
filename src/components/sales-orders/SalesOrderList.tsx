@@ -100,7 +100,7 @@ const SalesOrderList = ({ onCreateNew, onCreateFromQuotation, onView, onEdit }: 
   const totalValue = orders.filter((o: any) => o.status !== "cancelled").reduce((s: number, o: any) => s + (o.grand_total || 0), 0);
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="p-4 sm:p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">أوامر البيع</h1>
@@ -161,14 +161,14 @@ const SalesOrderList = ({ onCreateNew, onCreateFromQuotation, onView, onEdit }: 
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <ShoppingCart size={20} />
             أوامر البيع ({filtered.length})
           </CardTitle>
-          <div className="relative">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 w-60" />
+          <div className="relative w-full sm:w-auto">
+            <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="ps-9 w-full sm:w-60" />
           </div>
         </CardHeader>
         <CardContent>

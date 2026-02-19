@@ -69,7 +69,7 @@ const QuotationList = ({ onCreateNew, onView, onEdit }: QuotationListProps) => {
   );
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
+    <div className="p-4 sm:p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">عروض الأسعار</h1>
@@ -81,14 +81,14 @@ const QuotationList = ({ onCreateNew, onView, onEdit }: QuotationListProps) => {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <FileText size={20} />
             عروض الأسعار ({filtered.length})
           </CardTitle>
-          <div className="relative">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 w-60" />
+          <div className="relative w-full sm:w-auto">
+            <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="بحث..." value={search} onChange={(e) => setSearch(e.target.value)} className="ps-9 w-full sm:w-60" />
           </div>
         </CardHeader>
         <CardContent>
