@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.public-api]
 verify_jwt = false
+
+[functions.regenerate-zatca-credentials]
+verify_jwt = false

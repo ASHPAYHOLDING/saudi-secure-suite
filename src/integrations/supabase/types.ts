@@ -8176,12 +8176,15 @@ export type Database = {
       }
       tenants: {
         Row: {
+          additional_number: string | null
           address_city: string | null
+          address_district: string | null
           address_street: string | null
           address_zip: string | null
           brand_font: string | null
           brand_primary_color: string | null
           brand_secondary_color: string | null
+          building_number: string | null
           compliance_verified_at: string | null
           cr_number: string | null
           created_at: string
@@ -8219,12 +8222,15 @@ export type Database = {
           zatca_request_id: string | null
         }
         Insert: {
+          additional_number?: string | null
           address_city?: string | null
+          address_district?: string | null
           address_street?: string | null
           address_zip?: string | null
           brand_font?: string | null
           brand_primary_color?: string | null
           brand_secondary_color?: string | null
+          building_number?: string | null
           compliance_verified_at?: string | null
           cr_number?: string | null
           created_at?: string
@@ -8262,12 +8268,15 @@ export type Database = {
           zatca_request_id?: string | null
         }
         Update: {
+          additional_number?: string | null
           address_city?: string | null
+          address_district?: string | null
           address_street?: string | null
           address_zip?: string | null
           brand_font?: string | null
           brand_primary_color?: string | null
           brand_secondary_color?: string | null
+          building_number?: string | null
           compliance_verified_at?: string | null
           cr_number?: string | null
           created_at?: string
@@ -8892,6 +8901,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "zatca_icv_counter_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zatca_settings: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          credential_metadata: Json
+          id: string
+          last_credential_refresh: string | null
+          last_error: string | null
+          tenant_id: string
+          updated_at: string
+          zatca_status: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          credential_metadata?: Json
+          id?: string
+          last_credential_refresh?: string | null
+          last_error?: string | null
+          tenant_id: string
+          updated_at?: string
+          zatca_status?: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          credential_metadata?: Json
+          id?: string
+          last_credential_refresh?: string | null
+          last_error?: string | null
+          tenant_id?: string
+          updated_at?: string
+          zatca_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
             referencedRelation: "tenants"
