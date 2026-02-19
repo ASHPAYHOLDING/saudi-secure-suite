@@ -8101,6 +8101,38 @@ export type Database = {
           },
         ]
       }
+      tenant_settings: {
+        Row: {
+          branding_config: Json
+          created_at: string
+          id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          branding_config?: Json
+          created_at?: string
+          id?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          branding_config?: Json
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_wallets: {
         Row: {
           balance_available: number
