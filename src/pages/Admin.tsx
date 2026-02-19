@@ -1,30 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminNotifications from "@/components/admin/AdminNotifications";
-import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
-import AdminDashboard from "@/components/admin/AdminDashboard";
-import AdminCompanies from "@/components/admin/AdminCompanies";
-import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
-import AdminUsers from "@/components/admin/AdminUsers";
-import AdminFeatureToggles from "@/components/admin/AdminFeatureToggles";
-import AdminSecurityCenter from "@/components/admin/AdminSecurityCenter";
-import AdminFinance from "@/components/admin/AdminFinance";
-import AdminTemplates from "@/components/admin/AdminTemplates";
-import AdminEmailTemplates from "@/components/admin/AdminEmailTemplates";
-import AdminEmailCenter from "@/components/admin/AdminEmailCenter";
-import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
-import AdminInfrastructure from "@/components/admin/AdminInfrastructure";
-import AdminPaylinkFees from "@/components/admin/AdminPaylinkFees";
-import AdminPaylinkManagement from "@/components/admin/AdminPaylinkManagement";
-import AdminSupportTickets from "@/components/admin/AdminSupportTickets";
-import AdminPaidIntegrations from "@/components/admin/AdminPaidIntegrations";
-import AdminWalletRequests from "@/components/admin/AdminWalletRequests";
-import AdminDiscountCodes from "@/components/admin/AdminDiscountCodes";
-import AdminAffiliateManagement from "@/components/admin/AdminAffiliateManagement";
+import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+
+// --- Lazy-loaded admin pages ---
+const AdminDashboard = lazy(() => import("@/components/admin/AdminDashboard"));
+const AdminCompanies = lazy(() => import("@/components/admin/AdminCompanies"));
+const AdminSubscriptions = lazy(() => import("@/components/admin/AdminSubscriptions"));
+const AdminUsers = lazy(() => import("@/components/admin/AdminUsers"));
+const AdminFeatureToggles = lazy(() => import("@/components/admin/AdminFeatureToggles"));
+const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityCenter"));
+const AdminFinance = lazy(() => import("@/components/admin/AdminFinance"));
+const AdminTemplates = lazy(() => import("@/components/admin/AdminTemplates"));
+const AdminEmailTemplates = lazy(() => import("@/components/admin/AdminEmailTemplates"));
+const AdminEmailCenter = lazy(() => import("@/components/admin/AdminEmailCenter"));
+const AdminAIAssistant = lazy(() => import("@/components/admin/AdminAIAssistant"));
+const AdminInfrastructure = lazy(() => import("@/components/admin/AdminInfrastructure"));
+const AdminPaylinkFees = lazy(() => import("@/components/admin/AdminPaylinkFees"));
+const AdminPaylinkManagement = lazy(() => import("@/components/admin/AdminPaylinkManagement"));
+const AdminSupportTickets = lazy(() => import("@/components/admin/AdminSupportTickets"));
+const AdminPaidIntegrations = lazy(() => import("@/components/admin/AdminPaidIntegrations"));
+const AdminWalletRequests = lazy(() => import("@/components/admin/AdminWalletRequests"));
+const AdminDiscountCodes = lazy(() => import("@/components/admin/AdminDiscountCodes"));
+const AdminAffiliateManagement = lazy(() => import("@/components/admin/AdminAffiliateManagement"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -34,7 +36,6 @@ const Admin = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
@@ -90,10 +91,8 @@ const Admin = () => {
     return <AdminDashboard />;
   };
 
-
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Mobile sidebar backdrop */}
       {mobileSidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/50 md:hidden"
@@ -124,7 +123,9 @@ const Admin = () => {
           </div>
           <AdminNotifications />
         </div>
-        {renderContent()}
+        <Suspense fallback={<PageLoadingSkeleton />}>
+          {renderContent()}
+        </Suspense>
       </div>
     </div>
   );
