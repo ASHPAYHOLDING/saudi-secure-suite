@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import ZatcaOnboardingWizard from "@/components/compliance/ZatcaOnboardingWizard";
+import ZatcaCertificateManagement from "@/components/compliance/ZatcaCertificateManagement";
 
 interface ComplianceState {
   vatRegistered: boolean;
@@ -424,8 +425,9 @@ const ComplianceSettings = () => {
                 </div>
 
                 {state.zatcaPhase2Ready && (
-                  <div className="mt-4 border-t border-border pt-4">
+                  <div className="mt-4 border-t border-border pt-4 space-y-6">
                     <ZatcaOnboardingWizard />
+                    <ZatcaCertificateManagement />
                   </div>
                 )}
               </div>
