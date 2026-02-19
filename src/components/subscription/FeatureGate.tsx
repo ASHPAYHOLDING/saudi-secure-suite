@@ -1,6 +1,7 @@
 import { useFeatureGate, type FeatureKey } from "@/hooks/useEntitlements";
-import { Loader2, Lock, Crown } from "lucide-react";
+import { Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 
 interface FeatureGateProps {
@@ -35,8 +36,13 @@ const FeatureGate = ({
   if (loading) {
     if (inline) return null;
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-4 p-6">
+        <Skeleton className="h-8 w-48 rounded-lg" />
+        <Skeleton className="h-4 w-72 rounded" />
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+        </div>
       </div>
     );
   }
