@@ -3815,6 +3815,98 @@ export type Database = {
           },
         ]
       }
+      monitoring_alert_rules: {
+        Row: {
+          condition: string
+          created_at: string
+          id: string
+          is_active: boolean
+          metric_name: string
+          metric_source: string
+          name: string
+          severity: string
+          threshold: number
+          updated_at: string
+          window_minutes: number
+        }
+        Insert: {
+          condition?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric_name: string
+          metric_source: string
+          name: string
+          severity?: string
+          threshold: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric_name?: string
+          metric_source?: string
+          name?: string
+          severity?: string
+          threshold?: number
+          updated_at?: string
+          window_minutes?: number
+        }
+        Relationships: []
+      }
+      monitoring_alerts: {
+        Row: {
+          current_value: number
+          fired_at: string
+          id: string
+          is_resolved: boolean
+          message: string
+          metric_name: string
+          metric_source: string
+          resolved_at: string | null
+          rule_id: string | null
+          severity: string
+          threshold: number
+        }
+        Insert: {
+          current_value: number
+          fired_at?: string
+          id?: string
+          is_resolved?: boolean
+          message: string
+          metric_name: string
+          metric_source: string
+          resolved_at?: string | null
+          rule_id?: string | null
+          severity?: string
+          threshold: number
+        }
+        Update: {
+          current_value?: number
+          fired_at?: string
+          id?: string
+          is_resolved?: boolean
+          message?: string
+          metric_name?: string
+          metric_source?: string
+          resolved_at?: string | null
+          rule_id?: string | null
+          severity?: string
+          threshold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_alerts_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "monitoring_alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -5143,6 +5235,47 @@ export type Database = {
           },
           {
             foreignKeyName: "product_variants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_source: string
+          metric_value: number
+          recorded_at: string
+          tags: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_source: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_source?: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_metrics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -8688,6 +8821,8 @@ export type Database = {
           total_debit: number
         }[]
       }
+      get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
+      get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
       get_group_subsidiaries: {
         Args: { _parent_tenant_id: string }
         Returns: {

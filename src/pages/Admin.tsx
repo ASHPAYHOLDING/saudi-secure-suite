@@ -21,6 +21,7 @@ const AdminEmailCenter = lazy(() => import("@/components/admin/AdminEmailCenter"
 const AdminAIAssistant = lazy(() => import("@/components/admin/AdminAIAssistant"));
 const AdminInfrastructure = lazy(() => import("@/components/admin/AdminInfrastructure"));
 const AdminPlatformHealth = lazy(() => import("@/components/admin/AdminPlatformHealth"));
+const AdminMonitoring = lazy(() => import("@/components/admin/AdminMonitoring"));
 const AdminPaylinkFees = lazy(() => import("@/components/admin/AdminPaylinkFees"));
 const AdminPaylinkManagement = lazy(() => import("@/components/admin/AdminPaylinkManagement"));
 const AdminSupportTickets = lazy(() => import("@/components/admin/AdminSupportTickets"));
@@ -83,6 +84,7 @@ const Admin = () => {
     if (path === "/admin/ai") return <AdminAIAssistant />;
     if (path === "/admin/infrastructure") return <AdminInfrastructure />;
     if (path === "/admin/platform-health") return <AdminPlatformHealth />;
+    if (path === "/admin/monitoring") return <AdminMonitoring />;
     if (path === "/admin/paylink-fees") return <AdminPaylinkFees />;
     if (path === "/admin/paylink-management") return <AdminPaylinkManagement />;
     if (path === "/admin/support") return <AdminSupportTickets />;
