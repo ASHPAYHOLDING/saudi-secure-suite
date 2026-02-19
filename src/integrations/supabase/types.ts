@@ -2101,6 +2101,63 @@ export type Database = {
           },
         ]
       }
+      customer_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          customer_id: string
+          description: string | null
+          due_date: string | null
+          id: string
+          is_completed: boolean | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          customer_id: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          customer_id?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_tasks_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address_city: string | null
@@ -2109,6 +2166,7 @@ export type Database = {
           branch_id: string | null
           cr_number: string | null
           created_at: string
+          credit_limit: number | null
           customer_type: string
           email: string | null
           id: string
@@ -2117,6 +2175,7 @@ export type Database = {
           name_en: string | null
           notes: string | null
           phone: string | null
+          segment: string | null
           tags: string[] | null
           tenant_id: string
           updated_at: string
@@ -2129,6 +2188,7 @@ export type Database = {
           branch_id?: string | null
           cr_number?: string | null
           created_at?: string
+          credit_limit?: number | null
           customer_type?: string
           email?: string | null
           id?: string
@@ -2137,6 +2197,7 @@ export type Database = {
           name_en?: string | null
           notes?: string | null
           phone?: string | null
+          segment?: string | null
           tags?: string[] | null
           tenant_id: string
           updated_at?: string
@@ -2149,6 +2210,7 @@ export type Database = {
           branch_id?: string | null
           cr_number?: string | null
           created_at?: string
+          credit_limit?: number | null
           customer_type?: string
           email?: string | null
           id?: string
@@ -2157,6 +2219,7 @@ export type Database = {
           name_en?: string | null
           notes?: string | null
           phone?: string | null
+          segment?: string | null
           tags?: string[] | null
           tenant_id?: string
           updated_at?: string
