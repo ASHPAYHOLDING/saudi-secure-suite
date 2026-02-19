@@ -1,6 +1,9 @@
 import { useFeatureGate, type FeatureKey } from "@/hooks/useEntitlements";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
-import { Lock, Crown, Bug } from "lucide-react";
+import { FEATURE_KEYS } from "@/lib/entitlement-types";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
+import { useAuth } from "@/contexts/AuthContext";
+import { Lock, Crown, Bug, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
@@ -26,6 +29,29 @@ function stringSimilarity(a: string, b: string): number {
   return (2 * intersect) / (a.length + b.length - 2);
 }
 
+/**
+ * Maps feature keys to the RBAC permission keys required.
+ * If a feature key is here, RBAC is checked FIRST before entitlements.
+ */
+const FEATURE_RBAC_MAP: Partial<Record<string, string[]>> = {
+  [FEATURE_KEYS.INVOICES_BASIC]: ["finance.invoices.view", "finance.invoices.create"],
+  [FEATURE_KEYS.EXPENSES]: ["finance.expenses.view", "finance.expenses.create"],
+  [FEATURE_KEYS.JOURNAL_ENTRIES]: ["finance.journal.view", "finance.journal.create"],
+  [FEATURE_KEYS.ACCOUNTING_ADVANCED]: ["finance.reports.view"],
+  [FEATURE_KEYS.ADVANCED_REPORTS]: ["finance.reports.view"],
+  [FEATURE_KEYS.HR]: ["hr.employees.view"],
+  [FEATURE_KEYS.CONTRACTS]: ["finance.contracts.view", "finance.contracts.create"],
+  [FEATURE_KEYS.BRANCHES]: ["settings.branches.view"],
+  [FEATURE_KEYS.QUOTATIONS]: ["finance.quotations.view", "finance.quotations.create"],
+  [FEATURE_KEYS.SALES_ORDERS]: ["finance.sales_orders.view"],
+  [FEATURE_KEYS.PURCHASE_ORDERS]: ["finance.purchase_orders.view"],
+  [FEATURE_KEYS.DELIVERY_NOTES]: ["finance.delivery_notes.view"],
+  [FEATURE_KEYS.INVENTORY]: ["inventory.products.view"],
+  [FEATURE_KEYS.WALLET]: ["finance.wallet.view"],
+  [FEATURE_KEYS.AUDIT_LOG]: ["settings.audit.view"],
+  [FEATURE_KEYS.TEAM_MANAGEMENT]: ["settings.team.view"],
+};
+
 interface FeatureGateProps {
   featureKey: FeatureKey;
   children: React.ReactNode;
@@ -46,8 +72,10 @@ const FeatureGate = ({
   featureDescription,
   inline = false,
 }: FeatureGateProps) => {
-  const { allowed, loading, reason } = useFeatureGate(featureKey);
+  const { allowed: entAllowed, loading: entLoading, reason: entReason } = useFeatureGate(featureKey);
   const { entitlementsMap, planSlug, planStatus } = useEntitlementsContext();
+  const { can: canRbac, canAny: canAnyRbac, loading: rbacLoading } = useGranularPermissions();
+  const { userRole } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -56,6 +84,22 @@ const FeatureGate = ({
   const showDebug = isDev || debugParam;
 
   const keyExists = featureKey in entitlementsMap;
+
+  // RBAC check: if this feature has mapped RBAC permissions, check them first
+  const rbacPerms = FEATURE_RBAC_MAP[featureKey];
+  const rbacAllowed = useMemo(() => {
+    if (!rbacPerms || rbacPerms.length === 0) return true; // no RBAC gate
+    if (userRole === "owner") return true; // owner bypasses RBAC
+    return canAnyRbac(...rbacPerms);
+  }, [rbacPerms, userRole, canAnyRbac]);
+
+  const rbacReason = !rbacAllowed ? "no_permission" : "ok";
+
+  // Combined: RBAC blocks first, then entitlements
+  const loading = entLoading || rbacLoading;
+  const allowed = rbacAllowed && entAllowed;
+  const reason = !rbacAllowed ? "rbac_denied" : entReason;
+  const isRbacDenial = !rbacAllowed;
 
   const closestKeys = useMemo(() => {
     if (keyExists) return [];
@@ -71,10 +115,10 @@ const FeatureGate = ({
   useEffect(() => {
     if (!loading && !allowed) {
       console.warn(
-        `[FeatureGate] locked | key=${featureKey} | reason=${reason} | plan=${planSlug} | found=${keyExists}`
+        `[FeatureGate] locked | key=${featureKey} | reason=${reason} | plan=${planSlug} | found=${keyExists} | rbacAllowed=${rbacAllowed} | rbacReason=${rbacReason}`
       );
     }
-  }, [loading, allowed, featureKey, reason, planSlug, keyExists]);
+  }, [loading, allowed, featureKey, reason, planSlug, keyExists, rbacAllowed, rbacReason]);
 
   const debugBlock = showDebug && !loading && !allowed && (
     <div className="mt-2 rounded border border-destructive/30 bg-destructive/5 p-2 text-[10px] font-mono text-destructive/80 space-y-0.5 max-w-sm" dir="ltr">
@@ -86,7 +130,13 @@ const FeatureGate = ({
       <div>reason: <span className="text-foreground">{reason || "—"}</span></div>
       <div>planSlug: <span className="text-foreground">{planSlug || "—"}</span></div>
       <div>planStatus: <span className="text-foreground">{planStatus || "—"}</span></div>
-      <div>keyInMap: <span className={keyExists ? "text-green-600" : "text-destructive font-bold"}>{String(keyExists)}</span></div>
+      <div>keyInMap: <span className={keyExists ? "text-foreground" : "text-destructive font-bold"}>{String(keyExists)}</span></div>
+      <div className="border-t border-destructive/20 pt-1 mt-1">
+        <div>rbacAllowed: <span className={rbacAllowed ? "text-foreground" : "text-destructive font-bold"}>{String(rbacAllowed)}</span></div>
+        <div>rbacReason: <span className="text-foreground">{rbacReason}</span></div>
+        <div>rbacPerms: <span className="text-foreground">{rbacPerms?.join(", ") || "none"}</span></div>
+        <div>userRole: <span className="text-foreground">{userRole || "—"}</span></div>
+      </div>
       {!keyExists && closestKeys.length > 0 && (
         <div>
           closest: {closestKeys.map((c) => `${c.key}(${(c.score * 100).toFixed(0)}%)`).join(", ")}
@@ -111,6 +161,45 @@ const FeatureGate = ({
   }
 
   if (!allowed) {
+    // RBAC denial: "No permission" UI
+    if (isRbacDenial) {
+      if (inline) {
+        return (
+          <div dir="rtl">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+              <ShieldAlert size={14} />
+              <span>
+                ليس لديك صلاحية للوصول إلى {featureLabel || "هذه الميزة"}.
+                تواصل مع مدير النظام لتعديل صلاحياتك.
+              </span>
+            </div>
+            {debugBlock}
+          </div>
+        );
+      }
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4 text-center" dir="rtl">
+          <div className="w-20 h-20 rounded-2xl bg-destructive/10 flex items-center justify-center">
+            <ShieldAlert className="w-10 h-10 text-destructive" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h2 className="text-xl font-bold text-foreground">
+              لا توجد صلاحية
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              ليس لديك الصلاحيات اللازمة للوصول إلى {featureLabel || "هذه الميزة"}.
+              تواصل مع مالك الحساب أو المدير لتعديل صلاحياتك.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            العودة للرئيسية
+          </Button>
+          {debugBlock}
+        </div>
+      );
+    }
+
+    // Entitlement denial: "Upgrade plan" UI
     if (inline) {
       return (
         <div dir="rtl">
