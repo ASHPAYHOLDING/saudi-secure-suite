@@ -351,6 +351,27 @@ const DashboardHome = () => {
     retry: 1,
   });
 
+  // Realtime: auto-refresh stats on invoice/expense changes
+  useEffect(() => {
+    if (!tenantId) return;
+
+    const channel = supabase
+      .channel(`dashboard-realtime-${tenantId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "invoices", filter: `tenant_id=eq.${tenantId}` },
+        () => { refetch(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expenses", filter: `tenant_id=eq.${tenantId}` },
+        () => { refetch(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [tenantId, refetch]);
+
   const actionLabel = (action: string, entityType: string) => {
     const actionMap: Record<string, string> = {
       create: t("dashboard.actionCreate"),
