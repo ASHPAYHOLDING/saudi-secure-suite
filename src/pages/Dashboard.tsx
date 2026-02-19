@@ -7,6 +7,7 @@ import DashboardHome from "@/components/dashboard/DashboardHome";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import FeatureGate from "@/components/subscription/FeatureGate";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
+import UsageLimitAlert from "@/components/subscription/UsageLimitAlert";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
@@ -230,6 +231,9 @@ const Dashboard = () => {
               <DashboardTopbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
               <CommandPalette />
               <UpgradeBanner />
+              <div className="px-6 space-y-3">
+                <UsageLimitAlert />
+              </div>
               <Suspense fallback={<PageLoadingSkeleton />}>
                 {renderContent()}
               </Suspense>

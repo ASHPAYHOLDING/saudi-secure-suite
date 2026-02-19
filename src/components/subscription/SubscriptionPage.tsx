@@ -26,6 +26,7 @@ import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DiscountCodeInput from "./DiscountCodeInput";
 import BankTransferForm from "./BankTransferForm";
+import ROICalculator from "./ROICalculator";
 
 interface Plan {
   id: string;
@@ -89,10 +90,10 @@ const ACTION_LABELS: Record<string, string> = {
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
 };
 
-const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string; icon: React.ReactNode; color: string }> = {
+const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string; icon: React.ReactNode; color: string; highlights?: string[] }> = {
   starter: { tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-accent/10 via-accent/5 to-transparent", icon: <Zap size={22} />, color: "text-accent" },
-  professional: { popular: true, tagline: "الأكثر طلباً للشركات المتوسطة", gradient: "from-accent/15 via-accent/5 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={22} />, color: "text-accent" },
-  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/15 via-primary/5 to-transparent", summaryBadge: "جميع الميزات + التكاملات", icon: <Building2 size={22} />, color: "text-primary" },
+  professional: { popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/15 via-accent/5 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={22} />, color: "text-accent", highlights: ["أدوات متقدمة للنمو", "دعم أولوية"] },
+  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/15 via-primary/5 to-transparent", summaryBadge: "جميع الميزات + التكاملات", icon: <Building2 size={22} />, color: "text-primary", highlights: ["كل التكاملات المدفوعة مجاناً", "مدير حساب مخصص", "SLA مضمون"] },
 };
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -995,7 +996,7 @@ const SubscriptionPage = () => {
                 const isCurrent = plan.id === subscription?.plan_id;
                 const price = getPlanPrice(plan, selectedCycle);
                 const monthlyEq = getMonthlyEquivalent(plan, selectedCycle);
-                const meta = PLAN_META[plan.slug] || { popular: false, tagline: "", gradient: "from-muted/50 to-transparent", icon: <Zap size={22} />, color: "text-muted-foreground" };
+                const meta = PLAN_META[plan.slug] || { popular: false, tagline: "", gradient: "from-muted/50 to-transparent", icon: <Zap size={22} />, color: "text-muted-foreground", highlights: [] as string[] };
                 const isPopular = !!meta.popular && !isCurrent;
 
                 const planFeatures = allFeatureKeys.map((key) => ({
@@ -1027,28 +1028,31 @@ const SubscriptionPage = () => {
                     <Card
                       className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden rounded-2xl ${
                         isCurrent ? "border-accent ring-2 ring-accent/20 shadow-xl shadow-accent/5" :
-                        isPopular ? "border-accent/40 ring-2 ring-accent/10 shadow-lg" :
+                        isPopular ? "border-accent/40 ring-2 ring-accent/10 shadow-xl shadow-accent/10" :
+                        plan.slug === "enterprise" ? "border-primary/30 ring-1 ring-primary/10 shadow-lg" :
                         "border-border/50 hover:border-accent/20 hover:shadow-md"
                       }`}
                       dir="rtl"
                       style={{ direction: "rtl", textAlign: "right" }}
                     >
                       {/* Top gradient */}
-                      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${meta.gradient}`} />
+                      <div className={`absolute top-0 left-0 right-0 ${isPopular ? "h-1.5" : "h-1"} bg-gradient-to-l ${
+                        isPopular ? "from-accent via-accent/80 to-accent/50" : meta.gradient
+                      }`} />
 
                       {/* Badges */}
                       <div className="absolute -top-0 right-4 flex items-center gap-2">
                         {isCurrent && (
-                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1 rounded-b-lg rounded-t-none px-3 py-1 text-xs shadow-md">
+                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1 rounded-b-lg rounded-t-none px-3 py-1.5 text-xs shadow-md">
                             <Sparkles size={10} />
                             خطتك الحالية
                           </Badge>
                         )}
                         {isPopular && (
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: "spring" }}>
-                            <Badge className="bg-gradient-to-l from-accent to-accent/80 text-accent-foreground flex items-center gap-1 rounded-b-lg rounded-t-none px-3 py-1 text-xs shadow-md">
-                              <Flame size={10} />
-                              الأكثر طلباً
+                            <Badge className="bg-gradient-to-l from-accent to-accent/80 text-accent-foreground flex items-center gap-1.5 rounded-b-lg rounded-t-none px-4 py-1.5 text-xs shadow-lg font-bold">
+                              <Flame size={12} />
+                              الأكثر طلباً ⭐
                             </Badge>
                           </motion.div>
                         )}
@@ -1065,6 +1069,32 @@ const SubscriptionPage = () => {
                           </div>
                         </div>
 
+                        {/* Enterprise / Popular highlights */}
+                        {meta.highlights && meta.highlights.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {meta.highlights.map((h, hi) => (
+                              <motion.div
+                                key={hi}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.1 + hi * 0.05 + 0.2 }}
+                              >
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] py-0.5 ${
+                                    plan.slug === "enterprise"
+                                      ? "border-primary/20 bg-primary/5 text-primary"
+                                      : "border-accent/20 bg-accent/5 text-accent"
+                                  }`}
+                                >
+                                  {h.includes("التكاملات") ? <Gift size={10} className="ml-1" /> : <Star size={10} className="ml-1" />}
+                                  {h}
+                                </Badge>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="mt-4 text-right">
                           {plan.slug === "enterprise" ? (
                             <span className="text-2xl font-bold text-foreground">تواصل معنا</span>
@@ -1075,9 +1105,26 @@ const SubscriptionPage = () => {
                                 <span className="text-sm text-muted-foreground">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
                               </div>
                               {selectedCycle !== "monthly" && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
-                                </p>
+                                <div className="mt-1 space-y-0.5">
+                                  <p className="text-xs text-muted-foreground">
+                                    ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
+                                  </p>
+                                  {(() => {
+                                    const fullPrice = selectedCycle === "yearly" ? plan.price_monthly * 12 : plan.price_monthly * 3;
+                                    const savings = fullPrice - price;
+                                    const savingsPct = Math.round((savings / fullPrice) * 100);
+                                    if (savings <= 0) return null;
+                                    return (
+                                      <motion.div
+                                        initial={{ opacity: 0, x: 5 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                                      >
+                                        🎉 وفّر {savings.toLocaleString("ar-SA")} ر.س ({savingsPct}%)
+                                      </motion.div>
+                                    );
+                                  })()}
+                                </div>
                               )}
                             </>
                           )}
@@ -1209,6 +1256,16 @@ const SubscriptionPage = () => {
                 </Button>
               </div>
             )}
+
+            {/* ROI Calculator */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-8"
+            >
+              <ROICalculator />
+            </motion.div>
           </TabsContent>
 
           {/* ═══════ Compare Tab ═══════ */}
