@@ -1,9 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Whitelist of functions allowed through this proxy
@@ -40,6 +41,17 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   reconcile_wallet_vs_journal: true,
 };
 
+// Financial RPCs get stricter rate limits (10/min)
+const FINANCIAL_RPCS = new Set([
+  "apply_subscription_discount",
+  "request_affiliate_payout",
+  "process_affiliate_payout",
+  "admin_review_topup_request",
+  "admin_set_wallet_status",
+  "create_document_access_token",
+  "revoke_document_token",
+]);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,8 +67,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      supabaseUrl,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
@@ -71,7 +86,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = claimsData.claims.sub as string;
 
     // 2. Parse request
     const { fn, params } = await req.json();
@@ -97,17 +112,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 4. Execute with service_role
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // 4. Rate limiting — financial RPCs use stricter "wallet" limit
+    const serviceClient = createClient(supabaseUrl, serviceKey);
+    const rlCategory = FINANCIAL_RPCS.has(fn) ? "wallet" : "general";
+    const blocked = await checkRateLimit(req, serviceClient, rlCategory, corsHeaders, userId);
+    if (blocked) return blocked;
 
+    // 5. Execute with service_role
     // The functions have their own internal guards (assert_tenant_member etc.)
     // Since we validated the JWT above, we trust the caller identity.
-    // Functions that need auth.uid() won't get it via service_role,
-    // but they accept user IDs as parameters (p_created_by, etc.)
-    
     const { data, error } = await serviceClient.rpc(fn, params || {});
 
     if (error) {
