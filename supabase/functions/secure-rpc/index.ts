@@ -1,10 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { RequestLogger } from "../_shared/request-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-correlation-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Whitelist of functions allowed through this proxy
@@ -57,18 +58,21 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const serviceClient = createClient(supabaseUrl, serviceKey);
+  const logger = new RequestLogger(req, serviceClient, "secure-rpc");
+
   try {
     // 1. Verify JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      await logger.flush(401, "Missing auth header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const anonClient = createClient(
       supabaseUrl,
@@ -80,70 +84,78 @@ Deno.serve(async (req) => {
     const { data: claimsData, error: claimsError } =
       await anonClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
+      await logger.flush(401, "Invalid token");
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
     const userId = claimsData.claims.sub as string;
+    logger.setUser(userId);
 
     // 2. Parse request
     const { fn, params } = await req.json();
+    logger.setAction(fn || "unknown");
 
     if (!fn || typeof fn !== "string") {
+      await logger.flush(400, "Missing function name");
       return new Response(
         JSON.stringify({ error: "Missing function name (fn)" }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
         }
       );
     }
 
     // 3. Validate function is whitelisted
     if (!ALLOWED_FUNCTIONS[fn]) {
+      await logger.flush(403, `Function '${fn}' not allowed`);
       return new Response(
         JSON.stringify({ error: `Function '${fn}' is not allowed` }),
         {
           status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
         }
       );
     }
 
     // 4. Rate limiting — financial RPCs use stricter "wallet" limit
-    const serviceClient = createClient(supabaseUrl, serviceKey);
     const rlCategory = FINANCIAL_RPCS.has(fn) ? "wallet" : "general";
     const blocked = await checkRateLimit(req, serviceClient, rlCategory, corsHeaders, userId);
-    if (blocked) return blocked;
+    if (blocked) {
+      await logger.flush(429, "Rate limited");
+      return blocked;
+    }
 
     // 5. Execute with service_role
-    // The functions have their own internal guards (assert_tenant_member etc.)
-    // Since we validated the JWT above, we trust the caller identity.
     const { data, error } = await serviceClient.rpc(fn, params || {});
 
     if (error) {
       console.error(`[secure-rpc] ${fn} error:`, error);
+      await logger.flush(400, error.message);
       return new Response(
         JSON.stringify({ error: error.message, code: error.code }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
         }
       );
     }
 
+    await logger.flush(200);
     return new Response(JSON.stringify({ data }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("[secure-rpc] Unexpected error:", err);
+    await logger.flush(500, String(err));
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" },
       }
     );
   }

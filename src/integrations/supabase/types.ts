@@ -655,6 +655,7 @@ export type Database = {
           after_value: Json | null
           before_value: Json | null
           changes: Json | null
+          correlation_id: string | null
           created_at: string
           entity_id: string | null
           entity_label: string | null
@@ -669,6 +670,7 @@ export type Database = {
           after_value?: Json | null
           before_value?: Json | null
           changes?: Json | null
+          correlation_id?: string | null
           created_at?: string
           entity_id?: string | null
           entity_label?: string | null
@@ -683,6 +685,7 @@ export type Database = {
           after_value?: Json | null
           before_value?: Json | null
           changes?: Json | null
+          correlation_id?: string | null
           created_at?: string
           entity_id?: string | null
           entity_label?: string | null
@@ -2215,6 +2218,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      edge_request_logs: {
+        Row: {
+          action: string | null
+          correlation_id: string
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          function_name: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          method: string
+          status_code: number
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          correlation_id: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          method?: string
+          status_code?: number
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          correlation_id?: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          method?: string
+          status_code?: number
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       email_logs: {
         Row: {

@@ -8,16 +8,18 @@ interface State {
   hasError: boolean;
   error: Error | null;
   reported: boolean;
+  correlationId: string | null;
 }
 
 class GlobalErrorBoundary extends React.Component<
   { children: React.ReactNode },
   State
 > {
-  state: State = { hasError: false, error: null, reported: false };
+  state: State = { hasError: false, error: null, reported: false, correlationId: null };
 
   static getDerivedStateFromError(error: Error): Partial<State> {
-    return { hasError: true, error };
+    const correlationId = `eb-${crypto.randomUUID()}`;
+    return { hasError: true, error, correlationId };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -25,7 +27,7 @@ class GlobalErrorBoundary extends React.Component<
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null, reported: false });
+    this.setState({ hasError: false, error: null, reported: false, correlationId: null });
   };
 
   handleReport = async () => {
@@ -56,6 +58,7 @@ class GlobalErrorBoundary extends React.Component<
           language: navigator.language,
           screen: `${screen.width}x${screen.height}`,
           timestamp: new Date().toISOString(),
+          correlation_id: this.state.correlationId,
         },
       });
 
@@ -113,6 +116,12 @@ class GlobalErrorBoundary extends React.Component<
               {this.state.reported ? "تم إرسال التقرير ✓" : "إرسال تقرير"}
             </Button>
           </div>
+
+          {this.state.correlationId && (
+            <p className="text-xs text-muted-foreground font-mono mt-2">
+              معرّف التتبع: {this.state.correlationId}
+            </p>
+          )}
 
           {this.state.error && (
             <details className="text-start text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 mt-4">
