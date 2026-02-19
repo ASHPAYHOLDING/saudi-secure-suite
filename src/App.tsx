@@ -14,6 +14,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ScrollToTop from "./components/ScrollToTop";
 import TermsConditions from "./pages/TermsConditions";
 import SLA from "./pages/SLA";
+import StatusPage from "./pages/StatusPage";
 import Admin from "./pages/Admin";
 import NumaxioPay from "./pages/NumaxioPay";
 import NumaxioPayDashboard from "./pages/NumaxioPayDashboard";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsConditions />} />
               <Route path="/sla" element={<SLA />} />
+              <Route path="/status" element={<StatusPage />} />
               <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
               <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

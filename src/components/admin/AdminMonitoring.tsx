@@ -9,8 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import {
   RefreshCw, Activity, AlertTriangle, CheckCircle, XCircle, Clock,
   Gauge, Bell, BellOff, Zap, Database, Mail, Wallet, FileWarning,
-  TrendingUp, TrendingDown, Shield,
+  TrendingUp, TrendingDown, Shield, Plus, ExternalLink, Megaphone,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -82,6 +86,9 @@ const AdminMonitoring = () => {
   const [services, setServices] = useState<ServiceStatus[]>([]);
   const [emailStats, setEmailStats] = useState({ total: 0, failed: 0, rate: 0 });
   const [walletStats, setWalletStats] = useState({ total: 0, failed: 0, rate: 0 });
+  const [incidents, setIncidents] = useState<any[]>([]);
+  const [showCreateIncident, setShowCreateIncident] = useState(false);
+  const [newIncident, setNewIncident] = useState({ title: "", title_ar: "", severity: "minor", description_ar: "" });
 
   const fetchData = useCallback(async () => {
     try {
@@ -156,6 +163,14 @@ const AdminMonitoring = () => {
           health: "healthy", latencyMs: 0, errorRate: 0, requestCount: 0,
         },
       ]);
+
+      // Incidents
+      const incRes = await supabase
+        .from("platform_incidents")
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(20);
+      setIncidents((incRes.data as any[]) || []);
     } catch (err) {
       console.error("Monitoring fetch error", err);
       toast.error("فشل تحميل بيانات المراقبة");
@@ -217,6 +232,12 @@ const AdminMonitoring = () => {
             <RefreshCw className={`h-4 w-4 me-1 ${refreshing ? "animate-spin" : ""}`} />
             تحديث
           </Button>
+          <a href="/status" target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+              <ExternalLink className="h-3.5 w-3.5" />
+              صفحة Status
+            </Button>
+          </a>
         </div>
       </div>
 
@@ -269,6 +290,7 @@ const AdminMonitoring = () => {
           <TabsTrigger value="services">🏥 صحة الخدمات</TabsTrigger>
           <TabsTrigger value="alerts">🔔 التنبيهات</TabsTrigger>
           <TabsTrigger value="rules">⚙️ قواعد التنبيه</TabsTrigger>
+          <TabsTrigger value="incidents">📢 الحوادث</TabsTrigger>
         </TabsList>
 
         {/* Functions Tab */}
@@ -458,7 +480,132 @@ const AdminMonitoring = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Incidents Tab */}
+        <TabsContent value="incidents" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                إدارة الحوادث
+              </CardTitle>
+              <Button size="sm" onClick={() => setShowCreateIncident(true)} className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" />
+                حادثة جديدة
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {incidents.length === 0 ? (
+                <EmptyState text="لا توجد حوادث مسجلة" />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">العنوان</TableHead>
+                      <TableHead className="text-right">الخطورة</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">البداية</TableHead>
+                      <TableHead className="text-right">إجراء</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {incidents.map((inc) => (
+                      <TableRow key={inc.id}>
+                        <TableCell className="font-medium text-sm">{inc.title_ar || inc.title}</TableCell>
+                        <TableCell>
+                          <Badge variant={inc.severity === "critical" ? "destructive" : "secondary"} className="text-[10px]">
+                            {inc.severity === "critical" ? "حرج" : inc.severity === "major" ? "كبير" : "طفيف"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px]">
+                            {inc.status === "resolved" ? "تم الحل" : inc.status === "investigating" ? "قيد التحقيق" : inc.status === "identified" ? "تم التحديد" : "مراقبة"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-mono" dir="ltr">
+                          {new Date(inc.started_at).toLocaleDateString("ar-SA")}
+                        </TableCell>
+                        <TableCell>
+                          {inc.status !== "resolved" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs"
+                              onClick={async () => {
+                                await supabase.from("platform_incidents").update({
+                                  status: "resolved",
+                                  resolved_at: new Date().toISOString(),
+                                }).eq("id", inc.id);
+                                toast.success("تم حل الحادثة");
+                                fetchData();
+                              }}
+                            >
+                              حل
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Create Incident Dialog */}
+      <Dialog open={showCreateIncident} onOpenChange={setShowCreateIncident}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>إنشاء حادثة جديدة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>العنوان (عربي)</Label>
+              <Input value={newIncident.title_ar} onChange={(e) => setNewIncident({ ...newIncident, title_ar: e.target.value })} />
+            </div>
+            <div>
+              <Label>Title (English)</Label>
+              <Input value={newIncident.title} onChange={(e) => setNewIncident({ ...newIncident, title: e.target.value })} dir="ltr" />
+            </div>
+            <div>
+              <Label>الوصف</Label>
+              <Textarea value={newIncident.description_ar} onChange={(e) => setNewIncident({ ...newIncident, description_ar: e.target.value })} rows={3} />
+            </div>
+            <div>
+              <Label>الخطورة</Label>
+              <Select value={newIncident.severity} onValueChange={(v) => setNewIncident({ ...newIncident, severity: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="minor">طفيف</SelectItem>
+                  <SelectItem value="major">كبير</SelectItem>
+                  <SelectItem value="critical">حرج</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={!newIncident.title_ar.trim() || !newIncident.title.trim()}
+              onClick={async () => {
+                await supabase.from("platform_incidents").insert({
+                  title: newIncident.title,
+                  title_ar: newIncident.title_ar,
+                  severity: newIncident.severity,
+                  description_ar: newIncident.description_ar || null,
+                });
+                toast.success("تم إنشاء الحادثة");
+                setShowCreateIncident(false);
+                setNewIncident({ title: "", title_ar: "", severity: "minor", description_ar: "" });
+                fetchData();
+              }}
+            >
+              إنشاء
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

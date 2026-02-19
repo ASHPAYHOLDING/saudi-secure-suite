@@ -3231,6 +3231,82 @@ export type Database = {
           },
         ]
       }
+      health_checks: {
+        Row: {
+          checked_at: string
+          error_message: string | null
+          id: string
+          response_time_ms: number | null
+          service_id: string
+          status: string
+          status_code: number | null
+        }
+        Insert: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          response_time_ms?: number | null
+          service_id: string
+          status?: string
+          status_code?: number | null
+        }
+        Update: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          response_time_ms?: number | null
+          service_id?: string
+          status?: string
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_checks_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "platform_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_updates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          incident_id: string
+          message: string
+          message_ar: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incident_id: string
+          message: string
+          message_ar?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incident_id?: string
+          message?: string
+          message_ar?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_updates_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "platform_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_sync_logs: {
         Row: {
           completed_at: string | null
@@ -4122,6 +4198,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      maintenance_windows: {
+        Row: {
+          affected_services: string[] | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          description_ar: string | null
+          ends_at: string
+          id: string
+          starts_at: string
+          status: string
+          title: string
+          title_ar: string
+        }
+        Insert: {
+          affected_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          ends_at: string
+          id?: string
+          starts_at: string
+          status?: string
+          title: string
+          title_ar: string
+        }
+        Update: {
+          affected_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          title_ar?: string
+        }
+        Relationships: []
       }
       monitoring_alert_rules: {
         Row: {
@@ -5334,6 +5452,54 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_incidents: {
+        Row: {
+          affected_services: string[] | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          resolved_at: string | null
+          severity: string
+          started_at: string
+          status: string
+          title: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          affected_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          affected_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_notifications: {
         Row: {
           created_at: string
@@ -5361,6 +5527,42 @@ export type Database = {
           message?: string
           title?: string
           type?: string
+        }
+        Relationships: []
+      }
+      platform_services: {
+        Row: {
+          category: string
+          check_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string
+        }
+        Insert: {
+          category?: string
+          check_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar: string
+        }
+        Update: {
+          category?: string
+          check_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string
         }
         Relationships: []
       }
@@ -8062,6 +8264,47 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uptime_daily: {
+        Row: {
+          avg_response_ms: number | null
+          created_at: string
+          date: string
+          id: string
+          service_id: string
+          successful_checks: number
+          total_checks: number
+          uptime_percent: number
+        }
+        Insert: {
+          avg_response_ms?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          service_id: string
+          successful_checks?: number
+          total_checks?: number
+          uptime_percent?: number
+        }
+        Update: {
+          avg_response_ms?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          service_id?: string
+          successful_checks?: number
+          total_checks?: number
+          uptime_percent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uptime_daily_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "platform_services"
             referencedColumns: ["id"]
           },
         ]
