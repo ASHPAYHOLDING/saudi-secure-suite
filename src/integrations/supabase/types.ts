@@ -8320,6 +8320,62 @@ export type Database = {
           },
         ]
       }
+      zatca_certificates_safe: {
+        Row: {
+          certificate: string | null
+          certificate_type: string | null
+          created_at: string | null
+          created_by: string | null
+          csid: string | null
+          environment: string | null
+          expires_at: string | null
+          id: string | null
+          is_active: boolean | null
+          issued_at: string | null
+          request_id: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          certificate?: string | null
+          certificate_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          csid?: string | null
+          environment?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          issued_at?: string | null
+          request_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          certificate?: string | null
+          certificate_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          csid?: string | null
+          environment?: string | null
+          expires_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          issued_at?: string | null
+          request_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_certificates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activate_budget: { Args: { p_budget_id: string }; Returns: Json }
@@ -8465,6 +8521,14 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_user_tenant_id: { Args: never; Returns: string }
+      get_zatca_private_key: {
+        Args: { _certificate_type: string; _tenant_id: string }
+        Returns: {
+          certificate: string
+          csid: string
+          private_key: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
