@@ -1,0 +1,49 @@
+/**
+ * Feature key constants — single source of truth.
+ * Maps to `plan_entitlements.feature_key` in the database.
+ */
+export const FEATURE_KEYS = {
+  INVOICES_BASIC: "invoices_basic",
+  CUSTOMERS: "customers",
+  ZATCA_PHASE1: "zatca_phase1",
+  LIMITED_REPORTS: "limited_reports",
+  EXPENSES: "expenses",
+  QUOTATIONS: "quotations",
+  PAYMENT_REMINDERS: "payment_reminders",
+  CONTRACTS: "contracts",
+  ADVANCED_REPORTS: "advanced_reports",
+  HR: "hr",
+  ACCOUNTING_ADVANCED: "accounting_advanced",
+  WALLET: "wallet",
+  PAID_INTEGRATIONS: "paid_integrations",
+  INVENTORY: "inventory",
+  BRANCHES: "branches",
+  SALES_ORDERS: "sales_orders",
+  PURCHASE_ORDERS: "purchase_orders",
+  DELIVERY_NOTES: "delivery_notes",
+  JOURNAL_ENTRIES: "journal_entries",
+  STAMP: "stamp",
+  BRANDING: "branding",
+  AUDIT_LOG: "audit_log",
+  TEAM_MANAGEMENT: "team_management",
+  ANALYTICS: "analytics",
+  NUMAXIO_PAY: "numaxio_pay",
+  MAX_USERS: "max_users",
+  MAX_STORAGE_GB: "max_storage_gb",
+  SLA_SUPPORT: "sla_support",
+  DEDICATED_SUPPORT: "dedicated_support",
+  API_ACCESS: "api_access",
+  UNLIMITED_EVERYTHING: "unlimited_everything",
+  BUDGETS_BASIC: "budgets_basic",
+  BUDGETS_ALERTS: "budgets_alerts",
+  BUDGETS_ADVANCED: "budgets_advanced",
+} as const;
+
+export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
+
+export interface EntitlementResult {
+  allowed: boolean;
+  reason: string;
+  limit?: number | null;
+  plan?: string;
+}
