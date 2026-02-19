@@ -990,6 +990,7 @@ export type Database = {
           address_city: string | null
           address_street: string | null
           address_zip: string | null
+          branch_color: string | null
           code: string | null
           created_at: string
           email: string | null
@@ -1007,6 +1008,7 @@ export type Database = {
           address_city?: string | null
           address_street?: string | null
           address_zip?: string | null
+          branch_color?: string | null
           code?: string | null
           created_at?: string
           email?: string | null
@@ -1024,6 +1026,7 @@ export type Database = {
           address_city?: string | null
           address_street?: string | null
           address_zip?: string | null
+          branch_color?: string | null
           code?: string | null
           created_at?: string
           email?: string | null
