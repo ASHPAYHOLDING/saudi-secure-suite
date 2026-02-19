@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding, ARABIC_SAFE_FONTS } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import {
   Building2, Save, Upload, Loader2, Palette, Globe, Phone, FileText, Mail,
   Shield, CheckCircle2, Clock, AlertTriangle, XCircle, RefreshCw, Wifi
 } from "lucide-react";
+import FinanceControlPanel from "@/components/company/FinanceControlPanel";
 
 interface CompanyData {
   name: string;
@@ -541,6 +542,9 @@ const CompanySettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Finance Control Panel */}
+      <FinanceControlPanel />
     </div>
   );
 };
