@@ -545,6 +545,116 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          rate_limit_per_minute: number
+          scopes: string[]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_minute?: number
+          scopes?: string[]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_minute?: number
+          scopes?: string[]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_request_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          method: string
+          path: string
+          response_time_ms: number | null
+          status_code: number
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          method: string
+          path: string
+          response_time_ms?: number | null
+          status_code: number
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          method?: string
+          path?: string
+          response_time_ms?: number | null
+          status_code?: number
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_request_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_actions: {
         Row: {
           acted_at: string | null
@@ -2059,6 +2169,68 @@ export type Database = {
           },
           {
             foreignKeyName: "customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          expires_at: string | null
+          export_type: string
+          file_size_bytes: number | null
+          file_url: string | null
+          filters: Json | null
+          format: string
+          id: string
+          requested_by: string
+          row_count: number | null
+          started_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          export_type?: string
+          file_size_bytes?: number | null
+          file_url?: string | null
+          filters?: Json | null
+          format?: string
+          id?: string
+          requested_by: string
+          row_count?: number | null
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          export_type?: string
+          file_size_bytes?: number | null
+          file_url?: string | null
+          filters?: Json | null
+          format?: string
+          id?: string
+          requested_by?: string
+          row_count?: number | null
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_export_requests_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -8922,6 +9094,10 @@ export type Database = {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: boolean
       }
+      generate_api_key: {
+        Args: { _name?: string; _scopes?: string[]; _tenant_id: string }
+        Returns: Json
+      }
       generate_inventory_number: {
         Args: { p_prefix: string; p_tenant_id: string }
         Returns: string
@@ -9156,6 +9332,7 @@ export type Database = {
         Args: { _permission_key: string }
         Returns: boolean
       }
+      validate_api_key: { Args: { _key_hash: string }; Returns: Json }
       validate_document_token: {
         Args: { _token: string }
         Returns: {

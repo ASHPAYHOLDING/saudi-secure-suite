@@ -4,8 +4,11 @@ import {
   Shield, Search, Filter, FileText, FileSignature, Stamp, Clock, User,
   ChevronDown, ChevronUp, Loader2, Calendar, ArrowLeft, ArrowRight,
   Wallet, Receipt, CreditCard, BarChart3, BookOpen, AlertTriangle,
-  Eye, Download, RefreshCw,
+  Eye, Download, RefreshCw, FileSpreadsheet, Printer, Database,
 } from "lucide-react";
+import { exportAuditPDF, exportAuditExcel } from "@/lib/audit-export";
+import { exportAllTenantData } from "@/lib/data-export";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,8 +82,10 @@ const FIELD_LABELS: Record<string, string> = {
 const PAGE_SIZE = 30;
 
 const AuditLogViewer = () => {
-  const { user, tenantId } = useAuth();
+  const { user, tenantId, profile } = useAuth();
   const { isRTL } = useLanguage();
+  const { toast } = useToast();
+  const [exporting, setExporting] = useState<string | null>(null);
 
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -227,11 +232,81 @@ const AuditLogViewer = () => {
             تتبع كامل لجميع العمليات المالية والإدارية — Audit-ready
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-xs gap-1">
             <FileText className="h-3 w-3" />
             {totalCount.toLocaleString("ar-SA")} سجل
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            disabled={exporting !== null || logs.length === 0}
+            onClick={async () => {
+              setExporting("pdf");
+              try {
+                // Fetch all logs for export (not just current page)
+                const { data: allLogs } = await supabase
+                  .from("audit_logs")
+                  .select("*")
+                  .eq("tenant_id", tenantId!)
+                  .gte("created_at", `${dateFrom}T00:00:00`)
+                  .lte("created_at", `${dateTo}T23:59:59`)
+                  .order("created_at", { ascending: false })
+                  .limit(5000);
+                exportAuditPDF(allLogs || [], profiles, `${dateFrom} — ${dateTo}`, profile?.full_name);
+                toast({ title: "تم فتح نافذة الطباعة" });
+              } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
+              setExporting(null);
+            }}
+          >
+            {exporting === "pdf" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            disabled={exporting !== null || logs.length === 0}
+            onClick={async () => {
+              setExporting("excel");
+              try {
+                const { data: allLogs } = await supabase
+                  .from("audit_logs")
+                  .select("*")
+                  .eq("tenant_id", tenantId!)
+                  .gte("created_at", `${dateFrom}T00:00:00`)
+                  .lte("created_at", `${dateTo}T23:59:59`)
+                  .order("created_at", { ascending: false })
+                  .limit(10000);
+                await exportAuditExcel(allLogs || [], profiles, `${dateFrom} — ${dateTo}`);
+                toast({ title: "تم تصدير الملف بنجاح" });
+              } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
+              setExporting(null);
+            }}
+          >
+            {exporting === "excel" ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileSpreadsheet className="h-3 w-3" />}
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            disabled={exporting !== null}
+            onClick={async () => {
+              setExporting("full");
+              try {
+                await exportAllTenantData(tenantId!, (table, done, total) => {
+                  console.log(`Exporting ${table} (${done}/${total})`);
+                });
+                toast({ title: "تم تصدير جميع البيانات بنجاح" });
+              } catch { toast({ title: "خطأ في تصدير البيانات", variant: "destructive" }); }
+              setExporting(null);
+            }}
+          >
+            {exporting === "full" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
+            تصدير شامل
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => { setPage(0); fetchLogs(); }}>
             <RefreshCw className="h-4 w-4" />
           </Button>
