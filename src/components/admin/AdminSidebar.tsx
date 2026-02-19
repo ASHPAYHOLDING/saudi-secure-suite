@@ -20,6 +20,7 @@ import {
   Headphones,
   Tag,
   Crown,
+  MonitorDot,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const menuItems = [
   { icon: Bot, label: "المستشار الذكي", path: "/admin/ai" },
   { icon: Cloud, label: "البنية التحتية", path: "/admin/infrastructure" },
   { icon: HeartPulse, label: "صحة المنصة", path: "/admin/platform-health" },
+  { icon: MonitorDot, label: "مركز المراقبة", path: "/admin/monitoring" },
   { icon: Wallet, label: "رسوم الدفع", path: "/admin/paylink-fees" },
   { icon: CreditCard, label: "إدارة نيوماكسيو باي", path: "/admin/paylink-management" },
   { icon: Headphones, label: "تذاكر الدعم", path: "/admin/support" },
