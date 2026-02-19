@@ -2772,6 +2772,38 @@ export type Database = {
           },
         ]
       }
+      entitlements_rebuild_queue: {
+        Row: {
+          created_at: string
+          id: number
+          processed_at: string | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          processed_at?: string | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          processed_at?: string | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entitlements_rebuild_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_comments: {
         Row: {
           attachment_name: string | null
@@ -7785,6 +7817,38 @@ export type Database = {
           },
         ]
       }
+      tenant_entitlements_cache: {
+        Row: {
+          computed_at: string
+          entitlements: Json
+          plan_id: string | null
+          tenant_id: string
+          version: number
+        }
+        Insert: {
+          computed_at?: string
+          entitlements?: Json
+          plan_id?: string | null
+          tenant_id: string
+          version?: number
+        }
+        Update: {
+          computed_at?: string
+          entitlements?: Json
+          plan_id?: string | null
+          tenant_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_entitlements_cache_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_feature_overrides: {
         Row: {
           created_at: string
@@ -9379,6 +9443,7 @@ export type Database = {
       }
       get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
       get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
+      get_entitlements_cached: { Args: { p_tenant_id: string }; Returns: Json }
       get_group_subsidiaries: {
         Args: { _parent_tenant_id: string }
         Returns: {
@@ -9444,6 +9509,10 @@ export type Database = {
         Args: { _cooling_days?: number; _subscription_id: string }
         Returns: Json
       }
+      mark_entitlements_dirty: {
+        Args: { p_reason?: string; p_tenant_id: string }
+        Returns: undefined
+      }
       process_affiliate_commission: {
         Args: {
           _paid_amount: number
@@ -9503,6 +9572,10 @@ export type Database = {
           _view_name: string
         }
         Returns: Json
+      }
+      rebuild_tenant_entitlements_cache: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
       }
       reconcile_invoices_vs_payments: {
         Args: { p_date_from?: string; p_date_to?: string; p_tenant_id: string }
