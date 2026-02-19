@@ -8838,7 +8838,6 @@ export type Database = {
           document_id: string
           document_type: string
           is_valid: boolean
-          tenant_id: string
         }[]
       }
       validate_subscription_discount: {
