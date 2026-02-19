@@ -23,6 +23,7 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   auto_activate_enterprise_integrations: true,
   // Financial
   create_document_access_token: true,
+  revoke_document_token: true,
   encrypt_zatca_private_key: true,
   // Affiliate
   request_affiliate_payout: true,
