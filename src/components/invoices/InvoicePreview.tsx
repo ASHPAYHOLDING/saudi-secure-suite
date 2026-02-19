@@ -410,7 +410,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
           {/* ===== DOCUMENT FOOTER ===== */}
           <div className="border-t border-border px-6 sm:px-8 py-3" style={{ background: 'hsl(210 20% 97%)' }}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-[10px] text-muted-foreground">
-              <p>{footerText || 'هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم'}</p>
+              <p>{footerText || branding.invoiceFooterText || 'هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم'}</p>
               <p className="font-english">Powered by Numaxio — {invoice.invoice_number}</p>
             </div>
           </div>
