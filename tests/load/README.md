@@ -1,57 +1,55 @@
-# Numaxio SaaS — Load Test Guide
+# Numaxio SaaS — Load Test Suite
 
-## المتطلبات
+## نظرة عامة
 
-1. تثبيت [k6](https://k6.io/docs/getting-started/installation/)
-2. Seed بيانات الاختبار (50 tenant × 4 users)
+اختبار حمل واقعي لـ 200 مستخدم متزامن عبر 50 منشأة، يستهدف Edge Functions و DB مباشرة.
 
-## تهيئة بيانات الاختبار
+### العمليات المختبرة
 
-قبل التشغيل، أنشئ المستخدمين عبر Supabase SQL:
+| العملية | النسبة | الهدف |
+|---------|--------|-------|
+| إنشاء فاتورة | 30% | DB + RLS + triggers |
+| إضافة مصروف | 25% | DB + RLS |
+| رصيد المحفظة | 15% | Edge Function + DB |
+| ترقية اشتراك | 15% | Edge Function + wallet debit + concurrency |
+| إرسال بريد | 15% | Edge Function + email queue |
 
-```sql
--- يمكنك استخدام هذا كقالب لإنشاء المستخدمين
--- أو استخدم سكريبت seed خارجي
-DO $$
-DECLARE
-  t INT; u INT;
-  user_id UUID;
-  tenant_id UUID;
-BEGIN
-  FOR t IN 1..50 LOOP
-    -- Create tenant
-    INSERT INTO tenants (name, type) 
-    VALUES ('LoadTest Tenant ' || t, 'company')
-    RETURNING id INTO tenant_id;
+---
 
-    -- Create wallet
-    INSERT INTO tenant_wallets (tenant_id, balance_available, currency)
-    VALUES (tenant_id, 50000, 'SAR');
+## 1. المتطلبات
 
-    -- Create customer
-    INSERT INTO customers (tenant_id, name, customer_type)
-    VALUES (tenant_id, 'عميل اختبار ' || t, 'company');
+```bash
+# تثبيت k6
+brew install grafana/k6/k6    # macOS
+# أو: https://k6.io/docs/getting-started/installation/
 
-    FOR u IN 1..4 LOOP
-      -- Create auth user via Supabase Auth API
-      -- Then link: INSERT INTO tenant_members ...
-      NULL; -- Replace with actual user creation
-    END LOOP;
-  END LOOP;
-END $$;
+# تثبيت jq (للـ seed script)
+brew install jq
 ```
 
-## التشغيل
+## 2. تهيئة بيانات الاختبار
+
+```bash
+# الخطوة 1: أنشئ الـ tenants و wallets و customers
+# شغّل محتويات seed-data.sql في Lovable Cloud > Run SQL
+
+# الخطوة 2: أنشئ المستخدمين
+export SUPABASE_URL="https://izuyfgzwzszanjpenbmx.supabase.co"
+export SERVICE_ROLE_KEY="<your-service-role-key>"
+bash tests/load/seed-users.sh
+```
+
+## 3. التشغيل
 
 ```bash
 # تشغيل أساسي
 k6 run \
   --env BASE_URL=https://izuyfgzwzszanjpenbmx.supabase.co \
-  --env ANON_KEY=<your_anon_key> \
-  --env SERVICE_KEY=<your_service_key> \
+  --env ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... \
+  --env SERVICE_KEY=<service-role-key> \
   tests/load/load-test.js
 
-# مع تصدير النتائج
+# مع تصدير JSON
 k6 run \
   --env BASE_URL=... \
   --env ANON_KEY=... \
@@ -59,34 +57,122 @@ k6 run \
   tests/load/load-test.js
 ```
 
-## قراءة النتائج
+## 4. مراحل التحميل
 
-التقرير يظهر تلقائياً في الـ terminal ويتضمن:
+```
+VUs
+200 ┤          ┌────────────────────┐
+    │         ╱                    ╲
+ 50 ┤   ┌────╱                      ╲────┐
+    │  ╱                                  ╲
+  0 ┤─╱                                    ╲─
+    └──┬──────┬──────────┬──────────┬───────┬──
+      0s    30s        1m30s      4m30s   5m15s
+       warm   ramp       sustained   cool  stop
+```
 
-| المقياس | الحد المقبول |
-|---------|-------------|
-| معدل الأخطاء | < 5% |
-| إنشاء فاتورة p95 | < 3 ثوانٍ |
-| إضافة مصروف p95 | < 2 ثانية |
-| محفظة p95 | < 2 ثانية |
-| ترقية اشتراك p95 | < 5 ثوانٍ |
-| إرسال بريد p95 | < 4 ثوانٍ |
-| Deadlocks | < 5 |
-| Race Conditions | < 10 |
+## 5. Acceptance Criteria (معايير الإطلاق)
 
-## توصيات تحسين بناءً على النتائج
+| المقياس | الحد المقبول | مستوى الخطورة |
+|---------|-------------|---------------|
+| Error Rate | < 5% | 🔴 Critical |
+| Invoice p95 | < 3,000ms | 🟡 High |
+| Expense p95 | < 2,000ms | 🟡 High |
+| Wallet p95 | < 2,000ms | 🔴 Critical |
+| Subscription p95 | < 5,000ms | 🟡 High |
+| Email p95 | < 4,000ms | 🟢 Medium |
+| Deadlocks | < 5 | 🔴 Critical |
+| Race Conditions | < 10 | 🔴 Critical |
 
-### إذا كان Latency عالي:
-- أضف indexes على الأعمدة المستخدمة في WHERE
-- فعّل connection pooling (PgBouncer)
-- راجع RLS policies المعقدة
+### قواعد الإطلاق:
+- ✅ **GO**: كل المقاييس ضمن الحدود
+- ⚠️ **CONDITIONAL**: مقياس Medium واحد تجاوز → يُطلق مع monitoring
+- ❌ **NO-GO**: أي مقياس Critical تجاوز → يُصلح أولاً
 
-### إذا ظهرت Deadlocks:
-- راجع ترتيب الـ locks في wallet transactions
-- استخدم `SELECT ... FOR UPDATE SKIP LOCKED`
-- قلل مدة الـ transactions
+## 6. شكل التقرير النهائي
 
-### إذا ظهرت Race Conditions (409):
-- تأكد من Optimistic Locking على الـ wallets
-- استخدم Idempotency Keys
-- فعّل `SERIALIZABLE` isolation للعمليات المالية
+التقرير يظهر تلقائياً بالعربية في الـ terminal:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║             تقرير اختبار الحمل — Numaxio SaaS              ║
+╠══════════════════════════════════════════════════════════════╣
+
+📊 إحصائيات عامة:
+  ├─ إجمالي الطلبات:     4,521
+  ├─ معدل الأخطاء:       1.23%
+  ├─ HTTP 409 (تضارب):   3
+  ├─ HTTP 429 (حد):      12
+  ├─ Deadlocks:          0
+  └─ Race Conditions:    3
+
+⏱️ Latency (ms):
+  ┌──────────────────────┬──────────┬──────────┬──────────┐
+  │ العملية               │  p50     │  p95     │  p99     │
+  ├──────────────────────┼──────────┼──────────┼──────────┤
+  │ إنشاء فاتورة         │   245ms  │  1200ms  │  2100ms  │
+  │ إضافة مصروف          │   180ms  │   800ms  │  1500ms  │
+  │ محفظة                │   320ms  │  1100ms  │  1800ms  │
+  │ ترقية اشتراك         │   890ms  │  3200ms  │  4500ms  │
+  │ إرسال بريد           │   450ms  │  2100ms  │  3200ms  │
+  └──────────────────────┴──────────┴──────────┴──────────┘
+
+🎯 الحدود: ✅ PASS / ❌ FAIL لكل معيار
+╚══════════════════════════════════════════════════════════════╝
+```
+
+ويُصدّر أيضاً `load-test-report.json` للتحليل التفصيلي.
+
+## 7. كشف Deadlocks/Race Conditions من DB Logs
+
+بعد التشغيل، افحص سجلات قاعدة البيانات:
+
+```sql
+-- كشف Deadlocks
+SELECT timestamp, event_message 
+FROM postgres_logs
+WHERE event_message ILIKE '%deadlock%'
+ORDER BY timestamp DESC LIMIT 20;
+
+-- كشف Serialization Failures
+SELECT timestamp, event_message
+FROM postgres_logs
+WHERE event_message ILIKE '%could not serialize%'
+ORDER BY timestamp DESC LIMIT 20;
+
+-- أبطأ الاستعلامات
+SELECT timestamp, event_message
+FROM postgres_logs
+WHERE event_message ILIKE '%duration:%'
+ORDER BY timestamp DESC LIMIT 50;
+```
+
+## 8. توصيات التحسين
+
+### Indexes الموصى بها:
+```sql
+-- فواتير: بحث بالتاريخ والحالة
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_invoices_tenant_status 
+ON invoices(tenant_id, status);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_invoices_tenant_date 
+ON invoices(tenant_id, invoice_date DESC);
+
+-- مصروفات
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_expenses_tenant_date 
+ON expenses(tenant_id, expense_date DESC);
+
+-- محفظة: قفل سريع
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_wallets_tenant 
+ON tenant_wallets(tenant_id);
+```
+
+### Connection Pooling:
+- PgBouncer مُفعّل تلقائياً على Lovable Cloud (port 6543)
+- الحد الافتراضي: 60 connection per tenant
+- إذا ظهرت أخطاء `too many connections`، استخدم pooling mode: `transaction`
+
+### Query Optimizations:
+- تأكد أن RLS policies تستخدم indexed columns
+- تجنّب `SELECT *` في الـ policies — استخدم `EXISTS` subquery
+- استخدم `FOR UPDATE SKIP LOCKED` في عمليات المحفظة
