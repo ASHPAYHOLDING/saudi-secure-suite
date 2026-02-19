@@ -1,4 +1,4 @@
-import { Search, ChevronDown, LogOut, Globe, Menu } from "lucide-react";
+import { Search, ChevronDown, LogOut, Globe, Menu, User, Settings, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,13 @@ import CollaborationNotifications from "@/components/collaboration/Collaboration
 import BranchSelector from "@/components/branches/BranchSelector";
 import TenantSwitcher from "@/components/dashboard/TenantSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardTopbarProps {
   onMobileMenuToggle?: () => void;
@@ -66,22 +73,45 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
           <CollaborationNotifications />
         </div>
 
-        {/* Sign Out */}
-        <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-muted-foreground hover:text-destructive" onClick={handleSignOut}>
-          <LogOut size={18} />
-        </Button>
-
-        {/* User */}
-        <div className="hidden sm:flex items-center gap-2 rounded-lg border border-border px-2 md:px-3 py-1.5 cursor-pointer hover:bg-secondary/50 transition-colors">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent">
-            <span className="text-xs font-bold">{initials}</span>
-          </div>
-          <div className="hidden lg:block">
-            <p className="text-xs font-medium text-foreground">{profile?.full_name || t("common.user")}</p>
-            <p className="text-[10px] text-muted-foreground font-english">{profile?.email || ""}</p>
-          </div>
-          <ChevronDown size={14} className="text-muted-foreground hidden lg:block" />
-        </div>
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 rounded-lg border border-border px-2 md:px-3 py-1.5 cursor-pointer hover:bg-secondary/50 transition-colors outline-none">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent">
+                <span className="text-xs font-bold">{initials}</span>
+              </div>
+              <div className="hidden lg:block text-start">
+                <p className="text-xs font-medium text-foreground">{profile?.full_name || t("common.user")}</p>
+                <p className="text-[10px] text-muted-foreground font-english">{profile?.email || ""}</p>
+              </div>
+              <ChevronDown size={14} className="text-muted-foreground hidden lg:block" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align={currentLang === "ar" ? "start" : "end"} className="w-56">
+            <div className="px-3 py-2 lg:hidden">
+              <p className="text-sm font-medium text-foreground">{profile?.full_name || t("common.user")}</p>
+              <p className="text-xs text-muted-foreground font-english">{profile?.email || ""}</p>
+            </div>
+            <DropdownMenuSeparator className="lg:hidden" />
+            <DropdownMenuItem onClick={() => navigate("/dashboard/company")} className="gap-2 cursor-pointer">
+              <User size={14} />
+              {t("nav.companySettings")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/dashboard/settings")} className="gap-2 cursor-pointer">
+              <Settings size={14} />
+              {t("nav.settings")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/dashboard/subscription")} className="gap-2 cursor-pointer">
+              <CreditCard size={14} />
+              {t("nav.subscription")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+              <LogOut size={14} />
+              {currentLang === "ar" ? "تسجيل الخروج" : "Sign Out"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
