@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { verifyWebhookSignature, checkIdempotency, markWebhookCompleted, logWebhookAudit } from "../_shared/webhook-verify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,13 +21,11 @@ Deno.serve(async (req) => {
     const rlAdmin = createClient(supabaseUrl, serviceKey);
     const blocked = await checkRateLimit(req, rlAdmin, "wallet", corsHeaders);
     if (blocked) return blocked;
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // Paylink callback doesn't require user auth
+    // Paylink callback doesn't require user auth — secured via signature
     if (action === "paylink-callback") {
       return await handlePaylinkCallback(req, supabaseUrl, serviceKey);
     }
@@ -264,7 +263,6 @@ async function handleTopup(
     return json({ error: "الحد الأقصى للشحن الواحد 50,000 ر.س" }, 400);
   }
 
-  // Get wallet
   const { data: wallet } = await supabase
     .from("tenant_wallets")
     .select("id, status")
@@ -279,21 +277,18 @@ async function handleTopup(
     return json({ error: "المحفظة مجمّدة", code: "WALLET_FROZEN" }, 400);
   }
 
-  // Get tenant info for client name
   const { data: tenant } = await supabase
     .from("tenants")
     .select("name")
     .eq("id", tenantId)
     .single();
 
-  // Get user profile for contact
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, email, phone")
     .eq("id", userId)
     .single();
 
-  // Authenticate with Paylink
   const PAYLINK_BASE_URL = "https://restapi.paylink.sa";
   const apiId = Deno.env.get("PAYLINK_API_ID");
   const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
@@ -317,7 +312,6 @@ async function handleTopup(
   const orderNumber = `WT-${Date.now()}`;
   const callBackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/wallet-purchase?action=paylink-callback`;
 
-  // Create Paylink invoice
   const invoiceRes = await fetch(`${PAYLINK_BASE_URL}/api/addInvoice`, {
     method: "POST",
     headers: {
@@ -345,7 +339,6 @@ async function handleTopup(
 
   const invoiceData = await invoiceRes.json();
 
-  // Save as pending topup request
   await supabase.from("wallet_topup_requests").insert({
     tenant_id: tenantId,
     wallet_id: wallet.id,
@@ -366,7 +359,7 @@ async function handleTopup(
   });
 }
 
-// ===================== PAYLINK CALLBACK =====================
+// ===================== SECURED PAYLINK CALLBACK =====================
 async function handlePaylinkCallback(
   req: Request,
   supabaseUrl: string,
@@ -374,89 +367,155 @@ async function handlePaylinkCallback(
 ) {
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  let transactionNo: string | null = null;
-  let orderStatus: string | null = null;
-
-  // Try to parse from body or URL
+  const bodyText = await req.text();
+  let body: any;
   try {
-    const body = await req.json();
-    transactionNo = body.transactionNo || body.orderNumber;
-    orderStatus = body.orderStatus;
+    body = JSON.parse(bodyText);
   } catch {
+    await logWebhookAudit(supabase, null, "webhook_rejected", {
+      provider: "paylink-wallet",
+      reason: "Invalid JSON body",
+    });
+    return json({ error: "Invalid JSON" }, 400);
+  }
+
+  // 1. Signature verification
+  const webhookSecret = Deno.env.get("WEBHOOK_SIGNING_SECRET");
+  if (webhookSecret) {
+    const { valid, reason } = await verifyWebhookSignature(req, bodyText, webhookSecret);
+    if (!valid) {
+      await logWebhookAudit(supabase, null, "webhook_signature_failed", {
+        provider: "paylink-wallet",
+        reason,
+        transaction_no: body.transactionNo,
+      });
+      return json({ error: "Invalid signature" }, 403);
+    }
+  }
+
+  let transactionNo: string | null = body.transactionNo || body.orderNumber;
+  let orderStatus: string | null = body.orderStatus;
+
+  if (!transactionNo) {
     const url = new URL(req.url);
     transactionNo = url.searchParams.get("transactionNo");
-    orderStatus = url.searchParams.get("orderStatus");
+    orderStatus = orderStatus || url.searchParams.get("orderStatus");
   }
 
   if (!transactionNo) {
     return json({ error: "Missing transactionNo" }, 400);
   }
 
-  // Get the topup request by bank_reference (we stored transactionNo there)
-  const { data: topupReq } = await supabase
-    .from("wallet_topup_requests")
-    .select("id, tenant_id, wallet_id, amount, status")
-    .eq("bank_reference", transactionNo)
-    .eq("payment_method", "card")
-    .eq("status", "pending")
-    .maybeSingle();
+  // 2. Idempotency check
+  const eventId = `paylink-wallet-${transactionNo}-${orderStatus || "unknown"}`;
+  const { duplicate, existingStatus } = await checkIdempotency(
+    supabase,
+    "paylink-wallet",
+    eventId,
+    null,
+    { transactionNo, orderStatus }
+  );
 
-  if (!topupReq) {
-    console.log("No pending topup found for transactionNo:", transactionNo);
-    return json({ success: true, note: "No pending request found" });
-  }
-
-  // Verify with Paylink
-  const apiId = Deno.env.get("PAYLINK_API_ID");
-  const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
-  const PAYLINK_BASE_URL = "https://restapi.paylink.sa";
-
-  const authRes = await fetch(`${PAYLINK_BASE_URL}/api/auth`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apiId, secretKey, persistToken: true }),
-  });
-  const { id_token: paylinkToken } = await authRes.json();
-
-  const statusRes = await fetch(`${PAYLINK_BASE_URL}/api/getInvoice/${transactionNo}`, {
-    headers: { Authorization: `Bearer ${paylinkToken}` },
-  });
-  const statusData = await statusRes.json();
-
-  if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
-    // Credit the wallet
-    await supabase.rpc("process_wallet_transaction", {
-      p_wallet_id: topupReq.wallet_id,
-      p_type: "credit",
-      p_amount: topupReq.amount,
-      p_reason: "topup",
-      p_reference_type: "topup",
-      p_reference_id: topupReq.id,
-      p_actor_id: "00000000-0000-0000-0000-000000000000",
-      p_source: "payment_gateway",
+  if (duplicate) {
+    await logWebhookAudit(supabase, null, "webhook_duplicate", {
+      provider: "paylink-wallet",
+      event_id: eventId,
+      existing_status: existingStatus,
     });
-
-    await supabase
-      .from("wallet_topup_requests")
-      .update({ status: "approved", reviewed_at: new Date().toISOString() })
-      .eq("id", topupReq.id);
-  } else if (statusData.orderStatus === "Canceled" || statusData.orderStatus === "canceled") {
-    await supabase
-      .from("wallet_topup_requests")
-      .update({ status: "rejected", rejection_reason: "تم إلغاء الدفع", reviewed_at: new Date().toISOString() })
-      .eq("id", topupReq.id);
+    // Still redirect user
+    const appOrigin = Deno.env.get("APP_ORIGIN") || "https://saudi-secure-suite.lovable.app";
+    return new Response(null, {
+      status: 302,
+      headers: { ...corsHeaders, Location: `${appOrigin}/dashboard/wallet?topup=already_processed` },
+    });
   }
 
-  // Redirect user back to the wallet page instead of showing JSON
+  // 3. Process the callback
+  let processStatus = "completed";
+  let tenantId: string | null = null;
+
+  try {
+    // Get the topup request
+    const { data: topupReq } = await supabase
+      .from("wallet_topup_requests")
+      .select("id, tenant_id, wallet_id, amount, status")
+      .eq("bank_reference", transactionNo)
+      .eq("payment_method", "card")
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (!topupReq) {
+      console.log("No pending topup found for transactionNo:", transactionNo);
+      processStatus = "no_pending_request";
+    } else {
+      tenantId = topupReq.tenant_id;
+
+      // Verify with Paylink API
+      const apiId = Deno.env.get("PAYLINK_API_ID");
+      const secretKey = Deno.env.get("PAYLINK_SECRET_KEY");
+      const PAYLINK_BASE_URL = "https://restapi.paylink.sa";
+
+      const authRes = await fetch(`${PAYLINK_BASE_URL}/api/auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiId, secretKey, persistToken: true }),
+      });
+      const { id_token: paylinkToken } = await authRes.json();
+
+      const statusRes = await fetch(`${PAYLINK_BASE_URL}/api/getInvoice/${transactionNo}`, {
+        headers: { Authorization: `Bearer ${paylinkToken}` },
+      });
+      const statusData = await statusRes.json();
+
+      if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
+        await supabase.rpc("process_wallet_transaction", {
+          p_wallet_id: topupReq.wallet_id,
+          p_type: "credit",
+          p_amount: topupReq.amount,
+          p_reason: "topup",
+          p_reference_type: "topup",
+          p_reference_id: topupReq.id,
+          p_actor_id: "00000000-0000-0000-0000-000000000000",
+          p_source: "payment_gateway",
+        });
+
+        await supabase
+          .from("wallet_topup_requests")
+          .update({ status: "approved", reviewed_at: new Date().toISOString() })
+          .eq("id", topupReq.id);
+      } else if (statusData.orderStatus === "Canceled" || statusData.orderStatus === "canceled") {
+        await supabase
+          .from("wallet_topup_requests")
+          .update({ status: "rejected", rejection_reason: "تم إلغاء الدفع", reviewed_at: new Date().toISOString() })
+          .eq("id", topupReq.id);
+        processStatus = "payment_canceled";
+      }
+
+      // Store provider response
+      await markWebhookCompleted(supabase, "paylink-wallet", eventId, processStatus, statusData);
+    }
+
+    // 4. Audit log
+    await logWebhookAudit(supabase, tenantId, "webhook_processed", {
+      provider: "paylink-wallet",
+      event_id: eventId,
+      transaction_no: transactionNo,
+      order_status: orderStatus,
+      result: processStatus,
+    });
+  } catch (err: any) {
+    processStatus = "error";
+    console.error("Paylink wallet callback error:", err);
+    await markWebhookCompleted(supabase, "paylink-wallet", eventId, "error", { error: err.message });
+  }
+
+  // Redirect user back to wallet page
   const appOrigin = Deno.env.get("APP_ORIGIN") || "https://saudi-secure-suite.lovable.app";
-  const redirectUrl = `${appOrigin}/dashboard/wallet?topup=${statusData.orderStatus === "Paid" || statusData.orderStatus === "paid" ? "success" : "failed"}`;
-  
+  const redirectUrl = `${appOrigin}/dashboard/wallet?topup=${processStatus === "completed" ? "success" : "failed"}`;
+
   return new Response(null, {
     status: 302,
-    headers: { 
-      ...corsHeaders,
-      "Location": redirectUrl,
-    },
+    headers: { ...corsHeaders, Location: redirectUrl },
   });
 }
 
@@ -480,7 +539,6 @@ async function handleBankTransferTopup(
     return json({ error: "يرجى رفع إيصال التحويل" }, 400);
   }
 
-  // Get wallet
   const { data: wallet } = await supabase
     .from("tenant_wallets")
     .select("id, status")
@@ -496,7 +554,6 @@ async function handleBankTransferTopup(
     return json({ error: "المحفظة مجمّدة — لا يمكن شحن الرصيد", code: "WALLET_FROZEN" }, 400);
   }
 
-  // Create pending topup request
   const { data: topupRequest, error: insertErr } = await supabase
     .from("wallet_topup_requests")
     .insert({

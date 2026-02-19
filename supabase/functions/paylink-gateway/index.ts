@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { verifyWebhookSignature, checkIdempotency, markWebhookCompleted, logWebhookAudit } from "../_shared/webhook-verify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,6 +52,11 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
+    // ─── ACTION: callback (webhook) — no user auth required ─────
+    if (action === "callback" && req.method === "POST") {
+      return await handleCallback(req);
+    }
+
     // Authenticate the calling user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -101,10 +107,8 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Missing required fields: amount, clientName, clientMobile, orderNumber" }, 400);
       }
 
-      // Authenticate with Paylink
       const paylinkToken = await paylinkAuth();
 
-      // Build products array
       const paylinkProducts = products && products.length > 0
         ? products.map((p: any) => ({
             title: p.title || p.description || "منتج",
@@ -118,7 +122,6 @@ Deno.serve(async (req) => {
           }))
         : [{ title: "دفعة", price: amount, qty: 1 }];
 
-      // Create invoice via Paylink
       const invoiceRes = await fetch(`${PAYLINK_BASE_URL}/api/addInvoice`, {
         method: "POST",
         headers: {
@@ -146,7 +149,6 @@ Deno.serve(async (req) => {
 
       const invoiceData = await invoiceRes.json();
 
-      // Store transaction in our DB
       const txNum = `PL-${invoiceData.transactionNo || Date.now()}`;
       const { data: txData, error: txError } = await supabase
         .from("paylink_transactions")
@@ -204,7 +206,6 @@ Deno.serve(async (req) => {
 
       const statusData = await statusRes.json();
 
-      // Update our transaction if payment completed
       if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
         await supabase
           .from("paylink_transactions")
@@ -252,7 +253,6 @@ Deno.serve(async (req) => {
 
       const cancelData = await cancelRes.json();
 
-      // Update local status
       await supabase
         .from("paylink_transactions")
         .update({ status: "failed" })
@@ -262,37 +262,111 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, ...cancelData });
     }
 
-    // ─── ACTION: callback (webhook) ─────────────────────────────
-    if (action === "callback" && req.method === "POST") {
-      // This endpoint can be called by Paylink after payment
-      const body = await req.json();
-      const { transactionNo, orderStatus } = body;
-
-      if (transactionNo) {
-        const serviceClient = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-        );
-
-        if (orderStatus === "Paid" || orderStatus === "paid") {
-          await serviceClient
-            .from("paylink_transactions")
-            .update({ status: "completed" })
-            .eq("paylink_transaction_no", transactionNo);
-        } else if (orderStatus === "Canceled" || orderStatus === "canceled") {
-          await serviceClient
-            .from("paylink_transactions")
-            .update({ status: "failed" })
-            .eq("paylink_transaction_no", transactionNo);
-        }
-      }
-
-      return jsonResponse({ success: true });
-    }
-
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (err) {
     console.error("paylink-gateway error:", err);
     return jsonResponse({ error: err.message || "Internal error" }, 500);
   }
 });
+
+// ─── SECURED CALLBACK HANDLER ──────────────────────────────────────
+async function handleCallback(req: Request) {
+  const serviceClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const bodyText = await req.text();
+  let body: any;
+  try {
+    body = JSON.parse(bodyText);
+  } catch {
+    await logWebhookAudit(serviceClient, null, "webhook_rejected", {
+      provider: "paylink",
+      reason: "Invalid JSON body",
+    });
+    return jsonResponse({ error: "Invalid JSON" }, 400);
+  }
+
+  // 1. Signature verification
+  const webhookSecret = Deno.env.get("WEBHOOK_SIGNING_SECRET");
+  if (webhookSecret) {
+    const { valid, reason } = await verifyWebhookSignature(req, bodyText, webhookSecret);
+    if (!valid) {
+      await logWebhookAudit(serviceClient, null, "webhook_signature_failed", {
+        provider: "paylink",
+        reason,
+        transaction_no: body.transactionNo,
+      });
+      return jsonResponse({ error: "Invalid signature" }, 403);
+    }
+  }
+
+  const { transactionNo, orderStatus } = body;
+  if (!transactionNo) {
+    return jsonResponse({ error: "Missing transactionNo" }, 400);
+  }
+
+  // 2. Idempotency check
+  const eventId = `paylink-${transactionNo}-${orderStatus || "unknown"}`;
+  const { duplicate, existingStatus } = await checkIdempotency(
+    serviceClient,
+    "paylink",
+    eventId,
+    null,
+    { transactionNo, orderStatus }
+  );
+
+  if (duplicate) {
+    await logWebhookAudit(serviceClient, null, "webhook_duplicate", {
+      provider: "paylink",
+      event_id: eventId,
+      existing_status: existingStatus,
+    });
+    return jsonResponse({ success: true, note: "Already processed" });
+  }
+
+  // 3. Process the callback
+  let processStatus = "completed";
+  try {
+    // Find tenant from transaction
+    const { data: txData } = await serviceClient
+      .from("paylink_transactions")
+      .select("tenant_id")
+      .eq("paylink_transaction_no", transactionNo)
+      .maybeSingle();
+
+    if (orderStatus === "Paid" || orderStatus === "paid") {
+      await serviceClient
+        .from("paylink_transactions")
+        .update({ status: "completed" })
+        .eq("paylink_transaction_no", transactionNo);
+    } else if (orderStatus === "Canceled" || orderStatus === "canceled") {
+      await serviceClient
+        .from("paylink_transactions")
+        .update({ status: "failed" })
+        .eq("paylink_transaction_no", transactionNo);
+      processStatus = "failed";
+    }
+
+    // 4. Audit log
+    await logWebhookAudit(serviceClient, txData?.tenant_id || null, "webhook_processed", {
+      provider: "paylink",
+      event_id: eventId,
+      transaction_no: transactionNo,
+      order_status: orderStatus,
+      result: processStatus,
+    });
+  } catch (err: any) {
+    processStatus = "error";
+    console.error("Paylink callback processing error:", err);
+  }
+
+  // 5. Mark webhook event completed
+  await markWebhookCompleted(serviceClient, "paylink", eventId, processStatus, {
+    transactionNo,
+    orderStatus,
+  });
+
+  return jsonResponse({ success: true });
+}
