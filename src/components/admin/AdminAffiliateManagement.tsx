@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,7 +241,7 @@ const AdminAffiliateManagement = () => {
   const processPayout = async (payoutId: string, action: "approve" | "reject") => {
     setProcessingId(payoutId);
     try {
-      const { error } = await supabase.rpc("process_affiliate_payout", {
+      const { error } = await secureRpc("process_affiliate_payout", {
         _payout_id: payoutId,
         _action: action === "approve" ? "approve" : "reject",
         _admin_notes: action === "approve" ? "تمت الموافقة من لوحة الأدمن" : "مرفوض من لوحة الأدمن",

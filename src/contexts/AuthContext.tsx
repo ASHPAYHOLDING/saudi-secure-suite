@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import type { User, Session } from "@supabase/supabase-js";
 import type { TenantType } from "@/lib/tenant-modules";
 import type { AppRole } from "@/lib/roles";
@@ -125,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               if (profileData.tenant_id) {
                 await loadTenantData(profileData.tenant_id, session.user.id);
                 // Run subscription integrity check on login (fire-and-forget)
-                supabase.rpc("check_subscription_integrity", { _tenant_id: profileData.tenant_id }).then(({ data, error }) => {
+                secureRpc("check_subscription_integrity", { _tenant_id: profileData.tenant_id }).then(({ data, error }) => {
                   if (data && (data as any).fixes_count > 0) {
                     console.warn("[Integrity] Auto-corrected", (data as any).fixes_count, "issues");
                   }

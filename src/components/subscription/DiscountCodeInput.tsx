@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,7 @@ const DiscountCodeInput = ({ planId, originalPrice, onDiscountApplied }: Discoun
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("apply_subscription_discount", {
+      const { data, error } = await secureRpc("apply_subscription_discount", {
         _code: code.trim(),
         _tenant_id: tenantId,
         _plan_id: planId,

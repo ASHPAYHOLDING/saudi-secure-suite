@@ -3,6 +3,7 @@ import { ArrowRight, Check, X, Truck, Loader2, Pencil, ArrowDownToLine } from "l
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
@@ -61,7 +62,7 @@ const PurchaseOrderPreview = ({ orderId, onBack, onConvertToGRN }: Props) => {
     // Update inventory for each item with a product_id
     for (const item of currentItems) {
       if (item.product_id) {
-        const { error } = await supabase.rpc("record_stock_movement", {
+        const { error } = await secureRpc("record_stock_movement", {
           _product_id: item.product_id,
           _tenant_id: tenantId!,
           _movement_type: "in",
