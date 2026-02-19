@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DiscountCodeInput from "./DiscountCodeInput";
@@ -214,6 +215,7 @@ const SubscriptionSkeleton = () => (
 
 const SubscriptionPage = () => {
   const { user, tenantId } = useAuth();
+  const { invalidate: invalidateEntitlements } = useEntitlementsContext();
   const isMobile = useIsMobile();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planEntitlements, setPlanEntitlements] = useState<PlanEntitlement[]>([]);
@@ -364,6 +366,7 @@ const SubscriptionPage = () => {
         }
 
         toast({ title: "تم بنجاح ✅", description: response.data.message });
+        invalidateEntitlements();
       } else if (paymentMethod === "paylink") {
         const orderNum = `SUB-${Date.now()}`;
         const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/subscription-webhook?action=webhook`;
