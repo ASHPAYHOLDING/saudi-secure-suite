@@ -8110,6 +8110,7 @@ export type Database = {
           created_at: string
           email_preferences: Json | null
           id: string
+          security_settings: Json | null
           tenant_id: string
           updated_at: string
         }
@@ -8118,6 +8119,7 @@ export type Database = {
           created_at?: string
           email_preferences?: Json | null
           id?: string
+          security_settings?: Json | null
           tenant_id: string
           updated_at?: string
         }
@@ -8126,6 +8128,7 @@ export type Database = {
           created_at?: string
           email_preferences?: Json | null
           id?: string
+          security_settings?: Json | null
           tenant_id?: string
           updated_at?: string
         }
