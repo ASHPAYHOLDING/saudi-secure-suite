@@ -258,11 +258,20 @@ Deno.serve(withRequestTimeout(async (req) => {
     });
 
     if (txnErr) {
-      // Rollback wallet balance
-      await supabase
+      // Rollback wallet balance with optimistic lock to prevent overwriting concurrent changes
+      const { error: rollbackErr } = await supabase
         .from("tenant_wallets")
-        .update({ balance_available: balanceBefore })
-        .eq("id", wallet.id);
+        .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
+        .eq("id", wallet.id)
+        .eq("balance_available", balanceAfter); // Only rollback if balance hasn't changed
+      if (rollbackErr) {
+        console.error("Rollback with optimistic lock failed, attempting forced rollback via RPC");
+        await supabase.rpc("process_wallet_transaction", {
+          p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
+          p_reason: "rollback", p_reference_type: "subscription_rollback",
+          p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
+        });
+      }
 
       console.error("Wallet transaction insert error:", txnErr);
       return new Response(JSON.stringify({ error: "فشل تسجيل العملية المالية" }), {
@@ -290,11 +299,20 @@ Deno.serve(withRequestTimeout(async (req) => {
       .eq("id", currentSub.id);
 
     if (subUpdateErr) {
-      // Rollback wallet
-      await supabase
+      // Rollback wallet with optimistic lock
+      const { error: rollbackErr2 } = await supabase
         .from("tenant_wallets")
-        .update({ balance_available: balanceBefore })
-        .eq("id", wallet.id);
+        .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
+        .eq("id", wallet.id)
+        .eq("balance_available", balanceAfter);
+      if (rollbackErr2) {
+        console.error("Rollback with optimistic lock failed on sub update, using RPC");
+        await supabase.rpc("process_wallet_transaction", {
+          p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
+          p_reason: "rollback", p_reference_type: "subscription_rollback",
+          p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
+        });
+      }
 
       return new Response(JSON.stringify({ error: "فشل تحديث الاشتراك. تم استرداد المبلغ" }), {
         status: 500,
