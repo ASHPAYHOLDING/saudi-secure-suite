@@ -8043,7 +8043,6 @@ export type Database = {
           id: string
           is_active: boolean
           issued_at: string | null
-          private_key: string | null
           private_key_encrypted: string | null
           private_key_kid: string | null
           request_id: string | null
@@ -8061,7 +8060,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           issued_at?: string | null
-          private_key?: string | null
           private_key_encrypted?: string | null
           private_key_kid?: string | null
           request_id?: string | null
@@ -8079,7 +8077,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           issued_at?: string | null
-          private_key?: string | null
           private_key_encrypted?: string | null
           private_key_kid?: string | null
           request_id?: string | null
@@ -8505,6 +8502,7 @@ export type Database = {
           is_active: boolean | null
           is_key_encrypted: boolean | null
           issued_at: string | null
+          key_status: string | null
           private_key_kid: string | null
           request_id: string | null
           tenant_id: string | null
@@ -8522,6 +8520,7 @@ export type Database = {
           is_active?: boolean | null
           is_key_encrypted?: never
           issued_at?: string | null
+          key_status?: never
           private_key_kid?: string | null
           request_id?: string | null
           tenant_id?: string | null
@@ -8539,6 +8538,7 @@ export type Database = {
           is_active?: boolean | null
           is_key_encrypted?: never
           issued_at?: string | null
+          key_status?: never
           private_key_kid?: string | null
           request_id?: string | null
           tenant_id?: string | null
