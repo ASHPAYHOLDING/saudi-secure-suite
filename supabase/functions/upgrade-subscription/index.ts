@@ -364,6 +364,13 @@ Deno.serve(withRequestTimeout(async (req) => {
       },
     });
 
+    // 13. Rebuild entitlements cache immediately (fire-and-forget)
+    supabase.rpc("rebuild_tenant_entitlements_cache", { p_tenant_id: tenantId })
+      .then(({ error }) => {
+        if (error) console.error("Entitlements cache rebuild failed:", error);
+        else console.log("Entitlements cache rebuilt for tenant:", tenantId);
+      });
+
     return new Response(JSON.stringify({
       success: true,
       message: `تم ${isUpgrade ? "الترقية" : "التخفيض"} بنجاح وخصم ${finalPrice} ر.س من المحفظة`,

@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { FEATURE_KEYS, type EntitlementResult } from "@/lib/entitlement-types";
+import { type EntitlementResult } from "@/lib/entitlement-types";
 
 interface EntitlementsContextValue {
   entitlements: Record<string, EntitlementResult>;
@@ -23,8 +23,7 @@ const EntitlementsContext = createContext<EntitlementsContextValue>({
 
 export const useEntitlementsContext = () => useContext(EntitlementsContext);
 
-const ALL_KEYS = Object.values(FEATURE_KEYS);
-const CACHE_KEY = "entitlements-bulk";
+const CACHE_KEY = "entitlements";
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 
 export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
@@ -34,13 +33,12 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
   const { data, isLoading } = useQuery({
     queryKey: [CACHE_KEY, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("check_entitlements_bulk", {
-        _tenant_id: tenantId!,
-        _feature_keys: ALL_KEYS as unknown as string[],
+      const { data, error } = await (supabase.rpc as any)("get_entitlements_cached", {
+        p_tenant_id: tenantId!,
       });
 
       if (error || !data) {
-        console.error("Entitlements bulk check failed:", error);
+        console.error("Entitlements cache read failed:", error);
         return null;
       }
 
@@ -51,6 +49,7 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
     gcTime: STALE_TIME * 2,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    retry: 1,
   });
 
   const entitlements = data ?? {};
@@ -59,8 +58,8 @@ export const EntitlementsProvider = ({ children }: { children: ReactNode }) => {
   const planSlug = firstKey ? entitlements[firstKey]?.plan ?? null : null;
 
   const invalidate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: [CACHE_KEY, tenantId] });
-  }, [queryClient, tenantId]);
+    queryClient.invalidateQueries({ queryKey: [CACHE_KEY] });
+  }, [queryClient]);
 
   return (
     <EntitlementsContext.Provider
