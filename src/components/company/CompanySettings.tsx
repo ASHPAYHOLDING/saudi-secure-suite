@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import FinanceControlPanel from "@/components/company/FinanceControlPanel";
 import EmailPreferencesPanel from "@/components/company/EmailPreferencesPanel";
+import SecuritySettingsPanel from "@/components/company/SecuritySettingsPanel";
 
 interface CompanyData {
   name: string;
@@ -549,6 +550,9 @@ const CompanySettings = () => {
 
       {/* Email Preferences */}
       <EmailPreferencesPanel />
+
+      {/* Security Settings */}
+      <SecuritySettingsPanel />
     </div>
   );
 };
