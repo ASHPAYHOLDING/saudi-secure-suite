@@ -8523,7 +8523,12 @@ export type Database = {
         Returns: Json
       }
       approve_matured_commissions: { Args: never; Returns: number }
-      assert_tenant_member: { Args: { _tenant_id: string }; Returns: undefined }
+      assert_platform_admin: { Args: never; Returns: undefined }
+      assert_tenant_admin: { Args: { p_tenant_id: string }; Returns: undefined }
+      assert_tenant_member: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
