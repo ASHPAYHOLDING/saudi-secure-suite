@@ -1,11 +1,11 @@
-import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
+import { useEntitlementsContext, type EntitlementEntry } from "@/contexts/EntitlementsContext";
 import { FEATURE_KEYS, type FeatureKey, type EntitlementResult } from "@/lib/entitlement-types";
 
 // Re-export for backward compatibility
 export { FEATURE_KEYS, type FeatureKey, type EntitlementResult };
 
 interface EntitlementsState {
-  entitlements: Record<string, EntitlementResult>;
+  entitlements: Record<string, EntitlementEntry>;
   loading: boolean;
   isTrial: boolean;
   planSlug: string | null;
@@ -14,21 +14,18 @@ interface EntitlementsState {
 /**
  * Reads entitlements from the centralized EntitlementsContext.
  * No RPC calls — everything is pre-fetched and cached (5 min staleTime).
- * 
- * Optional featureKeys param filters the returned entitlements map
- * but does NOT trigger a separate fetch.
  */
 export const useEntitlements = (featureKeys?: FeatureKey[]): EntitlementsState => {
-  const { entitlements, loading, isTrial, planSlug } = useEntitlementsContext();
+  const { entitlementsMap, loading, isTrial, planSlug } = useEntitlementsContext();
 
   if (!featureKeys) {
-    return { entitlements, loading, isTrial, planSlug };
+    return { entitlements: entitlementsMap, loading, isTrial, planSlug };
   }
 
-  const filtered: Record<string, EntitlementResult> = {};
+  const filtered: Record<string, EntitlementEntry> = {};
   for (const key of featureKeys) {
-    if (entitlements[key]) {
-      filtered[key] = entitlements[key];
+    if (entitlementsMap[key]) {
+      filtered[key] = entitlementsMap[key];
     }
   }
 
@@ -42,12 +39,17 @@ export const useEntitlements = (featureKeys?: FeatureKey[]): EntitlementsState =
 export const useFeatureGate = (
   featureKey: FeatureKey
 ): { allowed: boolean; loading: boolean; limit: number | null; reason: string } => {
-  const { entitlements, loading } = useEntitlementsContext();
+  const { entitlementsMap, loading } = useEntitlementsContext();
 
-  const entry = entitlements[featureKey];
+  const entry = entitlementsMap[featureKey];
 
-  if (loading || !entry) {
-    return { allowed: false, loading, limit: null, reason: loading ? "" : "not_found" };
+  // While loading, allow rendering (non-blocking)
+  if (loading) {
+    return { allowed: true, loading: true, limit: null, reason: "loading" };
+  }
+
+  if (!entry) {
+    return { allowed: false, loading: false, limit: null, reason: "not_found" };
   }
 
   return {

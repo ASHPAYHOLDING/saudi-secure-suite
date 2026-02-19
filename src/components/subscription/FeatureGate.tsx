@@ -7,21 +7,15 @@ import { useNavigate } from "react-router-dom";
 interface FeatureGateProps {
   featureKey: FeatureKey;
   children: React.ReactNode;
-  /** Feature display name in Arabic */
   featureLabel?: string;
-  /** Feature description in Arabic */
   featureDescription?: string;
-  /** Render as inline badge instead of full-page block */
   inline?: boolean;
 }
 
 /**
  * Universal feature gate component.
- * If the feature is disabled for the current plan:
- *   - Full-page mode: shows upgrade CTA (default)
- *   - Inline mode: shows a compact badge
- * 
- * No partial access — feature is either fully available or fully blocked.
+ * Reads from EntitlementsContext ONLY — zero RPC calls.
+ * While loading: renders children with skeleton overlay (non-blocking).
  */
 const FeatureGate = ({
   featureKey,
@@ -30,18 +24,19 @@ const FeatureGate = ({
   featureDescription,
   inline = false,
 }: FeatureGateProps) => {
-  const { allowed, loading } = useFeatureGate(featureKey);
+  const { allowed, loading, reason } = useFeatureGate(featureKey);
   const navigate = useNavigate();
 
+  // Non-blocking: while loading, show children with a subtle loading indicator
   if (loading) {
-    if (inline) return null;
     return (
-      <div className="space-y-4 p-6">
-        <Skeleton className="h-8 w-48 rounded-lg" />
-        <Skeleton className="h-4 w-72 rounded" />
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
+      <div className="relative">
+        <div className="opacity-60 pointer-events-none">{children}</div>
+        <div className="absolute top-2 start-2 z-10">
+          <div className="flex items-center gap-1.5 rounded-md bg-muted/90 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+            جارٍ التحقق...
+          </div>
         </div>
       </div>
     );
@@ -81,6 +76,11 @@ const FeatureGate = ({
           <p className="text-xs text-muted-foreground">
             بياناتك محفوظة ولن تُحذف. يمكنك الترقية في أي وقت.
           </p>
+          {reason === "not_found" && (
+            <p className="text-[10px] text-destructive/60 font-mono mt-1">
+              debug: key="{featureKey}" not found in entitlements response
+            </p>
+          )}
         </div>
         <div className="flex gap-3">
           <Button onClick={() => navigate("/dashboard/subscription")} className="gap-2">
