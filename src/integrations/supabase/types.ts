@@ -5148,6 +5148,48 @@ export type Database = {
           },
         ]
       }
+      payment_intents: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          invoice_id: string | null
+          metadata: Json | null
+          provider: string
+          provider_session_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          provider: string
+          provider_session_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_session_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_links: {
         Row: {
           amount: number
@@ -8166,6 +8208,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tenant_payment_providers: {
+        Row: {
+          created_at: string
+          credentials_encrypted: string
+          id: string
+          last_tested_at: string | null
+          provider: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          webhook_secret_encrypted: string | null
+        }
+        Insert: {
+          created_at?: string
+          credentials_encrypted?: string
+          id?: string
+          last_tested_at?: string | null
+          provider: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          webhook_secret_encrypted?: string | null
+        }
+        Update: {
+          created_at?: string
+          credentials_encrypted?: string
+          id?: string
+          last_tested_at?: string | null
+          provider?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          webhook_secret_encrypted?: string | null
+        }
+        Relationships: []
       }
       tenant_settings: {
         Row: {
