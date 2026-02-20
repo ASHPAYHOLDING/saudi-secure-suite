@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
+  <defs>
+    <linearGradient id="meta-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0668E1"/>
+      <stop offset="50%" style="stop-color:#1877F2"/>
+      <stop offset="100%" style="stop-color:#0096FF"/>
+    </linearGradient>
+  </defs>
+  <!-- Meta infinity logo mark -->
+  <g transform="translate(20,10)">
+    <!-- Left loop -->
+    <ellipse cx="40" cy="50" rx="28" ry="18" stroke="url(#meta-grad)" stroke-width="12" fill="none"/>
+    <!-- Right loop -->
+    <ellipse cx="88" cy="50" rx="28" ry="18" stroke="url(#meta-grad)" stroke-width="12" fill="none"/>
+    <!-- Connector mask for infinity shape -->
+    <path d="M40 32 Q64 50 88 32" stroke="url(#meta-grad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M40 68 Q64 50 88 68" stroke="url(#meta-grad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Meta wordmark -->
+  <text x="152" y="68" font-family="Helvetica Neue, Arial, sans-serif" font-weight="700" font-size="48" fill="#1877F2" letter-spacing="-1">meta</text>
+</svg>
