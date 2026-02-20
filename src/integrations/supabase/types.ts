@@ -8213,6 +8213,9 @@ export type Database = {
         Row: {
           created_at: string
           credentials_encrypted: string
+          environment: string
+          fees_fixed: number
+          fees_percentage: number
           id: string
           last_tested_at: string | null
           provider: string
@@ -8224,6 +8227,9 @@ export type Database = {
         Insert: {
           created_at?: string
           credentials_encrypted?: string
+          environment?: string
+          fees_fixed?: number
+          fees_percentage?: number
           id?: string
           last_tested_at?: string | null
           provider: string
@@ -8235,6 +8241,9 @@ export type Database = {
         Update: {
           created_at?: string
           credentials_encrypted?: string
+          environment?: string
+          fees_fixed?: number
+          fees_percentage?: number
           id?: string
           last_tested_at?: string | null
           provider?: string

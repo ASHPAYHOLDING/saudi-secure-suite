@@ -46,19 +46,28 @@ Deno.serve(async (req) => {
 
   const { provider, credentials, webhookSecret } = body;
 
-  // Validate provider — includes new gateways
-  const VALID_PROVIDERS = ["tap", "moyasar", "hyperpay", "stripe", "geidea"];
+  // Validate provider
+  const VALID_PROVIDERS = [
+    "tap", "moyasar", "hyperpay", "stripe", "geidea",
+    "paytabs", "myfatoorah", "telr", "paypal", "tabby", "tamara",
+  ];
   if (!VALID_PROVIDERS.includes(provider)) {
     return json({ error: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(", ")}` }, 400, corsHeaders);
   }
 
   // Provider-specific required fields validation
   const REQUIRED_FIELDS: Record<string, string[]> = {
-    tap:      ["secret_key"],
-    moyasar:  ["secret_key"],
-    hyperpay: ["access_token", "entity_id"],
-    stripe:   ["secret_key"],
-    geidea:   ["merchant_public_key", "api_password"],
+    tap:         ["secret_key"],
+    moyasar:     ["secret_key"],
+    hyperpay:    ["access_token", "entity_id"],
+    stripe:      ["secret_key"],
+    geidea:      ["merchant_public_key", "api_password"],
+    paytabs:     ["profile_id", "server_key"],
+    myfatoorah:  ["api_token"],
+    telr:        ["store_id", "auth_key"],
+    paypal:      ["client_id", "client_secret"],
+    tabby:       ["public_key", "secret_key"],
+    tamara:      ["api_token"],
   };
   const required = REQUIRED_FIELDS[provider] || [];
   for (const field of required) {
