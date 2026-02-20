@@ -6,6 +6,12 @@ import { moyasarManifest } from "./moyasar";
 import { hyperpayManifest } from "./hyperpay";
 import { foodicsManifest } from "./foodics";
 import { shopifyManifest } from "./shopify";
+import { paytabsManifest } from "./paytabs";
+import { myfatoorahManifest } from "./myfatoorah";
+import { telrManifest } from "./telr";
+import { paypalManifest } from "./paypal";
+import { tabbyManifest } from "./tabby";
+import { tamaraManifest } from "./tamara";
 import type { IntegrationManifest } from "./types";
 
 export * from "./types";
@@ -19,6 +25,12 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
   hyperpay: hyperpayManifest,
   foodics: foodicsManifest,
   shopify: shopifyManifest,
+  paytabs: paytabsManifest,
+  myfatoorah: myfatoorahManifest,
+  telr: telrManifest,
+  paypal: paypalManifest,
+  tabby: tabbyManifest,
+  tamara: tamaraManifest,
 };
 
 /**
@@ -26,6 +38,7 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
  * إذا لم يُوجد المزود تُعاد null وتُعرض صفحة NotFound.
  */
 export function getManifest(providerId: string): IntegrationManifest | null {
+  if (!providerId) return null;
   return MANIFESTS[providerId.toLowerCase()] ?? null;
 }
 
@@ -36,6 +49,12 @@ export const KEY_TO_PROVIDER: Record<string, string> = {
   pay_geidea: "geidea",
   pay_moyasar: "moyasar",
   pay_hyperpay: "hyperpay",
+  pay_paytabs: "paytabs",
+  pay_myfatoorah: "myfatoorah",
+  pay_telr: "telr",
+  pay_paypal: "paypal",
+  pay_tabby: "tabby",
+  pay_tamara: "tamara",
   pos_foodics: "foodics",
   ecom_shopify: "shopify",
 };
@@ -49,3 +68,12 @@ export function getManifestByKey(integrationKey: string): IntegrationManifest | 
   return getManifest(providerId);
 }
 
+// جميع المزودين كقائمة مرتبة للعرض
+export function getAllManifests(): IntegrationManifest[] {
+  return Object.values(MANIFESTS);
+}
+
+// فلترة حسب category
+export function getManifestsByCategory(category: string): IntegrationManifest[] {
+  return Object.values(MANIFESTS).filter((m) => m.category === category);
+}

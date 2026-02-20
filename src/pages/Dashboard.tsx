@@ -218,7 +218,11 @@ const Dashboard = () => {
     if (path.startsWith("/dashboard/integrations/provider/")) return <IntegrationDetailPage />;
     if (path.startsWith("/dashboard/integrations/gateway/")) return <GatewaySetupPage />;
     if (path.startsWith("/dashboard/integrations/setup/")) return <IntegrationFlowPage />;
-    if (path.match(/^\/dashboard\/integrations\/[^/]+\/[^/]+$/)) return <ProviderDetailPage />;
+    // Provider detail page: /dashboard/integrations/:category/:provider
+    // Must come AFTER more specific paths above
+    const intMatch = path.match(/^\/dashboard\/integrations\/([^/]+)\/([^/]+)$/);
+    if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") return <ProviderDetailPage />;
+    // Provider detail page — handled via sub-routes below
     return <DashboardHome />;
   };
 

@@ -1,427 +1,279 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/**
+ * IntegrationsPage — كتالوج التكاملات
+ * صفحة عرض (cards) مع فلترة + بحث + تصنيفات
+ * لا توجد أي Help موحد — كل مزود له صفحته الخاصة
+ */
+
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
-import { Plug, ShoppingCart, Store, RefreshCw, CheckCircle2, XCircle, Clock, AlertTriangle, Settings2, History } from "lucide-react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { getAllManifests, type IntegrationManifest } from "@/integrations/manifests";
+import {
+  Search, ArrowLeft, CheckCircle2, Plug,
+  CreditCard, ShoppingBag, Monitor, Repeat2, Globe,
+} from "lucide-react";
 
-interface Integration {
-  id: string;
-  tenant_id: string;
-  integration_type: string;
-  display_name: string;
-  is_enabled: boolean;
-  config: Record<string, any>;
-  sync_sales: boolean;
-  sync_inventory: boolean;
-  last_sync_at: string | null;
-  last_sync_status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface SyncLog {
-  id: string;
-  sync_type: string;
-  status: string;
-  records_synced: number;
-  records_failed: number;
-  error_message: string | null;
-  started_at: string;
-  completed_at: string | null;
-}
-
-const AVAILABLE_INTEGRATIONS = [
-  {
-    type: "pos_foodics",
-    name: "Foodics",
-    nameAr: "فوديكس",
-    description: "ربط مع نظام نقاط البيع فوديكس لمزامنة المبيعات والمخزون",
-    icon: Store,
-    category: "pos",
-    fields: [
-      { key: "api_key", label: "مفتاح API", type: "password" },
-      { key: "business_id", label: "معرف المنشأة", type: "text" },
-    ],
-  },
-  {
-    type: "ecommerce_shopify",
-    name: "Shopify",
-    nameAr: "شوبيفاي",
-    description: "ربط مع متجر شوبيفاي لمزامنة الطلبات والمخزون",
-    icon: ShoppingCart,
-    category: "ecommerce",
-    fields: [
-      { key: "store_url", label: "رابط المتجر", type: "text", placeholder: "your-store.myshopify.com" },
-      { key: "api_key", label: "مفتاح API", type: "password" },
-      { key: "api_secret", label: "سر API", type: "password" },
-    ],
-  },
-  {
-    type: "ecommerce_woocommerce",
-    name: "WooCommerce",
-    nameAr: "ووكوميرس",
-    description: "ربط مع متجر ووكوميرس لمزامنة الطلبات والمخزون",
-    icon: ShoppingCart,
-    category: "ecommerce",
-    fields: [
-      { key: "store_url", label: "رابط المتجر", type: "text", placeholder: "https://your-store.com" },
-      { key: "consumer_key", label: "مفتاح المستهلك", type: "password" },
-      { key: "consumer_secret", label: "سر المستهلك", type: "password" },
-    ],
-  },
+// ── تصنيفات العرض ─────────────────────────────────────────────────────────────
+const CATEGORIES: { key: string; label: string; icon: any; emoji: string }[] = [
+  { key: "all", label: "الكل", icon: Plug, emoji: "🔌" },
+  { key: "payment", label: "بوابات محلية", icon: CreditCard, emoji: "🇸🇦" },
+  { key: "bnpl", label: "تقسيط BNPL", icon: Repeat2, emoji: "💳" },
+  { key: "ecommerce", label: "متاجر إلكترونية", icon: ShoppingBag, emoji: "🛒" },
+  { key: "pos", label: "نقاط البيع", icon: Monitor, emoji: "📱" },
 ];
 
-const IntegrationsPage = () => {
-  const { tenantId } = useAuth();
-  const [integrations, setIntegrations] = useState<Integration[]>([]);
-  const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [configDialog, setConfigDialog] = useState<string | null>(null);
-  const [configValues, setConfigValues] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [selectedIntegrationLogs, setSelectedIntegrationLogs] = useState<string | null>(null);
+// بوابات الدفع العالمية
+const GLOBAL_PAYMENT_IDS = ["stripe", "paypal"];
 
-  useEffect(() => {
-    if (tenantId) fetchIntegrations();
-  }, [tenantId]);
+const cardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 280, damping: 28 } },
+};
 
-  const fetchIntegrations = async () => {
-    setLoading(true);
-    const { data } = await (supabase as any)
-      .from("tenant_integrations")
-      .select("*")
-      .eq("tenant_id", tenantId);
-    setIntegrations(data || []);
-    setLoading(false);
-  };
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+};
 
-  const fetchSyncLogs = async (integrationId: string) => {
-    setSelectedIntegrationLogs(integrationId);
-    const { data } = await (supabase as any)
-      .from("integration_sync_logs")
-      .select("*")
-      .eq("integration_id", integrationId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setSyncLogs(data || []);
-  };
-
-  const getIntegration = (type: string) => integrations.find((i) => i.integration_type === type);
-
-  const handleSetup = (type: string) => {
-    const existing = getIntegration(type);
-    setConfigValues(existing?.config || {});
-    setConfigDialog(type);
-  };
-
-  const handleSaveConfig = async () => {
-    if (!configDialog || !tenantId) return;
-    setSaving(true);
-    const existing = getIntegration(configDialog);
-    const meta = AVAILABLE_INTEGRATIONS.find((a) => a.type === configDialog);
-
-    if (existing) {
-      await (supabase as any)
-        .from("tenant_integrations")
-        .update({ config: configValues })
-        .eq("id", existing.id);
-    } else {
-      await (supabase as any)
-        .from("tenant_integrations")
-        .insert({
-          tenant_id: tenantId,
-          integration_type: configDialog,
-          display_name: meta?.nameAr || "",
-          config: configValues,
-          is_enabled: false,
-        });
-    }
-
-    toast({ title: "تم حفظ إعدادات التكامل" });
-    setSaving(false);
-    setConfigDialog(null);
-    fetchIntegrations();
-  };
-
-  const handleToggle = async (type: string, enabled: boolean) => {
-    const integration = getIntegration(type);
-    if (!integration) return;
-
-    // Check config has values before enabling
-    if (enabled && Object.keys(integration.config).length === 0) {
-      toast({ title: "يرجى إعداد التكامل أولاً", variant: "destructive" });
-      return;
-    }
-
-    await (supabase as any)
-      .from("tenant_integrations")
-      .update({ is_enabled: enabled })
-      .eq("id", integration.id);
-
-    toast({ title: enabled ? "تم تفعيل التكامل" : "تم تعطيل التكامل" });
-    fetchIntegrations();
-  };
-
-  const handleToggleSync = async (integrationId: string, field: "sync_sales" | "sync_inventory", value: boolean) => {
-    await (supabase as any)
-      .from("tenant_integrations")
-      .update({ [field]: value })
-      .eq("id", integrationId);
-    fetchIntegrations();
-  };
-
-  const statusBadge = (status: string) => {
-    switch (status) {
-      case "success":
-        return <Badge variant="outline" className="gap-1 text-green-600 border-green-200 bg-green-50"><CheckCircle2 size={12} /> ناجح</Badge>;
-      case "error":
-        return <Badge variant="destructive" className="gap-1"><XCircle size={12} /> خطأ</Badge>;
-      case "syncing":
-        return <Badge variant="outline" className="gap-1 text-blue-600 border-blue-200 bg-blue-50"><RefreshCw size={12} className="animate-spin" /> جاري</Badge>;
-      case "partial":
-        return <Badge variant="outline" className="gap-1 text-amber-600 border-amber-200 bg-amber-50"><AlertTriangle size={12} /> جزئي</Badge>;
-      default:
-        return <Badge variant="secondary" className="gap-1"><Clock size={12} /> لم يتم</Badge>;
-    }
-  };
+// ── Provider Card ──────────────────────────────────────────────────────────────
+const ProviderCard = ({ manifest, onOpen }: { manifest: IntegrationManifest; onOpen: () => void }) => {
+  const isGlobal = GLOBAL_PAYMENT_IDS.includes(manifest.providerId);
+  const isBnpl = manifest.category === "bnpl";
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">مركز التكاملات</h1>
-          <p className="text-muted-foreground mt-1">ربط الأنظمة الخارجية ومزامنة البيانات تلقائياً</p>
-        </div>
-        <Badge variant="outline" className="gap-1">
-          <Plug size={14} />
-          {integrations.filter((i) => i.is_enabled).length} تكامل نشط
-        </Badge>
-      </div>
+    <motion.div variants={cardVariants} layout>
+      <Card
+        className="group relative overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 hover:ring-1 hover:ring-accent/30 flex flex-col h-full"
+        onClick={onOpen}
+      >
+        {/* شريط اللون العلوي */}
+        <div className={`absolute top-0 inset-x-0 h-0.5 bg-gradient-to-l ${manifest.color || "from-accent/30 to-accent/10"} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-      <Tabs defaultValue="available" dir="rtl">
-        <TabsList>
-          <TabsTrigger value="available">التكاملات المتاحة</TabsTrigger>
-          <TabsTrigger value="active">التكاملات النشطة</TabsTrigger>
-          <TabsTrigger value="logs">سجل المزامنة</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="available" className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {AVAILABLE_INTEGRATIONS.map((avail) => {
-              const integration = getIntegration(avail.type);
-              const Icon = avail.icon;
-              return (
-                <Card key={avail.type} className="relative">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          <Icon size={20} className="text-primary" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">{avail.nameAr}</CardTitle>
-                          <p className="text-xs text-muted-foreground">{avail.name}</p>
-                        </div>
-                      </div>
-                      {integration && (
-                        <Switch
-                          checked={integration.is_enabled}
-                          onCheckedChange={(v) => handleToggle(avail.type, v)}
-                        />
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <CardDescription>{avail.description}</CardDescription>
-
-                    {integration && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>آخر مزامنة:</span>
-                        {integration.last_sync_at
-                          ? format(new Date(integration.last_sync_at), "dd MMM yyyy HH:mm", { locale: ar })
-                          : "لم يتم بعد"}
-                        {statusBadge(integration.last_sync_status)}
-                      </div>
-                    )}
-
-                    {integration && integration.is_enabled && (
-                      <div className="flex items-center gap-4 pt-2 border-t">
-                        <label className="flex items-center gap-2 text-xs">
-                          <Switch
-                            checked={integration.sync_sales}
-                            onCheckedChange={(v) => handleToggleSync(integration.id, "sync_sales", v)}
-                          />
-                          مزامنة المبيعات
-                        </label>
-                        <label className="flex items-center gap-2 text-xs">
-                          <Switch
-                            checked={integration.sync_inventory}
-                            onCheckedChange={(v) => handleToggleSync(integration.id, "sync_inventory", v)}
-                          />
-                          مزامنة المخزون
-                        </label>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => handleSetup(avail.type)}>
-                        <Settings2 size={14} />
-                        {integration ? "تعديل الإعدادات" : "إعداد التكامل"}
-                      </Button>
-                      {integration && (
-                        <Button size="sm" variant="ghost" className="gap-1" onClick={() => fetchSyncLogs(integration.id)}>
-                          <History size={14} />
-                          السجل
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="active" className="mt-4">
-          {integrations.filter((i) => i.is_enabled).length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Plug size={48} className="text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">لا توجد تكاملات نشطة حالياً</p>
-                <p className="text-xs text-muted-foreground mt-1">قم بتفعيل التكاملات من التبويب "التكاملات المتاحة"</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {integrations.filter((i) => i.is_enabled).map((integration) => {
-                const meta = AVAILABLE_INTEGRATIONS.find((a) => a.type === integration.integration_type);
-                const Icon = meta?.icon || Plug;
-                return (
-                  <Card key={integration.id}>
-                    <CardContent className="flex items-center justify-between py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-                          <Icon size={20} className="text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{integration.display_name || meta?.nameAr}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                            {statusBadge(integration.last_sync_status)}
-                            {integration.sync_sales && <Badge variant="secondary" className="text-[10px]">مبيعات</Badge>}
-                            {integration.sync_inventory && <Badge variant="secondary" className="text-[10px]">مخزون</Badge>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => fetchSyncLogs(integration.id)}>
-                          <History size={14} />
-                        </Button>
-                        <Switch
-                          checked={integration.is_enabled}
-                          onCheckedChange={(v) => handleToggle(integration.integration_type, v)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="logs" className="mt-4">
-          {!selectedIntegrationLogs ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <History size={48} className="text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground">اختر تكاملاً لعرض سجل المزامنة</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">سجل المزامنة</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>النوع</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>سجلات ناجحة</TableHead>
-                      <TableHead>سجلات فاشلة</TableHead>
-                      <TableHead>البداية</TableHead>
-                      <TableHead>النهاية</TableHead>
-                      <TableHead>الخطأ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {syncLogs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          لا توجد سجلات مزامنة
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      syncLogs.map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell>{log.sync_type === "sales" ? "مبيعات" : log.sync_type === "inventory" ? "مخزون" : "كامل"}</TableCell>
-                          <TableCell>{statusBadge(log.status)}</TableCell>
-                          <TableCell>{log.records_synced}</TableCell>
-                          <TableCell>{log.records_failed}</TableCell>
-                          <TableCell className="text-xs">{format(new Date(log.started_at), "dd/MM HH:mm")}</TableCell>
-                          <TableCell className="text-xs">{log.completed_at ? format(new Date(log.completed_at), "dd/MM HH:mm") : "-"}</TableCell>
-                          <TableCell className="text-xs text-destructive max-w-[200px] truncate">{log.error_message || "-"}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Config Dialog */}
-      <Dialog open={!!configDialog} onOpenChange={() => setConfigDialog(null)}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
-            <DialogTitle>إعداد {AVAILABLE_INTEGRATIONS.find((a) => a.type === configDialog)?.nameAr}</DialogTitle>
-            <DialogDescription>أدخل بيانات الاتصال بالنظام الخارجي. البيانات تُخزّن بشكل آمن.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {AVAILABLE_INTEGRATIONS.find((a) => a.type === configDialog)?.fields.map((field) => (
-              <div key={field.key} className="space-y-2">
-                <Label>{field.label}</Label>
-                <Input
-                  type={field.type}
-                  placeholder={(field as any).placeholder || ""}
-                  value={configValues[field.key] || ""}
-                  onChange={(e) => setConfigValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+        <div className="p-5 flex flex-col flex-1 gap-4">
+          {/* Header: شعار + اسم */}
+          <div className="flex items-center gap-3">
+            {manifest.logoPath ? (
+              <div className="h-12 w-12 rounded-xl border border-border/30 bg-background flex items-center justify-center shrink-0 overflow-hidden p-1">
+                <img
+                  src={manifest.logoPath}
+                  alt={manifest.nameEn}
+                  className="w-full h-full object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="h-full w-full rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground text-xs font-bold">${manifest.nameEn.slice(0, 2)}</div>`; }}
                 />
               </div>
-            ))}
+            ) : (
+              <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${manifest.color || "from-accent/10 to-accent/5"} flex items-center justify-center shrink-0 text-accent font-bold text-sm`}>
+                {manifest.nameEn.slice(0, 2)}
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm text-foreground leading-tight">{manifest.name}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5" dir="ltr">{manifest.nameEn}</p>
+            </div>
+
+            <div className="shrink-0 flex flex-col items-end gap-1">
+              {isBnpl && (
+                <Badge className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary border-primary/20">
+                  تقسيط
+                </Badge>
+              )}
+              {isGlobal && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 gap-1">
+                  <Globe size={9} /> عالمي
+                </Badge>
+              )}
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfigDialog(null)}>إلغاء</Button>
-            <Button onClick={handleSaveConfig} disabled={saving}>
-              {saving ? "جاري الحفظ..." : "حفظ"}
+
+          {/* حقول الإعداد — عدد الحقول */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
+              {manifest.fields.length} حقل إعداد
+            </span>
+            {manifest.webhookPath && (
+              <span className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
+                Webhook
+              </span>
+            )}
+            <span className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
+              {manifest.docsSections.length} قسم دليل
+            </span>
+          </div>
+
+          {/* زر الفتح */}
+          <div className="flex items-center justify-between pt-3 border-t border-border/40 mt-auto">
+            <code className="text-[10px] text-muted-foreground/50 font-mono">{manifest.providerId}</code>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="gap-1.5 text-xs h-8 text-accent hover:bg-accent/5 hover:text-accent group-hover:translate-x-[-2px] transition-transform"
+              onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            >
+              الإعداد والتفاصيل
+              <ArrowLeft size={12} />
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+};
+
+// ── الصفحة الرئيسية ───────────────────────────────────────────────────────────
+const IntegrationsPage = () => {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const allManifests = useMemo(() => getAllManifests(), []);
+
+  const filtered = useMemo(() => {
+    let list = allManifests;
+    if (activeCategory === "all") {
+      // كل الفئات
+    } else {
+      list = list.filter((m) => m.category === activeCategory);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (m) =>
+          m.name.includes(q) ||
+          m.nameEn.toLowerCase().includes(q) ||
+          m.providerId.toLowerCase().includes(q) ||
+          m.category.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [allManifests, activeCategory, search]);
+
+  // تقسيم حسب التصنيف للعرض المجمّع
+  const localPayment = filtered.filter((m) => m.category === "payment" && !GLOBAL_PAYMENT_IDS.includes(m.providerId));
+  const globalPayment = filtered.filter((m) => m.category === "payment" && GLOBAL_PAYMENT_IDS.includes(m.providerId));
+  const bnpl = filtered.filter((m) => m.category === "bnpl");
+  const ecommerce = filtered.filter((m) => m.category === "ecommerce");
+  const pos = filtered.filter((m) => m.category === "pos");
+
+  const openProvider = (manifest: IntegrationManifest) => {
+    navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
+  };
+
+  const renderSection = (title: string, emoji: string, items: IntegrationManifest[]) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{emoji}</span>
+          <h2 className="font-bold text-foreground">{title}</h2>
+          <Badge variant="secondary" className="text-xs">{items.length}</Badge>
+        </div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        >
+          {items.map((m) => (
+            <ProviderCard key={m.providerId} manifest={m} onOpen={() => openProvider(m)} />
+          ))}
+        </motion.div>
+      </div>
+    );
+  };
+
+  const showGrouped = activeCategory === "all" && !search.trim();
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto" dir="rtl">
+      {/* ── Header ── */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+            <Plug size={20} className="text-accent" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">مركز التكاملات</h1>
+            <p className="text-sm text-muted-foreground">{allManifests.length} تكامل متاح — اختر مزوداً لعرض تفاصيله وإعداده</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── بحث + فلترة ── */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="ابحث عن مزود... (Shopify, Moyasar, ...)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pe-10"
+            dir="rtl"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {CATEGORIES.map((cat) => (
+            <Button
+              key={cat.key}
+              variant={activeCategory === cat.key ? "default" : "outline"}
+              size="sm"
+              className="gap-1.5 shrink-0 text-xs"
+              onClick={() => setActiveCategory(cat.key)}
+            >
+              <span>{cat.emoji}</span>
+              {cat.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── المحتوى ── */}
+      <AnimatePresence mode="wait">
+        {filtered.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-20 gap-4 text-center"
+          >
+            <Search size={40} className="text-muted-foreground/20" />
+            <p className="text-muted-foreground">لم يُعثر على نتائج لـ "{search}"</p>
+            <Button variant="outline" size="sm" onClick={() => { setSearch(""); setActiveCategory("all"); }}>
+              إعادة ضبط الفلتر
+            </Button>
+          </motion.div>
+        ) : showGrouped ? (
+          <motion.div key="grouped" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+            {renderSection("بوابات دفع محلية 🇸🇦", "🇸🇦", localPayment)}
+            {renderSection("بوابات دفع عالمية", "🌍", globalPayment)}
+            {renderSection("تقسيط BNPL", "💳", bnpl)}
+            {renderSection("متاجر إلكترونية", "🛒", ecommerce)}
+            {renderSection("نقاط البيع", "📱", pos)}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="flat"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          >
+            {filtered.map((m) => (
+              <ProviderCard key={m.providerId} manifest={m} onOpen={() => openProvider(m)} />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Footer stats */}
+      <div className="flex items-center justify-center gap-6 pt-4 border-t border-border/30 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-accent" /> {allManifests.length} مزود مدعوم</span>
+        <span className="flex items-center gap-1.5"><Plug size={12} /> كل مزود له صفحة إعداد خاصة</span>
+      </div>
     </div>
   );
 };
