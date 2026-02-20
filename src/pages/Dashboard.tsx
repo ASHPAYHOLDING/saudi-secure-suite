@@ -76,10 +76,13 @@ const ProviderDetailPage = lazy(() => import("@/components/integrations/Provider
 const TikTokDetailPage = lazy(() => import("@/components/integrations/TikTokDetailPage"));
 const MetaDetailPage = lazy(() => import("@/components/integrations/MetaDetailPage"));
 const MetaPixelCapiPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaPixelCapiPage })));
+const FacebookCapiPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.FacebookCapiPage })));
 const XPixelPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.XPixelPage })));
+const XCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.XCatalogPage })));
 const GTMPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GTMPage })));
 const GoogleAdsPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GoogleAdsPage })));
 const MetaCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaCatalogPage })));
+const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
 
 
 // Map path segments to module keys
@@ -231,11 +234,13 @@ const Dashboard = () => {
     if (path === "/dashboard/integrations/marketing/tiktok") return <TikTokDetailPage key={path} />;
     if (path === "/dashboard/integrations/marketing/meta") return <MetaDetailPage key={path} />;
     if (path === "/dashboard/integrations/marketing/meta-pixel-capi") return <MetaPixelCapiPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/facebook-capi") return <FacebookCapiPage key={path} />;
     if (path === "/dashboard/integrations/marketing/x") return <XPixelPage key={path} />;
-    if (path === "/dashboard/integrations/marketing/x-catalog") return <XPixelPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/x-catalog") return <XCatalogPage key={path} />;
     if (path === "/dashboard/integrations/marketing/gtm") return <GTMPage key={path} />;
     if (path === "/dashboard/integrations/marketing/google-ads") return <GoogleAdsPage key={path} />;
     if (path === "/dashboard/integrations/marketing/meta-catalog") return <MetaCatalogPage key={path} />;
+    if (path === "/debug/marketing") return <DebugMarketing />;
 
     const intMatch = path.match(/^\/dashboard\/integrations\/([^/]+)\/([^/]+)$/);
     if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") {
