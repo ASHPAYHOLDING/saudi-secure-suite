@@ -1,7 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
-  <rect width="200" height="60" fill="none"/>
-  <!-- PayTabs wordmark style -->
-  <rect x="2" y="8" width="44" height="44" rx="10" fill="#1A3C78"/>
-  <text x="24" y="36" font-family="'Arial Black',sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">P</text>
-  <text x="56" y="38" font-family="'Arial Black',sans-serif" font-size="22" font-weight="900" fill="#1A3C78" letter-spacing="-0.5">ayTabs</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 56" fill="none" role="img" aria-label="PayTabs">
+  <!-- Icon: P mark in rounded square -->
+  <rect x="0" y="4" width="48" height="48" rx="11" fill="#1A3C78"/>
+  <!-- P letter with descender -->
+  <path d="M15 40V16h11c2.8 0 5 .8 6.6 2.4 1.6 1.6 2.4 3.7 2.4 6.1s-.8 4.5-2.4 6.1c-1.6 1.6-3.8 2.4-6.6 2.4H20.5V40H15zm5.5-12h5c1.2 0 2.2-.35 2.9-1.05.7-.7 1.05-1.6 1.05-2.7 0-1.1-.35-2-.05-2.7-.7-.7-1.7-1.05-2.9-1.05H20.5V28z" fill="white"/>
+  <!-- "Pay" text -->
+  <text x="60" y="27" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="800" fill="#1A3C78" letter-spacing="-0.3">Pay</text>
+  <!-- "Tabs" text in gold -->
+  <text x="60" y="44" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="800" fill="#D4A017" letter-spacing="-0.3">Tabs</text>
 </svg>
+
