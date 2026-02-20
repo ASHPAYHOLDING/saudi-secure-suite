@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
 
   const { provider } = body;
 
-  if (!["tap", "moyasar", "hyperpay"].includes(provider)) {
+  const VALID_PROVIDERS = ["tap", "moyasar", "hyperpay", "stripe", "geidea"];
+  if (!VALID_PROVIDERS.includes(provider)) {
     return json({ error: "Invalid provider" }, 400, corsHeaders);
   }
 
@@ -80,6 +81,10 @@ Deno.serve(async (req) => {
       result = await testMoyasar(credentials.secret_key || credentials.api_key || "");
     } else if (provider === "hyperpay") {
       result = await testHyperPay(credentials.access_token || credentials.api_key || "", credentials.entity_id || "");
+    } else if (provider === "stripe") {
+      result = await testStripe(credentials.secret_key || "");
+    } else if (provider === "geidea") {
+      result = await testGeidea(credentials.merchant_public_key || "", credentials.api_password || "");
     } else {
       result = { success: false, message: "مزود غير معروف" };
     }
@@ -159,6 +164,47 @@ async function testHyperPay(accessToken: string, entityId: string): Promise<{ su
     return { success: true, message: "✅ تم الاتصال بنجاح مع HyperPay" };
   } catch (err: any) {
     return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testStripe(secretKey: string): Promise<{ success: boolean; message: string }> {
+  if (!secretKey) return { success: false, message: "Secret Key مطلوب" };
+  if (!secretKey.startsWith("sk_live_") && !secretKey.startsWith("sk_test_")) {
+    return { success: false, message: "مفتاح Stripe غير صالح — يجب أن يبدأ بـ sk_live_ أو sk_test_" };
+  }
+  try {
+    const res = await fetch("https://api.stripe.com/v1/balance", {
+      headers: { Authorization: `Bearer ${secretKey}` },
+    });
+    if (res.status === 401) return { success: false, message: "مفتاح Stripe غير صالح (401 Unauthorized)" };
+    if (res.status === 403) return { success: false, message: "المفتاح لا يمتلك الصلاحيات المطلوبة (403)" };
+    if (!res.ok) return { success: false, message: `خطأ من Stripe: ${res.status}` };
+    return { success: true, message: "✅ تم الاتصال بنجاح مع Stripe" };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال بـ Stripe: " + err.message };
+  }
+}
+
+async function testGeidea(merchantPublicKey: string, apiPassword: string): Promise<{ success: boolean; message: string }> {
+  if (!merchantPublicKey || !apiPassword) return { success: false, message: "Merchant Public Key و API Password مطلوبان" };
+  try {
+    const credentials = btoa(`${merchantPublicKey}:${apiPassword}`);
+    const res = await fetch("https://api.merchant.geidea.net/pgw/api/v6/direct/session", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount: "1.00", currency: "SAR", timestamp: new Date().toISOString() }),
+    });
+    // 401 = bad credentials, 400 = bad request but auth passed = success
+    if (res.status === 401) return { success: false, message: "بيانات اعتماد Geidea غير صالحة (401)" };
+    if (res.status === 403) return { success: false, message: "لا توجد صلاحيات على حساب Geidea (403)" };
+    // 400 means auth OK but payload issue — credentials are valid
+    if (res.status === 400 || res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع Geidea" };
+    return { success: false, message: `استجابة غير متوقعة من Geidea: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال بـ Geidea: " + err.message };
   }
 }
 

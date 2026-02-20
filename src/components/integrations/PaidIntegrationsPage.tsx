@@ -19,6 +19,7 @@ import {
   ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet, Crown, Sparkles,
   Layers, TrendingUp, ArrowLeft,
 } from "lucide-react";
+import { PaymentGatewayWizard, GATEWAY_DEFS, type GatewayDef } from "./PaymentGatewayWizard";
 
 // ─── Types ───
 interface PaidIntegration {
@@ -199,7 +200,7 @@ const IntegrationCard = ({
                 </Badge>
               )}
               {!isActive && purchased && (
-                <Badge variant="outline" className="gap-1 border-amber-300 text-amber-600 bg-amber-50/50 text-[11px]">
+                <Badge variant="outline" className="gap-1 border-border text-muted-foreground bg-muted/30 text-[11px]">
                   <Settings2 size={11} /> تم الشراء
                 </Badge>
               )}
@@ -306,6 +307,9 @@ const PaidIntegrationsPage = () => {
   // ── Single-RPC state (replaces N+1 waterfall) ──
   const [integrationStates, setIntegrationStates] = useState<IntegrationState[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // ── Gateway Wizard state ──
+  const [gatewayWizard, setGatewayWizard] = useState<GatewayDef | null>(null);
 
   // Derived from the first row (all rows share same entitlement)
   const isTrial          = integrationStates[0]?.entitlement_reason === "trial";
@@ -418,6 +422,30 @@ const PaidIntegrationsPage = () => {
 
   // ─── Flow Handlers (ALL unchanged business logic) ───
   const openFlow = (item: PaidIntegration) => {
+    // ── Payment gateways get the dedicated Wizard ──
+    if (item.integration_type === "payment_gateway") {
+      const def = GATEWAY_DEFS.find((d) => d.integrationKey === item.key);
+      if (def) {
+        // Auto-activate entry in tenant_paid_integrations first (so provider config is linked)
+        if (tenantId && user && !getPurchased(item.id)) {
+          const source = hasFreeAccess
+            ? (isTrial ? "trial_auto" : "enterprise_auto")
+            : "purchase_pending"; // will be updated after payment
+          supabase.from("tenant_paid_integrations").upsert({
+            tenant_id: tenantId,
+            integration_id: item.id,
+            status: "disabled", // becomes active after wizard completes
+            activated_by: user.id,
+            purchased_at: new Date().toISOString(),
+            activated_at: new Date().toISOString(),
+            activation_source: source,
+          } as any, { onConflict: "tenant_id,integration_id" }).then(() => fetchAll());
+        }
+        setGatewayWizard(def);
+        return;
+      }
+    }
+
     setFlowItem(item);
     setApiKeyValue("");
     setTestResult("idle");
@@ -768,13 +796,13 @@ const PaidIntegrationsPage = () => {
 
             <div className="flex flex-wrap items-center gap-2">
               {isTrial && (
-                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-blue-500/10 text-blue-600 border-blue-200">
+                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-primary/10 text-primary border-primary/20">
                   <Zap size={13} />
                   فترة تجريبية — كل الميزات مفعّلة
                 </Badge>
               )}
               {isEnterprise && !isTrial && (
-                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-amber-500/10 text-amber-600 border-amber-200">
+                <Badge className="gap-1.5 text-xs py-1.5 px-3 bg-accent/10 text-accent border-accent/20">
                   <Crown size={13} />
                   جميع التكاملات مضمّنة
                 </Badge>
@@ -798,10 +826,10 @@ const PaidIntegrationsPage = () => {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-200/50"
+          className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 shrink-0">
-            <TrendingUp size={18} className="text-amber-600" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+            <TrendingUp size={18} className="text-primary" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">ترقية الباقة مطلوبة</p>
@@ -809,7 +837,7 @@ const PaidIntegrationsPage = () => {
               التكاملات المدفوعة متاحة في الباقة الاحترافية وباقة المؤسسات. قم بالترقية لبدء استقبال المدفوعات.
             </p>
           </div>
-          <Button size="sm" variant="outline" className="shrink-0 gap-1 text-xs border-amber-300 text-amber-700 hover:bg-amber-50">
+          <Button size="sm" variant="outline" className="shrink-0 gap-1 text-xs">
             <Crown size={13} /> ترقية
           </Button>
         </motion.div>
@@ -1095,9 +1123,9 @@ const PaidIntegrationsPage = () => {
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
-                    className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 flex items-center justify-center"
+                    className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center"
                   >
-                    <CreditCard size={32} className="text-amber-600" />
+                    <CreditCard size={32} className="text-primary" />
                   </motion.div>
                   <div>
                     <p className="font-bold text-foreground">في انتظار إتمام الدفع...</p>
@@ -1273,6 +1301,21 @@ const PaidIntegrationsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Payment Gateway Wizard (Stripe / Geidea) ═══ */}
+      {gatewayWizard && tenantId && (
+        <PaymentGatewayWizard
+          gatewayDef={gatewayWizard}
+          tenantId={tenantId}
+          open={!!gatewayWizard}
+          onClose={() => setGatewayWizard(null)}
+          onSuccess={() => {
+            setGatewayWizard(null);
+            fetchAll();
+            toast({ title: `تم تفعيل ${gatewayWizard.nameAr} بنجاح ✅` });
+          }}
+        />
+      )}
     </div>
   );
 };
