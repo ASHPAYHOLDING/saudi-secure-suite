@@ -141,6 +141,46 @@ export const ROUTE_FEATURE_MAP: Record<string, { featureKey: FeatureKey; label: 
     label: "إدارة الصلاحيات",
     description: "تعيين وتعديل صلاحيات المستخدمين والأدوار.",
   },
+  budgets: {
+    featureKey: FEATURE_KEYS.BUDGETS_BASIC,
+    label: "الميزانيات",
+    description: "إعداد وإدارة الميزانيات التقديرية ومتابعة الصرف الفعلي.",
+  },
+  "data-quality": {
+    featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
+    label: "مركز جودة البيانات",
+    description: "التسوية والتحقق من سلامة البيانات المالية.",
+  },
+  approvals: {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    label: "سلاسل الموافقة",
+    description: "إدارة مسارات الموافقة على الفواتير والمستندات.",
+  },
+  finance: {
+    featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
+    label: "النظرة المالية",
+    description: "لوحة ملخصة للوضع المالي والتدفقات النقدية.",
+  },
+  "api-keys": {
+    featureKey: FEATURE_KEYS.API_ACCESS,
+    label: "مفاتيح API",
+    description: "إدارة مفاتيح الوصول البرمجي للنظام.",
+  },
+  integrations: {
+    featureKey: FEATURE_KEYS.PAID_INTEGRATIONS,
+    label: "التكاملات",
+    description: "ربط النظام مع بوابات الدفع والتسويق والأنظمة الخارجية.",
+  },
+  chat: {
+    featureKey: FEATURE_KEYS.TEAM_MANAGEMENT,
+    label: "المحادثات",
+    description: "محادثات الفريق الداخلية والتعاون.",
+  },
+  group: {
+    featureKey: FEATURE_KEYS.UNLIMITED_EVERYTHING,
+    label: "المجموعة المؤسسية",
+    description: "لوحة تحكم المجموعة والشركات التابعة (باقة المؤسسات).",
+  },
 };
 
 /**

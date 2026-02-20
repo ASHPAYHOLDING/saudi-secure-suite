@@ -185,13 +185,13 @@ const Dashboard = () => {
     if (path === "/dashboard/expenses") return withGate("expenses", <ExpensesPage />);
     if (path === "/dashboard/delivery-notes") return withGate("delivery-notes", <DeliveryNotesPage />);
     if (path === "/dashboard/journal-entries") return withGate("journal-entries", <JournalEntriesPage />);
-    if (path === "/dashboard/budgets") return <BudgetListPage />;
-    if (path.startsWith("/dashboard/budgets/")) return <BudgetDetailPage />;
-    if (path === "/dashboard/data-quality") return <DataQualityCenterPage />;
+    if (path === "/dashboard/budgets") return withGate("budgets", <BudgetListPage />);
+    if (path.startsWith("/dashboard/budgets/")) return withGate("budgets", <BudgetDetailPage />);
+    if (path === "/dashboard/data-quality") return withGate("data-quality", <DataQualityCenterPage />);
     if (path === "/dashboard/productivity") return <AccountantDashboard />;
     if (path === "/dashboard/supplier-inbox") return withGate("supplier-inbox", <SupplierInboxPage />);
     if (path === "/dashboard/payment-reminders") return withGate("payment-reminders", <PaymentRemindersPage />);
-    if (path === "/dashboard/approvals") return <ApprovalWorkflowsPage />;
+    if (path === "/dashboard/approvals") return withGate("approvals", <ApprovalWorkflowsPage />);
     if (path === "/dashboard/credit-notes") return withGate("credit-notes", <CreditNotesPage />);
     if (path === "/dashboard/stamp") return withGate("stamp", <StampManagement />);
     if (path === "/dashboard/audit") return withGate("audit", <AuditLogViewer />);
@@ -205,13 +205,13 @@ const Dashboard = () => {
     if (path === "/dashboard/analytics") return withGate("analytics", <AnalyticsPage />);
     if (path === "/dashboard/smart-query") return withGate("smart-query", <NaturalLanguageQuery />);
     if (path === "/dashboard/settings") return <SettingsPage />;
-    if (path === "/dashboard/finance") return <FinancialOverview />;
-    if (path === "/dashboard/integrations") return <IntegrationsPage />;
+    if (path === "/dashboard/finance") return withGate("finance", <FinancialOverview />);
+    if (path === "/dashboard/integrations") return withGate("integrations", <IntegrationsPage />);
     
     if (path === "/dashboard/sheet-view") return <SheetViewPage />;
     if (path === "/dashboard/branches") return withGate("branches", <BranchManagement />);
     if (path === "/dashboard/permissions") return withGate("permissions", <PermissionsManagement />);
-    if (path === "/dashboard/chat") return <ChatPage />;
+    if (path === "/dashboard/chat") return withGate("chat", <ChatPage />);
     if (path === "/dashboard/subscription") return <SubscriptionPage />;
     if (path === "/dashboard/help") return <HelpPage />;
     if (path === "/dashboard/wallet") return withGate("wallet", <WalletPage />);
@@ -219,11 +219,11 @@ const Dashboard = () => {
     if (path === "/dashboard/numaxio-pay") return withGate("numaxio-pay", <NumaxioPay embedded />);
     if (path === "/dashboard/support/new") return <CreateTicketPage />;
     if (path === "/dashboard/support") return <SupportTicketsPage />;
-    if (path === "/dashboard/group") return <GroupDashboardPage />;
+    if (path === "/dashboard/group") return withGate("group", <GroupDashboardPage />);
     if (path === "/dashboard/report-builder") return withGate("reports", <CustomReportBuilder />);
     if (path === "/dashboard/forecasting") return withGate("analytics", <ForecastingPage />);
     if (path === "/dashboard/period-lock") return withGate("journal-entries", <PeriodLockManagement />);
-    if (path === "/dashboard/api-keys") return <ApiKeysManagement />;
+    if (path === "/dashboard/api-keys") return withGate("api-keys", <ApiKeysManagement />);
     if (path === "/dashboard/integrations/payments") return <PaymentProvidersPage />;
     if (path === "/dashboard/payment-marketplace") return <PaymentMarketplace />;
     if (path.startsWith("/dashboard/integrations/provider/")) return <IntegrationDetailPage />;
