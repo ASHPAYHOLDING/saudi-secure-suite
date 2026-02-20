@@ -1542,6 +1542,36 @@ export type Database = {
           },
         ]
       }
+      connection_test_logs: {
+        Row: {
+          category: string
+          created_at: string
+          details: Json | null
+          id: string
+          provider: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          provider: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          provider?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       contract_templates: {
         Row: {
           body_html: string
@@ -3404,6 +3434,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      integration_support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          diagnostics: Json | null
+          id: string
+          issue_type: string
+          message: string
+          provider: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          diagnostics?: Json | null
+          id?: string
+          issue_type: string
+          message: string
+          provider: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          diagnostics?: Json | null
+          id?: string
+          issue_type?: string
+          message?: string
+          provider?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
       }
       integration_sync_logs: {
         Row: {
