@@ -181,17 +181,17 @@ function QueryTables({ queries }: { queries: QueryResults }) {
                   <TableCell className="font-semibold capitalize">{ev.provider}</TableCell>
                   <TableCell className="font-mono text-[10px]" dir="ltr">{ev.provider_event_id}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={cn("text-[10px]", statusColor(ev.status))}>
+                    <Badge variant="outline" className={cn("text-[10px]", statusColor(ev.status ?? ""))}>
                       {ev.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     {ev.signature_valid === true && <CheckCircle2 size={12} className="text-primary mx-auto" />}
                     {ev.signature_valid === false && <XCircle size={12} className="text-destructive mx-auto" />}
-                    {ev.signature_valid === null && <span className="text-muted-foreground">—</span>}
+                    {(ev.signature_valid === null || ev.signature_valid === undefined) && <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell className="text-destructive text-[10px] max-w-[180px] truncate">{ev.processing_error ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-[10px]">{new Date(ev.created_at).toLocaleString("ar-SA")}</TableCell>
+                  <TableCell className="text-muted-foreground text-[10px]">{ev.created_at ? new Date(ev.created_at).toLocaleString("ar-SA") : "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -225,7 +225,7 @@ function QueryTables({ queries }: { queries: QueryResults }) {
                   <TableCell className="font-mono text-[10px]" dir="ltr">{p.invoice_id}</TableCell>
                   <TableCell>{p.amount}</TableCell>
                   <TableCell className="font-mono text-[10px]" dir="ltr">{p.reference_number ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-[10px]">{new Date(p.created_at).toLocaleString("ar-SA")}</TableCell>
+                  <TableCell className="text-muted-foreground text-[10px]">{p.created_at ? new Date(p.created_at).toLocaleString("ar-SA") : "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -256,7 +256,7 @@ function QueryTables({ queries }: { queries: QueryResults }) {
                   <TableCell className="font-mono text-[10px]" dir="ltr">{a.action}</TableCell>
                   <TableCell>{a.entity_label ?? "—"}</TableCell>
                   <TableCell className="font-mono text-[10px]" dir="ltr">{a.entity_id ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-[10px]">{new Date(a.created_at).toLocaleString("ar-SA")}</TableCell>
+                  <TableCell className="text-muted-foreground text-[10px]">{a.created_at ? new Date(a.created_at).toLocaleString("ar-SA") : "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -348,30 +348,35 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
 
   const runQueries = async () => {
     setQueries((q) => ({ ...q, loading: true }));
-    const [evRes, payRes, auditRes] = await Promise.all([
-      supabase
-        .from("webhook_events")
-        .select("provider, provider_event_id, status, signature_valid, processing_error, created_at")
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("invoice_payments")
-        .select("invoice_id, amount, reference_number, created_at")
-        .eq("invoice_id", invoiceId)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("audit_logs")
-        .select("action, entity_label, entity_id, created_at")
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
-    setQueries({
-      webhookEvents: (evRes.data as WebhookEventRow[]) ?? [],
-      invoicePayments: (payRes.data as InvoicePaymentRow[]) ?? [],
-      auditLogs: (auditRes.data as AuditLogRow[]) ?? [],
-      loading: false,
-    });
+    try {
+      const [evRes, payRes, auditRes] = await Promise.all([
+        supabase
+          .from("webhook_events")
+          .select("provider, provider_event_id, status, signature_valid, processing_error, created_at")
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("invoice_payments")
+          .select("invoice_id, amount, reference_number, created_at")
+          .eq("invoice_id", invoiceId)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("audit_logs")
+          .select("action, entity_label, entity_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(5),
+      ]);
+      setQueries({
+        webhookEvents: (evRes.data as WebhookEventRow[]) ?? [],
+        invoicePayments: (payRes.data as InvoicePaymentRow[]) ?? [],
+        auditLogs: (auditRes.data as AuditLogRow[]) ?? [],
+        loading: false,
+      });
+    } catch (err) {
+      console.error("[runQueries]", err);
+      setQueries((q) => ({ ...q, loading: false }));
+    }
   };
 
   const callWebhook = async (
@@ -397,8 +402,8 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
       setter({ status: null, body: msg, ok: false, loading: false, error: msg });
     }
 
-    // Run DB queries after invocation
-    await runQueries();
+    // Run DB queries after invocation — in its own try-catch so it never crashes the page
+    try { await runQueries(); } catch { /* non-critical */ }
   };
 
   return (
