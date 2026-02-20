@@ -9621,6 +9621,14 @@ export type Database = {
         }[]
       }
       get_group_summary: { Args: { _parent_tenant_id: string }; Returns: Json }
+      get_integration_secrets_for_edge_only: {
+        Args: {
+          p_integration_id: string
+          p_master_key: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       get_metric_breakdown: {
         Args: {
           p_date_from: string
@@ -9828,6 +9836,27 @@ export type Database = {
           subject_template: string
           variables: Json
         }[]
+      }
+      set_integration_secrets: {
+        Args: {
+          p_actor_id: string
+          p_integration_id: string
+          p_master_key: string
+          p_secrets_json: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
+      set_tenant_integration_secrets: {
+        Args: {
+          p_actor_id: string
+          p_config_public: Json
+          p_integration_type: string
+          p_master_key: string
+          p_secrets_json: string
+          p_tenant_id: string
+        }
+        Returns: undefined
       }
       sync_budget_actuals_for_tenant: {
         Args: { p_tenant_id: string }
