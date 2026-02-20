@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
       tenant_id: null, payload_hash: payloadHash, raw_headers: rawHeaders,
       status: "rejected", received_at: new Date().toISOString(),
       processing_error: "Cannot resolve tenant_id",
-    }).catch(() => {});
+    });
     await writeAudit(db, null, "webhook_rejected", providerEventId, { reason: "cannot_resolve_tenant_id" });
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
       tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
       status: "rejected", signature_valid: false,
       processing_error: "missing_signature_header", received_at: new Date().toISOString(),
-    }).catch(() => {});
+    });
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
     return json({ error: "Missing required HyperPay signature" }, 401);
   }
@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
       status: "rejected", signature_valid: false,
       processing_error: "hmac_mismatch", received_at: new Date().toISOString(),
-    }).catch(() => {});
+    });
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
     return json({ error: "HyperPay signature verification failed" }, 401);
   }
