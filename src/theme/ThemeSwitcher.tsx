@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+
 
 interface ThemeSwitcherProps {
   className?: string;
@@ -56,7 +58,11 @@ export function ThemeSwitcher({ className, showLabel = false }: ThemeSwitcherPro
         {/* Mode */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">الوضع</DropdownMenuLabel>
         <DropdownMenuItem
-          onClick={() => { setSeasonalTheme("default"); if (mode !== "light") toggleMode(); }}
+          onClick={() => {
+            setSeasonalTheme("default");
+            if (mode !== "light") toggleMode();
+            toast({ title: "الوضع المضيء", description: "تم التبديل للمظهر الفاتح" });
+          }}
           className={cn("gap-2 cursor-pointer", mode === "light" && seasonalTheme === "default" && "bg-accent/10 text-accent")}
         >
           <Sun className="h-4 w-4" />
@@ -66,7 +72,11 @@ export function ThemeSwitcher({ className, showLabel = false }: ThemeSwitcherPro
           )}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => { setSeasonalTheme("default"); if (mode !== "dark") toggleMode(); }}
+          onClick={() => {
+            setSeasonalTheme("default");
+            if (mode !== "dark") toggleMode();
+            toast({ title: "الوضع الداكن", description: "تم التبديل للمظهر الداكن" });
+          }}
           className={cn("gap-2 cursor-pointer", mode === "dark" && seasonalTheme === "default" && "bg-accent/10 text-accent")}
         >
           <Moon className="h-4 w-4" />
@@ -81,7 +91,10 @@ export function ThemeSwitcher({ className, showLabel = false }: ThemeSwitcherPro
         {/* Seasonal */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">موسمي</DropdownMenuLabel>
         <DropdownMenuItem
-          onClick={() => setSeasonalTheme("ramadan")}
+          onClick={() => {
+            setSeasonalTheme("ramadan");
+            toast({ title: "تم تفعيل ثيم رمضان 🌙", description: "يظهر الآن ثيم رمضان الخاص بالنظام" });
+          }}
           className={cn(
             "gap-2 cursor-pointer",
             isRamadan && "bg-[hsl(var(--ramadan-gold)/0.1)]"
@@ -99,7 +112,10 @@ export function ThemeSwitcher({ className, showLabel = false }: ThemeSwitcherPro
           )}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => setSeasonalTheme("default")}
+          onClick={() => {
+            setSeasonalTheme("default");
+            toast({ title: "تم الرجوع للثيم الافتراضي", description: "تم إيقاف ثيم رمضان" });
+          }}
           className={cn("gap-2 cursor-pointer", !isRamadan && "text-muted-foreground")}
         >
           <span className="h-4 w-4 flex items-center justify-center text-xs">⊘</span>
@@ -112,3 +128,4 @@ export function ThemeSwitcher({ className, showLabel = false }: ThemeSwitcherPro
     </DropdownMenu>
   );
 }
+

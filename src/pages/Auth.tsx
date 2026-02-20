@@ -58,7 +58,7 @@ const Auth = () => {
 
   const strength = passwordStrength(password);
   const strengthLabel = ["", "ضعيفة", "متوسطة", "جيدة", "قوية"][strength] || "";
-  const strengthColor = ["", "bg-destructive", "bg-yellow-500", "bg-accent/70", "bg-accent"][strength] || "";
+  const strengthColor = ["", "bg-destructive", "bg-warning", "bg-accent/70", "bg-accent"][strength] || "";
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
