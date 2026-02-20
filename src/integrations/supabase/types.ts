@@ -8176,6 +8176,8 @@ export type Database = {
           security_settings: Json | null
           tenant_id: string
           updated_at: string
+          updated_by: string | null
+          version: number
         }
         Insert: {
           branding_config?: Json
@@ -8185,6 +8187,8 @@ export type Database = {
           security_settings?: Json | null
           tenant_id: string
           updated_at?: string
+          updated_by?: string | null
+          version?: number
         }
         Update: {
           branding_config?: Json
@@ -8194,6 +8198,8 @@ export type Database = {
           security_settings?: Json | null
           tenant_id?: string
           updated_at?: string
+          updated_by?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -9799,6 +9805,15 @@ export type Database = {
       }
       sync_budget_actuals_for_tenant: {
         Args: { p_tenant_id: string }
+        Returns: Json
+      }
+      update_tenant_settings_cas: {
+        Args: {
+          p_column?: string
+          p_expected_version: number
+          p_patch: Json
+          p_tenant_id: string
+        }
         Returns: Json
       }
       user_has_permission: {

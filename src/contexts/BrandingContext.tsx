@@ -14,6 +14,7 @@ export const ARABIC_SAFE_FONTS = [
 ] as const;
 
 export interface BrandingConfig {
+  [key: string]: unknown;
   primary_color: string;
   secondary_color: string;
   font_family: string;
