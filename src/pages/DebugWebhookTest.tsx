@@ -516,11 +516,38 @@ const DebugWebhookTest = () => {
   const [tenantId, setTenantId] = useState("");
   const [invoiceId, setInvoiceId] = useState("");
   const [projectRef, setProjectRef] = useState(SUPABASE_PROJECT_ID);
+  const [autoFilling, setAutoFilling] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     supabase.rpc("is_platform_admin").then(({ data }) => setIsPlatformAdmin(!!data));
   }, [user]);
+
+  // Auto-fill tenantId + invoiceId from DB
+  const autoFill = async () => {
+    setAutoFilling(true);
+    try {
+      // Get first tenant
+      const { data: tenant } = await supabase
+        .from("tenants")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
+      if (tenant?.id) {
+        setTenantId(tenant.id);
+        // Get first invoice for that tenant
+        const { data: invoice } = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("tenant_id", tenant.id)
+          .limit(1)
+          .maybeSingle();
+        if (invoice?.id) setInvoiceId(invoice.id);
+      }
+    } finally {
+      setAutoFilling(false);
+    }
+  };
 
   if (isPlatformAdmin === null) {
     return (
@@ -555,7 +582,19 @@ const DebugWebhookTest = () => {
       {/* Shared Config */}
       <Card>
         <CardHeader className="pb-2 pt-4">
-          <CardTitle className="text-sm">الإعدادات المشتركة</CardTitle>
+          <CardTitle className="text-sm flex items-center justify-between">
+            <span>الإعدادات المشتركة</span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs gap-1.5"
+              onClick={autoFill}
+              disabled={autoFilling}
+            >
+              {autoFilling ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+              تعبئة تلقائية
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent className="pb-4">
           <div className="grid sm:grid-cols-3 gap-3">

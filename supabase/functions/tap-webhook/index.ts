@@ -147,7 +147,15 @@ Deno.serve(async (req) => {
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
 
-  // 4. Load + decrypt webhook secret FIRST (before idempotency to prevent signature-bypass attacks)
+  // 4. STRICT Tap signature verification FIRST — before any DB config lookup
+  // (Security: always check signature before revealing provider configuration status)
+  const sig = req.headers.get("hashid") ?? req.headers.get("x-tap-signature");
+  if (!sig) {
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_hashid_header" });
+    return json({ error: "Missing required Tap signature" }, 401);
+  }
+
+  // 5. Load + decrypt webhook secret (after confirming signature header exists)
   const { data: providerRecord } = await db
     .from("tenant_payment_providers")
     .select("webhook_secret_encrypted, credentials_encrypted, status")
@@ -156,8 +164,8 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!providerRecord) {
-    await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "provider_not_configured" });
-    return json({ error: "Tap not configured for this tenant" }, 400);
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "provider_not_configured" });
+    return json({ error: "Missing required Tap signature" }, 401);
   }
 
   let webhookSecret: string | null = null;
@@ -174,24 +182,18 @@ Deno.serve(async (req) => {
   }
 
   if (!webhookSecret) {
-    await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "webhook_secret_not_configured" });
-    return json({ error: "Tap webhook secret not configured" }, 401);
-  }
-
-  // 5. STRICT Tap signature verification: header "hashid" — BEFORE idempotency insert
-  const sig = req.headers.get("hashid") ?? req.headers.get("x-tap-signature");
-  if (!sig) {
-    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_hashid_header" });
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "webhook_secret_not_configured" });
     return json({ error: "Missing required Tap signature" }, 401);
   }
 
+  // 6. Verify HMAC
   const expected = await hmacSha256hex(webhookSecret, rawBody);
   if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
     return json({ error: "Tap signature verification failed" }, 401);
   }
 
-  // 6. Idempotency insert — only after signature is verified
+  // 7. Idempotency insert — only after signature is verified
   const { isDuplicate } = await insertWebhookEvent(db, providerEventId, tenantId, payloadHash, rawHeaders);
   if (isDuplicate) return json({ ok: true, status: "duplicate" }, 200);
 
