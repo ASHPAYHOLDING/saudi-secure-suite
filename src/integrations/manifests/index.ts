@@ -6,6 +6,7 @@ import { moyasarManifest } from "./moyasar";
 import { hyperpayManifest } from "./hyperpay";
 import { foodicsManifest } from "./foodics";
 import { shopifyManifest } from "./shopify";
+import { woocommerceManifest } from "./woocommerce";
 import { paytabsManifest } from "./paytabs";
 import { myfatoorahManifest } from "./myfatoorah";
 import { telrManifest } from "./telr";
@@ -30,6 +31,7 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
   hyperpay: hyperpayManifest,
   foodics: foodicsManifest,
   shopify: shopifyManifest,
+  woocommerce: woocommerceManifest,
   paytabs: paytabsManifest,
   myfatoorah: myfatoorahManifest,
   telr: telrManifest,
@@ -70,6 +72,7 @@ export const KEY_TO_PROVIDER: Record<string, string> = {
   pay_mispay: "mispay",
   pos_foodics: "foodics",
   ecom_shopify: "shopify",
+  ecom_woocommerce: "woocommerce",
   mkt_tiktok: "tiktok",
   mkt_meta: "meta",
 };

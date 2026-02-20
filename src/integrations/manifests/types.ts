@@ -35,12 +35,16 @@ export interface IntegrationManifest {
   category: string; // payment | pos | ecommerce | bnpl | hr | accounting | ocr | other
   logoPath?: string;
   color?: string;
+  /** وصف مختصر للتكامل — جملتان كحد أقصى */
   description?: string;
+  /** الفوائد الرئيسية للربط */
+  benefits?: string[];
+  /** المتطلبات اللازمة قبل التفعيل */
+  requirements?: string[];
   fields: ManifestField[];
-  webhookPath?: string; // مسار الـ webhook الخاص بالمزود
+  webhookPath?: string;
   docsSections: DocSection[];
   troubleshootingItems?: TroubleshootingItem[];
   supportIssueTypes: SupportIssueType[];
-  /** هل يدعم هذا المزود اختبار الاتصال عبر edge function provider-test؟ */
   supportsConnectionTest?: boolean;
 }

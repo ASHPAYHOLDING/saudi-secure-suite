@@ -710,17 +710,22 @@ const ProviderDetailPage = () => {
   const [activeTab, setActiveTab] = useState("setup");
 
   // ✅ المصدر الوحيد: URL pathname
-  // pathname مثال: /dashboard/integrations/payment/tap
-  // بعد split+filter: ["dashboard","integrations","payment","tap"]
+  // pathname مثال: /dashboard/integrations/payment/tap  أو  /dashboard/integrations/tap
   const pathSegments = location.pathname.split("/").filter(Boolean);
-  const category = pathSegments[2] ?? "";    // index 2 = category
-  const providerParam = pathSegments[3] ?? ""; // index 3 = providerId
+  
+  // دعم المسار المبسّط /dashboard/integrations/:key (بدون category)
+  const hasCategory = pathSegments.length >= 4;
+  const category = hasCategory ? pathSegments[2] : "";
+  const providerParam = hasCategory ? pathSegments[3] : pathSegments[2] ?? "";
 
   // ✅ تحميل manifest بدون أي fallback — null = NotFound
   const manifest: IntegrationManifest | null = useMemo(
     () => (providerParam ? getManifest(providerParam) : null),
     [providerParam]
   );
+  
+  // إذا كان المسار مبسّط، نستخدم category من manifest
+  const effectiveCategory = category || manifest?.category || "";
 
   // لا يوجد useEffect لإعادة reset activeTab هنا لأن الـ component يُعاد mount من الأب
   // (بسبب key={location.pathname} في Dashboard.tsx)
@@ -770,7 +775,6 @@ const ProviderDetailPage = () => {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            {/* ✅ شارة واضحة بالمزود الحالي */}
             <h1 className="text-xl font-bold text-foreground leading-tight">{manifest.name}</h1>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <span className="text-sm text-muted-foreground">{manifest.nameEn}</span>
@@ -782,6 +786,51 @@ const ProviderDetailPage = () => {
           <Badge variant="outline" className="ms-auto capitalize shrink-0">{category}</Badge>
         </div>
       </motion.div>
+
+      {/* ── Overview: Description + Benefits + Requirements ── */}
+      {(manifest.description || manifest.benefits?.length || manifest.requirements?.length) && (
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            {manifest.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{manifest.description}</p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {manifest.benefits && manifest.benefits.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Zap size={12} className="text-accent" />
+                    الفوائد
+                  </h4>
+                  <ul className="space-y-1">
+                    {manifest.benefits.map((b, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <CheckCircle2 size={11} className="mt-0.5 shrink-0 text-accent" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {manifest.requirements && manifest.requirements.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Info size={12} className="text-amber-500" />
+                    المتطلبات
+                  </h4>
+                  <ul className="space-y-1">
+                    {manifest.requirements.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <AlertCircle size={11} className="mt-0.5 shrink-0 text-amber-500/70" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ✅ Debug bar — وضع التطوير فقط (مخفي للمستخدم العادي) */}
       {import.meta.env.DEV && (

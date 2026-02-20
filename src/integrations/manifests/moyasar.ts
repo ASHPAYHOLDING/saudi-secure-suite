@@ -7,6 +7,30 @@ export const moyasarManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/moyasar.svg",
   color: "from-cyan-500/10 to-teal-500/5",
+  description: "بوابة دفع سعودية مصممة خصيصاً للسوق المحلي مع دعم كامل لمدى وApple Pay وواجهة عربية متكاملة.",
+  benefits: [
+    "تجربة دفع محلية بالكامل (عربي + مدى)",
+    "تسوية سريعة وعمولات تنافسية",
+    "Apple Pay مدمجة",
+    "واجهة مطورين بسيطة وسهلة",
+  ],
+  requirements: [
+    "حساب Moyasar مفعّل ومعتمد",
+    "Live API Keys (Secret + Publishable)",
+    "سجل تجاري سعودي",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Invalid credentials'",
+      cause: "استخدام Test Keys بدلاً من Live Keys أو العكس.",
+      solution: "تأكد من استخدام Live Keys للإنتاج — تبدأ بـ sk_live_ و pk_live_.",
+    },
+    {
+      problem: "مدفوعات Apple Pay لا تظهر",
+      cause: "Apple Pay غير مفعّلة في حساب Moyasar.",
+      solution: "تواصل مع دعم Moyasar لتفعيل Apple Pay على حسابك.",
+    },
+  ],
   fields: [
     {
       key: "secret_key",

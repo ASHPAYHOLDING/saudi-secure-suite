@@ -7,6 +7,30 @@ export const myfatoorahManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/myfatoorah.svg",
   color: "from-teal-600/10 to-teal-500/5",
+  description: "بوابة دفع خليجية تدعم مدى وKNET وBenefit وSTC Pay مع تغطية شاملة لدول الخليج.",
+  benefits: [
+    "تغطية كاملة لدول الخليج (السعودية، الكويت، الإمارات، قطر، البحرين، عُمان)",
+    "دعم KNET (الكويت) وBenefitPay (البحرين)",
+    "STC Pay وApple Pay مدمجة",
+    "واجهة دفع مستضافة جاهزة",
+  ],
+  requirements: [
+    "حساب MyFatoorah مفعّل ومعتمد",
+    "API Token (Live أو Test)",
+    "كود الدولة الصحيح (SAU/KWT/ARE/QAT/BHR/OMN)",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Invalid Token'",
+      cause: "API Token غير صحيح أو منتهي الصلاحية.",
+      solution: "أنشئ Token جديد من MyFatoorah Portal → Settings → API Keys.",
+    },
+    {
+      problem: "خطأ 'Country not supported'",
+      cause: "كود الدولة المُدخل لا يتطابق مع حساب MyFatoorah.",
+      solution: "استخدم نفس كود الدولة الذي سجّلت به حسابك: SAU, KWT, ARE, QAT, BHR, OMN.",
+    },
+  ],
   fields: [
     {
       key: "api_key",

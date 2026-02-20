@@ -7,6 +7,35 @@ export const tapManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/tap.svg",
   color: "from-rose-500/10 to-pink-500/10",
+  description: "بوابة دفع رائدة في الشرق الأوسط تدعم مدى وفيزا وماستركارد وApple Pay مع تغطية شاملة لدول الخليج.",
+  benefits: [
+    "دعم كامل لبطاقات مدى السعودية",
+    "Apple Pay وGoogle Pay مدمجة",
+    "تغطية أكثر من 10 دول خليجية وعربية",
+    "لوحة تحكم متقدمة لتتبع المعاملات",
+  ],
+  requirements: [
+    "حساب تجاري مفعّل على Tap Payments",
+    "Live API Keys (Secret + Public)",
+    "اعتماد KYC مكتمل مع Tap",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Invalid API Key' عند الاتصال",
+      cause: "المفتاح المُدخل هو مفتاح Test وليس Live أو العكس.",
+      solution: "تأكد من اختيار Live Keys من لوحة Tap إذا كنت في الإنتاج. Test Keys تبدأ بـ sk_test_.",
+    },
+    {
+      problem: "Webhook لا يصل بعد الدفع",
+      cause: "URL الـ Webhook غير مسجّل في لوحة Tap أو أحداث غير مختارة.",
+      solution: "من Tap Dashboard → Webhooks → Create New، تأكد من إضافة URL نومكسيو واختيار أحداث charge.succeeded و charge.failed.",
+    },
+    {
+      problem: "مدى مرفوضة رغم صحة البطاقة",
+      cause: "خطأ في إعدادات 3D Secure أو عدم تفعيل مدى في حساب Tap.",
+      solution: "تواصل مع دعم Tap لتأكيد تفعيل مدى وأن 3D Secure مُعدّ بشكل صحيح.",
+    },
+  ],
   fields: [
     {
       key: "secret_key",
@@ -41,29 +70,11 @@ export const tapManifest: IntegrationManifest = {
       officialLink: "https://developers.tap.company",
       officialLinkLabel: "وثائق Tap للمطورين",
       steps: [
-        {
-          title: "سجّل دخولك على Tap Dashboard",
-          desc: "اذهب إلى dashboard.tap.company وسجّل دخولك بحسابك التجاري.",
-        },
-        {
-          title: "انتقل إلى Developer Settings",
-          desc: "من القائمة الجانبية اختر Developers → API Keys.",
-          tip: "تأكد من اختيار Live Keys وليس Test Keys للإنتاج",
-        },
-        {
-          title: "انسخ Secret Key",
-          desc: "اضغط على Secret Key وانسخها — ستبدأ بـ sk_live_...",
-          tip: "لا تشارك هذا المفتاح مع أحد أبداً",
-        },
-        {
-          title: "انسخ Public Key",
-          desc: "انسخ Public Key أيضاً — ستبدأ بـ pk_live_...",
-        },
-        {
-          title: "أضف Webhook URL",
-          desc: "من Tap Dashboard → Webhooks → Create New، أضف URL نومكسيو: [webhook_url] ثم احفظ الـ Webhook Secret.",
-          tip: "اختر الأحداث: charge.succeeded, charge.failed",
-        },
+        { title: "سجّل دخولك على Tap Dashboard", desc: "اذهب إلى dashboard.tap.company وسجّل دخولك بحسابك التجاري." },
+        { title: "انتقل إلى Developer Settings", desc: "من القائمة الجانبية اختر Developers → API Keys.", tip: "تأكد من اختيار Live Keys وليس Test Keys للإنتاج" },
+        { title: "انسخ Secret Key", desc: "اضغط على Secret Key وانسخها — ستبدأ بـ sk_live_...", tip: "لا تشارك هذا المفتاح مع أحد أبداً" },
+        { title: "انسخ Public Key", desc: "انسخ Public Key أيضاً — ستبدأ بـ pk_live_..." },
+        { title: "أضف Webhook URL", desc: "من Tap Dashboard → Webhooks → Create New، أضف URL نومكسيو ثم احفظ الـ Webhook Secret.", tip: "اختر الأحداث: charge.succeeded, charge.failed" },
       ],
       faq: [
         { q: "هل تدعم Tap المدفوعات بالريال؟", a: "نعم، تدعم SAR وعدة عملات خليجية وعالمية." },
