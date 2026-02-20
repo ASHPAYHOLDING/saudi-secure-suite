@@ -393,7 +393,8 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
       const text = await res.text();
       setter({ status: res.status, body: text, ok: res.ok, loading: false });
     } catch (e: any) {
-      setter({ status: null, body: e.message, ok: false, loading: false, error: e.message });
+      const msg = e?.message ?? String(e) ?? "Network error (CORS or connection refused)";
+      setter({ status: null, body: msg, ok: false, loading: false, error: msg });
     }
 
     // Run DB queries after invocation
@@ -436,16 +437,18 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
               Run — Missing Signature
             </Button>
 
-            {missingResult.status !== null && (
+            {(missingResult.status !== null || missingResult.error) && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <ResultBadge status={missingResult.status} />
                   {missingResult.status === 401
                     ? <span className="text-xs text-primary font-medium">✅ صحيح</span>
+                    : missingResult.error
+                    ? <span className="text-xs text-destructive font-medium">⚠️ خطأ شبكة</span>
                     : <span className="text-xs text-destructive font-medium">❌ غير متوقع</span>}
                 </div>
                 <pre className="text-[10px] bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all max-h-24" dir="ltr">
-                  {missingResult.body}
+                  {missingResult.body || missingResult.error || ""}
                 </pre>
               </div>
             )}
@@ -476,16 +479,18 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
               Run — Wrong Signature
             </Button>
 
-            {wrongResult.status !== null && (
+            {(wrongResult.status !== null || wrongResult.error) && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <ResultBadge status={wrongResult.status} />
                   {wrongResult.status === 401
                     ? <span className="text-xs text-primary font-medium">✅ صحيح</span>
+                    : wrongResult.error
+                    ? <span className="text-xs text-destructive font-medium">⚠️ خطأ شبكة</span>
                     : <span className="text-xs text-destructive font-medium">❌ غير متوقع</span>}
                 </div>
                 <pre className="text-[10px] bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap break-all max-h-24" dir="ltr">
-                  {wrongResult.body}
+                  {wrongResult.body || wrongResult.error || ""}
                 </pre>
               </div>
             )}
