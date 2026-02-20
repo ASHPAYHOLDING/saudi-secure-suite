@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Background shape -->
+  <rect width="200" height="60" rx="10" fill="#0A6E5A"/>
+  
+  <!-- Arabic text: إمكان -->
+  <text x="105" y="38" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="white" text-anchor="middle" direction="rtl">إمكان</text>
+  
+  <!-- Emkan English text -->
+  <text x="105" y="52" font-family="Arial, sans-serif" font-size="9" font-weight="400" fill="rgba(255,255,255,0.7)" text-anchor="middle" letter-spacing="2">EMKAN FINANCE</text>
+  
+  <!-- Decorative circle icon -->
+  <circle cx="22" cy="30" r="16" fill="rgba(255,255,255,0.15)"/>
+  <path d="M16 30 C16 24 22 20 28 24 C28 20 34 20 34 26 C36 26 36 30 34 32 L28 38 L22 38 L16 34 Z" fill="white" opacity="0.9"/>
+  <circle cx="22" cy="30" r="4" fill="#0A6E5A"/>
+</svg>
