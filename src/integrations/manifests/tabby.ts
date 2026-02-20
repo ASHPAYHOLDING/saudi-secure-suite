@@ -34,6 +34,7 @@ export const tabbyManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/tabby-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط Tabby",

@@ -129,6 +129,15 @@ const SetupTab = ({
   };
 
   const handleTest = async () => {
+    // تحقق أن هذا المزود يدعم اختبار الاتصال عبر edge function
+    if (!manifest.supportsConnectionTest) {
+      toast({
+        title: "اختبار الاتصال غير متاح",
+        description: `مزود ${manifest.nameEn} لا يدعم اختبار الاتصال التلقائي حالياً. تحقق من صحة بياناتك يدوياً.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setTestStatus("testing");
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -338,6 +347,15 @@ const TestTab = ({
   });
 
   const runTest = async () => {
+    // تحقق أن هذا المزود يدعم اختبار الاتصال التلقائي
+    if (!manifest.supportsConnectionTest) {
+      toast({
+        title: "اختبار الاتصال غير متاح",
+        description: `مزود ${manifest.nameEn} لا يدعم اختبار الاتصال التلقائي حالياً.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setTestStatus("testing");
     try {
       const { data: sessionData } = await supabase.auth.getSession();

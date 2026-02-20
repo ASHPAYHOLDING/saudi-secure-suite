@@ -34,6 +34,7 @@ export const tapManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/tap-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات الربط مع Tap Payments",

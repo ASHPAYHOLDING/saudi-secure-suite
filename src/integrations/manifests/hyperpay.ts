@@ -42,6 +42,7 @@ export const hyperpayManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/hyperpay-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط HyperPay",
