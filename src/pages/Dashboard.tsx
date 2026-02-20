@@ -68,6 +68,7 @@ const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLo
 const AdvancedAccountingGate = lazy(() => import("@/components/accounting/AdvancedAccountingGate"));
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
+const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -117,6 +118,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   support: "help",
   group: "company",
   "api-keys": "integrations",
+  "payment-marketplace": "integrations",
 };
 
 const Dashboard = () => {
@@ -207,6 +209,7 @@ const Dashboard = () => {
     if (path === "/dashboard/period-lock") return withGate("journal-entries", <PeriodLockManagement />);
     if (path === "/dashboard/api-keys") return <ApiKeysManagement />;
     if (path === "/dashboard/integrations/payments") return <PaymentProvidersPage />;
+    if (path === "/dashboard/payment-marketplace") return <PaymentMarketplace />;
     return <DashboardHome />;
   };
 
