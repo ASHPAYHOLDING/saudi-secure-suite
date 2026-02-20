@@ -73,6 +73,7 @@ const IntegrationDetailPage = lazy(() => import("@/components/integrations/Integ
 const GatewaySetupPage = lazy(() => import("@/components/integrations/GatewaySetupPage"));
 const IntegrationFlowPage = lazy(() => import("@/components/integrations/IntegrationFlowPage"));
 const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
+const TikTokDetailPage = lazy(() => import("@/components/integrations/TikTokDetailPage"));
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -220,6 +221,9 @@ const Dashboard = () => {
     if (path.startsWith("/dashboard/integrations/setup/")) return <IntegrationFlowPage />;
     // Provider detail page: /dashboard/integrations/:category/:provider
     // CRITICAL: key={path} forces full remount on every provider change — prevents state/cache mixing
+    if (path === "/dashboard/integrations/marketing/tiktok") {
+      return <TikTokDetailPage key={path} />;
+    }
     const intMatch = path.match(/^\/dashboard\/integrations\/([^/]+)\/([^/]+)$/);
     if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") {
       return <ProviderDetailPage key={path} />;
