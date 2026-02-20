@@ -85,12 +85,34 @@ const NumaxioLogo = () => (
   </div>
 );
 
+const PayTabsLogo = () => (
+  <svg viewBox="0 0 90 26" className="h-5 w-auto" fill="none">
+    <rect width="90" height="26" rx="5" fill="#003087"/>
+    <text x="8" y="18" fontFamily="'Inter',sans-serif" fontWeight="700" fontSize="11" fill="white">Pay</text>
+    <text x="29" y="18" fontFamily="'Inter',sans-serif" fontWeight="300" fontSize="11" fill="#60A5FA">Tabs</text>
+    <circle cx="78" cy="8" r="4" fill="#60A5FA" opacity="0.4"/>
+    <circle cx="78" cy="8" r="2" fill="#60A5FA"/>
+  </svg>
+);
+
+const MyFatoorahLogo = () => (
+  <svg viewBox="0 0 100 26" className="h-5 w-auto" fill="none">
+    <rect width="100" height="26" rx="5" fill="#007A6E"/>
+    <circle cx="13" cy="13" r="8" fill="#00B4A0"/>
+    <text x="8" y="17" fontFamily="'Inter',sans-serif" fontWeight="700" fontSize="8" fill="white">MF</text>
+    <text x="26" y="12" fontFamily="'Inter',sans-serif" fontWeight="700" fontSize="7" fill="#00E5D0">my</text>
+    <text x="26" y="21" fontFamily="'Inter',sans-serif" fontWeight="700" fontSize="9" fill="white">Fatoorah</text>
+  </svg>
+);
+
 const PROVIDER_LOGOS: Record<string, React.FC> = {
   tap: TapLogo,
   moyasar: MoyasarLogo,
   hyperpay: HyperPayLogo,
   stripe: StripeLogo,
   geidea: GeidealLogo,
+  paytabs: PayTabsLogo,
+  myfatoorah: MyFatoorahLogo,
 };
 
 const PROVIDER_META: Record<string, {
@@ -128,6 +150,18 @@ const PROVIDER_META: Record<string, {
     color: "text-violet-500",
     bgCard: "bg-violet-500/5 hover:bg-violet-500/10",
     borderCard: "border-violet-500/20 hover:border-violet-500/40",
+  },
+  paytabs: {
+    methods: "مدى • فيزا • ماستركارد • Apple Pay • Benefit",
+    color: "text-blue-500",
+    bgCard: "bg-blue-500/5 hover:bg-blue-500/10",
+    borderCard: "border-blue-500/20 hover:border-blue-500/40",
+  },
+  myfatoorah: {
+    methods: "مدى • KNET • BenefitPay • فيزا • ماستركارد • STC Pay",
+    color: "text-teal-500",
+    bgCard: "bg-teal-500/5 hover:bg-teal-500/10",
+    borderCard: "border-teal-500/20 hover:border-teal-500/40",
   },
 };
 
@@ -252,7 +286,8 @@ const PaymentGatewayPanel = ({
       }
 
       setPaymentUrl(data.paymentUrl);
-      if (["stripe", "geidea"].includes(gateway.key)) {
+      // Providers with hosted checkout pages — open directly
+      if (["stripe", "geidea", "paytabs", "myfatoorah", "tap", "moyasar", "hyperpay"].includes(gateway.key)) {
         window.open(data.paymentUrl, "_blank", "noopener,noreferrer");
         toast.success(`✅ تم فتح صفحة الدفع عبر ${gateway.name_ar}`);
       } else {
@@ -281,7 +316,8 @@ const PaymentGatewayPanel = ({
   };
 
   const hasAnyGateway = hasPayFeature || paidGateways.length > 0;
-  const isCheckout = activeSource === "stripe" || activeSource === "geidea";
+  // All BYO providers use hosted checkout pages
+  const isCheckout = !!activeSource && activeSource !== "numaxio_pay";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

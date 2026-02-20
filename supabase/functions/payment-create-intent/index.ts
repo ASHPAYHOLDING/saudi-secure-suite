@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
   const { provider, invoiceId } = body;
 
-  if (!["tap", "moyasar", "hyperpay", "stripe", "geidea"].includes(provider)) {
+  if (!["tap", "moyasar", "hyperpay", "stripe", "geidea", "paytabs", "myfatoorah"].includes(provider)) {
     return json({ error: "Invalid provider" }, 400);
   }
   if (!invoiceId) return json({ error: "invoiceId is required" }, 400);
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
       const r = await createMoyasarSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "hyperpay") {
-      const r = await createHyperPaySession(credentials, { amount, currency, invoiceId, tenantId });
+      const r = await createHyperPaySession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "stripe") {
       const appUrl = req.headers.get("origin") || "";
@@ -117,6 +117,12 @@ Deno.serve(async (req) => {
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "geidea") {
       const r = await createGeideaSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
+      sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
+    } else if (provider === "paytabs") {
+      const r = await createPayTabsSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl, customer });
+      sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
+    } else if (provider === "myfatoorah") {
+      const r = await createMyFatoorahSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     }
   } catch (err: any) {
@@ -184,25 +190,183 @@ async function createMoyasarSession(creds: any, opts: any) {
 async function createHyperPaySession(creds: any, opts: any) {
   const accessToken = creds.access_token || creds.api_key || "";
   const entityId = creds.entity_id || "";
-  const token = accessToken.includes(":") ? accessToken.split(":")[1] : accessToken;
-  const eid = entityId || accessToken.split(":")[0] || "";
+  // Support both "entityId:token" combined format and separate fields
+  let token = accessToken;
+  let eid = entityId;
+  if (!eid && accessToken.includes(":")) {
+    const parts = accessToken.split(":");
+    eid = parts[0];
+    token = parts.slice(1).join(":");
+  }
 
+  const shopperResultUrl = opts.webhookUrl || "";
   const params = new URLSearchParams({
     entityId: eid,
     amount: opts.amount.toFixed(2),
     currency: opts.currency,
     paymentType: "DB",
     merchantTransactionId: opts.invoiceId.slice(0, 32),
+    "customParameters[invoice_id]": opts.invoiceId,
+    "customParameters[tenant_id]": opts.tenantId,
   });
+  if (shopperResultUrl) params.set("shopperResultUrl", shopperResultUrl);
 
-  const res = await fetch("https://eu-prod.oppwa.com/v1/checkouts", {
+  const baseUrl = creds.sandbox === true
+    ? "https://eu-test.oppwa.com"
+    : "https://eu-prod.oppwa.com";
+
+  const res = await fetch(`${baseUrl}/v1/checkouts`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString(),
   });
   const d = await res.json();
   if (!res.ok || !d.id) throw new Error(d.result?.description || "HyperPay API error");
-  return { id: d.id, url: `https://eu-prod.oppwa.com/v1/paymentWidgets.js?checkoutId=${d.id}`, raw: d };
+
+  // Build hosted payment page URL — standard HyperPay HPP redirect
+  const hppUrl = `${baseUrl}/v1/hpp/${d.id}/page?entityId=${eid}`;
+  return { id: d.id, url: hppUrl, raw: d };
+}
+
+async function createPayTabsSession(creds: any, opts: any) {
+  const profileId = creds.profile_id || "";
+  const serverKey = creds.server_key || creds.api_key || "";
+  const region = (creds.region || "SAU").toUpperCase();
+
+  // Determine endpoint by region
+  const regionEndpoints: Record<string, string> = {
+    SAU: "https://secure.paytabs.sa",
+    ARE: "https://secure.paytabs.com",
+    EGY: "https://secure-egypt.paytabs.com",
+    JOR: "https://secure-jordan.paytabs.com",
+    OMN: "https://secure-oman.paytabs.com",
+    IRQ: "https://secure-iraq.paytabs.com",
+    PAK: "https://secure-pakistan.paytabs.com",
+  };
+  const endpoint = regionEndpoints[region] || regionEndpoints["SAU"];
+
+  const callbackUrl = opts.webhookUrl || "";
+  const returnUrl = opts.webhookUrl || "";
+  const customerName = opts.customer?.name || "Customer";
+  const customerEmail = opts.customer?.email || "noreply@numaxio.com";
+  const customerPhone = opts.customer?.phone || "0000000000";
+
+  const body = {
+    profile_id: Number(profileId),
+    tran_type: "sale",
+    tran_class: "ecom",
+    cart_id: opts.invoiceId.slice(0, 64),
+    cart_currency: opts.currency || "SAR",
+    cart_amount: opts.amount,
+    cart_description: `فاتورة ${opts.invoiceId.slice(0, 20)}`,
+    customer_details: {
+      name: customerName,
+      email: customerEmail,
+      phone: customerPhone,
+      street1: "N/A",
+      city: "Riyadh",
+      state: "Riyadh",
+      country: "SA",
+      zip: "12345",
+    },
+    shipping_details: {
+      name: customerName,
+      email: customerEmail,
+      phone: customerPhone,
+      street1: "N/A",
+      city: "Riyadh",
+      state: "Riyadh",
+      country: "SA",
+      zip: "12345",
+    },
+    callback: callbackUrl,
+    return: returnUrl,
+    metadata: { invoice_id: opts.invoiceId, tenant_id: opts.tenantId },
+  };
+
+  const res = await fetch(`${endpoint}/payment/request`, {
+    method: "POST",
+    headers: {
+      Authorization: serverKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const d = await res.json();
+  if (!res.ok || !d.redirect_url) throw new Error(d.message || d.details?.toString() || "PayTabs API error");
+  return { id: d.tran_ref || opts.invoiceId, url: d.redirect_url, raw: d };
+}
+
+async function createMyFatoorahSession(creds: any, opts: any) {
+  const apiKey = creds.api_key || creds.token || "";
+  const countryCode = (creds.country_code || "SAU").toUpperCase();
+
+  // MyFatoorah base URLs by country
+  const countryEndpoints: Record<string, string> = {
+    SAU: "https://api.myfatoorah.com",
+    KWT: "https://api-kw.myfatoorah.com",
+    ARE: "https://api.myfatoorah.com",
+    QAT: "https://api-qa.myfatoorah.com",
+    BHR: "https://api-bh.myfatoorah.com",
+    OMN: "https://api-om.myfatoorah.com",
+  };
+  const baseUrl = countryEndpoints[countryCode] || countryEndpoints["SAU"];
+
+  // Step 1: Initiate payment to get payment methods
+  const initRes = await fetch(`${baseUrl}/v2/InitiatePayment`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      InvoiceAmount: opts.amount,
+      CurrencyIso: opts.currency || "SAR",
+    }),
+  });
+  const initData = await initRes.json();
+  if (!initRes.ok || !initData.IsSuccess) {
+    throw new Error(initData.Message || "MyFatoorah InitiatePayment error");
+  }
+
+  // Find a supported payment method (MADA=2, Visa=1, default to 1)
+  const methods: any[] = initData.Data?.PaymentMethods || [];
+  const method = methods.find((m: any) => m.PaymentMethodEn === "MADA") ||
+    methods.find((m: any) => m.PaymentMethodEn === "Visa") ||
+    methods[0];
+  const paymentMethodId = method?.PaymentMethodId || 1;
+
+  // Step 2: Execute payment to get the invoice URL
+  const exRes = await fetch(`${baseUrl}/v2/ExecutePayment`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      PaymentMethodId: paymentMethodId,
+      CustomerName: opts.customer?.name || "Customer",
+      DisplayCurrencyIso: opts.currency || "SAR",
+      MobileCountryCode: "+966",
+      CustomerMobile: opts.customer?.phone || "0500000000",
+      CustomerEmail: opts.customer?.email || "noreply@numaxio.com",
+      InvoiceValue: opts.amount,
+      CallBackUrl: opts.webhookUrl,
+      ErrorUrl: opts.webhookUrl,
+      Language: "AR",
+      CustomerReference: opts.invoiceId.slice(0, 50),
+      UserDefinedField: opts.tenantId.slice(0, 50),
+    }),
+  });
+  const exData = await exRes.json();
+  if (!exRes.ok || !exData.IsSuccess) {
+    throw new Error(exData.Message || "MyFatoorah ExecutePayment error");
+  }
+
+  const invoiceUrl = exData.Data?.PaymentURL || exData.Data?.InvoiceURL || "";
+  const invoiceId = String(exData.Data?.InvoiceId || opts.invoiceId);
+  if (!invoiceUrl) throw new Error("No payment URL returned from MyFatoorah");
+  return { id: invoiceId, url: invoiceUrl, raw: exData.Data };
 }
 
 async function createStripeSession(creds: any, opts: any) {
