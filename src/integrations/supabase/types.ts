@@ -4639,13 +4639,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "paid_gateway_transactions_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "paid_integrations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "paid_gateway_transactions_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -4667,81 +4660,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      paid_integrations: {
-        Row: {
-          api_key_label: string | null
-          created_at: string
-          currency: string
-          description_ar: string | null
-          description_en: string | null
-          has_api_client: boolean
-          has_service: boolean
-          has_test_connection: boolean
-          icon_name: string | null
-          id: string
-          included_in_plans: string[]
-          integration_type: string
-          is_listed: boolean
-          is_ready: boolean
-          key: string
-          name_ar: string
-          name_en: string
-          price_once: number
-          requires_api_keys: boolean
-          sort_order: number
-          trial_days: number
-          updated_at: string
-        }
-        Insert: {
-          api_key_label?: string | null
-          created_at?: string
-          currency?: string
-          description_ar?: string | null
-          description_en?: string | null
-          has_api_client?: boolean
-          has_service?: boolean
-          has_test_connection?: boolean
-          icon_name?: string | null
-          id?: string
-          included_in_plans?: string[]
-          integration_type: string
-          is_listed?: boolean
-          is_ready?: boolean
-          key: string
-          name_ar: string
-          name_en?: string
-          price_once?: number
-          requires_api_keys?: boolean
-          sort_order?: number
-          trial_days?: number
-          updated_at?: string
-        }
-        Update: {
-          api_key_label?: string | null
-          created_at?: string
-          currency?: string
-          description_ar?: string | null
-          description_en?: string | null
-          has_api_client?: boolean
-          has_service?: boolean
-          has_test_connection?: boolean
-          icon_name?: string | null
-          id?: string
-          included_in_plans?: string[]
-          integration_type?: string
-          is_listed?: boolean
-          is_ready?: boolean
-          key?: string
-          name_ar?: string
-          name_en?: string
-          price_once?: number
-          requires_api_keys?: boolean
-          sort_order?: number
-          trial_days?: number
-          updated_at?: string
-        }
-        Relationships: []
       }
       paylink_fee_configs: {
         Row: {
@@ -8209,72 +8127,6 @@ export type Database = {
           },
         ]
       }
-      tenant_paid_integrations: {
-        Row: {
-          activated_at: string
-          activated_by: string
-          activation_source: string
-          api_key_encrypted: string | null
-          config: Json | null
-          created_at: string
-          deactivated_at: string | null
-          deactivation_reason: string | null
-          id: string
-          integration_id: string
-          purchased_at: string | null
-          status: string
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          activated_at?: string
-          activated_by: string
-          activation_source?: string
-          api_key_encrypted?: string | null
-          config?: Json | null
-          created_at?: string
-          deactivated_at?: string | null
-          deactivation_reason?: string | null
-          id?: string
-          integration_id: string
-          purchased_at?: string | null
-          status?: string
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          activated_at?: string
-          activated_by?: string
-          activation_source?: string
-          api_key_encrypted?: string | null
-          config?: Json | null
-          created_at?: string
-          deactivated_at?: string | null
-          deactivation_reason?: string | null
-          id?: string
-          integration_id?: string
-          purchased_at?: string | null
-          status?: string
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tenant_paid_integrations_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "paid_integrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_paid_integrations_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       tenant_payment_providers: {
         Row: {
           created_at: string
@@ -9810,32 +9662,6 @@ export type Database = {
         Returns: Json
       }
       get_next_icv: { Args: { _tenant_id: string }; Returns: number }
-      get_paid_integrations_state: {
-        Args: { p_tenant_id: string }
-        Returns: {
-          activation_source: string
-          api_key_label: string
-          description_ar: string
-          ent_allowed: boolean
-          ent_reason: string
-          has_api_client: boolean
-          has_secret_configured: boolean
-          has_service: boolean
-          has_test_connection: boolean
-          id: string
-          integration_type: string
-          is_accessible: boolean
-          is_ready: boolean
-          key: string
-          name_ar: string
-          name_en: string
-          price_once: number
-          requires_api_keys: boolean
-          sort_order: number
-          tenant_status: string
-          trial_days: number
-        }[]
-      }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {

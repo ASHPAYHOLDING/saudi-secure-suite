@@ -149,7 +149,7 @@ const PaymentGatewayPanel = ({
     if (!tenantId || !open) return;
     const fetchGateways = async () => {
       setLoadingGateways(true);
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("tenant_paid_integrations")
         .select("integration_id, status, paid_integrations!inner(key, name_ar, name_en, icon_name, integration_type)")
         .eq("tenant_id", tenantId)
