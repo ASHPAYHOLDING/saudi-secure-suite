@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EntitlementsProvider } from "@/contexts/EntitlementsContext";
+import { ThemeProvider } from "@/theme/ThemeProvider";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 import PageLoadingSkeleton from "./components/ui/PageLoadingSkeleton";
 import Index from "./pages/Index";
@@ -42,43 +43,44 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <GlobalErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <EntitlementsProvider>
-          <Toaster />
-          <Sonner />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsConditions />} />
-              <Route path="/sla" element={<SLA />} />
-              <Route path="/status" element={<StatusPage />} />
-              <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
-              <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/admin" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
-              <Route path="/admin/*" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
-              <Route path="/debug/rtl-lab" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><RtlLab /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/perf" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugPerf /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/entitlements" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugEntitlements /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/feature-gates" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugFeatureGates /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/payment-providers" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugPaymentProviders /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/webhooks" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugWebhooks /></Suspense></ProtectedRoute>} />
-              <Route path="/debug/webhook-test" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugWebhookTest /></Suspense></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </EntitlementsProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <EntitlementsProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsConditions />} />
+                <Route path="/sla" element={<SLA />} />
+                <Route path="/status" element={<StatusPage />} />
+                <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
+                <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/admin" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
+                <Route path="/admin/*" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
+                <Route path="/debug/rtl-lab" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><RtlLab /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/perf" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugPerf /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/entitlements" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugEntitlements /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/feature-gates" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugFeatureGates /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/payment-providers" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugPaymentProviders /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/webhooks" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugWebhooks /></Suspense></ProtectedRoute>} />
+                <Route path="/debug/webhook-test" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugWebhookTest /></Suspense></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+            </EntitlementsProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </GlobalErrorBoundary>
 );
 
