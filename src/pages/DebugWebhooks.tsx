@@ -11,10 +11,20 @@ import {
 } from "@/components/ui/table";
 import {
   CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw, Shield,
-  Copy, ChevronDown, ChevronUp, Loader2,
+  Copy, ChevronDown, ChevronUp, Loader2, Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+
+const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "";
+const FUNCTIONS_BASE = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1`;
+
+const WEBHOOK_URLS = [
+  { provider: "Tap", fn: "tap-webhook", header: "hashid", note: "HMAC-SHA256(raw_body, secret)" },
+  { provider: "Moyasar", fn: "moyasar-webhook", header: "x-moyasar-signature", note: "HMAC-SHA256(raw_body, secret)" },
+  { provider: "HyperPay", fn: "hyperpay-webhook", header: "x-webhook-signature", note: "HMAC-SHA256(raw_body, secret)" },
+];
+
 
 type WebhookStatus = "received" | "processing" | "processed" | "rejected" | "failed" | "duplicate";
 
@@ -190,6 +200,38 @@ const DebugWebhooks = () => {
               بحث
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Webhook URLs Reference */}
+      <Card>
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Link2 size={14} className="text-primary" />
+            روابط Webhooks — أعطها لكل مزود في لوحة تحكمه
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 space-y-2">
+          {WEBHOOK_URLS.map(({ provider, fn, header, note }) => {
+            const url = `${FUNCTIONS_BASE}/${fn}?tenant_id=<UUID>`;
+            return (
+              <div key={fn} className="rounded-md border border-border bg-muted/30 p-3 space-y-1" dir="ltr">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-foreground">{provider}</span>
+                  <button
+                    className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+                    onClick={() => { navigator.clipboard.writeText(url); toast({ title: "تم النسخ" }); }}
+                  >
+                    <Copy size={10} /> نسخ
+                  </button>
+                </div>
+                <p className="font-mono text-[10px] text-primary break-all">{url}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Signature header: <code className="bg-muted px-1 rounded">{header}</code> — {note}
+                </p>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
