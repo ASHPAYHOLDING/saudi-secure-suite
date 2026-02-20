@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { ThemeMode, SeasonalTheme, THEME_TOKENS, ThemeTokens } from "./tokens";
+import { ThemeMode, SeasonalTheme, THEME_TOKENS, ThemeTokens, isCurrentlyRamadan } from "./tokens";
 
 // ─── Types ──────────────────────────────────────────────────
 interface ThemeContextValue {
   mode: ThemeMode;
   seasonalTheme: SeasonalTheme;
+  ramadanAutoOn: boolean;
   setMode: (mode: ThemeMode) => void;
   setSeasonalTheme: (theme: SeasonalTheme) => void;
+  setRamadanAutoOn: (v: boolean) => void;
   toggleMode: () => void;
   tokens: ThemeTokens;
 }
@@ -14,25 +16,24 @@ interface ThemeContextValue {
 // ─── Context ─────────────────────────────────────────────────
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-// ─── Helpers ─────────────────────────────────────────────────
-const LS_MODE_KEY = "numaxio-theme-mode";
-const LS_SEASONAL_KEY = "numaxio-theme-seasonal";
+// ─── Keys ────────────────────────────────────────────────────
+const LS_MODE_KEY           = "numaxio-theme-mode";
+const LS_SEASONAL_KEY       = "numaxio-theme-seasonal";
+const LS_RAMADAN_AUTO_KEY   = "numaxio-ramadan-auto";
+const LS_RAMADAN_MANUAL_KEY = "numaxio-ramadan-manual-override"; // "on" | "off" | absent
 
+// ─── Helpers ─────────────────────────────────────────────────
 function applyTokens(tokens: ThemeTokens, mode: ThemeMode, seasonal: SeasonalTheme) {
   const root = document.documentElement;
-
-  // data attributes
   root.setAttribute("data-mode", mode);
   root.setAttribute("data-theme", seasonal);
 
-  // dark class (for Tailwind .dark: utilities)
   if (mode === "dark") {
     root.classList.add("dark");
   } else {
     root.classList.remove("dark");
   }
 
-  // Apply all CSS variables
   const vars: Record<string, string> = {
     "--background": tokens.background,
     "--foreground": tokens.foreground,
@@ -77,15 +78,27 @@ function applyTokens(tokens: ThemeTokens, mode: ThemeMode, seasonal: SeasonalThe
     "--shadow-accent": tokens.shadowAccent,
   };
 
-  // Ramadan-specific extras
-  if (tokens.ramadanGold) vars["--ramadan-gold"] = tokens.ramadanGold;
+  if (tokens.ramadanGold)    vars["--ramadan-gold"]    = tokens.ramadanGold;
   if (tokens.ramadanEmerald) vars["--ramadan-emerald"] = tokens.ramadanEmerald;
   if (tokens.ramadanPattern) vars["--ramadan-pattern"] = tokens.ramadanPattern;
 
-  // Batch-set all variables for performance
   for (const [prop, value] of Object.entries(vars)) {
     root.style.setProperty(prop, value);
   }
+}
+
+/**
+ * Priority:
+ * 1. manual override (user explicitly toggled) → always respected
+ * 2. autoOn=true + within Ramadan dates → "ramadan"
+ * 3. otherwise → "default"
+ */
+function resolveSeasonalTheme(autoOn: boolean): SeasonalTheme {
+  const manual = localStorage.getItem(LS_RAMADAN_MANUAL_KEY);
+  if (manual === "on")  return "ramadan";
+  if (manual === "off") return "default";
+  if (autoOn && isCurrentlyRamadan()) return "ramadan";
+  return "default";
 }
 
 // ─── Provider ────────────────────────────────────────────────
@@ -96,12 +109,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
 
-  const [seasonalTheme, setSeasonalState] = useState<SeasonalTheme>(() => {
-    const saved = localStorage.getItem(LS_SEASONAL_KEY) as SeasonalTheme | null;
-    return saved === "ramadan" ? "ramadan" : "default";
+  const [ramadanAutoOn, setRamadanAutoState] = useState<boolean>(() => {
+    const saved = localStorage.getItem(LS_RAMADAN_AUTO_KEY);
+    return saved === null ? true : saved === "1"; // default: ON
   });
 
-  // Apply tokens whenever mode or seasonal changes
+  const [seasonalTheme, setSeasonalState] = useState<SeasonalTheme>(() => {
+    const autoOn = (() => {
+      const saved = localStorage.getItem(LS_RAMADAN_AUTO_KEY);
+      return saved === null ? true : saved === "1";
+    })();
+    return resolveSeasonalTheme(autoOn);
+  });
+
   useEffect(() => {
     const tokens = THEME_TOKENS[seasonalTheme][mode];
     applyTokens(tokens, mode, seasonalTheme);
@@ -112,9 +132,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setModeState(m);
   }, []);
 
+  /** Manual toggle — clears auto-resolve, respects user choice */
   const setSeasonalTheme = useCallback((t: SeasonalTheme) => {
+    localStorage.setItem(LS_RAMADAN_MANUAL_KEY, t === "ramadan" ? "on" : "off");
     localStorage.setItem(LS_SEASONAL_KEY, t);
     setSeasonalState(t);
+  }, []);
+
+  /** Toggle auto-detect; when enabled, clears manual override and re-computes */
+  const setRamadanAutoOn = useCallback((v: boolean) => {
+    localStorage.setItem(LS_RAMADAN_AUTO_KEY, v ? "1" : "0");
+    setRamadanAutoState(v);
+    if (v) {
+      localStorage.removeItem(LS_RAMADAN_MANUAL_KEY);
+      const resolved = isCurrentlyRamadan() ? "ramadan" : "default";
+      localStorage.setItem(LS_SEASONAL_KEY, resolved);
+      setSeasonalState(resolved);
+    }
   }, []);
 
   const toggleMode = useCallback(() => {
@@ -124,7 +158,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const tokens = THEME_TOKENS[seasonalTheme][mode];
 
   return (
-    <ThemeContext.Provider value={{ mode, seasonalTheme, setMode, setSeasonalTheme, toggleMode, tokens }}>
+    <ThemeContext.Provider value={{
+      mode, seasonalTheme, ramadanAutoOn,
+      setMode, setSeasonalTheme, setRamadanAutoOn,
+      toggleMode, tokens,
+    }}>
       {children}
     </ThemeContext.Provider>
   );
