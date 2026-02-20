@@ -91,11 +91,38 @@ const ACTION_LABELS: Record<string, string> = {
   extend: "تمديد", status_change: "تغيير حالة", plan_change: "تغيير خطة", cycle_change: "تغيير دورة",
 };
 
-const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string; icon: React.ReactNode; color: string; highlights?: string[] }> = {
-  starter: { tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-accent/10 via-accent/5 to-transparent", icon: <Zap size={22} />, color: "text-accent" },
-  professional: { popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/15 via-accent/5 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={22} />, color: "text-accent", highlights: ["أدوات متقدمة للنمو", "دعم أولوية"] },
-  enterprise: { tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/15 via-primary/5 to-transparent", summaryBadge: "جميع الميزات + التكاملات", icon: <Building2 size={22} />, color: "text-primary", highlights: ["كل التكاملات المدفوعة مجاناً", "مدير حساب مخصص", "SLA مضمون"] },
+const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string; icon: React.ReactNode; color: string; highlights?: string[]; emoji: string; valueTag?: string }> = {
+  starter: { emoji: "⚡", tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-slate-500/10 via-slate-500/5 to-transparent", icon: <Zap size={24} />, color: "text-slate-600 dark:text-slate-400" },
+  professional: { emoji: "👑", popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/20 via-accent/8 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={24} />, color: "text-accent", highlights: ["أدوات متقدمة للنمو", "دعم أولوية"], valueTag: "أفضل توازن بين السعر والقيمة" },
+  enterprise: { emoji: "🏢", tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/15 via-primary/5 to-transparent", summaryBadge: "جميع الميزات + التكاملات", icon: <Building2 size={24} />, color: "text-primary", highlights: ["كل التكاملات المدفوعة مجاناً", "مدير حساب مخصص", "SLA مضمون"] },
 };
+
+// Static pricing display per plan slug (UI only, psychological pricing)
+const STATIC_PRICING: Record<string, { monthly: string; yearly: string; yearlyNote: string; enterpriseNote?: string }> = {
+  starter:      { monthly: "199", yearly: "159",  yearlyNote: "تُحسب سنوياً" },
+  professional: { monthly: "499", yearly: "399",  yearlyNote: "تُحسب سنوياً" },
+  enterprise:   { monthly: "999", yearly: "799",  yearlyNote: "تُحسب سنوياً", enterpriseNote: "السعر يعتمد على عدد الفروع وحجم النشاط" },
+};
+
+// Feature highlights per plan for the new design (static, UI only)
+const PLAN_QUICK_FEATURES: Record<string, string[]> = {
+  starter:      ["3 مستخدمين", "50 فاتورة / شهر", "5GB تخزين", "تقارير أساسية", "بدون تكاملات مدفوعة"],
+  professional: ["25 مستخدم", "500 فاتورة / شهر", "50GB تخزين", "جميع التقارير", "تكاملات مدفوعة", "دعم أولوية"],
+  enterprise:   ["مستخدمين غير محدود", "فواتير غير محدودة", "تخزين مخصص", "مدير حساب", "SLA مخصص", "صلاحيات متقدمة", "API متقدمة"],
+};
+
+// Comparison table rows (UI only)
+const COMPARISON_ROWS = [
+  { label: "المستخدمون", starter: "3", professional: "25", enterprise: "غير محدود" },
+  { label: "الفواتير / شهر", starter: "50", professional: "500", enterprise: "غير محدود" },
+  { label: "التخزين", starter: "5GB", professional: "50GB", enterprise: "مخصص" },
+  { label: "التقارير", starter: "أساسية", professional: "جميع التقارير", enterprise: "جميع التقارير" },
+  { label: "تكاملات مدفوعة", starter: false, professional: true, enterprise: true },
+  { label: "دعم أولوية", starter: false, professional: true, enterprise: true },
+  { label: "مدير حساب", starter: false, professional: false, enterprise: true },
+  { label: "SLA مخصص", starter: false, professional: false, enterprise: true },
+  { label: "API متقدمة", starter: false, professional: false, enterprise: true },
+];
 
 const FEATURE_LABELS: Record<string, string> = {
   invoices_basic: "الفواتير الإلكترونية",
@@ -955,289 +982,254 @@ const SubscriptionPage = () => {
 
           {/* ═══════ 4️⃣ Plans Tab ═══════ */}
           <TabsContent value="plans">
-            {/* Cycle Selector */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="inline-flex items-center gap-1 p-1.5 bg-muted/50 rounded-xl border border-border/50">
-                {(["monthly", "quarterly", "yearly"] as const).map((cycle) => {
-                  const maxSavings = plans.reduce((max, plan) => {
-                    if (cycle === "yearly" && plan.price_yearly && plan.price_monthly > 0) {
-                      const full = plan.price_monthly * 12;
-                      return Math.max(max, Math.round(((full - plan.price_yearly) / full) * 100));
-                    }
-                    if (cycle === "quarterly" && plan.price_quarterly && plan.price_monthly > 0) {
-                      const full = plan.price_monthly * 3;
-                      return Math.max(max, Math.round(((full - plan.price_quarterly) / full) * 100));
-                    }
-                    return max;
-                  }, 0);
 
-                  return (
-                    <button
-                      key={cycle}
-                      onClick={() => setSelectedCycle(cycle)}
-                      className={`relative px-4 sm:px-5 py-2.5 sm:py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        selectedCycle === cycle
-                          ? "bg-background text-foreground shadow-lg shadow-accent/5"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {CYCLE_LABELS[cycle]}
-                      {maxSavings > 0 && (
-                        <span className="absolute -top-2 -left-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded-full px-1.5 py-0.5">
-                          -{maxSavings}%
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+            {/* ── Billing Toggle ── */}
+            <div className="flex flex-col items-center gap-3 mb-8">
+              <p className="text-sm text-muted-foreground">اختر دورة الفوترة</p>
+              <div className="inline-flex items-center gap-1 p-1.5 bg-muted/60 rounded-2xl border border-border/50 shadow-sm">
+                <button
+                  onClick={() => setSelectedCycle("monthly")}
+                  className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                    selectedCycle === "monthly"
+                      ? "bg-background text-foreground shadow-md"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  شهري
+                </button>
+                <button
+                  onClick={() => setSelectedCycle("yearly")}
+                  className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    selectedCycle === "yearly"
+                      ? "bg-background text-foreground shadow-md"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  سنوي
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-full px-2 py-0.5">
+                    وفر 20%
+                  </span>
+                </button>
               </div>
             </div>
 
-            {/* Plan Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" dir="rtl" style={{ direction: "rtl" }}>
+            {/* ── Plan Cards (RTL: أساسي | احترافي | مؤسسي) ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" dir="rtl">
               {plans.map((plan, i) => {
                 const isCurrent = plan.id === subscription?.plan_id;
-                const price = getPlanPrice(plan, selectedCycle);
-                const monthlyEq = getMonthlyEquivalent(plan, selectedCycle);
-                const meta = PLAN_META[plan.slug] || { popular: false, tagline: "", gradient: "from-muted/50 to-transparent", icon: <Zap size={22} />, color: "text-muted-foreground", highlights: [] as string[] };
-                const isPopular = !!meta.popular && !isCurrent;
-
-                const planFeatures = allFeatureKeys.map((key) => ({
-                  key,
-                  label: FEATURE_LABELS[key] || key,
-                  enabled: isFeatureEnabled(plan.id, key),
-                  limit: getFeatureLimit(plan.id, key),
-                }));
-
-                const sortedFeatures = [...planFeatures].sort((a, b) => {
-                  if (a.enabled && !b.enabled) return -1;
-                  if (!a.enabled && b.enabled) return 1;
-                  return 0;
-                });
-
-                const isExpanded = expandedPlans[plan.id] || false;
-                const visibleItems = isExpanded ? sortedFeatures : sortedFeatures.slice(0, INITIAL_VISIBLE);
-                const hasMore = sortedFeatures.length > INITIAL_VISIBLE;
-                const enabledCount = countEnabledFeatures(plan.id);
+                const meta = PLAN_META[plan.slug] || { emoji: "⚡", popular: false, tagline: "", gradient: "from-muted/50 to-transparent", icon: <Zap size={24} />, color: "text-muted-foreground" };
+                const isPopular = !!meta.popular;
+                const staticPricing = STATIC_PRICING[plan.slug];
+                const displayPrice = selectedCycle === "yearly" ? staticPricing?.yearly : staticPricing?.monthly;
+                const quickFeatures = PLAN_QUICK_FEATURES[plan.slug] || [];
 
                 return (
                   <motion.div
                     key={plan.id}
-                    initial={{ opacity: 0, y: 25 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className={isPopular ? "relative z-10 lg:scale-[1.02]" : ""}
+                    transition={{ delay: i * 0.12 }}
+                    className={`relative flex flex-col ${isPopular ? "md:-mt-3 md:mb-[-12px] z-10" : ""}`}
                   >
                     <Card
                       className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden rounded-2xl ${
-                        isCurrent ? "border-accent ring-2 ring-accent/20 shadow-xl shadow-accent/5" :
-                        isPopular ? "border-accent/40 ring-2 ring-accent/10 shadow-xl shadow-accent/10" :
-                        plan.slug === "enterprise" ? "border-primary/30 ring-1 ring-primary/10 shadow-lg" :
-                        "border-border/50 hover:border-accent/20 hover:shadow-md"
+                        isPopular
+                          ? "border-accent ring-2 ring-accent/30 shadow-2xl shadow-accent/15 md:scale-[1.05]"
+                          : isCurrent
+                          ? "border-accent/60 ring-1 ring-accent/20 shadow-xl shadow-accent/10"
+                          : plan.slug === "enterprise"
+                          ? "border-primary/30 ring-1 ring-primary/10 shadow-lg"
+                          : "border-border/60 hover:border-accent/30 hover:shadow-lg"
                       }`}
-                      dir="rtl"
-                      style={{ direction: "rtl", textAlign: "right" }}
                     >
-                      {/* Top gradient */}
-                      <div className={`absolute top-0 left-0 right-0 ${isPopular ? "h-1.5" : "h-1"} bg-gradient-to-l ${
-                        isPopular ? "from-accent via-accent/80 to-accent/50" : meta.gradient
+                      {/* Top color bar */}
+                      <div className={`absolute top-0 left-0 right-0 h-1 ${
+                        isPopular
+                          ? "bg-gradient-to-l from-accent to-accent/60"
+                          : plan.slug === "enterprise"
+                          ? "bg-gradient-to-l from-primary to-primary/60"
+                          : "bg-gradient-to-l from-muted-foreground/20 to-transparent"
                       }`} />
 
-                      {/* Badges */}
-                      <div className="absolute -top-0 right-4 flex items-center gap-2">
-                        {isCurrent && (
-                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1 rounded-b-lg rounded-t-none px-3 py-1.5 text-xs shadow-md">
-                            <Sparkles size={10} />
-                            خطتك الحالية
-                          </Badge>
-                        )}
-                        {isPopular && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: "spring" }}>
-                            <Badge className="bg-gradient-to-l from-accent to-accent/80 text-accent-foreground flex items-center gap-1.5 rounded-b-lg rounded-t-none px-4 py-1.5 text-xs shadow-lg font-bold">
-                              <Flame size={12} />
-                              الأكثر طلباً ⭐
+                      {/* Badge: الأكثر طلباً */}
+                      {isPopular && (
+                        <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-0">
+                          <motion.div
+                            initial={{ scale: 0, y: -10 }}
+                            animate={{ scale: 1, y: 0 }}
+                            transition={{ delay: 0.4, type: "spring" }}
+                          >
+                            <Badge className="bg-gradient-to-l from-accent to-accent/80 text-accent-foreground flex items-center gap-1.5 rounded-b-xl rounded-t-none px-4 py-1.5 text-xs shadow-lg font-bold">
+                              <Star size={11} />
+                              ⭐ الأكثر طلباً
                             </Badge>
                           </motion.div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
-                      <CardHeader className="pb-3 pt-7">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${meta.gradient} border border-border/50`}>
-                            <span className={meta.color}>{meta.icon}</span>
+                      {/* Current plan badge */}
+                      {isCurrent && !isPopular && (
+                        <div className="absolute top-0 right-4">
+                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1 rounded-b-lg rounded-t-none px-3 py-1 text-[11px] shadow-md">
+                            <Sparkles size={9} />
+                            خطتك الحالية
+                          </Badge>
+                        </div>
+                      )}
+                      {isCurrent && isPopular && (
+                        <div className="absolute top-7 left-3">
+                          <Badge className="bg-accent text-accent-foreground flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] shadow-md">
+                            <Sparkles size={9} />
+                            الحالية
+                          </Badge>
+                        </div>
+                      )}
+
+                      <CardHeader className={`pb-4 ${isPopular ? "pt-10" : "pt-8"}`}>
+                        {/* Icon + Name */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl ${
+                            isPopular
+                              ? "bg-accent/10 border border-accent/20"
+                              : plan.slug === "enterprise"
+                              ? "bg-primary/10 border border-primary/20"
+                              : "bg-muted/60 border border-border/50"
+                          }`}>
+                            {meta.emoji}
                           </div>
                           <div>
-                            <CardTitle className="text-lg text-right">{plan.name_ar}</CardTitle>
-                            <p className="text-xs text-muted-foreground mt-0.5">{meta.tagline}</p>
+                            <CardTitle className={`text-xl font-bold ${isPopular ? "text-accent" : plan.slug === "enterprise" ? "text-primary" : "text-foreground"}`}>
+                              {plan.name_ar}
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{meta.tagline}</p>
                           </div>
                         </div>
 
-                        {/* Enterprise / Popular highlights */}
-                        {meta.highlights && meta.highlights.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-1.5">
-                            {meta.highlights.map((h, hi) => (
-                              <motion.div
-                                key={hi}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: i * 0.1 + hi * 0.05 + 0.2 }}
-                              >
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] py-0.5 ${
-                                    plan.slug === "enterprise"
-                                      ? "border-primary/20 bg-primary/5 text-primary"
-                                      : "border-accent/20 bg-accent/5 text-accent"
-                                  }`}
-                                >
-                                  {h.includes("التكاملات") ? <Gift size={10} className="ml-1" /> : <Star size={10} className="ml-1" />}
-                                  {h}
-                                </Badge>
-                              </motion.div>
-                            ))}
+                        {/* Value tag for professional */}
+                        {'valueTag' in meta && meta.valueTag && (
+                          <div className="mb-3">
+                            <span className="text-xs text-accent font-medium bg-accent/8 border border-accent/15 rounded-full px-3 py-1">
+                              {(meta as any).valueTag}
+                            </span>
                           </div>
                         )}
 
-                        <div className="mt-4 text-right">
+                        {/* Price */}
+                        <div className="mt-2">
                           {plan.slug === "enterprise" ? (
-                            <span className="text-2xl font-bold text-foreground">تواصل معنا</span>
-                          ) : (
-                            <>
+                            <div>
                               <div className="flex items-baseline gap-1">
-                                <AnimatedPrice value={price} />
-                                <span className="text-sm text-muted-foreground">ر.س/{CYCLE_LABELS[selectedCycle]}</span>
+                                <span className="text-3xl font-bold text-foreground">
+                                  يبدأ من {selectedCycle === "yearly" ? staticPricing?.yearly : staticPricing?.monthly}
+                                </span>
+                                <span className="text-sm text-muted-foreground">ر.س/شهر</span>
                               </div>
-                              {selectedCycle !== "monthly" && (
-                                <div className="mt-1 space-y-0.5">
-                                  <p className="text-xs text-muted-foreground">
-                                    ≈ {Math.round(monthlyEq).toLocaleString("ar-SA")} ر.س/شهر
-                                  </p>
-                                  {(() => {
-                                    const fullPrice = selectedCycle === "yearly" ? plan.price_monthly * 12 : plan.price_monthly * 3;
-                                    const savings = fullPrice - price;
-                                    const savingsPct = Math.round((savings / fullPrice) * 100);
-                                    if (savings <= 0) return null;
-                                    return (
-                                      <motion.div
-                                        initial={{ opacity: 0, x: 5 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
-                                      >
-                                        🎉 وفّر {savings.toLocaleString("ar-SA")} ر.س ({savingsPct}%)
-                                      </motion.div>
-                                    );
-                                  })()}
+                              {selectedCycle === "yearly" && (
+                                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                                  ✓ {staticPricing?.yearlyNote} — وفّر 20%
+                                </p>
+                              )}
+                              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                                {staticPricing?.enterpriseNote}
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="flex items-baseline gap-1">
+                                <span className={`text-4xl font-black ${isPopular ? "text-accent" : "text-foreground"}`}>
+                                  {displayPrice}
+                                </span>
+                                <span className="text-sm text-muted-foreground">ر.س/شهر</span>
+                              </div>
+                              {selectedCycle === "yearly" && (
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="text-xs text-muted-foreground line-through">{staticPricing?.monthly} ر.س</span>
+                                  <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border-0 text-[10px] px-2 py-0.5 font-bold">
+                                    وفر 20%
+                                  </Badge>
                                 </div>
                               )}
-                            </>
+                              {selectedCycle === "yearly" && (
+                                <p className="text-[11px] text-muted-foreground mt-0.5">{staticPricing?.yearlyNote}</p>
+                              )}
+                            </div>
                           )}
                         </div>
                       </CardHeader>
 
-                      <CardContent className="flex-1 space-y-3">
-                        {/* Quota badges */}
-                        <div className="flex flex-wrap gap-2">
-                          {getFeatureLimit(plan.id, "max_users") && (
-                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.15 }}
-                              className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs font-medium border border-border/30">
-                              <Users size={12} className="text-accent" />
-                              <span>{getFeatureLimit(plan.id, "max_users") || "∞"} مستخدم</span>
-                            </motion.div>
-                          )}
-                          {plan.max_invoices && (
-                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.2 }}
-                              className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs font-medium border border-border/30">
-                              <FileText size={12} className="text-accent" />
-                              <span>{plan.max_invoices} فاتورة/شهر</span>
-                            </motion.div>
-                          )}
-                          {getFeatureLimit(plan.id, "max_storage_gb") && (
-                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 + 0.25 }}
-                              className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs font-medium border border-border/30">
-                              <HardDrive size={12} className="text-accent" />
-                              <span>{getFeatureLimit(plan.id, "max_storage_gb")} GB</span>
-                            </motion.div>
-                          )}
-                        </div>
+                      <CardContent className="flex-1 flex flex-col pb-6 pt-0 gap-5">
+                        {/* Divider */}
+                        <div className={`h-px ${isPopular ? "bg-accent/20" : "bg-border/50"}`} />
 
-                        <div className="border-t border-border/30" />
-
-                        {/* Feature list */}
-                        <div className="space-y-0 text-sm text-right">
-                          <AnimatePresence initial={false}>
-                            {visibleItems.map((item, fi) => (
-                              <motion.div
-                                key={item.key}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.2, delay: fi * 0.02 }}
-                                className="overflow-hidden"
-                              >
-                                <div
-                                  className="flex items-center gap-2.5 py-2 border-b border-border/10 last:border-b-0"
-                                  style={{ direction: "rtl" }}
-                                >
-                                  {item.enabled ? (
-                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 shrink-0">
-                                      <Check size={12} className="text-accent" />
-                                    </div>
-                                  ) : (
-                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted/50 shrink-0">
-                                      <X size={12} className="text-muted-foreground/30" />
-                                    </div>
-                                  )}
-                                  <span className={item.enabled ? "text-foreground" : "text-muted-foreground/40 line-through decoration-muted-foreground/15"}>
-                                    {item.label}
-                                    {item.enabled && item.limit !== null && (
-                                      <span className="text-xs text-muted-foreground mr-1">({item.limit})</span>
-                                    )}
-                                  </span>
-                                </div>
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
-
-                          {hasMore && (
-                            <motion.button
-                              onClick={() => setExpandedPlans((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
-                              className="flex items-center justify-center gap-1.5 w-full pt-3 pb-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors min-h-[44px]"
-                              whileTap={{ scale: 0.97 }}
+                        {/* Quick features list */}
+                        <ul className="space-y-2.5 flex-1">
+                          {quickFeatures.map((feature, fi) => (
+                            <motion.li
+                              key={fi}
+                              initial={{ opacity: 0, x: 10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.1 + fi * 0.04 + 0.2 }}
+                              className="flex items-center gap-2.5 text-sm"
                             >
-                              <span>{isExpanded ? "عرض أقل" : `عرض الكل (${sortedFeatures.length})`}</span>
-                              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                                <ChevronDown size={14} />
-                              </motion.div>
-                            </motion.button>
-                          )}
-                        </div>
+                              <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                                isPopular
+                                  ? "bg-accent/15 text-accent"
+                                  : plan.slug === "enterprise"
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                <Check size={11} className="font-bold" />
+                              </div>
+                              <span className="text-foreground/85">{feature}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
 
-                        {/* CTA */}
-                        <div className="pt-3">
+                        {/* CTAs */}
+                        <div className="space-y-2 mt-auto pt-2">
                           {isCurrent ? (
-                            <Button variant="outline" className="w-full gap-2 h-12 sm:h-10 text-base sm:text-sm rounded-xl" disabled>
+                            <Button variant="outline" className="w-full gap-2 h-12 rounded-xl font-semibold" disabled>
                               <CheckCircle2 size={16} />
                               خطتك الحالية
                             </Button>
                           ) : plan.slug === "enterprise" ? (
-                            <Button
-                              className="w-full gap-2 h-12 sm:h-10 text-base sm:text-sm rounded-xl"
-                              variant="outline"
-                              onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
-                            >
-                              <Building2 size={16} /> تواصل مع المبيعات
-                            </Button>
-                          ) : (
-                            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+                            <>
                               <Button
-                                className={`w-full gap-2 h-12 sm:h-10 text-base sm:text-sm rounded-xl ${
-                                  isPopular ? "shadow-lg shadow-accent/15" : ""
-                                }`}
-                                variant={(currentPlan?.sort_order || 0) < plan.sort_order ? "default" : "outline"}
+                                className="w-full gap-2 h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
+                                onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
+                              >
+                                <Building2 size={16} />
+                                اطلب عرض سعر
+                              </Button>
+                              <button
+                                onClick={() => window.open("tel:+966", "_blank")}
+                                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-2 underline underline-offset-2"
+                              >
+                                تواصل مع فريق المبيعات
+                              </button>
+                            </>
+                          ) : isPopular ? (
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Button
+                                className="w-full gap-2 h-13 rounded-xl font-bold text-base shadow-xl shadow-accent/25 bg-accent hover:bg-accent/90"
                                 onClick={() => setUpgradeDialog(plan)}
                               >
                                 {(currentPlan?.sort_order || 0) < plan.sort_order ? (
-                                  <><ArrowUpRight size={16} /> ترقية الآن</>
+                                  <><Rocket size={18} /> اشترك الآن</>
+                                ) : (
+                                  <><ArrowDownRight size={18} /> تخفيض</>
+                                )}
+                              </Button>
+                            </motion.div>
+                          ) : (
+                            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+                              <Button
+                                variant="outline"
+                                className="w-full gap-2 h-12 rounded-xl font-semibold border-2"
+                                onClick={() => setUpgradeDialog(plan)}
+                              >
+                                {(currentPlan?.sort_order || 0) < plan.sort_order ? (
+                                  <><ArrowUpRight size={16} /> ابدأ الآن</>
                                 ) : (
                                   <><ArrowDownRight size={16} /> تخفيض</>
                                 )}
@@ -1252,6 +1244,74 @@ const SubscriptionPage = () => {
               })}
             </div>
 
+            {/* ── Quick Comparison Table ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-10"
+            >
+              <div className="text-center mb-5">
+                <h3 className="text-lg font-bold text-foreground">مقارنة سريعة بين الباقات</h3>
+                <p className="text-sm text-muted-foreground mt-1">تعرّف على الفروقات الجوهرية بين كل باقة</p>
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-border/50 shadow-sm">
+                <table className="w-full text-sm" dir="rtl">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="text-right py-4 px-5 font-semibold text-foreground min-w-[160px]">الميزة</th>
+                      {plans.map((plan) => {
+                        const meta = PLAN_META[plan.slug];
+                        const isPopular = !!meta?.popular;
+                        return (
+                          <th key={plan.id} className={`text-center py-4 px-4 font-bold min-w-[110px] ${isPopular ? "text-accent" : "text-foreground"}`}>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-lg">{meta?.emoji}</span>
+                              <span className="text-xs">{plan.name_ar}</span>
+                              {isPopular && (
+                                <Badge className="bg-accent/10 text-accent border-accent/20 text-[9px] px-1.5 py-0 mt-0.5">الأكثر طلباً</Badge>
+                              )}
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {COMPARISON_ROWS.map((row, ri) => (
+                      <tr key={ri} className={`border-b border-border/30 ${ri % 2 === 0 ? "bg-background" : "bg-muted/10"} hover:bg-muted/20 transition-colors`}>
+                        <td className="py-3.5 px-5 font-medium text-foreground/85">{row.label}</td>
+                        {(["starter", "professional", "enterprise"] as const).map((slug) => {
+                          const val = row[slug];
+                          const isPopularCol = slug === "professional";
+                          return (
+                            <td key={slug} className={`py-3.5 px-4 text-center ${isPopularCol ? "bg-accent/[0.03]" : ""}`}>
+                              {typeof val === "boolean" ? (
+                                val ? (
+                                  <div className="flex items-center justify-center">
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40">
+                                      <Check size={13} className="text-emerald-600 dark:text-emerald-400 font-bold" />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground/50 text-lg font-light">—</span>
+                                )
+                              ) : (
+                                <span className={`text-xs font-semibold ${isPopularCol ? "text-accent" : "text-foreground/70"}`}>
+                                  {val}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+
+            {/* Cancel + ROI */}
             {subscription && !subscription.cancel_at_period_end && subscription.status === "active" && (
               <div className="mt-8 text-center">
                 <Button variant="ghost" className="text-destructive/70 hover:text-destructive h-11 sm:h-10 text-sm" onClick={handleCancel}>
@@ -1259,14 +1319,7 @@ const SubscriptionPage = () => {
                 </Button>
               </div>
             )}
-
-            {/* ROI Calculator */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-8"
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-8">
               <ROICalculator />
             </motion.div>
           </TabsContent>
