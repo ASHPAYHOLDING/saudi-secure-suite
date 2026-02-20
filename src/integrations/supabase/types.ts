@@ -4405,6 +4405,39 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_events_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          event_name: string
+          id: string
+          provider: string
+          response_body: string | null
+          status_code: number | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          event_name: string
+          id?: string
+          provider?: string
+          response_body?: string | null
+          status_code?: number | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          event_name?: string
+          id?: string
+          provider?: string
+          response_body?: string | null
+          status_code?: number | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       monitoring_alert_rules: {
         Row: {
           condition: string
@@ -8041,6 +8074,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tenant_marketing_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          provider: string
+          secrets_encrypted: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          provider: string
+          secrets_encrypted?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          provider?: string
+          secrets_encrypted?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       tenant_members: {
         Row: {

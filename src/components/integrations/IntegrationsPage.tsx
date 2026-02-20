@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { getAllManifests, type IntegrationManifest } from "@/integrations/manifests";
 import {
   Search, ArrowLeft, CheckCircle2, Plug,
-  CreditCard, ShoppingBag, Monitor, Repeat2, Globe,
+  CreditCard, ShoppingBag, Monitor, Repeat2, Globe, Megaphone,
 } from "lucide-react";
 
 // ── تصنيفات العرض ─────────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ const CATEGORIES: { key: string; label: string; icon: any; emoji: string }[] = [
   { key: "bnpl", label: "تقسيط BNPL", icon: Repeat2, emoji: "💳" },
   { key: "ecommerce", label: "متاجر إلكترونية", icon: ShoppingBag, emoji: "🛒" },
   { key: "pos", label: "نقاط البيع", icon: Monitor, emoji: "📱" },
+  { key: "marketing", label: "التسويق", icon: Megaphone, emoji: "📣" },
 ];
 
 // بوابات الدفع العالمية
@@ -77,9 +78,14 @@ const ProviderCard = ({ manifest, onOpen }: { manifest: IntegrationManifest; onO
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1">
-              {isBnpl && (
+      {isBnpl && (
                 <Badge className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary border-primary/20">
                   تقسيط
+                </Badge>
+              )}
+              {manifest.category === "marketing" && (
+                <Badge className="text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent border-accent/20">
+                  تسويق
                 </Badge>
               )}
               {isGlobal && (
@@ -158,6 +164,7 @@ const IntegrationsPage = () => {
   const bnpl = filtered.filter((m) => m.category === "bnpl");
   const ecommerce = filtered.filter((m) => m.category === "ecommerce");
   const pos = filtered.filter((m) => m.category === "pos");
+  const marketing = filtered.filter((m) => m.category === "marketing");
 
   const openProvider = (manifest: IntegrationManifest) => {
     navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
@@ -253,6 +260,7 @@ const IntegrationsPage = () => {
             {renderSection("تقسيط BNPL", "💳", bnpl)}
             {renderSection("متاجر إلكترونية", "🛒", ecommerce)}
             {renderSection("نقاط البيع", "📱", pos)}
+            {renderSection("التسويق", "📣", marketing)}
           </motion.div>
         ) : (
           <motion.div
