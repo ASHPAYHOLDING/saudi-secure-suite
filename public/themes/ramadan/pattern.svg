@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <pattern id="geo" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+      <!-- 8-pointed star (Islamic geometric) -->
+      <g transform="translate(60,60)">
+        <polygon points="0,-28 7,-7 28,0 7,7 0,28 -7,7 -28,0 -7,-7" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.6"/>
+        <!-- Inner square rotated -->
+        <rect x="-14" y="-14" width="28" height="28" transform="rotate(45)" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.4"/>
+        <!-- Center dot -->
+        <circle cx="0" cy="0" r="2.5" fill="currentColor" opacity="0.3"/>
+        <!-- Corner accent shapes -->
+        <polygon points="0,-28 5,-20 -5,-20" fill="currentColor" opacity="0.2"/>
+        <polygon points="28,0 20,5 20,-5" fill="currentColor" opacity="0.2"/>
+        <polygon points="0,28 5,20 -5,20" fill="currentColor" opacity="0.2"/>
+        <polygon points="-28,0 -20,5 -20,-5" fill="currentColor" opacity="0.2"/>
+      </g>
+      <!-- Corner small stars -->
+      <g transform="translate(0,0)">
+        <polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      </g>
+      <g transform="translate(120,0)">
+        <polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      </g>
+      <g transform="translate(0,120)">
+        <polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      </g>
+      <g transform="translate(120,120)">
+        <polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="120" height="120" fill="url(#geo)"/>
+</svg>
