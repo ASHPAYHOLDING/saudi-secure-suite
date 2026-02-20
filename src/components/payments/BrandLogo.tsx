@@ -9,7 +9,7 @@ interface BrandLogoProps {
 }
 
 const LOGO_PATHS: Record<string, { light: string; dark: string }> = {
-  tap:      { light: "/brands/payment/tap.svg",      dark: "/brands/payment/tap-dark.svg"      },
+  tap:      { light: "/brands/payment/tap.png",      dark: "/brands/payment/tap.png"           },
   moyasar:  { light: "/brands/payment/moyasar.svg",  dark: "/brands/payment/moyasar-dark.svg"  },
   hyperpay: { light: "/brands/payment/hyperpay.svg", dark: "/brands/payment/hyperpay-dark.svg" },
   stripe:   { light: "/brands/payment/stripe.svg",   dark: "/brands/payment/stripe-dark.svg"   },
