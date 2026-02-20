@@ -9631,6 +9631,32 @@ export type Database = {
         Returns: Json
       }
       get_next_icv: { Args: { _tenant_id: string }; Returns: number }
+      get_paid_integrations_state: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          activation_source: string
+          api_key_encrypted: string
+          api_key_label: string
+          can_activate: boolean
+          description_ar: string
+          entitlement_allowed: boolean
+          entitlement_reason: string
+          has_api_client: boolean
+          has_service: boolean
+          has_test_connection: boolean
+          integration_id: string
+          integration_type: string
+          is_ready: boolean
+          key: string
+          name_ar: string
+          name_en: string
+          price_once: number
+          requires_api_keys: boolean
+          sort_order: number
+          tenant_activation_status: string
+          trial_days: number
+        }[]
+      }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
