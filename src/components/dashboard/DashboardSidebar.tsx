@@ -92,6 +92,7 @@ const navGroups: NavGroup[] = [
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
       { icon: Plug, key: "nav.paidIntegrations", path: "/dashboard/paid-integrations", module: "integrations" },
+      { icon: CreditCard, key: "nav.paymentProviders", path: "/dashboard/integrations/payments", module: "integrations" },
       { icon: Key, key: "nav.apiKeys", path: "/dashboard/api-keys", module: "integrations" },
       { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
     ],
