@@ -637,14 +637,16 @@ const DebugWebhookTest = () => {
 
       {/* Provider Tabs */}
       <Tabs defaultValue="tap">
-        <TabsList className="grid grid-cols-3 w-full max-w-sm">
-          <TabsTrigger value="tap" className="text-xs">Tap</TabsTrigger>
-          <TabsTrigger value="moyasar" className="text-xs">Moyasar</TabsTrigger>
-          <TabsTrigger value="hyperpay" className="text-xs">HyperPay</TabsTrigger>
+      <TabsList className="grid grid-cols-3 w-full max-w-sm">
+          {PROVIDERS.map((p) => (
+            <TabsTrigger key={p.fnName} value={p.name.toLowerCase().replace(/\s+/g, "")} className="text-xs">
+              {p.name}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        {PROVIDERS.map((p) => (
-          <TabsContent key={p.fnName} value={p.name.toLowerCase().replace(" ", "")}>
+      {PROVIDERS.map((p) => (
+          <TabsContent key={p.fnName} value={p.name.toLowerCase().replace(/\s+/g, "")}>
             <ProviderTab
               provider={p}
               projectRef={projectRef}
