@@ -1,7 +1,20 @@
+/**
+ * telr-webhook — Hardened Telr webhook (Tap/Stripe standard)
+ *
+ * Signature: x-telr-signature = HMAC-SHA256(rawBody, webhookSecret)
+ * STRICT: verify BEFORE any DB write. No event locking.
+ */
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptSecret } from "../_shared/aes-gcm.ts";
 
-const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-telr-signature" };
+const PROVIDER = "telr";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-telr-signature",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -22,76 +35,189 @@ async function sha256hex(text: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+function captureHeaders(req: Request): Record<string, string> {
+  const safe: Record<string, string> = {};
+  const skip = new Set(["authorization", "cookie", "x-api-key"]);
+  req.headers.forEach((v, k) => { if (!skip.has(k.toLowerCase())) safe[k] = v; });
+  return safe;
+}
+
 function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(data), {
+    status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function writeAudit(db: any, tenantId: string | null, action: string, eventId: string | null, details: unknown) {
+  try {
+    await db.from("audit_logs").insert({
+      tenant_id: tenantId ?? "00000000-0000-0000-0000-000000000000",
+      user_id: "00000000-0000-0000-0000-000000000000",
+      action, entity_type: "payment_webhook", entity_label: PROVIDER,
+      entity_id: eventId, changes: details,
+    });
+  } catch (e) { console.error("[audit]", e); }
+}
+
+async function updateWebhookEvent(db: any, providerEventId: string, patch: Record<string, unknown>) {
+  await db.from("webhook_events")
+    .update({ ...patch, processed_at: new Date().toISOString() })
+    .eq("provider", PROVIDER).eq("provider_event_id", providerEventId);
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
-  const tenantId = url.searchParams.get("tenant_id");
-  if (!tenantId) return json({ error: "Missing tenant_id" }, 400);
+  const tenantIdParam = url.searchParams.get("tenant_id") ?? null;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const masterKey = Deno.env.get("INTEGRATION_SECRET_KEY") ?? "";
   const db = createClient(supabaseUrl, serviceKey);
 
+  // 1. Read raw body ONCE
   const rawBody = await req.text();
+  const rawHeaders = captureHeaders(req);
   let body: any = {};
-  try { body = JSON.parse(rawBody); } catch { /* ok */ }
+  try { body = JSON.parse(rawBody); } catch { /* keep empty */ }
 
+  // 2. Extract provider_event_id
   const providerEventId = body?.order?.ref ?? body?.ref ?? body?.transaction_id ?? "";
-  if (!providerEventId) return json({ error: "Missing order ref" }, 400);
+  if (!providerEventId) {
+    await writeAudit(db, tenantIdParam, "webhook_rejected", null, { reason: "missing_event_id" });
+    return json({ error: "Missing order ref" }, 400);
+  }
 
   const payloadHash = await sha256hex(rawBody);
 
-  const { error: idErr } = await db.from("webhook_events").insert({
-    provider: "telr", provider_event_id: providerEventId, event_id: providerEventId,
-    tenant_id: tenantId, payload_hash: payloadHash, raw_headers: {}, status: "received",
-    received_at: new Date().toISOString(),
-  });
-  if (idErr?.code === "23505") return json({ ok: true, status: "duplicate" }, 200);
+  // 3. Resolve tenant_id
+  let tenantId: string | null = body?.metadata?.tenant_id
+    ?? body?.order?.cartid?.split(":")?.[1]
+    ?? tenantIdParam
+    ?? null;
 
+  if (!tenantId) {
+    const { data: pi } = await db.from("payment_intents")
+      .select("tenant_id").eq("provider_session_id", providerEventId).maybeSingle();
+    tenantId = pi?.tenant_id ?? null;
+  }
+
+  if (!tenantId) {
+    await writeAudit(db, null, "webhook_rejected", providerEventId, { reason: "cannot_resolve_tenant_id" });
+    return json({ error: "Cannot determine tenant_id" }, 400);
+  }
+
+  // 4. STRICT: Check signature header FIRST
+  const sig = req.headers.get("x-telr-signature");
+  if (!sig) {
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
+    return json({ error: "Missing signature" }, 401);
+  }
+
+  // 5. Load + decrypt webhook secret
   const { data: record } = await db.from("tenant_payment_providers")
-    .select("webhook_secret_encrypted").eq("tenant_id", tenantId).eq("provider", "telr").maybeSingle();
-  if (!record?.webhook_secret_encrypted) return json({ error: "Webhook secret not configured" }, 401);
+    .select("webhook_secret_encrypted").eq("tenant_id", tenantId).eq("provider", PROVIDER).maybeSingle();
+
+  if (!record?.webhook_secret_encrypted) {
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "webhook_secret_not_configured" });
+    return json({ error: "Missing signature" }, 401);
+  }
 
   let webhookSecret: string;
   try { webhookSecret = await decryptSecret(record.webhook_secret_encrypted, masterKey); }
   catch { return json({ error: "Decryption failed" }, 500); }
 
-  const sig = req.headers.get("x-telr-signature");
-  if (!sig) return json({ error: "Missing signature" }, 401);
   const expected = await hmacSha256hex(webhookSecret, rawBody);
-  if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) return json({ error: "Signature mismatch" }, 401);
+  if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
+    return json({ error: "Signature mismatch" }, 401);
+  }
 
-  await db.from("webhook_events").update({ signature_valid: true, status: "processing" })
-    .eq("provider", "telr").eq("provider_event_id", providerEventId);
+  // 6. Idempotency insert — ONLY after signature verified
+  const { error: idErr } = await db.from("webhook_events").insert({
+    provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
+    tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
+    status: "received", signature_valid: true, received_at: new Date().toISOString(),
+  });
+  if (idErr?.code === "23505") return json({ ok: true, status: "duplicate" }, 200);
 
+  await updateWebhookEvent(db, providerEventId, { status: "processing", signature_valid: true });
+
+  // 7-9. Process
   const isPaid = body?.order?.status?.text === "Authorised" || body?.order?.status?.code === 3;
   const invoiceId = body?.order?.cartid ?? null;
   const amount = body?.order?.amount?.value ? parseFloat(body.order.amount.value) : null;
   const currency = body?.order?.amount?.currency ?? null;
 
-  if (isPaid && invoiceId) {
-    const { data: invoice } = await db.from("invoices").select("id, status, grand_total, currency")
-      .eq("id", invoiceId).eq("tenant_id", tenantId).maybeSingle();
-    if (invoice && invoice.status !== "paid") {
-      await db.from("invoice_payments").insert({ invoice_id: invoiceId, tenant_id: tenantId,
-        payment_date: new Date().toISOString().split("T")[0], amount: amount ?? invoice.grand_total,
-        payment_method: "gateway_telr", reference_number: providerEventId,
-        notes: "دفع تلقائي عبر Telr", currency: currency ?? invoice.currency, created_by: "00000000-0000-0000-0000-000000000000" });
-      await db.from("invoices").update({ status: "paid" }).eq("id", invoiceId);
+  let paymentIntentId: string | null = null;
+  let dbInvoiceId: string | null = invoiceId;
+
+  const { data: pi } = await db.from("payment_intents")
+    .select("id, invoice_id, amount, currency, tenant_id, status")
+    .eq("provider_session_id", providerEventId).maybeSingle();
+
+  if (pi) {
+    paymentIntentId = pi.id;
+    dbInvoiceId = pi.invoice_id ?? invoiceId;
+    if (pi.tenant_id !== tenantId) {
+      await updateWebhookEvent(db, providerEventId, { status: "rejected", processing_error: "tenant_mismatch" });
+      await writeAudit(db, tenantId, "webhook_tenant_mismatch", providerEventId, { expected: tenantId, actual: pi.tenant_id });
+      return json({ error: "Tenant ownership mismatch" }, 403);
     }
   }
 
-  await db.from("webhook_events").update({ status: "processed" })
-    .eq("provider", "telr").eq("provider_event_id", providerEventId);
-  await db.from("audit_logs").insert({ tenant_id: tenantId, user_id: "00000000-0000-0000-0000-000000000000",
-    action: "webhook_processed", entity_type: "payment_webhook", entity_label: "telr",
-    entity_id: providerEventId, changes: { isPaid, invoiceId, amount, currency } });
+  let processingError: string | null = null;
+  try {
+    if (isPaid && dbInvoiceId) {
+      const { data: invoice } = await db.from("invoices")
+        .select("id, tenant_id, amount_due, grand_total, currency, status")
+        .eq("id", dbInvoiceId).maybeSingle();
 
-  return json({ ok: true });
+      if (!invoice) throw new Error(`Invoice not found: ${dbInvoiceId}`);
+      if (invoice.tenant_id !== tenantId) throw new Error("Invoice tenant mismatch");
+
+      const expectedAmount = invoice.amount_due ?? invoice.grand_total;
+      if (amount !== null && expectedAmount !== null) {
+        const tolerance = Math.max(expectedAmount * 0.01, 0.01);
+        if (Math.abs(amount - expectedAmount) > tolerance)
+          throw new Error(`Amount mismatch: expected ${expectedAmount}, received ${amount}`);
+      }
+
+      if (currency && invoice.currency && currency.toUpperCase() !== invoice.currency.toUpperCase())
+        throw new Error(`Currency mismatch: expected ${invoice.currency}, received ${currency}`);
+
+      if (invoice.status !== "paid") {
+        await db.from("invoice_payments").insert({
+          invoice_id: dbInvoiceId, tenant_id: tenantId,
+          amount: amount ?? expectedAmount,
+          payment_method: "gateway_telr",
+          payment_date: new Date().toISOString().split("T")[0],
+          reference_number: providerEventId,
+          notes: `دفع تلقائي عبر Telr — event: ${providerEventId}`,
+          currency: currency ?? invoice.currency,
+          created_by: "00000000-0000-0000-0000-000000000000",
+        });
+      }
+    }
+
+    if (paymentIntentId) {
+      await db.from("payment_intents")
+        .update({ status: isPaid ? "paid" : "failed", updated_at: new Date().toISOString() })
+        .eq("id", paymentIntentId);
+    }
+
+    await updateWebhookEvent(db, providerEventId, { status: "processed", signature_valid: true });
+    await writeAudit(db, tenantId, "webhook_processed", providerEventId, {
+      invoice_id: dbInvoiceId, amount, currency, is_paid: isPaid,
+    });
+  } catch (err: any) {
+    processingError = err.message;
+    console.error("[telr-webhook] processing error:", err);
+    await updateWebhookEvent(db, providerEventId, { status: "failed", signature_valid: true, processing_error: processingError });
+    await writeAudit(db, tenantId, "webhook_processing_failed", providerEventId, { error: processingError, invoice_id: dbInvoiceId });
+    return json({ ok: false, status: "failed", error: processingError }, 200);
+  }
+
+  return json({ ok: true, status: isPaid ? "processed" : "received" }, 200);
 });
