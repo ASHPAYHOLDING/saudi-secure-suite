@@ -265,6 +265,63 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
   }
+
+  /* ═══════════════════════════════════════════════
+     Theme Transition — ناعم بين جميع الثيمات
+     ═══════════════════════════════════════════════ */
+  html {
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+
+  /* استثناء من الانتقال: العناصر المتحركة والتفاعلية */
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  [role="button"],
+  [data-state],
+  [data-radix-collection-item] {
+    transition-duration: 150ms;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Ramadan Theme — نمط زخرفي خفيف في الخلفية
+     ═══════════════════════════════════════════════ */
+  [data-theme="ramadan"] body {
+    background-image: var(--ramadan-pattern, none);
+    background-size: 60px 60px;
+    background-repeat: repeat;
+    background-attachment: fixed;
+  }
+
+  /* بطاقات رمضانية: حد ذهبي خفيف */
+  [data-theme="ramadan"] .card,
+  [data-theme="ramadan"] [class*="CardContent"],
+  [data-theme="ramadan"] [class*="card"] {
+    border-color: hsl(var(--ramadan-gold) / 0.15);
+  }
+
+  /* تمييز رمضاني: لون الـ ring ذهبي */
+  [data-theme="ramadan"] *:focus-visible {
+    outline-color: hsl(var(--ramadan-gold));
+  }
+
+  /* Sidebar رمضاني: حد ذهبي سفلي للعناصر النشطة */
+  [data-theme="ramadan"] [data-active="true"],
+  [data-theme="ramadan"] [aria-current="page"] {
+    border-inline-start: 2px solid hsl(var(--ramadan-gold) / 0.7);
+  }
 }
 
 @layer components {

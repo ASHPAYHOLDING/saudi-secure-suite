@@ -7,6 +7,7 @@ import CollaborationNotifications from "@/components/collaboration/Collaboration
 import BranchSelector from "@/components/branches/BranchSelector";
 import TenantSwitcher from "@/components/dashboard/TenantSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
+import { ThemeSwitcher } from "@/theme/ThemeSwitcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +67,9 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
           <Globe size={16} />
           <span className="text-xs font-medium hidden sm:inline">{currentLang === "ar" ? "EN" : "ع"}</span>
         </Button>
+
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
 
         {/* Notifications */}
         <NotificationBell />
