@@ -7,6 +7,30 @@ export const hyperpayManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/hyperpay.svg",
   color: "from-orange-500/10 to-amber-500/5",
+  description: "بوابة دفع رائدة في الشرق الأوسط تدعم مدى وSTC Pay وApple Pay مع تفعيل يدوي عبر فريق HyperPay.",
+  benefits: [
+    "دعم شامل لمدى وSTC Pay وApple Pay",
+    "تغطية واسعة للسوق السعودي والخليجي",
+    "أمان عالي مع 3D Secure",
+    "تقارير مالية متقدمة",
+  ],
+  requirements: [
+    "عقد مع HyperPay (تفعيل يدوي)",
+    "Access Token + Entity IDs من فريق HyperPay",
+    "وثائق المنشأة الرسمية (KYC)",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Invalid Entity ID'",
+      cause: "Entity ID المُدخل خاطئ أو خاص بطريقة دفع مختلفة.",
+      solution: "كل طريقة دفع (Visa/مدى) لها Entity ID مستقل — تأكد من استخدام الصحيح لكل حقل.",
+    },
+    {
+      problem: "Access Token منتهي الصلاحية",
+      cause: "HyperPay تُجدّد Token دورياً.",
+      solution: "تواصل مع فريق HyperPay للحصول على Token جديد وحدّثه في الإعدادات.",
+    },
+  ],
   fields: [
     {
       key: "access_token",

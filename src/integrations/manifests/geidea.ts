@@ -7,6 +7,30 @@ export const geideaManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/geidea.svg",
   color: "from-green-500/10 to-emerald-500/5",
+  description: "بوابة دفع سعودية معتمدة تدعم مدى وفيزا وماستركارد مع حلول نقاط البيع والتجارة الإلكترونية.",
+  benefits: [
+    "شركة سعودية معتمدة من مؤسسة النقد",
+    "دعم كامل لمدى وApple Pay",
+    "حلول POS + eCommerce في منصة واحدة",
+    "تسوية مالية سريعة",
+  ],
+  requirements: [
+    "حساب تاجر مفعّل على Geidea Merchant Portal",
+    "Merchant Public Key + API Password",
+    "KYC ووثائق المنشأة مكتملة",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Authentication failed'",
+      cause: "Merchant Key أو API Password غير صحيحين.",
+      solution: "تأكد من نسخ البيانات الصحيحة من Geidea Merchant Portal → Integration → API Credentials.",
+    },
+    {
+      problem: "مدفوعات مدى مرفوضة",
+      cause: "خطأ في إعدادات 3D Secure أو عدم تفعيل مدى.",
+      solution: "تواصل مع فريق Geidea للتحقق من تفعيل مدى على حسابك.",
+    },
+  ],
   fields: [
     {
       key: "merchant_key",

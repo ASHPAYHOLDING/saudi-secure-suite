@@ -7,6 +7,31 @@ export const paytabsManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/paytabs.svg",
   color: "from-blue-600/10 to-blue-500/5",
+  description: "بوابة دفع إلكتروني تخدم المنطقة العربية مع دعم مدى وفيزا وماستركارد وتغطية لأكثر من 7 دول.",
+  benefits: [
+    "تغطية واسعة: السعودية والإمارات ومصر وعُمان والأردن",
+    "دعم مدى وAMEX بالإضافة لفيزا وماستركارد",
+    "نموذج دفع مدمج (Hosted Payment Page)",
+    "تقارير مفصّلة ولوحة تحكم عربية",
+  ],
+  requirements: [
+    "حساب تاجر مفعّل على PayTabs",
+    "Profile ID + Server Key",
+    "KYC مكتمل",
+    "اختيار المنطقة الصحيحة (SAU/ARE/EGY)",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Invalid Profile ID'",
+      cause: "Profile ID غير صحيح أو لا يتطابق مع المنطقة.",
+      solution: "تأكد من Profile ID من PayTabs Dashboard → My Profile وأن المنطقة المختارة صحيحة.",
+    },
+    {
+      problem: "رفض المدفوعات بدون سبب واضح",
+      cause: "Server Key منتهي أو خطأ في إعدادات 3D Secure.",
+      solution: "جدّد Server Key من Developers → Keys وتأكد من تفعيل 3D Secure في إعدادات PayTabs.",
+    },
+  ],
   fields: [
     {
       key: "profile_id",

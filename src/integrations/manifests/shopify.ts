@@ -7,39 +7,47 @@ export const shopifyManifest: IntegrationManifest = {
   category: "ecommerce",
   logoPath: undefined,
   color: "from-green-500/10 to-emerald-500/5",
+  description: "ربط متجرك على شوبيفاي لمزامنة الطلبات والمنتجات والمخزون تلقائياً مع نظام الفوترة والمحاسبة.",
+  benefits: [
+    "مزامنة تلقائية للطلبات وتحويلها لفواتير",
+    "تحديث المخزون في الاتجاهين",
+    "استيراد بيانات العملاء",
+    "تقارير مبيعات موحّدة تشمل Shopify",
+    "دعم Shopify Plus والاشتراكات",
+  ],
+  requirements: [
+    "متجر Shopify نشط (Basic أو أعلى)",
+    "صلاحية 'Manage and install apps' على الحساب",
+    "Custom App مع Admin API access token",
+    "الصلاحيات: read_orders, read_products, read_inventory",
+  ],
+  troubleshootingItems: [
+    {
+      problem: "خطأ 'Unauthorized' عند اختبار الاتصال",
+      cause: "Admin API Token غير صحيح أو التطبيق المخصص لم يُثبّت.",
+      solution: "تأكد من تثبيت التطبيق (Install app) وأن الـ Token الذي نسخته هو Admin API access token وليس Storefront access token.",
+    },
+    {
+      problem: "لا تظهر منتجات في المزامنة",
+      cause: "صلاحية read_products غير مفعّلة على التطبيق.",
+      solution: "اذهب إلى Shopify Admin → Settings → Apps → [تطبيقك] → Configure Admin API scopes وأضف read_products.",
+    },
+    {
+      problem: "Webhook لا يصل بعد طلب جديد",
+      cause: "Webhook غير مسجّل أو تم إلغاؤه من Shopify.",
+      solution: "من Shopify Admin → Settings → Notifications → Webhooks، تأكد من وجود Webhook لـ orders/create يشير إلى URL نومكسيو.",
+    },
+    {
+      problem: "خطأ 'API rate limit exceeded'",
+      cause: "تجاوز حد 2 طلب/ثانية (Shopify Leaky Bucket).",
+      solution: "النظام يتعامل مع هذا تلقائياً. إذا تكرر، قلّل عدد التكاملات المتصلة بنفس المتجر أو رقّي لـ Shopify Plus.",
+    },
+  ],
   fields: [
-    {
-      key: "store_url",
-      label: "رابط المتجر (Shop URL)",
-      type: "text",
-      placeholder: "your-store.myshopify.com",
-      hint: "أدخل اسم متجرك فقط بدون https:// — مثال: myshop.myshopify.com",
-      required: true,
-    },
-    {
-      key: "admin_api_token",
-      label: "Admin API Token",
-      type: "password",
-      placeholder: "shpat_xxxxxxxxxxxxxxxxxxxx",
-      hint: "من Shopify Admin → Settings → Apps and sales channels → Develop apps → Create an app",
-      required: true,
-    },
-    {
-      key: "webhook_secret",
-      label: "Webhook Secret",
-      type: "password",
-      placeholder: "سر التحقق من Webhook",
-      hint: "تجده في إعدادات التطبيق تحت Webhooks → Signing secret",
-      required: false,
-    },
-    {
-      key: "api_version",
-      label: "API Version",
-      type: "text",
-      placeholder: "2024-01",
-      hint: "نسخة Shopify API — يُنصح بآخر إصدار مستقر",
-      required: false,
-    },
+    { key: "store_url", label: "رابط المتجر (Shop URL)", type: "text", placeholder: "your-store.myshopify.com", hint: "أدخل اسم متجرك فقط بدون https:// — مثال: myshop.myshopify.com", required: true },
+    { key: "admin_api_token", label: "Admin API Token", type: "password", placeholder: "shpat_xxxxxxxxxxxxxxxxxxxx", hint: "من Shopify Admin → Settings → Apps and sales channels → Develop apps → Create an app", required: true },
+    { key: "webhook_secret", label: "Webhook Secret", type: "password", placeholder: "سر التحقق من Webhook", hint: "تجده في إعدادات التطبيق تحت Webhooks → Signing secret", required: false },
+    { key: "api_version", label: "API Version", type: "text", placeholder: "2024-01", hint: "نسخة Shopify API — يُنصح بآخر إصدار مستقر", required: false },
   ],
   webhookPath: "/functions/v1/shopify-webhook",
   docsSections: [
@@ -48,82 +56,31 @@ export const shopifyManifest: IntegrationManifest = {
       officialLink: "https://shopify.dev/docs/apps/auth/admin-app-access-tokens",
       officialLinkLabel: "وثائق Shopify API",
       steps: [
-        {
-          title: "سجّل دخولك على Shopify Admin",
-          desc: "اذهب إلى your-store.myshopify.com/admin وسجّل دخولك بحساب مالك المتجر أو حساب بصلاحيات كاملة.",
-          tip: "تأكد أن الحساب لديه صلاحية 'Manage and install apps and channels'",
-        },
-        {
-          title: "انتقل إلى إعدادات التطبيقات",
-          desc: "من القائمة اختر Settings (الإعدادات) → Apps and sales channels → Develop apps.",
-        },
-        {
-          title: "أنشئ تطبيقاً خاصاً (Custom App)",
-          desc: "اضغط 'Create an app'، اختر اسماً مناسباً مثل 'ERP Integration'، ثم اضغط 'Create app'.",
-        },
-        {
-          title: "حدّد صلاحيات API",
-          desc: "اضغط 'Configure Admin API scopes' واختر الصلاحيات المطلوبة: read_orders, read_products, read_inventory, write_orders.",
-          tip: "لا تمنح صلاحيات أكثر مما تحتاج — اتبع مبدأ الحد الأدنى من الصلاحيات",
-        },
-        {
-          title: "ثبّت التطبيق واحصل على Token",
-          desc: "بعد حفظ الصلاحيات، اضغط 'Install app' ثم 'Install'. ستظهر صفحة بها Admin API access token — انسخه فوراً (لن يُعرض مرة أخرى).",
-        },
-        {
-          title: "أدخل البيانات هنا",
-          desc: "الصق رابط متجرك وAdmin API Token في حقول الإعداد. سيتم تشفيرها وحفظها بأمان.",
-        },
+        { title: "سجّل دخولك على Shopify Admin", desc: "اذهب إلى your-store.myshopify.com/admin وسجّل دخولك بحساب مالك المتجر أو حساب بصلاحيات كاملة.", tip: "تأكد أن الحساب لديه صلاحية 'Manage and install apps and channels'" },
+        { title: "انتقل إلى إعدادات التطبيقات", desc: "من القائمة اختر Settings (الإعدادات) → Apps and sales channels → Develop apps." },
+        { title: "أنشئ تطبيقاً خاصاً (Custom App)", desc: "اضغط 'Create an app'، اختر اسماً مناسباً مثل 'ERP Integration'، ثم اضغط 'Create app'." },
+        { title: "حدّد صلاحيات API", desc: "اضغط 'Configure Admin API scopes' واختر الصلاحيات المطلوبة: read_orders, read_products, read_inventory, write_orders.", tip: "لا تمنح صلاحيات أكثر مما تحتاج — اتبع مبدأ الحد الأدنى من الصلاحيات" },
+        { title: "ثبّت التطبيق واحصل على Token", desc: "بعد حفظ الصلاحيات، اضغط 'Install app' ثم 'Install'. ستظهر صفحة بها Admin API access token — انسخه فوراً (لن يُعرض مرة أخرى)." },
+        { title: "أدخل البيانات هنا", desc: "الصق رابط متجرك وAdmin API Token في حقول الإعداد. سيتم تشفيرها وحفظها بأمان." },
       ],
       faq: [
-        {
-          q: "ما هي الصلاحيات المطلوبة لـ API Token؟",
-          a: "الحد الأدنى: read_orders, read_products, read_inventory. إضافياً: write_orders إذا أردت تحديث حالة الطلبات من النظام.",
-        },
-        {
-          q: "لا أجد خيار 'Develop apps' في إعداداتي",
-          a: "يجب تفعيل custom apps أولاً. اذهب إلى Settings → Apps and sales channels → ابحث عن Enable private apps أو Custom apps development وقم بتفعيله.",
-        },
-        {
-          q: "هل يمكن مزامنة المخزون بشكل تلقائي؟",
-          a: "نعم، بعد الإعداد الناجح يمكنك تفعيل مزامنة المخزون من إعدادات التكامل في النظام.",
-        },
-        {
-          q: "ماذا يحدث إذا تجاوزت حدود API Shopify؟",
-          a: "النظام يعمل بنظام الـ Retry التلقائي مع تأخير تدريجي (Exponential Backoff) لتجنب تجاوز حدود Shopify API.",
-        },
-        {
-          q: "هل يعمل مع Shopify Plus؟",
-          a: "نعم، يدعم النظام Shopify Basic وAdvanced وPlus. في حالة Plus قد تكون لديك صلاحيات API إضافية.",
-        },
+        { q: "ما هي الصلاحيات المطلوبة لـ API Token؟", a: "الحد الأدنى: read_orders, read_products, read_inventory. إضافياً: write_orders إذا أردت تحديث حالة الطلبات من النظام." },
+        { q: "لا أجد خيار 'Develop apps' في إعداداتي", a: "يجب تفعيل custom apps أولاً. اذهب إلى Settings → Apps and sales channels → ابحث عن Enable private apps أو Custom apps development وقم بتفعيله." },
+        { q: "هل يمكن مزامنة المخزون بشكل تلقائي؟", a: "نعم، بعد الإعداد الناجح يمكنك تفعيل مزامنة المخزون من إعدادات التكامل في النظام." },
+        { q: "ماذا يحدث إذا تجاوزت حدود API Shopify؟", a: "النظام يعمل بنظام الـ Retry التلقائي مع تأخير تدريجي (Exponential Backoff) لتجنب تجاوز حدود Shopify API." },
+        { q: "هل يعمل مع Shopify Plus؟", a: "نعم، يدعم النظام Shopify Basic وAdvanced وPlus. في حالة Plus قد تكون لديك صلاحيات API إضافية." },
       ],
     },
     {
       title: "إعداد Webhook",
       steps: [
-        {
-          title: "احصل على رابط Webhook",
-          desc: "رابط Webhook الخاص بمتجرك يظهر في صفحة الإعداد تحت قسم 'Webhook URL' — انسخه.",
-        },
-        {
-          title: "أضف Webhook في Shopify",
-          desc: "من Shopify Admin → Settings → Notifications → انزل للأسفل إلى Webhooks → اضغط Create webhook.",
-        },
-        {
-          title: "اختر الأحداث",
-          desc: "اختر الأحداث التي تريد مزامنتها: orders/create, orders/updated, products/update, inventory_levels/update.",
-          tip: "ابدأ بـ orders/create فقط ثم أضف الباقي حسب حاجتك",
-        },
-        {
-          title: "أدخل Signing Secret",
-          desc: "بعد حفظ الـ Webhook، ستجد 'Signing secret' — انسخه وأدخله في حقل 'Webhook Secret' في الأعلى.",
-        },
+        { title: "احصل على رابط Webhook", desc: "رابط Webhook الخاص بمتجرك يظهر في صفحة الإعداد تحت قسم 'Webhook URL' — انسخه." },
+        { title: "أضف Webhook في Shopify", desc: "من Shopify Admin → Settings → Notifications → انزل للأسفل إلى Webhooks → اضغط Create webhook." },
+        { title: "اختر الأحداث", desc: "اختر الأحداث التي تريد مزامنتها: orders/create, orders/updated, products/update, inventory_levels/update.", tip: "ابدأ بـ orders/create فقط ثم أضف الباقي حسب حاجتك" },
+        { title: "أدخل Signing Secret", desc: "بعد حفظ الـ Webhook، ستجد 'Signing secret' — انسخه وأدخله في حقل 'Webhook Secret' في الأعلى." },
       ],
       faq: [
-        {
-          q: "لماذا نحتاج Webhook Secret؟",
-          a: "يُستخدم للتحقق من أن الطلبات الواردة قادمة فعلاً من Shopify وليس من طرف ثالث. هذا ضروري للأمان.",
-        },
+        { q: "لماذا نحتاج Webhook Secret؟", a: "يُستخدم للتحقق من أن الطلبات الواردة قادمة فعلاً من Shopify وليس من طرف ثالث. هذا ضروري للأمان." },
       ],
     },
   ],
