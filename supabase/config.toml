@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.geidea-webhook]
 verify_jwt = false
+
+[functions.mispay-webhook]
+verify_jwt = false

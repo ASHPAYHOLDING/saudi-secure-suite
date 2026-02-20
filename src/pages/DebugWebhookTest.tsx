@@ -101,6 +101,33 @@ const ALL_PROVIDERS: ProviderDef[] = [
     }),
   },
   {
+    id: "geidea", label: "Geidea", fnName: "geidea-webhook",
+    sigHeader: "x-geidea-signature", sigHeaderDisplay: "X-Geidea-Signature",
+    sigNote: "HMAC-SHA256(raw_body, webhook_secret)",
+    buildBody: (t, inv, eid) => ({
+      orderId: eid ?? `geidea_test_${Date.now()}`, status: "Paid", amount: "100.00", currency: "SAR",
+      merchantReferenceId: `_invoice_${inv}_tenant_${t}`,
+    }),
+  },
+  {
+    id: "moyasar", label: "Moyasar", fnName: "moyasar-webhook",
+    sigHeader: "x-moyasar-signature", sigHeaderDisplay: "X-Moyasar-Signature",
+    sigNote: "HMAC-SHA256(raw_body, webhook_secret) — amount in halalas",
+    buildBody: (t, inv, eid) => ({
+      id: eid ?? `moy_test_${Date.now()}`, data: { id: eid ?? `moy_test_${Date.now()}`, status: "paid", amount: 10000, currency: "SAR",
+        metadata: { tenant_id: t, invoice_id: inv } },
+    }),
+  },
+  {
+    id: "hyperpay", label: "HyperPay", fnName: "hyperpay-webhook",
+    sigHeader: "x-webhook-signature", sigHeaderDisplay: "X-Webhook-Signature",
+    sigNote: "HMAC-SHA256(raw_body, webhook_secret) — success codes: 000.000.*, 000.100.*",
+    buildBody: (t, inv, eid) => ({
+      id: eid ?? `hp_test_${Date.now()}`, result: { code: "000.100.110" }, amount: "100.00", currency: "SAR",
+      customParameters: { tenant_id: t, invoice_id: inv },
+    }),
+  },
+  {
     id: "paytabs", label: "PayTabs", fnName: "paytabs-webhook",
     sigHeader: "x-paytabs-signature", sigHeaderDisplay: "X-PayTabs-Signature",
     sigNote: "HMAC-SHA256(raw_body, server_key)",
@@ -154,6 +181,15 @@ const ALL_PROVIDERS: ProviderDef[] = [
     buildBody: (t, inv, eid) => ({
       order: { ref: eid ?? `telr_test_${Date.now()}`, cartid: inv, status: { text: "Authorised", code: 3 },
         amount: { value: "100.00", currency: "SAR" } }, metadata: { tenant_id: t },
+    }),
+  },
+  {
+    id: "mispay", label: "MisPay", fnName: "mispay-webhook",
+    sigHeader: "x-mispay-signature", sigHeaderDisplay: "X-MisPay-Signature",
+    sigNote: "HMAC-SHA256(raw_body, webhook_secret) — BNPL provider",
+    buildBody: (t, inv, eid) => ({
+      id: eid ?? `mispay_test_${Date.now()}`, status: "PAID", amount: "100.00", currency: "SAR",
+      reference_id: inv, metadata: { tenant_id: t, invoice_id: inv },
     }),
   },
 ];
@@ -684,9 +720,9 @@ function VerificationReport({ tenantId, invoiceId }: { tenantId: string; invoice
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-            <ClipboardList size={16} className="text-primary" /> تقرير التحقق الشامل — 8 مزودين
+            <ClipboardList size={16} className="text-primary" /> تقرير التحقق الشامل — 12 مزود
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">9 فحوصات أمنية ومالية • Tap/Stripe/PayTabs/MyFatoorah/PayPal/Tabby/Tamara/Telr</p>
+          <p className="text-xs text-muted-foreground mt-0.5">9 فحوصات أمنية ومالية • Tap/Stripe/Geidea/Moyasar/HyperPay/PayTabs/MyFatoorah/PayPal/Tabby/Tamara/Telr/MisPay</p>
         </div>
         <Button onClick={runAll} disabled={running || !tenantId} className="gap-2 text-sm">
           {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
@@ -843,10 +879,10 @@ const DebugWebhookTest = () => {
       <div>
         <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
           <Shield size={20} className="text-primary" />
-          اختبار Webhooks — 8 بوابات دفع
+          اختبار Webhooks — 12 بوابة دفع
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Tap • Stripe • PayTabs • MyFatoorah • PayPal • Tabby • Tamara • Telr
+          Tap • Stripe • Geidea • Moyasar • HyperPay • PayTabs • MyFatoorah • PayPal • Tabby • Tamara • Telr • MisPay
         </p>
       </div>
 
