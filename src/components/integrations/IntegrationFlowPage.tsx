@@ -421,14 +421,14 @@ const IntegrationFlowPage = () => {
       {/* ── التبويبات ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
         <TabsList className="w-full grid grid-cols-3 h-11" dir="rtl">
-          <TabsTrigger value="support" className="gap-1.5 text-sm">
-            <Headphones size={14} /> رفع مشكلة
+          <TabsTrigger value="setup" className="gap-1.5 text-sm">
+            <Settings2 size={14} /> الإعداد
           </TabsTrigger>
           <TabsTrigger value="guide" className="gap-1.5 text-sm">
             <BookOpen size={14} /> دليل الاستخدام
           </TabsTrigger>
-          <TabsTrigger value="setup" className="gap-1.5 text-sm">
-            <Settings2 size={14} /> الإعداد
+          <TabsTrigger value="support" className="gap-1.5 text-sm">
+            <Headphones size={14} /> رفع مشكلة
           </TabsTrigger>
         </TabsList>
 
