@@ -132,9 +132,7 @@ Deno.serve(async (req) => {
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
 
-  const { isDuplicate } = await insertWebhookEvent(db, providerEventId, tenantId, payloadHash, rawHeaders);
-  if (isDuplicate) return json({ ok: true, status: "duplicate" }, 200);
-
+  // Load + decrypt webhook secret FIRST (before idempotency to prevent signature-bypass attacks)
   const { data: providerRecord } = await db
     .from("tenant_payment_providers")
     .select("webhook_secret_encrypted, credentials_encrypted, status")
@@ -143,7 +141,6 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!providerRecord) {
-    await updateWebhookEvent(db, providerEventId, { status: "rejected", signature_valid: false, processing_error: "Provider not configured for tenant" });
     await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "provider_not_configured" });
     return json({ error: "HyperPay not configured for this tenant" }, 400);
   }
@@ -152,7 +149,6 @@ Deno.serve(async (req) => {
   if (providerRecord.webhook_secret_encrypted) {
     try { webhookSecret = await decryptSecret(providerRecord.webhook_secret_encrypted, masterKey); }
     catch (e: any) {
-      await updateWebhookEvent(db, providerEventId, { status: "rejected", signature_valid: false, processing_error: "Decryption failed: " + e.message });
       return json({ error: "Internal error: cannot decrypt webhook secret" }, 500);
     }
   } else if (providerRecord.credentials_encrypted) {
@@ -163,25 +159,26 @@ Deno.serve(async (req) => {
   }
 
   if (!webhookSecret) {
-    await updateWebhookEvent(db, providerEventId, { status: "rejected", signature_valid: false, processing_error: "Webhook secret not configured" });
     await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "webhook_secret_not_configured" });
     return json({ error: "HyperPay webhook secret not configured" }, 401);
   }
 
-  // STRICT HyperPay signature: "X-Webhook-Signature" or "X-HyperPay-Signature"
+  // STRICT HyperPay signature: "X-Webhook-Signature" — BEFORE idempotency insert
   const sig = req.headers.get("x-webhook-signature") ?? req.headers.get("x-hyperpay-signature");
   if (!sig) {
-    await updateWebhookEvent(db, providerEventId, { status: "rejected", signature_valid: false, processing_error: "Missing x-webhook-signature header" });
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
-    return json({ error: "Missing required HyperPay signature header 'x-webhook-signature'" }, 401);
+    return json({ error: "Missing required HyperPay signature" }, 401);
   }
 
   const expected = await hmacSha256hex(webhookSecret, rawBody);
   if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
-    await updateWebhookEvent(db, providerEventId, { status: "rejected", signature_valid: false, processing_error: "HyperPay HMAC mismatch" });
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
-    return json({ error: "HyperPay webhook signature verification failed" }, 401);
+    return json({ error: "HyperPay signature verification failed" }, 401);
   }
+
+  // Idempotency insert — only after signature is verified
+  const { isDuplicate } = await insertWebhookEvent(db, providerEventId, tenantId, payloadHash, rawHeaders);
+  if (isDuplicate) return json({ ok: true, status: "duplicate" }, 200);
 
   await db.from("webhook_events")
     .update({ signature_valid: true, status: "processing" })

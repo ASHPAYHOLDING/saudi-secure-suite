@@ -383,9 +383,9 @@ const PaidIntegrationsPage = () => {
       p_tenant_id: tenantId,
     } as any);
     if (!error && data) {
-      setIntegrationStates(data as IntegrationState[]);
+      setIntegrationStates(data as unknown as IntegrationState[]);
       // Fetch wallet balance only if canPurchase (not trial/enterprise)
-      const firstRow = (data as IntegrationState[])[0];
+      const firstRow = (data as unknown as IntegrationState[])[0];
       const needsWallet = firstRow?.entitlement_allowed && firstRow?.entitlement_reason !== "trial";
       if (needsWallet) fetchWalletBalance();
     }
