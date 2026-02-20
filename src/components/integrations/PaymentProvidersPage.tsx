@@ -619,12 +619,13 @@ const PaymentProvidersPage = () => {
     }
   };
 
+  const BRAND_DOMAIN = "numaxio.com";
   const getWebhookUrl = (providerKey: string) => {
     if (!tenantId) return "";
     const fn = PROVIDERS.find(p => p.key === providerKey)?.webhookFn;
     return fn
-      ? `${supabaseUrl}/functions/v1/${fn}?tenant_id=${tenantId}`
-      : `${supabaseUrl}/functions/v1/payment-webhook?provider=${providerKey}&tenant_id=${tenantId}`;
+      ? `https://${BRAND_DOMAIN}/webhooks/${fn}?tenant_id=${tenantId}`
+      : `https://${BRAND_DOMAIN}/webhooks/payment-webhook?provider=${providerKey}&tenant_id=${tenantId}`;
   };
 
   const copyWebhookUrl = (providerKey: string) => {
