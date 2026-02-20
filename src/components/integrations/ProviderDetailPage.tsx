@@ -27,7 +27,7 @@ import {
   ArrowRight, CheckCircle2, XCircle, Loader2, Eye, EyeOff,
   Copy, ExternalLink, Wifi, WifiOff, BookOpen, Headphones,
   Settings2, Info, ChevronDown, ChevronUp, ClipboardCopy,
-  Send, AlertCircle, Zap, History, RefreshCw,
+  Send, AlertCircle, Zap, History, RefreshCw, Wrench,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -464,6 +464,84 @@ const TestTab = ({
   );
 };
 
+// ── Tab 3.5: استكشاف الأخطاء (Troubleshooting) ───────────────────────────────
+const TroubleshootingTab = ({ manifest }: { manifest: IntegrationManifest }) => {
+  const [copiedDiag, setCopiedDiag] = useState(false);
+  const { tenantId } = useAuth();
+
+  const copyDiagnostics = () => {
+    const info = {
+      provider: manifest.providerId,
+      provider_name: manifest.nameEn,
+      tenant_id: tenantId ? `${tenantId.slice(0, 8)}...` : "unknown",
+      collected_at: new Date().toISOString(),
+      note: "No secrets included",
+    };
+    navigator.clipboard.writeText(JSON.stringify(info, null, 2));
+    setCopiedDiag(true);
+    setTimeout(() => setCopiedDiag(false), 2000);
+    toast({ title: "✅ تم نسخ معلومات التشخيص" });
+  };
+
+  const items = manifest.troubleshootingItems;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Wrench size={16} className="text-accent" />
+          <h3 className="font-semibold text-foreground">استكشاف الأخطاء الشائعة — {manifest.nameEn}</h3>
+        </div>
+        <Button variant="outline" size="sm" onClick={copyDiagnostics} className="gap-2 text-xs">
+          {copiedDiag ? <CheckCircle2 size={13} className="text-green-500" /> : <ClipboardCopy size={13} />}
+          {copiedDiag ? "تم النسخ" : "نسخ معلومات التشخيص"}
+        </Button>
+      </div>
+
+      {!items || items.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-sm text-muted-foreground">لا توجد مشاكل موثّقة لهذا المزود بعد</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card className="border-border/50">
+                <CardContent className="pt-4 pb-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle size={15} className="text-amber-500 mt-0.5 shrink-0" />
+                    <p className="font-semibold text-sm text-foreground">{item.problem}</p>
+                  </div>
+                  <div className="ms-5 space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground/70">السبب: </span>
+                      {item.cause}
+                    </p>
+                    <div className="flex items-start gap-1.5 bg-accent/5 border border-accent/10 rounded px-2.5 py-1.5">
+                      <CheckCircle2 size={12} className="text-accent mt-0.5 shrink-0" />
+                      <p className="text-xs text-foreground/80">
+                        <span className="font-medium">الحل: </span>
+                        {item.solution}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Tab 4: الدعم ورفع مشكلة ─────────────────────────────────────────────────
 // key={`support-tab-${providerId}`} — كل state يُعاد من الصفر عند تغيير المزود
 const SupportTab = ({
@@ -723,9 +801,9 @@ const ProviderDetailPage = () => {
             <BookOpen size={14} />
             الدليل
           </TabsTrigger>
-          <TabsTrigger value="test" className="gap-1.5 text-xs sm:text-sm">
-            <Wifi size={14} />
-            الاختبار
+          <TabsTrigger value="troubleshoot" className="gap-1.5 text-xs sm:text-sm">
+            <Wrench size={14} />
+            استكشاف الأخطاء
           </TabsTrigger>
           <TabsTrigger value="support" className="gap-1.5 text-xs sm:text-sm">
             <Headphones size={14} />
@@ -766,21 +844,15 @@ const ProviderDetailPage = () => {
           </AnimatePresence>
         </TabsContent>
 
-        <TabsContent value="test" className="mt-6">
+        <TabsContent value="troubleshoot" className="mt-6">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`test-${manifest.providerId}`}
+              key={`troubleshoot-${manifest.providerId}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
             >
-              <TestTab
-                key={`test-tab-${manifest.providerId}`}
-                manifest={manifest}
-                tenantId={tenantId!}
-                providerId={manifest.providerId}
-                category={category}
-              />
+              <TroubleshootingTab key={`troubleshoot-tab-${manifest.providerId}`} manifest={manifest} />
             </motion.div>
           </AnimatePresence>
         </TabsContent>

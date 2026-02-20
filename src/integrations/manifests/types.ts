@@ -17,6 +17,12 @@ export interface DocSection {
   officialLinkLabel?: string;
 }
 
+export interface TroubleshootingItem {
+  problem: string;
+  cause: string;
+  solution: string;
+}
+
 export interface SupportIssueType {
   value: string;
   label: string;
@@ -26,12 +32,14 @@ export interface IntegrationManifest {
   providerId: string;
   name: string;
   nameEn: string;
-  category: string; // payment | pos | ecommerce | hr | accounting | ocr | other
+  category: string; // payment | pos | ecommerce | bnpl | hr | accounting | ocr | other
   logoPath?: string;
   color?: string;
+  description?: string;
   fields: ManifestField[];
   webhookPath?: string; // مسار الـ webhook الخاص بالمزود
   docsSections: DocSection[];
+  troubleshootingItems?: TroubleshootingItem[];
   supportIssueTypes: SupportIssueType[];
   /** هل يدعم هذا المزود اختبار الاتصال عبر edge function provider-test؟ */
   supportsConnectionTest?: boolean;

@@ -13,6 +13,7 @@ import { paypalManifest } from "./paypal";
 import { tabbyManifest } from "./tabby";
 import { tamaraManifest } from "./tamara";
 import { madfuManifest } from "./madfu";
+import { emkanManifest } from "./emkan";
 import type { IntegrationManifest } from "./types";
 
 export * from "./types";
@@ -33,6 +34,7 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
   tabby: tabbyManifest,
   tamara: tamaraManifest,
   madfu: madfuManifest,
+  emkan: emkanManifest,
 };
 
 /**
@@ -58,6 +60,7 @@ export const KEY_TO_PROVIDER: Record<string, string> = {
   pay_tabby: "tabby",
   pay_tamara: "tamara",
   pay_madfu: "madfu",
+  pay_emkan: "emkan",
   pos_foodics: "foodics",
   ecom_shopify: "shopify",
 };
