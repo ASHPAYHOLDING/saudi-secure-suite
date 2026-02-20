@@ -13,7 +13,7 @@ const LOGO_PATHS: Record<string, { light: string; dark: string }> = {
   moyasar:  { light: "/brands/payment/moyasar.jpg",  dark: "/brands/payment/moyasar.jpg"       },
   hyperpay: { light: "/brands/payment/hyperpay.svg", dark: "/brands/payment/hyperpay.svg"      },
   stripe:   { light: "/brands/payment/stripe.png",   dark: "/brands/payment/stripe.png"        },
-  geidea:   { light: "/brands/payment/geidea.svg",   dark: "/brands/payment/geidea-dark.svg"   },
+  geidea:   { light: "/brands/payment/geidea.png",   dark: "/brands/payment/geidea.png"        },
 };
 
 const ALT_LABELS: Record<string, string> = {
