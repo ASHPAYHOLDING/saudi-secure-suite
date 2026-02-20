@@ -7,7 +7,7 @@ import type { IntegrationManifest } from "./types";
  */
 export const madfuManifest: IntegrationManifest = {
   providerId: "madfu",
-  name: "مدفو — تقسيط BNPL",
+  name: "\u0645\u062F\u0641\u0648 \u2014 \u062A\u0642\u0633\u064A\u0637 BNPL",
   nameEn: "Madfu (BNPL)",
   category: "bnpl",
   logoPath: "/brands/payment/madfu.svg",
