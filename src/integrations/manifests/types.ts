@@ -33,4 +33,6 @@ export interface IntegrationManifest {
   webhookPath?: string; // مسار الـ webhook الخاص بالمزود
   docsSections: DocSection[];
   supportIssueTypes: SupportIssueType[];
+  /** هل يدعم هذا المزود اختبار الاتصال عبر edge function provider-test؟ */
+  supportsConnectionTest?: boolean;
 }

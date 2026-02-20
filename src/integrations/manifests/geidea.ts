@@ -34,6 +34,7 @@ export const geideaManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/geidea-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط Geidea",

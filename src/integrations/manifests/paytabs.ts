@@ -42,6 +42,7 @@ export const paytabsManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/paytabs-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط PayTabs",

@@ -26,6 +26,7 @@ export const stripeManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/stripe-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط Stripe",

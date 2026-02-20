@@ -34,6 +34,7 @@ export const moyasarManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/moyasar-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط Moyasar",

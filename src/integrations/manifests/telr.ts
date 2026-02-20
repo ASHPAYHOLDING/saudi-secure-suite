@@ -34,6 +34,7 @@ export const telrManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/telr-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط Telr",

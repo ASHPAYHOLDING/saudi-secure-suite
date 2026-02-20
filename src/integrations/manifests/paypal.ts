@@ -42,6 +42,7 @@ export const paypalManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/paypal-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط PayPal",

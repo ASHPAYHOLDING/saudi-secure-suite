@@ -26,6 +26,7 @@ export const myfatoorahManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/myfatoorah-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط MyFatoorah",

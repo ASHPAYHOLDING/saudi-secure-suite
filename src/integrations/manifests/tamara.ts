@@ -34,6 +34,7 @@ export const tamaraManifest: IntegrationManifest = {
     },
   ],
   webhookPath: "/functions/v1/tamara-webhook",
+  supportsConnectionTest: true,
   docsSections: [
     {
       title: "خطوات ربط تمارا",
