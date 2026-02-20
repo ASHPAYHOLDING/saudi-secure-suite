@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
   const { provider, invoiceId } = body;
 
-  if (!["tap", "moyasar", "hyperpay"].includes(provider)) {
+  if (!["tap", "moyasar", "hyperpay", "stripe", "geidea"].includes(provider)) {
     return json({ error: "Invalid provider" }, 400);
   }
   if (!invoiceId) return json({ error: "invoiceId is required" }, 400);
@@ -88,8 +88,11 @@ Deno.serve(async (req) => {
     return json({ error: "Failed to decrypt credentials: " + err.message }, 500);
   }
 
-  // Webhook URL for this tenant
-  const webhookUrl = `${supabaseUrl}/functions/v1/payment-webhook?provider=${provider}&tenant_id=${tenantId}`;
+  // Webhook URL — dedicated endpoint per provider for Stripe/Geidea, shared for others
+  const dedicatedProviders = ["stripe", "geidea"];
+  const webhookUrl = dedicatedProviders.includes(provider)
+    ? `${supabaseUrl}/functions/v1/${provider}-webhook?tenant_id=${tenantId}`
+    : `${supabaseUrl}/functions/v1/payment-webhook?provider=${provider}&tenant_id=${tenantId}`;
   const amount = invoice.amount_due;
   const currency = invoice.currency || "SAR";
   const customer = invoice.customers as any;
@@ -107,6 +110,12 @@ Deno.serve(async (req) => {
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "hyperpay") {
       const r = await createHyperPaySession(credentials, { amount, currency, invoiceId, tenantId });
+      sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
+    } else if (provider === "stripe") {
+      const r = await createStripeSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl, customer });
+      sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
+    } else if (provider === "geidea") {
+      const r = await createGeideaSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     }
   } catch (err: any) {
@@ -193,6 +202,60 @@ async function createHyperPaySession(creds: any, opts: any) {
   const d = await res.json();
   if (!res.ok || !d.id) throw new Error(d.result?.description || "HyperPay API error");
   return { id: d.id, url: `https://eu-prod.oppwa.com/v1/paymentWidgets.js?checkoutId=${d.id}`, raw: d };
+}
+
+async function createStripeSession(creds: any, opts: any) {
+  const secretKey = creds.secret_key || creds.api_key || "";
+  // Create a PaymentIntent via Stripe API
+  const params = new URLSearchParams({
+    amount: String(Math.round(opts.amount * 100)), // Stripe uses smallest unit
+    currency: (opts.currency || "SAR").toLowerCase(),
+    "metadata[invoice_id]": opts.invoiceId,
+    "metadata[tenant_id]": opts.tenantId,
+    "automatic_payment_methods[enabled]": "true",
+  });
+  const res = await fetch("https://api.stripe.com/v1/payment_intents", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+  const d = await res.json();
+  if (!res.ok || !d.id) throw new Error(d.error?.message || "Stripe API error");
+  // Return client_secret as URL so frontend can use Stripe.js
+  return { id: d.id, url: `stripe://payment_intent/${d.id}?client_secret=${d.client_secret}`, raw: { id: d.id, status: d.status } };
+}
+
+async function createGeideaSession(creds: any, opts: any) {
+  const merchantPublicKey = creds.merchant_public_key || creds.api_key || "";
+  const apiPassword = creds.api_password || creds.secret_key || "";
+
+  // Geidea Session API
+  const merchantRef = `inv_${opts.invoiceId.slice(0, 20)}_tenant_${opts.tenantId.slice(0, 8)}`;
+  const res = await fetch("https://api.merchant.geidea.net/payment-intent/api/v2/direct/session", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${merchantPublicKey}:${apiPassword}`)}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: opts.amount,
+      currency: opts.currency || "SAR",
+      merchantReferenceId: merchantRef,
+      callbackUrl: opts.webhookUrl,
+      returnUrl: opts.webhookUrl,
+      language: "ar",
+    }),
+  });
+  const d = await res.json();
+  if (!res.ok || !d.session?.id) throw new Error(d.responseMessage || "Geidea API error");
+  return {
+    id: d.session.id,
+    url: `https://api.merchant.geidea.net/payment-intent/api/v2/direct/session/${d.session.id}`,
+    raw: { sessionId: d.session.id, merchantRef },
+  };
 }
 
 function json(data: any, status = 200) {

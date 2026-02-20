@@ -23,7 +23,8 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, " +
-    "hashid, x-tap-signature, x-moyasar-signature, x-hyperpay-signature, x-webhook-signature",
+    "hashid, x-tap-signature, x-moyasar-signature, x-hyperpay-signature, x-webhook-signature, " +
+    "stripe-signature, x-geidea-signature",
 };
 
 // ── SHA-256 hash helper ───────────────────────────────────────────────────────
@@ -82,6 +83,45 @@ async function verifySignature(
     const expected = await hmacSha256hex(secret, rawBody);
     if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase()))
       return { valid: false, reason: "HyperPay HMAC mismatch" };
+    return { valid: true, reason: "" };
+  }
+
+  if (provider === "stripe") {
+    // Stripe: "Stripe-Signature" header — format: t=<ts>,v1=<hmac>
+    // Signed payload: "<timestamp>.<raw_body>"
+    const sigHeader = req.headers.get("stripe-signature");
+    if (!sigHeader) return { valid: false, reason: "Missing Stripe-Signature header" };
+    const parts: Record<string, string[]> = {};
+    for (const part of sigHeader.split(",")) {
+      const eq = part.indexOf("=");
+      if (eq === -1) continue;
+      const k = part.slice(0, eq).trim();
+      const v = part.slice(eq + 1).trim();
+      if (!parts[k]) parts[k] = [];
+      parts[k].push(v);
+    }
+    const timestamps = parts["t"];
+    const v1sigs = parts["v1"];
+    if (!timestamps?.length) return { valid: false, reason: "Missing 't' in Stripe-Signature" };
+    if (!v1sigs?.length) return { valid: false, reason: "Missing 'v1' in Stripe-Signature" };
+    const tsMs = parseInt(timestamps[0], 10) * 1000;
+    if (isNaN(tsMs)) return { valid: false, reason: "Invalid timestamp in Stripe-Signature" };
+    if (Math.abs(Date.now() - tsMs) > 5 * 60 * 1000) return { valid: false, reason: "Stripe timestamp expired" };
+    const signedPayload = `${timestamps[0]}.${rawBody}`;
+    const expected = await hmacSha256hex(secret, signedPayload);
+    for (const v1 of v1sigs) {
+      if (timingSafeEqual(v1.toLowerCase(), expected.toLowerCase())) return { valid: true, reason: "" };
+    }
+    return { valid: false, reason: "Stripe v1 HMAC mismatch" };
+  }
+
+  if (provider === "geidea") {
+    // Geidea: "X-Geidea-Signature" = HMAC-SHA256(raw_body, secret)
+    const sig = req.headers.get("x-geidea-signature");
+    if (!sig) return { valid: false, reason: "Missing X-Geidea-Signature header" };
+    const expected = await hmacSha256hex(secret, rawBody);
+    if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase()))
+      return { valid: false, reason: "Geidea HMAC mismatch" };
     return { valid: true, reason: "" };
   }
 
@@ -174,7 +214,7 @@ Deno.serve(async (req) => {
   const provider = url.searchParams.get("provider") ?? "";
   const tenantIdParam = url.searchParams.get("tenant_id") ?? null;
 
-  if (!["tap", "moyasar", "hyperpay"].includes(provider)) {
+  if (!["tap", "moyasar", "hyperpay", "stripe", "geidea"].includes(provider)) {
     return json({ error: "Invalid or missing ?provider= parameter" }, 400);
   }
 
@@ -195,6 +235,8 @@ Deno.serve(async (req) => {
   if (provider === "tap")      providerEventId = body?.id ?? body?.charge_id ?? "";
   if (provider === "moyasar")  providerEventId = body?.id ?? "";
   if (provider === "hyperpay") providerEventId = body?.id ?? body?.merchantTransactionId ?? "";
+  if (provider === "stripe")   providerEventId = body?.id ?? "";
+  if (provider === "geidea")   providerEventId = body?.orderId ?? body?.id ?? body?.transactionId ?? "";
 
   if (!providerEventId) {
     await writeAudit(db, tenantIdParam, "webhook_rejected", provider, null,
@@ -337,6 +379,21 @@ Deno.serve(async (req) => {
     amount = body?.amount != null ? parseFloat(body.amount) : null;
     currency = body?.currency ?? null;
     sessionId = body?.id ?? body?.merchantTransactionId ?? providerEventId;
+  } else if (provider === "stripe") {
+    const eventType = body?.type ?? "";
+    isPaid = eventType === "payment_intent.succeeded" || eventType === "charge.succeeded";
+    const obj = body?.data?.object ?? {};
+    const rawAmount = obj?.amount_received ?? obj?.amount ?? null;
+    amount = rawAmount !== null ? rawAmount / 100 : null; // cents → SAR/USD
+    currency = (obj?.currency ?? null)?.toUpperCase() ?? null;
+    invoiceId ??= obj?.metadata?.invoice_id ?? null;
+    sessionId = obj?.payment_intent ?? obj?.id ?? providerEventId;
+  } else if (provider === "geidea") {
+    const geideaStatus = body?.status ?? body?.detailedStatus ?? "";
+    isPaid = geideaStatus === "Paid" || geideaStatus === "Success";
+    amount = body?.amount != null ? parseFloat(body.amount) : null;
+    currency = (body?.currency ?? null)?.toUpperCase() ?? null;
+    invoiceId ??= body?.merchantReferenceId?.split("_invoice_")[1]?.split("_")[0] ?? null;
   }
 
   // ── 8. Resolve payment_intent ──────────────────────────────────────────────
