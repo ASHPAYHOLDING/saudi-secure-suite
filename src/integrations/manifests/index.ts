@@ -5,6 +5,7 @@ import { geideaManifest } from "./geidea";
 import { moyasarManifest } from "./moyasar";
 import { hyperpayManifest } from "./hyperpay";
 import { foodicsManifest } from "./foodics";
+import { shopifyManifest } from "./shopify";
 import type { IntegrationManifest } from "./types";
 
 export * from "./types";
@@ -17,9 +18,13 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
   moyasar: moyasarManifest,
   hyperpay: hyperpayManifest,
   foodics: foodicsManifest,
+  shopify: shopifyManifest,
 };
 
-// دالة للحصول على manifest مزود معين مع fallback
+/**
+ * getManifest — البحث عن manifest مزود معين بدون أي fallback.
+ * إذا لم يُوجد المزود تُعاد null وتُعرض صفحة NotFound.
+ */
 export function getManifest(providerId: string): IntegrationManifest | null {
   return MANIFESTS[providerId.toLowerCase()] ?? null;
 }
@@ -32,4 +37,15 @@ export const KEY_TO_PROVIDER: Record<string, string> = {
   pay_moyasar: "moyasar",
   pay_hyperpay: "hyperpay",
   pos_foodics: "foodics",
+  ecom_shopify: "shopify",
 };
+
+/**
+ * getManifestByKey — البحث عن manifest عبر مفتاح قاعدة البيانات (مثل pos_foodics)
+ */
+export function getManifestByKey(integrationKey: string): IntegrationManifest | null {
+  const providerId = KEY_TO_PROVIDER[integrationKey];
+  if (!providerId) return null;
+  return getManifest(providerId);
+}
+

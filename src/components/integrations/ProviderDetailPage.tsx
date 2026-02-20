@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -95,12 +95,18 @@ const SetupTab = ({
   const [webhookUrl, setWebhookUrl] = useState("");
   const { user } = useAuth();
 
+  // ✅ إعادة ضبط الفورم عند تغيير المزود
   useEffect(() => {
+    setFieldValues({});
+    setShowSecret({});
+    setTestStatus("idle");
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     if (manifest.webhookPath) {
       setWebhookUrl(`https://${projectId}.supabase.co${manifest.webhookPath}`);
+    } else {
+      setWebhookUrl("");
     }
-  }, [manifest]);
+  }, [manifest.providerId]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -520,20 +526,36 @@ const SupportTab = ({
 
 // ── الصفحة الرئيسية ───────────────────────────────────────────────────────────
 const ProviderDetailPage = () => {
-  const { category, provider } = useParams<{ category: string; provider: string }>();
+  // ✅ استخرج category و provider من الـ URL مباشرة (لأن Dashboard لا يستخدم React Router params)
+  // Route pattern: /dashboard/integrations/:category/:provider
+  const location = useLocation();
   const navigate = useNavigate();
   const { tenantId } = useAuth();
   const [activeTab, setActiveTab] = useState("setup");
 
-  const manifest = provider ? getManifest(provider) : null;
+  // Parse params from pathname: /dashboard/integrations/ecommerce/shopify
+  // segments: ["", "dashboard", "integrations", "ecommerce", "shopify"]
+  const pathSegments = location.pathname.split("/");
+  const category = pathSegments[2] === "integrations" ? pathSegments[3] : undefined;
+  const providerParam = pathSegments[2] === "integrations" ? pathSegments[4] : undefined;
 
-  if (!manifest || !provider || !category) {
+  // ✅ تحميل manifest بدون أي fallback — إذا لم يُوجد نعرض NotFound
+  const manifest = providerParam ? getManifest(providerParam) : null;
+
+  // ✅ إعادة ضبط التبويب عند تغيير المزود
+  useEffect(() => {
+    setActiveTab("setup");
+  }, [providerParam]);
+
+  if (!manifest || !providerParam || !category) {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center" dir="rtl">
         <AlertCircle size={48} className="text-muted-foreground/30" />
         <div>
           <p className="font-medium text-foreground">لم يُعثر على صفحة هذا المزود</p>
-          <p className="text-sm text-muted-foreground mt-1">المزود: {provider}</p>
+          <p className="text-sm text-muted-foreground mt-1 font-mono text-xs bg-muted px-2 py-1 rounded">
+            {category}/{providerParam}
+          </p>
         </div>
         <Button variant="outline" onClick={() => navigate("/dashboard/paid-integrations")} className="gap-2">
           <ArrowRight size={16} />
@@ -561,21 +583,34 @@ const ProviderDetailPage = () => {
           رجوع
         </Button>
         <div className="h-5 w-px bg-border" />
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           {manifest.logoPath ? (
-            <img src={manifest.logoPath} alt={manifest.name} className="h-10 w-10 object-contain rounded-lg" />
+            <img src={manifest.logoPath} alt={manifest.name} className="h-10 w-10 object-contain rounded-lg shrink-0" />
           ) : (
-            <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${manifest.color || "from-accent/10 to-accent/5"} flex items-center justify-center`}>
+            <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${manifest.color || "from-accent/10 to-accent/5"} flex items-center justify-center shrink-0`}>
               <Settings2 size={20} className="text-accent" />
             </div>
           )}
-          <div>
-            <h1 className="text-xl font-bold text-foreground">{manifest.name}</h1>
-            <p className="text-sm text-muted-foreground">{manifest.nameEn}</p>
+          <div className="flex-1 min-w-0">
+            {/* ✅ شارة واضحة: اسم المزود + ID */}
+            <h1 className="text-xl font-bold text-foreground leading-tight">{manifest.name}</h1>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <p className="text-sm text-muted-foreground">{manifest.nameEn}</p>
+              <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
+                ID: {manifest.providerId}
+              </code>
+            </div>
           </div>
-          <Badge variant="outline" className="ms-auto capitalize">{category}</Badge>
+          <Badge variant="outline" className="ms-auto capitalize shrink-0">{category}</Badge>
         </div>
       </motion.div>
+
+      {/* ✅ debug badge — مرئي فقط في وضع التطوير */}
+      {import.meta.env.DEV && (
+        <div className="text-[10px] text-muted-foreground/50 font-mono bg-muted/30 px-2 py-1 rounded border border-dashed border-border/30">
+          DEV: loading manifest for provider=<strong>{manifest.providerId}</strong> | category={category} | tenantId={tenantId}
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
@@ -596,11 +631,13 @@ const ProviderDetailPage = () => {
 
         <TabsContent value="setup" className="mt-6">
           <AnimatePresence mode="wait">
-            <motion.div key="setup" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key={`setup-${manifest.providerId}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {/* ✅ key={manifest.providerId} يجبر React على إعادة إنشاء SetupTab عند تغيير المزود */}
               <SetupTab
+                key={manifest.providerId}
                 manifest={manifest}
                 tenantId={tenantId!}
-                provider={provider}
+                provider={manifest.providerId}
                 category={category}
               />
             </motion.div>
@@ -609,7 +646,7 @@ const ProviderDetailPage = () => {
 
         <TabsContent value="guide" className="mt-6">
           <AnimatePresence mode="wait">
-            <motion.div key="guide" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key={`guide-${manifest.providerId}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <GuideTab manifest={manifest} />
             </motion.div>
           </AnimatePresence>
@@ -617,11 +654,13 @@ const ProviderDetailPage = () => {
 
         <TabsContent value="support" className="mt-6">
           <AnimatePresence mode="wait">
-            <motion.div key="support" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key={`support-${manifest.providerId}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {/* ✅ key={manifest.providerId} يجبر React على إعادة إنشاء SupportTab عند تغيير المزود */}
               <SupportTab
+                key={manifest.providerId}
                 manifest={manifest}
                 tenantId={tenantId!}
-                provider={provider}
+                provider={manifest.providerId}
                 category={category}
               />
             </motion.div>

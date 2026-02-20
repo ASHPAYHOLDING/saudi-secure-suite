@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { GATEWAY_DEFS } from "./PaymentGatewayWizard";
 import { ALL_PROVIDERS } from "./IntegrationDetailPage";
+import { getManifestByKey } from "@/integrations/manifests";
 
 // ─── Types ───
 interface PaidIntegration {
@@ -321,7 +322,15 @@ const PaidIntegrationsPage = () => {
 
   // ── Navigate to setup page for any integration ──
   const openFlow = (item: PaidIntegration) => {
-    // Payment gateway with dedicated provider page
+    // ✅ أولاً: تحقق إذا كان للمزود manifest في النظام الجديد
+    const manifest = getManifestByKey(item.key);
+    if (manifest) {
+      // ✅ انتقل دائماً باستخدام providerId من manifest مباشرة — لا state قديم
+      navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
+      return;
+    }
+
+    // Payment gateway with dedicated provider page (legacy system)
     if (item.integration_type === "payment_gateway") {
       const providerDef = ALL_PROVIDERS.find((p) => p.integrationKey === item.key);
       if (providerDef) {
@@ -466,6 +475,12 @@ const PaidIntegrationsPage = () => {
                         onDeactivate={() => handleDeactivate(item.id)}
                         onComplete={() => openFlow(item)}
                         onOpenDetail={() => {
+                          // ✅ استخدم manifest أولاً — إذا لم يُوجد استخدم old provider route
+                          const manifest = getManifestByKey(item.key);
+                          if (manifest) {
+                            navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
+                            return;
+                          }
                           const provDef = ALL_PROVIDERS.find((p) => p.integrationKey === item.key);
                           if (provDef) navigate(`/dashboard/integrations/provider/${provDef.id}`);
                         }}
