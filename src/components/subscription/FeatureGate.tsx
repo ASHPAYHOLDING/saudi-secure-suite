@@ -33,23 +33,35 @@ function stringSimilarity(a: string, b: string): number {
  * Maps feature keys to the RBAC permission keys required.
  * If a feature key is here, RBAC is checked FIRST before entitlements.
  */
+/**
+ * Maps feature keys to RBAC permission keys required.
+ * Keys MUST match exactly with role_permissions.permission_key in the database.
+ * Owners always bypass RBAC.
+ */
 const FEATURE_RBAC_MAP: Partial<Record<string, string[]>> = {
-  [FEATURE_KEYS.INVOICES_BASIC]: ["finance.invoices.view", "finance.invoices.create"],
-  [FEATURE_KEYS.EXPENSES]: ["finance.expenses.view", "finance.expenses.create"],
-  [FEATURE_KEYS.JOURNAL_ENTRIES]: ["finance.journal.view", "finance.journal.create"],
-  [FEATURE_KEYS.ACCOUNTING_ADVANCED]: ["finance.reports.view"],
-  [FEATURE_KEYS.ADVANCED_REPORTS]: ["finance.reports.view"],
-  [FEATURE_KEYS.HR]: ["hr.employees.view"],
-  [FEATURE_KEYS.CONTRACTS]: ["finance.contracts.view", "finance.contracts.create"],
-  [FEATURE_KEYS.BRANCHES]: ["settings.branches.view"],
-  [FEATURE_KEYS.QUOTATIONS]: ["finance.quotations.view", "finance.quotations.create"],
-  [FEATURE_KEYS.SALES_ORDERS]: ["finance.sales_orders.view"],
-  [FEATURE_KEYS.PURCHASE_ORDERS]: ["finance.purchase_orders.view"],
-  [FEATURE_KEYS.DELIVERY_NOTES]: ["finance.delivery_notes.view"],
-  [FEATURE_KEYS.INVENTORY]: ["inventory.products.view"],
-  [FEATURE_KEYS.WALLET]: ["finance.wallet.view"],
-  [FEATURE_KEYS.AUDIT_LOG]: ["settings.audit.view"],
-  [FEATURE_KEYS.TEAM_MANAGEMENT]: ["settings.team.view"],
+  [FEATURE_KEYS.INVOICES_BASIC]: ["invoices.view"],
+  [FEATURE_KEYS.EXPENSES]: ["expenses.view"],
+  [FEATURE_KEYS.JOURNAL_ENTRIES]: ["finance.view_overview"],
+  [FEATURE_KEYS.ACCOUNTING_ADVANCED]: ["finance.view_reports"],
+  [FEATURE_KEYS.ADVANCED_REPORTS]: ["finance.view_reports"],
+  [FEATURE_KEYS.CONTRACTS]: ["contracts.view"],
+  [FEATURE_KEYS.BRANCHES]: ["branches.view"],
+  [FEATURE_KEYS.QUOTATIONS]: ["quotations.view"],
+  [FEATURE_KEYS.SALES_ORDERS]: ["sales_orders.view"],
+  [FEATURE_KEYS.PURCHASE_ORDERS]: ["purchase_orders.view"],
+  [FEATURE_KEYS.DELIVERY_NOTES]: ["purchase_orders.view"],
+  [FEATURE_KEYS.INVENTORY]: ["inventory.view"],
+  [FEATURE_KEYS.WALLET]: ["subscription.view"],
+  [FEATURE_KEYS.AUDIT_LOG]: ["audit.view"],
+  [FEATURE_KEYS.TEAM_MANAGEMENT]: ["team.view"],
+  [FEATURE_KEYS.CUSTOMERS]: ["customers.view"],
+  [FEATURE_KEYS.ANALYTICS]: ["finance.view_analytics"],
+  [FEATURE_KEYS.BRANDING]: ["settings.branding"],
+  [FEATURE_KEYS.STAMP]: ["settings.stamp"],
+  [FEATURE_KEYS.PAID_INTEGRATIONS]: ["settings.integrations"],
+  [FEATURE_KEYS.PAYMENT_REMINDERS]: ["invoices.view"],
+  [FEATURE_KEYS.ZATCA_PHASE1]: ["settings.compliance"],
+  [FEATURE_KEYS.NUMAXIO_PAY]: ["subscription.manage"],
 };
 
 interface FeatureGateProps {
