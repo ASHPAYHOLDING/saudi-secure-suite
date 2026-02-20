@@ -67,7 +67,7 @@ const ALL_DASHBOARD_ROUTES: { segment: string; path: string; label: string }[] =
   { segment: "team", path: "/dashboard/team", label: "Team Management" },
   { segment: "permissions", path: "/dashboard/permissions", label: "Permissions" },
   { segment: "audit", path: "/dashboard/audit", label: "Audit Log" },
-  { segment: "paid-integrations", path: "/dashboard/paid-integrations", label: "Paid Integrations" },
+  
   { segment: "budgets", path: "/dashboard/budgets", label: "Budgets (no gate)" },
   { segment: "integrations", path: "/dashboard/integrations", label: "Integrations (no gate)" },
   { segment: "company", path: "/dashboard/company", label: "Company Settings (no gate)" },

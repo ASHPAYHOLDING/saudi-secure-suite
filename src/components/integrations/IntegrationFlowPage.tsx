@@ -195,7 +195,7 @@ const IntegrationFlowPage = () => {
   const fetchState = useCallback(async () => {
     if (!tenantId) return;
     setLoading(true);
-    const { data } = await supabase.rpc("get_paid_integrations_state", { p_tenant_id: tenantId } as any);
+    const { data } = await (supabase as any).rpc("get_paid_integrations_state", { p_tenant_id: tenantId });
     if (data) {
       const match = (data as any[]).find((r: any) => r.integration_id === integrationId);
       if (match) {
@@ -240,7 +240,7 @@ const IntegrationFlowPage = () => {
     const source = isTrial ? "trial_auto" : "enterprise_auto";
     const label  = isTrial ? "الفترة التجريبية" : "باقة المؤسسات";
     try {
-      const { error } = await supabase.from("tenant_paid_integrations").upsert({
+      const { error } = await (supabase as any).from("tenant_paid_integrations").upsert({
         tenant_id: tenantId,
         integration_id: integrationState.integration_id,
         status: integrationState.requires_api_keys ? "disabled" : "active",
@@ -248,7 +248,7 @@ const IntegrationFlowPage = () => {
         purchased_at: new Date().toISOString(),
         activated_at: new Date().toISOString(),
         activation_source: source,
-      } as any, { onConflict: "tenant_id,integration_id" });
+      }, { onConflict: "tenant_id,integration_id" });
       if (error) { toast({ title: "خطأ", description: error.message, variant: "destructive" }); return; }
       toast({ title: "تم التفعيل تلقائياً ✅", description: `${integrationState.name_ar} — مضمّن في ${label}` });
       fetchState();
@@ -337,12 +337,12 @@ const IntegrationFlowPage = () => {
       );
       const statusData = await statusRes.json();
       if (statusData.orderStatus === "Paid" || statusData.orderStatus === "paid") {
-        await supabase.from("tenant_paid_integrations").upsert({
+        await (supabase as any).from("tenant_paid_integrations").upsert({
           tenant_id: tenantId, integration_id: integrationState.integration_id,
           status: integrationState.requires_api_keys ? "disabled" : "active",
           activated_by: user.id, purchased_at: new Date().toISOString(),
           activated_at: new Date().toISOString(), activation_source: "purchase",
-        } as any, { onConflict: "tenant_id,integration_id" });
+        }, { onConflict: "tenant_id,integration_id" });
         toast({ title: "تم الدفع بنجاح ✅" });
         fetchState();
         setFlowStep(integrationState.requires_api_keys ? "api_keys" : "done");

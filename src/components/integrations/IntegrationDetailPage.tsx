@@ -549,9 +549,9 @@ const IntegrationDetailPage = () => {
   const fetchState = useCallback(async () => {
     if (!tenantId || !provider) return;
     setLoadingState(true);
-    const { data } = await supabase.rpc("get_paid_integrations_state", {
+    const { data } = await (supabase as any).rpc("get_paid_integrations_state", {
       p_tenant_id: tenantId,
-    } as any);
+    });
     if (data) {
       const match = (data as any[]).find((r: any) => r.key === provider.integrationKey);
       if (match) setIntegrationState(match);
@@ -638,9 +638,9 @@ const IntegrationDetailPage = () => {
   const handleDeactivate = async () => {
     if (!integrationState || !tenantId) return;
     if (!confirm("هل تريد إيقاف هذا التكامل؟")) return;
-    await supabase
+    await (supabase as any)
       .from("tenant_paid_integrations")
-      .update({ status: "disabled" } as any)
+      .update({ status: "disabled" })
       .eq("tenant_id", tenantId)
       .eq("integration_id", integrationState.integration_id);
     toast({ title: "تم إيقاف التكامل" });

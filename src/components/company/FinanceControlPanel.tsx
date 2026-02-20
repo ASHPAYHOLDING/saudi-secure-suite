@@ -82,7 +82,7 @@ const FinanceControlPanel = () => {
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(5),
-      supabase
+      (supabase as any)
         .from("tenant_paid_integrations")
         .select("status, paid_integrations!inner(key, name_ar, integration_type)")
         .eq("tenant_id", tenantId!),
@@ -258,7 +258,7 @@ const FinanceControlPanel = () => {
             variant="outline"
             size="sm"
             className="gap-1.5"
-            onClick={() => navigate("/dashboard/paid-integrations")}
+            onClick={() => navigate("/dashboard/integrations")}
           >
             <Settings className="h-3.5 w-3.5" />
             إعدادات البوابات
