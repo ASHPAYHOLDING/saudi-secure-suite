@@ -122,12 +122,14 @@ Deno.serve(async (req) => {
   }
 
   if (!tenantId) {
-    await db.from("webhook_events").insert({
-      provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
-      tenant_id: null, payload_hash: payloadHash, raw_headers: rawHeaders,
-      status: "rejected", received_at: new Date().toISOString(),
-      processing_error: "Cannot resolve tenant_id",
-    });
+    try {
+      await db.from("webhook_events").insert({
+        provider: PROVIDER, provider_event_id: `${providerEventId}_${Date.now()}`, event_id: providerEventId,
+        tenant_id: null, payload_hash: payloadHash, raw_headers: rawHeaders,
+        status: "rejected", received_at: new Date().toISOString(),
+        processing_error: "Cannot resolve tenant_id",
+      });
+    } catch { /* non-critical */ }
     await writeAudit(db, null, "webhook_rejected", providerEventId, { reason: "cannot_resolve_tenant_id" });
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
@@ -135,12 +137,14 @@ Deno.serve(async (req) => {
   // STRICT HyperPay signature check FIRST — before revealing provider config status
   const sig = req.headers.get("x-webhook-signature") ?? req.headers.get("x-hyperpay-signature");
   if (!sig) {
-    await db.from("webhook_events").insert({
-      provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
-      tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
-      status: "rejected", signature_valid: false,
-      processing_error: "missing_signature_header", received_at: new Date().toISOString(),
-    });
+    try {
+      await db.from("webhook_events").insert({
+        provider: PROVIDER, provider_event_id: `${providerEventId}_nosig_${Date.now()}`, event_id: providerEventId,
+        tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
+        status: "rejected", signature_valid: false,
+        processing_error: "missing_signature_header", received_at: new Date().toISOString(),
+      });
+    } catch { /* non-critical */ }
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
     return json({ error: "Missing required HyperPay signature" }, 401);
   }
@@ -179,12 +183,14 @@ Deno.serve(async (req) => {
   // Verify HMAC
   const expected = await hmacSha256hex(webhookSecret, rawBody);
   if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
-    await db.from("webhook_events").insert({
-      provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
-      tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
-      status: "rejected", signature_valid: false,
-      processing_error: "hmac_mismatch", received_at: new Date().toISOString(),
-    });
+    try {
+      await db.from("webhook_events").insert({
+        provider: PROVIDER, provider_event_id: `${providerEventId}_badhmac_${Date.now()}`, event_id: providerEventId,
+        tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
+        status: "rejected", signature_valid: false,
+        processing_error: "hmac_mismatch", received_at: new Date().toISOString(),
+      });
+    } catch { /* non-critical */ }
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
     return json({ error: "HyperPay signature verification failed" }, 401);
   }
