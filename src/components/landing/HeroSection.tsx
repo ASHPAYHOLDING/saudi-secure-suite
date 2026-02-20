@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Zap, Globe, FileText, Calculator, BarChart3, Wallet, Users, Receipt, Stamp, CheckCircle2, Play } from "lucide-react";
+import { ArrowLeft, FileText, Calculator, Wallet, Stamp, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RamadanGlow, RamadanPattern, RamadanBadge } from "@/components/ramadan";
 
 
 
@@ -18,6 +19,10 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl">
+      {/* Ramadan overlays */}
+      <RamadanPattern />
+      <RamadanGlow variant="hero" />
+
       {/* Animated grid background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -76,15 +81,20 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8 inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-6 py-3 backdrop-blur-sm"
+          className="mb-6 flex flex-col items-center gap-3"
         >
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
-          </span>
-          <span className="text-sm font-semibold text-accent">
-            🇸🇦 المنصة المحاسبية #1 في المملكة العربية السعودية
-          </span>
+          {/* Ramadan badge — يظهر تلقائياً عند تفعيل الثيم */}
+          <RamadanBadge size="md" />
+
+          <div className="inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-6 py-3 backdrop-blur-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
+            </span>
+            <span className="text-sm font-semibold text-accent">
+              🇸🇦 المنصة المحاسبية #1 في المملكة العربية السعودية
+            </span>
+          </div>
         </motion.div>
 
         {/* Main Headline */}

@@ -19,6 +19,7 @@ import { ar, enUS } from "date-fns/locale";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { RamadanGlow, RamadanDivider, RamadanBadge } from "@/components/ramadan";
 
 // Lazy-load heavy chart components
 import { lazy, Suspense } from "react";
@@ -511,7 +512,10 @@ const DashboardHome = () => {
   const collectionRate = s && s.totalInvoices > 0 ? Math.round((s.paidInvoices / s.totalInvoices) * 100) : 0;
 
   return (
-    <div dir={dir} className="space-y-6 p-4 sm:p-6">
+    <div dir={dir} className="relative space-y-6 p-4 sm:p-6">
+      {/* Ramadan glow — أعلى الداشبورد */}
+      <RamadanGlow variant="top" />
+
       {/* Welcome Header — always renders immediately */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -519,10 +523,13 @@ const DashboardHome = () => {
         className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-            {t("dashboard.welcome", { name: firstName })} 👋
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
+              {t("dashboard.welcome", { name: firstName })} 👋
+            </h1>
+            <RamadanBadge />
+          </div>
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Activity className="w-3.5 h-3.5" />
             {t("dashboard.overview")}
           </p>
@@ -541,6 +548,7 @@ const DashboardHome = () => {
 
       <NumaxioPayBanner />
       <DailyWisdom />
+      <RamadanDivider />
 
       {/* KPI Cards — skeleton-first */}
       {isError ? (
