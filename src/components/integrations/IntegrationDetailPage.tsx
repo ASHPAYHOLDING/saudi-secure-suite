@@ -648,8 +648,9 @@ const IntegrationDetailPage = () => {
   };
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
+  const BRAND_DOMAIN = "numaxio.com";
   const webhookUrl = tenantId
-    ? `${supabaseUrl}/functions/v1/${provider?.webhookFnSlug}?tenant_id=${tenantId}`
+    ? `https://${BRAND_DOMAIN}/webhooks/${provider?.webhookFnSlug}?tenant_id=${tenantId}`
     : "";
 
   const copyWebhook = () => {

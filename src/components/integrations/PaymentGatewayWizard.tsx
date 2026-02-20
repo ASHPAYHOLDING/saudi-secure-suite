@@ -270,7 +270,14 @@ export const PaymentGatewayWizard = ({ gatewayDef, tenantId, open, onClose, onSu
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
+  // Display branded URL — the actual backend endpoint is proxied via Cloudflare
+  const BRAND_DOMAIN = "numaxio.com";
   const webhookUrl = tenantId
+    ? `https://${BRAND_DOMAIN}/webhooks/${gatewayDef.webhookFnSlug}?tenant_id=${tenantId}`
+    : "";
+
+  // Actual backend URL used internally (never shown to user)
+  const _internalWebhookUrl = tenantId
     ? `${supabaseUrl}/functions/v1/${gatewayDef.webhookFnSlug}?tenant_id=${tenantId}`
     : "";
 
