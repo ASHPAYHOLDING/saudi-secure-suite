@@ -3,8 +3,25 @@
  * كل التوكنز المرجعية للثيمات (Default + Ramadan) × (Light + Dark)
  */
 
+// ─── Ramadan Date Config ─────────────────────────────────────
+// عدّل هذه القيم لتحديد نطاق رمضان
+export const RAMADAN_CONFIG = {
+  ramadanStart: "2026-02-18",
+  ramadanEnd:   "2026-03-20",
+} as const;
+
+/** يتحقق إذا كان التاريخ الحالي ضمن نطاق رمضان */
+export function isCurrentlyRamadan(): boolean {
+  const now  = new Date();
+  const start = new Date(RAMADAN_CONFIG.ramadanStart);
+  const end   = new Date(RAMADAN_CONFIG.ramadanEnd);
+  end.setHours(23, 59, 59, 999);
+  return now >= start && now <= end;
+}
+
 export type ThemeMode = "light" | "dark";
 export type SeasonalTheme = "default" | "ramadan";
+
 
 export interface ThemeTokens {
   // Base
