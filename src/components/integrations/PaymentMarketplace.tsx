@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,11 +19,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Search, Shield, Zap, Lock, CheckCircle2, XCircle,
   Settings2, TestTube2, Plus, Filter, AlertTriangle,
   ExternalLink, Globe, CreditCard,
   Sparkles, ArrowRight, Eye, EyeOff, Power, PowerOff,
-  Clock, Webhook, Key, RefreshCw, CheckCheck,
+  Clock, Webhook, Key, RefreshCw, CheckCheck, ChevronDown, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/payments/BrandLogo";
@@ -155,8 +163,9 @@ const CATEGORIES = [
 
 const STATUS_FILTERS = [
   { key: "all",          label: "الكل" },
-  { key: "connected",    label: "متصل" },
+  { key: "connected",    label: "متصل فقط" },
   { key: "disconnected", label: "غير متصل" },
+  { key: "bnpl",         label: "BNPL فقط" },
 ];
 
 const STATUS_CONFIG: Record<ProviderStatus, { label: string; dotColor: string; badgeClass: string; barColor: string }> = {
@@ -815,14 +824,20 @@ const SkeletonCard = () => (
 const PaymentMarketplace = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-synced state
+  const [activeTab, setActiveTab]       = useState(searchParams.get("tab") || "all");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("filter") || "all");
+  const [searchInput, setSearchInput]   = useState(searchParams.get("q") || "");
+  const [search, setSearch]             = useState(searchParams.get("q") || ""); // debounced
+
   const [loading, setLoading]         = useState(true);
   const [tenantId, setTenantId]       = useState<string | null>(null);
   const [providerRecords, setProviderRecords] = useState<Record<string, ProviderRecord>>({});
-  const [search, setSearch]           = useState("");
-  const [activeTab, setActiveTab]     = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [testing, setTesting]         = useState<Record<string, boolean>>({});
   const [drawerProvider, setDrawerProvider] = useState<ProviderDef | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
@@ -860,6 +875,39 @@ const PaymentMarketplace = () => {
 
   useEffect(() => { loadProviders(); }, [user]);
 
+  /* ── Search debounce 300ms ── */
+  const handleSearchChange = useCallback((val: string) => {
+    setSearchInput(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        val ? next.set("q", val) : next.delete("q");
+        return next;
+      }, { replace: true });
+    }, 300);
+  }, [setSearchParams]);
+
+  /* ── Sync tab & filter to URL ── */
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      tab === "all" ? next.delete("tab") : next.set("tab", tab);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const handleFilterChange = useCallback((filter: string) => {
+    setStatusFilter(filter);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      filter === "all" ? next.delete("filter") : next.set("filter", filter);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   /* ── Quick test from card ── */
   const handleQuickTest = async (providerKey: string) => {
     setTesting(p => ({ ...p, [providerKey]: true }));
@@ -885,19 +933,22 @@ const PaymentMarketplace = () => {
     }
   };
 
-  /* ── Filtered providers ── */
+  /* ── Filtered providers (memoized, uses debounced `search`) ── */
   const filtered = useMemo(() => PROVIDERS.filter(p => {
     const catMatch    = activeTab === "all" || p.category === activeTab;
+    const recStatus   = providerRecords[p.key]?.status ?? "disconnected";
     const statusMatch =
       statusFilter === "all" ||
-      (statusFilter === "connected"    && (providerRecords[p.key]?.status ?? "disconnected") !== "disconnected") ||
-      (statusFilter === "disconnected" && (providerRecords[p.key]?.status ?? "disconnected") === "disconnected");
+      (statusFilter === "connected"    && recStatus !== "disconnected") ||
+      (statusFilter === "disconnected" && recStatus === "disconnected") ||
+      (statusFilter === "bnpl"         && p.category === "bnpl");
+    const q = search.toLowerCase();
     const searchMatch =
-      !search ||
-      p.label.toLowerCase().includes(search.toLowerCase()) ||
+      !q ||
+      p.label.toLowerCase().includes(q) ||
       p.labelAr.includes(search) ||
       p.tagline.includes(search) ||
-      p.methods.some(m => m.includes(search));
+      p.methods.some(m => m.toLowerCase().includes(q));
     return catMatch && statusMatch && searchMatch;
   }), [activeTab, statusFilter, search, providerRecords]);
 
@@ -964,35 +1015,93 @@ const PaymentMarketplace = () => {
         </div>
       </div>
 
-      {/* ════════ Sticky Filters ════════ */}
+      {/* ════════ Sticky Search & Filter Bar ════════ */}
       <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-6 py-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+
+            {/* Search input with clear button */}
             <div className="relative flex-1">
-              <Search size={15} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search size={15} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="ابحث عن بوابة دفع..."
-                className="ps-9 h-9 text-sm bg-muted/40 border-border"
+                value={searchInput}
+                onChange={e => handleSearchChange(e.target.value)}
+                placeholder="ابحث عن بوابة دفع، طريقة دفع..."
+                className="ps-9 pe-8 h-9 text-sm bg-muted/40 border-border"
               />
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Filter size={14} className="text-muted-foreground" />
-              {STATUS_FILTERS.map(f => (
+              {searchInput && (
                 <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                    statusFilter === f.key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  )}
+                  onClick={() => handleSearchChange("")}
+                  className="absolute end-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label="مسح البحث"
                 >
-                  {f.label}
+                  <X size={13} />
                 </button>
-              ))}
+              )}
+            </div>
+
+            {/* Filter dropdown */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Filter size={14} className="text-muted-foreground hidden sm:block" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-lg border px-3 h-9 text-sm font-medium transition-colors outline-none",
+                      statusFilter === "all"
+                        ? "border-border bg-muted/60 text-muted-foreground hover:bg-muted"
+                        : "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15"
+                    )}
+                  >
+                    <Filter size={13} className="shrink-0" />
+                    <span>{STATUS_FILTERS.find(f => f.key === statusFilter)?.label ?? "الكل"}</span>
+                    <ChevronDown size={13} className="shrink-0 opacity-60" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={6}
+                  className="w-48 bg-background border border-border shadow-lg rounded-xl z-50 p-1"
+                >
+                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={handleFilterChange}>
+                    {STATUS_FILTERS.map(f => (
+                      <DropdownMenuRadioItem
+                        key={f.key}
+                        value={f.key}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm cursor-pointer select-none outline-none
+                                   hover:bg-muted focus:bg-muted data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary"
+                      >
+                        <span className={cn(
+                          "h-1.5 w-1.5 rounded-full shrink-0",
+                          f.key === "all"          && "bg-muted-foreground",
+                          f.key === "connected"    && "bg-success",
+                          f.key === "disconnected" && "bg-muted-foreground/50",
+                          f.key === "bnpl"         && "bg-success",
+                        )} />
+                        {f.label}
+                        {/* Count badge */}
+                        <span className="ms-auto text-[10px] font-bold tabular-nums text-muted-foreground">
+                          {f.key === "all"          && PROVIDERS.length}
+                          {f.key === "connected"    && Object.values(providerRecords).filter(r => r.status !== "disconnected").length}
+                          {f.key === "disconnected" && (PROVIDERS.length - Object.values(providerRecords).filter(r => r.status !== "disconnected").length)}
+                          {f.key === "bnpl"         && PROVIDERS.filter(p => p.category === "bnpl").length}
+                        </span>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Active filter chip */}
+              {(statusFilter !== "all" || search) && (
+                <button
+                  onClick={() => { handleFilterChange("all"); handleSearchChange(""); }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 h-9 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <X size={11} />
+                  مسح
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1000,7 +1109,7 @@ const PaymentMarketplace = () => {
 
       {/* ════════ Main Content ════════ */}
       <div className="mx-auto max-w-5xl px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6 h-auto p-1 bg-muted/60 gap-1 flex flex-wrap">
             {CATEGORIES.map(cat => (
               <TabsTrigger
