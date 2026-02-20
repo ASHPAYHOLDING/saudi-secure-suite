@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" width="220" height="60">
-  <rect width="220" height="60" fill="none"/>
-  <circle cx="30" cy="30" r="22" fill="#00B4A0"/>
-  <text x="30" y="36" font-family="'Arial Black',sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle">mf</text>
-  <text x="62" y="38" font-family="'Arial Black',sans-serif" font-size="19" font-weight="900" fill="#00B4A0" letter-spacing="-0.3">myFatoorah</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" fill="none" role="img" aria-label="MyFatoorah">
+  <!-- Teal circle icon -->
+  <circle cx="28" cy="28" r="26" fill="#00B4A0"/>
+  <!-- Stylized MF monogram -->
+  <path d="M14 38V18h4.5l8 12.5 8-12.5H39V38h-4.5V24.5l-6.5 10h-3l-6.5-10V38H14z" fill="white"/>
+  <!-- Wordmark: my -->
+  <text x="62" y="24" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#007A6E" letter-spacing="-0.2">my</text>
+  <!-- Wordmark: Fatoorah -->
+  <text x="62" y="40" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#00B4A0" letter-spacing="-0.2">Fatoorah</text>
 </svg>
+

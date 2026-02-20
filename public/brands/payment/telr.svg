@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 60" width="140" height="60">
-  <rect width="140" height="60" fill="none"/>
-  <rect x="2" y="8" width="44" height="44" rx="8" fill="#E63946"/>
-  <text x="24" y="37" font-family="'Arial Black',sans-serif" font-size="20" font-weight="900" fill="white" text-anchor="middle">T</text>
-  <text x="56" y="38" font-family="'Arial Black',sans-serif" font-size="24" font-weight="900" fill="#1D1D1F" letter-spacing="-0.5">telr</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 56" fill="none" role="img" aria-label="Telr">
+  <!-- Red square icon -->
+  <rect x="0" y="4" width="48" height="48" rx="11" fill="#CC0000"/>
+  <!-- T bar top -->
+  <rect x="10" y="16" width="28" height="6" rx="3" fill="white"/>
+  <!-- T stem -->
+  <rect x="21" y="22" width="6" height="18" rx="3" fill="white"/>
+  <!-- "telr" wordmark -->
+  <text x="60" y="35" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="800" fill="#CC0000" letter-spacing="-0.5">telr</text>
 </svg>
+
