@@ -1,0 +1,70 @@
+import type { IntegrationManifest } from "./types";
+
+export const myfatoorahManifest: IntegrationManifest = {
+  providerId: "myfatoorah",
+  name: "MyFatoorah",
+  nameEn: "MyFatoorah",
+  category: "payment",
+  logoPath: "/brands/payment/myfatoorah.svg",
+  color: "from-teal-600/10 to-teal-500/5",
+  fields: [
+    {
+      key: "api_key",
+      label: "API Token",
+      type: "password",
+      placeholder: "rLtt6JWvbUHDDhsZnfpAhpYk...",
+      hint: "من MyFatoorah Portal → Settings → API Keys → Live/Test API Key",
+      required: true,
+    },
+    {
+      key: "country_code",
+      label: "كود الدولة",
+      type: "text",
+      placeholder: "SAU",
+      hint: "SAU للسعودية، KWT للكويت، ARE للإمارات، QAT لقطر",
+      required: true,
+    },
+  ],
+  webhookPath: "/functions/v1/myfatoorah-webhook",
+  docsSections: [
+    {
+      title: "خطوات ربط MyFatoorah",
+      officialLink: "https://docs.myfatoorah.com",
+      officialLinkLabel: "وثائق MyFatoorah",
+      steps: [
+        {
+          title: "سجّل في MyFatoorah",
+          desc: "اذهب إلى portal.myfatoorah.com وسجّل حسابك التجاري. انتظر موافقة الفريق.",
+          tip: "اختار كود الدولة الصحيح عند التسجيل — لا يمكن تغييره لاحقاً",
+        },
+        {
+          title: "احصل على API Token",
+          desc: "بعد الموافقة، اذهب إلى Settings → API Keys → انسخ Live API Key للإنتاج أو Test API Key للتجربة.",
+        },
+        {
+          title: "اختر كود الدولة",
+          desc: "SAU للسعودية، KWT للكويت، ARE للإمارات، QAT لقطر، BHR للبحرين، OMN لعُمان.",
+        },
+        {
+          title: "أدخل البيانات وأختبر",
+          desc: "أدخل API Token وكود الدولة ثم اضغط اختبار الاتصال.",
+        },
+      ],
+      faq: [
+        { q: "هل MyFatoorah يدعم Mada؟", a: "نعم، MyFatoorah يدعم Mada وKNET (الكويت) وBenefitPay (البحرين) وSTC Pay." },
+        { q: "ما الفرق بين Live وTest API؟", a: "Test API للتجربة بدون معاملات حقيقية. Live API للإنتاج. استخدم Test أولاً للتأكد من الإعداد." },
+        { q: "كيف أُفعّل طرق الدفع الإضافية؟", a: "من MyFatoorah Portal → Payment Methods → فعّل الطرق التي تريدها (KNET, Mada, STC Pay...)." },
+      ],
+    },
+  ],
+  supportIssueTypes: [
+    { value: "connection_failed", label: "فشل اختبار الاتصال" },
+    { value: "invalid_api_key", label: "API Key غير صالح" },
+    { value: "payment_failed", label: "فشل المدفوعات" },
+    { value: "knet_issue", label: "مشكلة مع KNET" },
+    { value: "mada_issue", label: "مشكلة مع Mada" },
+    { value: "refund_issue", label: "مشكلة في الاسترداد" },
+    { value: "webhook_issue", label: "مشكلة في Webhook" },
+    { value: "other", label: "مشكلة أخرى" },
+  ],
+};
