@@ -62,6 +62,9 @@ const FEATURE_RBAC_MAP: Partial<Record<string, string[]>> = {
   [FEATURE_KEYS.PAYMENT_REMINDERS]: ["invoices.view"],
   [FEATURE_KEYS.ZATCA_PHASE1]: ["settings.compliance"],
   [FEATURE_KEYS.NUMAXIO_PAY]: ["subscription.manage"],
+  [FEATURE_KEYS.BUDGETS_BASIC]: ["finance.view_overview"],
+  [FEATURE_KEYS.API_ACCESS]: ["settings.integrations"],
+  [FEATURE_KEYS.UNLIMITED_EVERYTHING]: ["settings.integrations"],
 };
 
 interface FeatureGateProps {
