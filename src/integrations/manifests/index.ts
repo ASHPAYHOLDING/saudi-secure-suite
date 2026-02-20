@@ -16,6 +16,7 @@ import { madfuManifest } from "./madfu";
 import { emkanManifest } from "./emkan";
 import { mispayManifest } from "./mispay";
 import { tiktokManifest } from "./tiktok";
+import { metaManifest } from "./meta";
 import type { IntegrationManifest } from "./types";
 
 export * from "./types";
@@ -39,6 +40,7 @@ export const MANIFESTS: Record<string, IntegrationManifest> = {
   emkan: emkanManifest,
   mispay: mispayManifest,
   tiktok: tiktokManifest,
+  meta: metaManifest,
 };
 
 /**
@@ -69,6 +71,7 @@ export const KEY_TO_PROVIDER: Record<string, string> = {
   pos_foodics: "foodics",
   ecom_shopify: "shopify",
   mkt_tiktok: "tiktok",
+  mkt_meta: "meta",
 };
 
 /**
