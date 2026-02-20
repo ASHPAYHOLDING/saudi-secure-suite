@@ -363,8 +363,13 @@ const PaidIntegrationsPage = () => {
     fetchAll();
   };
 
-  const activeSubscriptions = integrationStates.filter((s) => s.tenant_activation_status === "active");
-  const categories = [...new Set(integrations.map((i) => i.integration_type))];
+  // استبعاد بوابات الدفع — لها قسم خاص في القائمة الجانبية
+  const PAYMENT_TYPES = ["payment", "payment_gateway"];
+  const integrations_filtered = integrations.filter((i) => !PAYMENT_TYPES.includes(i.integration_type));
+  const activeSubscriptions = integrationStates.filter(
+    (s) => s.tenant_activation_status === "active" && !PAYMENT_TYPES.includes(s.integration_type)
+  );
+  const categories = [...new Set(integrations_filtered.map((i) => i.integration_type))];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto" dir="rtl">
@@ -446,7 +451,7 @@ const PaidIntegrationsPage = () => {
                 <IntegrationSkeleton />
               ) : (
                 <motion.div key={tab} variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {integrations
+                  {integrations_filtered
                     .filter((i) => tab === "all" || i.integration_type === tab)
                     .map((item) => (
                       <IntegrationCard
@@ -490,7 +495,7 @@ const PaidIntegrationsPage = () => {
             ) : (
               <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {activeSubscriptions.map((sub) => {
-                  const item = integrations.find((i) => i.id === sub.integration_id);
+                  const item = integrations_filtered.find((i) => i.id === sub.integration_id);
                   if (!item) return null;
                   const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                   const CatIcon = cat.icon;
