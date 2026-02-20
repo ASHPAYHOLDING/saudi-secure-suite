@@ -1,0 +1,179 @@
+import { lazy } from "react";
+import type { Module } from "@/lib/tenant-modules";
+
+// --- Lazy-loaded pages ---
+const DashboardHome = lazy(() => import("@/components/dashboard/DashboardHome"));
+const InvoicesPage = lazy(() => import("@/components/invoices/InvoicesPage"));
+const ContractsPage = lazy(() => import("@/components/contracts/ContractsPage"));
+const StampManagement = lazy(() => import("@/components/stamp/StampManagement"));
+const InventoryPage = lazy(() => import("@/components/inventory/InventoryPage"));
+const QuotationsPage = lazy(() => import("@/components/quotations/QuotationsPage"));
+const SalesOrdersPage = lazy(() => import("@/components/sales-orders/SalesOrdersPage"));
+const PurchaseOrdersPage = lazy(() => import("@/components/purchase-orders/PurchaseOrdersPage"));
+const DeliveryNotesPage = lazy(() => import("@/components/delivery-notes/DeliveryNotesPage"));
+const ExpensesPage = lazy(() => import("@/components/expenses/ExpensesPage"));
+const AuditLogViewer = lazy(() => import("@/components/audit/AuditLogViewer"));
+const BrandingSettings = lazy(() => import("@/components/branding/BrandingSettings"));
+const ComplianceSettings = lazy(() => import("@/components/compliance/ComplianceSettings"));
+const CustomersPage = lazy(() => import("@/components/customers/CustomersPage"));
+const CompanySettings = lazy(() => import("@/components/company/CompanySettings"));
+const TeamMembersPage = lazy(() => import("@/components/team/TeamMembersPage"));
+const ReportsPage = lazy(() => import("@/components/reports/ReportsPage"));
+const VatReturnGenerator = lazy(() => import("@/components/reports/VatReturnGenerator"));
+const AnalyticsPage = lazy(() => import("@/components/analytics/AnalyticsPage"));
+const SettingsPage = lazy(() => import("@/components/settings/SettingsPage"));
+const HelpPage = lazy(() => import("@/components/help/HelpPage"));
+const SubscriptionPage = lazy(() => import("@/components/subscription/SubscriptionPage"));
+const IntegrationsPage = lazy(() => import("@/components/integrations/IntegrationsPage"));
+const SheetViewPage = lazy(() => import("@/components/sheet-view/SheetViewPage"));
+const FinancialOverview = lazy(() => import("@/components/finance/FinancialOverview"));
+const BranchManagement = lazy(() => import("@/components/branches/BranchManagement"));
+const PermissionsManagement = lazy(() => import("@/components/permissions/PermissionsManagement"));
+const ChatPage = lazy(() => import("@/components/collaboration/ChatPage"));
+const JournalEntriesPage = lazy(() => import("@/components/journal/JournalEntriesPage"));
+const AccountantDashboard = lazy(() => import("@/components/productivity/AccountantDashboard"));
+const SupplierInboxPage = lazy(() => import("@/components/supplier-inbox/SupplierInboxPage"));
+const PaymentRemindersPage = lazy(() => import("@/components/reminders/PaymentRemindersPage"));
+const ApprovalWorkflowsPage = lazy(() => import("@/components/approvals/ApprovalWorkflowsPage"));
+const CreditNotesPage = lazy(() => import("@/components/credit-notes/CreditNotesPage"));
+const NaturalLanguageQuery = lazy(() => import("@/components/ai/NaturalLanguageQuery"));
+const SupportTicketsPage = lazy(() => import("@/components/support/SupportTicketsPage"));
+const CreateTicketPage = lazy(() => import("@/components/support/CreateTicketPage"));
+const NumaxioPay = lazy(() => import("@/pages/NumaxioPay"));
+const WalletPage = lazy(() => import("@/components/wallet/WalletPage"));
+const AffiliateDashboardPage = lazy(() => import("@/components/affiliate/AffiliateDashboardPage"));
+const BudgetListPage = lazy(() => import("@/components/budgets/BudgetListPage"));
+const BudgetDetailPage = lazy(() => import("@/components/budgets/BudgetDetailPage"));
+const DataQualityCenterPage = lazy(() => import("@/components/reconciliation/DataQualityCenterPage"));
+const GroupDashboardPage = lazy(() => import("@/components/group/GroupDashboardPage"));
+const CustomReportBuilder = lazy(() => import("@/components/reports/CustomReportBuilder"));
+const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingPage"));
+const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
+const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
+const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
+const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
+const IntegrationDetailPage = lazy(() => import("@/components/integrations/IntegrationDetailPage"));
+const GatewaySetupPage = lazy(() => import("@/components/integrations/GatewaySetupPage"));
+const IntegrationFlowPage = lazy(() => import("@/components/integrations/IntegrationFlowPage"));
+const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
+const TikTokDetailPage = lazy(() => import("@/components/integrations/TikTokDetailPage"));
+const MetaDetailPage = lazy(() => import("@/components/integrations/MetaDetailPage"));
+const MetaPixelCapiPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaPixelCapiPage })));
+const FacebookCapiPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.FacebookCapiPage })));
+const XPixelPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.XPixelPage })));
+const XCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.XCatalogPage })));
+const GTMPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GTMPage })));
+const GoogleAdsPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GoogleAdsPage })));
+const MetaCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaCatalogPage })));
+const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
+
+export interface DashboardRouteConfig {
+  /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
+  path: string;
+  /** Lazy component to render */
+  element: React.LazyExoticComponent<React.ComponentType<any>>;
+  /** Route segment key for ROUTE_FEATURE_MAP (FeatureGate). undefined = no gate. */
+  gateSegment?: string;
+  /** Module key for tenant-type guard. undefined = no module check. */
+  module?: Module;
+  /** If true, component receives `embedded` prop */
+  embedded?: boolean;
+  /** Force remount on path change via key={location.pathname} */
+  keyOnPath?: boolean;
+}
+
+/**
+ * All dashboard routes as a flat, declarative config array.
+ * Order matters: more specific paths must come before wildcards.
+ */
+export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
+  // ── Core ──
+  { path: "billing", element: InvoicesPage, gateSegment: "billing", module: "billing" },
+  { path: "invoices", element: InvoicesPage, gateSegment: "invoices", module: "billing" },
+  { path: "contracts", element: ContractsPage, gateSegment: "contracts", module: "contracts" },
+  { path: "quotations", element: QuotationsPage, gateSegment: "quotations", module: "quotations" },
+  { path: "sales-orders", element: SalesOrdersPage, gateSegment: "sales-orders", module: "sales-orders" },
+  { path: "purchase-orders", element: PurchaseOrdersPage, gateSegment: "purchase-orders", module: "purchase-orders" },
+  { path: "delivery-notes", element: DeliveryNotesPage, gateSegment: "delivery-notes", module: "delivery-notes" },
+  { path: "expenses", element: ExpensesPage, gateSegment: "expenses", module: "expenses" },
+  { path: "credit-notes", element: CreditNotesPage, gateSegment: "credit-notes", module: "billing" },
+  { path: "customers", element: CustomersPage, gateSegment: "customers", module: "customers" },
+
+  // ── Inventory ──
+  { path: "inventory", element: InventoryPage, gateSegment: "inventory", module: "inventory" },
+
+  // ── Finance & Accounting ──
+  { path: "journal-entries", element: JournalEntriesPage, gateSegment: "journal-entries", module: "journal-entries" },
+  { path: "finance", element: FinancialOverview, gateSegment: "finance", module: "finance" },
+  { path: "budgets/:id", element: BudgetDetailPage, gateSegment: "budgets", module: "budgets" },
+  { path: "budgets", element: BudgetListPage, gateSegment: "budgets", module: "budgets" },
+  { path: "data-quality", element: DataQualityCenterPage, gateSegment: "data-quality", module: "finance" },
+  { path: "period-lock", element: PeriodLockManagement, gateSegment: "journal-entries", module: "journal-entries" },
+  { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
+
+  // ── Reports & Analytics ──
+  { path: "reports", element: ReportsPage, gateSegment: "reports", module: "reports" },
+  { path: "vat-return", element: VatReturnGenerator, gateSegment: "vat-return", module: "reports" },
+  { path: "report-builder", element: CustomReportBuilder, gateSegment: "reports", module: "reports" },
+  { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
+  { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
+  { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
+
+  // ── Integrations (specific paths first) ──
+  { path: "integrations/payments", element: PaymentProvidersPage, module: "integrations" },
+  { path: "integrations/provider/*", element: IntegrationDetailPage, module: "integrations" },
+  { path: "integrations/gateway/*", element: GatewaySetupPage, module: "integrations" },
+  { path: "integrations/setup/*", element: IntegrationFlowPage, module: "integrations" },
+  { path: "integrations/marketing/tiktok", element: TikTokDetailPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta", element: MetaDetailPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta-pixel-capi", element: MetaPixelCapiPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/facebook-capi", element: FacebookCapiPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/x", element: XPixelPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/x-catalog", element: XCatalogPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/gtm", element: GTMPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/google-ads", element: GoogleAdsPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta-catalog", element: MetaCatalogPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/:category/:provider", element: ProviderDetailPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations", element: IntegrationsPage, gateSegment: "integrations", module: "integrations" },
+
+  // ── Payment ──
+  { path: "payment-marketplace", element: PaymentMarketplace, module: "integrations" },
+  { path: "payment-reminders", element: PaymentRemindersPage, gateSegment: "payment-reminders", module: "payment-reminders" },
+  { path: "numaxio-pay", element: NumaxioPay, gateSegment: "numaxio-pay", embedded: true },
+
+  // ── Operations ──
+  { path: "supplier-inbox", element: SupplierInboxPage, gateSegment: "supplier-inbox", module: "supplier-inbox" },
+  { path: "approvals", element: ApprovalWorkflowsPage, gateSegment: "approvals", module: "billing" },
+
+  // ── Team & Organization ──
+  { path: "team", element: TeamMembersPage, gateSegment: "team", module: "team" },
+  { path: "branches", element: BranchManagement, gateSegment: "branches", module: "branches" },
+  { path: "permissions", element: PermissionsManagement, gateSegment: "permissions" },
+  { path: "chat", element: ChatPage, gateSegment: "chat", module: "chat" },
+  { path: "group", element: GroupDashboardPage, gateSegment: "group", module: "company" },
+
+  // ── Settings & Admin ──
+  { path: "company", element: CompanySettings, module: "company" },
+  { path: "branding", element: BrandingSettings, gateSegment: "branding", module: "branding" },
+  { path: "compliance", element: ComplianceSettings, gateSegment: "compliance", module: "compliance" },
+  { path: "stamp", element: StampManagement, gateSegment: "stamp", module: "stamp" },
+  { path: "audit", element: AuditLogViewer, gateSegment: "audit", module: "audit" },
+  { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations" },
+  { path: "settings", element: SettingsPage },
+
+  // ── Productivity ──
+  { path: "productivity", element: AccountantDashboard, module: "dashboard" },
+  { path: "sheet-view", element: SheetViewPage, module: "sheet-view" },
+
+  // ── Support ──
+  { path: "support/new", element: CreateTicketPage, module: "help" },
+  { path: "support", element: SupportTicketsPage, module: "help" },
+  { path: "help", element: HelpPage },
+
+  // ── Subscription & Misc ──
+  { path: "subscription", element: SubscriptionPage },
+  { path: "affiliate", element: AffiliateDashboardPage, module: "finance" },
+];
+
+/** Index (home) route — rendered when path is exactly /dashboard */
+export const DashboardIndexElement = DashboardHome;
