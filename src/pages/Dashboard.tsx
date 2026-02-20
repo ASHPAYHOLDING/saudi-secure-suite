@@ -72,6 +72,7 @@ const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentM
 const IntegrationDetailPage = lazy(() => import("@/components/integrations/IntegrationDetailPage"));
 const GatewaySetupPage = lazy(() => import("@/components/integrations/GatewaySetupPage"));
 const IntegrationFlowPage = lazy(() => import("@/components/integrations/IntegrationFlowPage"));
+const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -217,6 +218,7 @@ const Dashboard = () => {
     if (path.startsWith("/dashboard/integrations/provider/")) return <IntegrationDetailPage />;
     if (path.startsWith("/dashboard/integrations/gateway/")) return <GatewaySetupPage />;
     if (path.startsWith("/dashboard/integrations/setup/")) return <IntegrationFlowPage />;
+    if (path.match(/^\/dashboard\/integrations\/[^/]+\/[^/]+$/)) return <ProviderDetailPage />;
     return <DashboardHome />;
   };
 
