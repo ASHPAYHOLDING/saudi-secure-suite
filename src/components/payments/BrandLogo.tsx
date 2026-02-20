@@ -12,7 +12,7 @@ const LOGO_PATHS: Record<string, { light: string; dark: string }> = {
   tap:      { light: "/brands/payment/tap.png",      dark: "/brands/payment/tap.png"           },
   moyasar:  { light: "/brands/payment/moyasar.jpg",  dark: "/brands/payment/moyasar.jpg"       },
   hyperpay: { light: "/brands/payment/hyperpay.svg", dark: "/brands/payment/hyperpay.svg"      },
-  stripe:   { light: "/brands/payment/stripe.svg",   dark: "/brands/payment/stripe-dark.svg"   },
+  stripe:   { light: "/brands/payment/stripe.png",   dark: "/brands/payment/stripe.png"        },
   geidea:   { light: "/brands/payment/geidea.svg",   dark: "/brands/payment/geidea-dark.svg"   },
 };
 
