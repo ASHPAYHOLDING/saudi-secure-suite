@@ -9,22 +9,36 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Search, Shield, Zap, Lock, CheckCircle2, Circle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Search, Shield, Zap, Lock, CheckCircle2, XCircle,
   Settings2, TestTube2, Plus, Filter, AlertTriangle,
-  ExternalLink, Copy, ClipboardCheck, Globe, CreditCard,
-  Sparkles, ArrowRight, ChevronDown, ChevronUp,
+  ExternalLink, Globe, CreditCard,
+  Sparkles, ArrowRight, Eye, EyeOff, Power, PowerOff,
+  Clock, Webhook, Key, RefreshCw, CheckCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/payments/BrandLogo";
-import PaymentProvidersPage from "./PaymentProvidersPage";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type ProviderStatus = "disconnected" | "connected" | "tested" | "active" | "disabled";
 
 interface ProviderRecord {
+  id?: string;
   status: ProviderStatus;
   last_tested_at: string | null;
   has_webhook_secret: boolean;
+  has_api_key: boolean;
+  has_secret_key: boolean;
+  last_webhook_at?: string | null;
+  signature_verified?: boolean;
 }
 
 interface ProviderDef {
@@ -37,14 +51,17 @@ interface ProviderDef {
   accentColor: string;
   category: "local" | "global" | "bnpl";
   methods: string[];
-  methodIcons?: string[];
   featured?: boolean;
-  popularity?: number; // 1-5
+  popularity?: number;
+  fieldLabels?: {
+    apiKey?: string;
+    secretKey?: string;
+    webhookSecret?: string;
+  };
 }
 
-/* ─── Provider catalog (6 بوابات فقط) ───────────────────── */
+/* ─── Provider catalog ───────────────────────────────────── */
 const PROVIDERS: ProviderDef[] = [
-  // ── محلية ──
   {
     key: "paytabs",
     label: "PayTabs",
@@ -57,6 +74,7 @@ const PROVIDERS: ProviderDef[] = [
     methods: ["مدى", "فيزا", "ماستركارد", "Apple Pay", "SADAD", "KNET"],
     featured: true,
     popularity: 5,
+    fieldLabels: { apiKey: "Profile ID", secretKey: "Server Key", webhookSecret: "Webhook Secret" },
   },
   {
     key: "myfatoorah",
@@ -69,6 +87,7 @@ const PROVIDERS: ProviderDef[] = [
     category: "local",
     methods: ["KNET", "مدى", "فيزا", "ماستركارد", "Apple Pay", "Benefit"],
     popularity: 4,
+    fieldLabels: { apiKey: "API Token", webhookSecret: "Webhook Secret" },
   },
   {
     key: "telr",
@@ -77,12 +96,12 @@ const PROVIDERS: ProviderDef[] = [
     tagline: "بوابة الإمارات والشرق الأوسط",
     description: "بوابة دفع رائدة في الإمارات وجنوب آسيا. تقدم حلول متكاملة للبطاقات ومحافظ الدفع الرقمية مع دعم قوي لمنطقة الإمارات والخليج.",
     website: "https://telr.com",
-    accentColor: "#E63946",
+    accentColor: "#CC0000",
     category: "local",
     methods: ["فيزا", "ماستركارد", "Apple Pay", "بطاقات محلية"],
     popularity: 3,
+    fieldLabels: { apiKey: "Store ID", secretKey: "Auth Key", webhookSecret: "Webhook Key" },
   },
-  // ── عالمية ──
   {
     key: "paypal",
     label: "PayPal",
@@ -95,8 +114,8 @@ const PROVIDERS: ProviderDef[] = [
     methods: ["PayPal", "فيزا", "ماستركارد", "Venmo", "Pay Later"],
     featured: true,
     popularity: 5,
+    fieldLabels: { apiKey: "Client ID", secretKey: "Client Secret", webhookSecret: "Webhook ID" },
   },
-  // ── BNPL ──
   {
     key: "tabby",
     label: "Tabby",
@@ -109,6 +128,7 @@ const PROVIDERS: ProviderDef[] = [
     methods: ["4 أقساط", "بدون فوائد", "مدى", "فيزا"],
     featured: true,
     popularity: 5,
+    fieldLabels: { apiKey: "Public Key", secretKey: "Secret Key", webhookSecret: "Webhook Secret" },
   },
   {
     key: "tamara",
@@ -121,26 +141,25 @@ const PROVIDERS: ProviderDef[] = [
     category: "bnpl",
     methods: ["BNPL", "3-4 أقساط", "STC Pay", "مدى"],
     popularity: 4,
+    fieldLabels: { apiKey: "API Token", secretKey: "Notification Key", webhookSecret: "Webhook Secret" },
   },
 ];
 
-/* ─── Category config ────────────────────────────────────── */
+/* ─── Category / Filter configs ─────────────────────────── */
 const CATEGORIES = [
-  { key: "all",    label: "الكل",            icon: Globe, count: PROVIDERS.length },
-  { key: "local",  label: "🇸🇦 بوابات محلية", icon: null,  count: PROVIDERS.filter(p => p.category === "local").length },
-  { key: "global", label: "🌍 بوابات عالمية", icon: null,  count: PROVIDERS.filter(p => p.category === "global").length },
-  { key: "bnpl",   label: "💳 تقسيط BNPL",   icon: null,  count: PROVIDERS.filter(p => p.category === "bnpl").length },
+  { key: "all",    label: "الكل",            count: PROVIDERS.length },
+  { key: "local",  label: "🇸🇦 بوابات محلية", count: PROVIDERS.filter(p => p.category === "local").length },
+  { key: "global", label: "🌍 بوابات عالمية", count: PROVIDERS.filter(p => p.category === "global").length },
+  { key: "bnpl",   label: "💳 تقسيط BNPL",   count: PROVIDERS.filter(p => p.category === "bnpl").length },
 ];
 
-/* ─── Filter config ──────────────────────────────────────── */
 const STATUS_FILTERS = [
   { key: "all",          label: "الكل" },
   { key: "connected",    label: "متصل" },
   { key: "disconnected", label: "غير متصل" },
 ];
 
-/* ─── Status config ──────────────────────────────────────── */
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<ProviderStatus, { label: string; dotColor: string; badgeClass: string; barColor: string }> = {
   disconnected: { label: "غير متصل",       dotColor: "bg-muted-foreground/60", badgeClass: "bg-muted text-muted-foreground",      barColor: "bg-muted-foreground/30" },
   connected:    { label: "متصل",            dotColor: "bg-info",               badgeClass: "bg-info/10 text-info",                barColor: "bg-info"                },
   tested:       { label: "بانتظار التفعيل", dotColor: "bg-warning",            badgeClass: "bg-warning/10 text-warning",           barColor: "bg-warning"             },
@@ -148,27 +167,480 @@ const STATUS_CONFIG = {
   disabled:     { label: "معطل",            dotColor: "bg-destructive",        badgeClass: "bg-destructive/10 text-destructive",   barColor: "bg-destructive"         },
 };
 
-/* ─── Security Badges ────────────────────────────────────── */
 const SECURITY_BADGES = [
-  { icon: Lock,    label: "AES-256-GCM",          desc: "تشفير عسكري للمفاتيح"         },
-  { icon: Shield,  label: "PCI-DSS Ready",         desc: "بنية تحتية آمنة للدفع"        },
-  { icon: Zap,     label: "Secure Webhooks",       desc: "تحقق رقمي من كل حدث"          },
-  { icon: CheckCircle2, label: "Idempotency",      desc: "حماية من التكرار والازدواجية" },
+  { icon: Lock,         label: "AES-256-GCM",    desc: "تشفير عسكري للمفاتيح"        },
+  { icon: Shield,       label: "PCI-DSS Ready",  desc: "بنية تحتية آمنة للدفع"       },
+  { icon: Zap,          label: "Secure Webhooks", desc: "تحقق رقمي من كل حدث"         },
+  { icon: CheckCircle2, label: "Idempotency",     desc: "حماية من التكرار والازدواجية" },
 ];
 
+/* ─── Masked input helper ────────────────────────────────── */
+const maskValue = (value: string) => {
+  if (!value || value.length <= 4) return "••••••••";
+  return "••••••••" + value.slice(-4);
+};
+
 /* ════════════════════════════════════════════════════════════
-   Card Component
+   Provider Drawer Component
+   ════════════════════════════════════════════════════════════ */
+interface DrawerProps {
+  provider: ProviderDef | null;
+  record?: ProviderRecord;
+  tenantId: string | null;
+  open: boolean;
+  onClose: () => void;
+  onRefresh: () => void;
+}
+
+const ProviderDrawer = ({ provider, record, tenantId, open, onClose, onRefresh }: DrawerProps) => {
+  const { toast } = useToast();
+  const [apiKey, setApiKey]           = useState("");
+  const [secretKey, setSecretKey]     = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [showApiKey, setShowApiKey]         = useState(false);
+  const [showSecretKey, setShowSecretKey]   = useState(false);
+  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [saving, setSaving]   = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [disabling, setDisabling] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+  // reset state when provider changes
+  useEffect(() => {
+    if (open) {
+      setApiKey(""); setSecretKey(""); setWebhookSecret("");
+      setShowApiKey(false); setShowSecretKey(false); setShowWebhookSecret(false);
+      setTestResult(null);
+    }
+  }, [open, provider?.key]);
+
+  if (!provider) return null;
+
+  const status       = record?.status ?? "disconnected";
+  const cfg          = STATUS_CONFIG[status];
+  const isConnected  = status !== "disconnected";
+  const isActive     = status === "active";
+  const labels       = provider.fieldLabels ?? {};
+
+  /* ── Save credentials ── */
+  const handleSave = async () => {
+    if (!apiKey && !secretKey && !webhookSecret) {
+      toast({ title: "لا يوجد تغييرات", description: "أدخل قيمة واحدة على الأقل لحفظها", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${supabaseUrl}/functions/v1/provider-save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          provider: provider.key,
+          ...(apiKey        && { api_key: apiKey }),
+          ...(secretKey     && { secret_key: secretKey }),
+          ...(webhookSecret && { webhook_secret: webhookSecret }),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Save failed");
+      toast({ title: "✅ تم الحفظ بنجاح", description: "تم تشفير البيانات وحفظها بأمان" });
+      setApiKey(""); setSecretKey(""); setWebhookSecret("");
+      onRefresh();
+    } catch (err: any) {
+      toast({ title: "خطأ في الحفظ", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ── Test connection ── */
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${supabaseUrl}/functions/v1/provider-test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ provider: provider.key }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Test failed");
+      const success = !!data.success;
+      setTestResult({ success, message: data.message || (success ? "الاتصال ناجح" : "فشل الاتصال") });
+      if (success) {
+        toast({ title: "✅ الاتصال ناجح", description: data.message || `تم التحقق من ${provider.label} بنجاح` });
+        onRefresh();
+      } else {
+        toast({ title: "⚠️ فشل الاختبار", description: data.message, variant: "destructive" });
+      }
+    } catch (err: any) {
+      setTestResult({ success: false, message: err.message });
+      toast({ title: "خطأ في الاختبار", description: err.message, variant: "destructive" });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  /* ── Disable / re-enable ── */
+  const handleToggleDisable = async () => {
+    if (!tenantId) return;
+    setDisabling(true);
+    const newStatus = status === "disabled" ? "connected" : "disabled";
+    try {
+      const { error } = await supabase
+        .from("tenant_payment_providers")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("tenant_id", tenantId)
+        .eq("provider", provider.key);
+      if (error) throw error;
+      toast({
+        title: newStatus === "disabled" ? "⛔ تم تعطيل البوابة" : "✅ تم إعادة تفعيل البوابة",
+        description: `${provider.label} — ${newStatus === "disabled" ? "لن تعالج مدفوعات جديدة" : "جاهزة للاستخدام"}`,
+        variant: newStatus === "disabled" ? "destructive" : "default",
+      });
+      onRefresh();
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    } finally {
+      setDisabling(false);
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-[480px] overflow-y-auto p-0 flex flex-col gap-0"
+        dir="rtl"
+      >
+        {/* ── Header with gradient ── */}
+        <div
+          className="relative overflow-hidden px-6 pt-6 pb-5"
+          style={{ background: `linear-gradient(135deg, ${provider.accentColor}18 0%, transparent 70%)` }}
+        >
+          <div
+            className="pointer-events-none absolute -top-10 -start-10 h-40 w-40 rounded-full opacity-20 blur-2xl"
+            style={{ background: provider.accentColor }}
+          />
+
+          <SheetHeader className="relative space-y-0">
+            {/* Logo + Status */}
+            <div className="flex items-start justify-between mb-4">
+              <div
+                className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-background p-3 shadow-md"
+                style={isConnected ? { boxShadow: `0 4px 20px ${provider.accentColor}30` } : {}}
+              >
+                <BrandLogo
+                  provider={provider.key}
+                  className={cn("h-12 w-auto max-w-[56px] object-contain", !isConnected && "grayscale opacity-60")}
+                />
+              </div>
+              <span className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
+                cfg.badgeClass
+              )}>
+                <span className={cn("h-2 w-2 rounded-full", cfg.dotColor, isActive && "animate-pulse")} />
+                {cfg.label}
+              </span>
+            </div>
+
+            {/* Title */}
+            <SheetTitle className="text-xl font-bold text-foreground text-start">
+              {provider.label}
+              <span className="ms-2 text-sm font-normal text-muted-foreground">{provider.labelAr}</span>
+            </SheetTitle>
+            <SheetDescription className="text-start text-xs text-muted-foreground mt-1 leading-relaxed">
+              {provider.description}
+            </SheetDescription>
+
+            {/* Method chips */}
+            <div className="flex flex-wrap gap-1.5 pt-3">
+              {provider.methods.map(m => (
+                <span
+                  key={m}
+                  className="inline-flex items-center rounded-full border border-border bg-background/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                >
+                  {m}
+                </span>
+              ))}
+            </div>
+
+            {/* Website link */}
+            <a
+              href={provider.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 pt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ExternalLink size={11} />
+              {provider.website.replace("https://", "")}
+            </a>
+          </SheetHeader>
+        </div>
+
+        <Separator />
+
+        {/* ── Connection Status Info ── */}
+        {isConnected && (
+          <div className="px-6 py-4 bg-muted/20">
+            <div className="grid grid-cols-3 gap-3">
+              {/* Last test */}
+              <div className="flex flex-col items-center gap-1 rounded-xl border border-border bg-background p-3 text-center">
+                <Clock size={14} className="text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground">آخر اختبار</p>
+                <p className="text-[11px] font-semibold text-foreground">
+                  {record?.last_tested_at
+                    ? new Date(record.last_tested_at).toLocaleDateString("ar-SA", { month: "short", day: "numeric" })
+                    : "—"}
+                </p>
+              </div>
+              {/* Last webhook */}
+              <div className="flex flex-col items-center gap-1 rounded-xl border border-border bg-background p-3 text-center">
+                <Webhook size={14} className="text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground">آخر Webhook</p>
+                <p className="text-[11px] font-semibold text-foreground">
+                  {record?.last_webhook_at
+                    ? new Date(record.last_webhook_at).toLocaleDateString("ar-SA", { month: "short", day: "numeric" })
+                    : "—"}
+                </p>
+              </div>
+              {/* Signature status */}
+              <div className="flex flex-col items-center gap-1 rounded-xl border border-border bg-background p-3 text-center">
+                <Shield size={14} className={record?.has_webhook_secret ? "text-success" : "text-muted-foreground"} />
+                <p className="text-[10px] text-muted-foreground">التوقيع</p>
+                <p className={cn("text-[11px] font-semibold", record?.has_webhook_secret ? "text-success" : "text-muted-foreground")}>
+                  {record?.has_webhook_secret ? "محمي" : "غير مفعّل"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Credential fields ── */}
+        <div className="flex-1 px-6 py-5 space-y-5">
+          {/* Security note */}
+          <div className="flex items-center gap-2 rounded-xl bg-primary/5 border border-primary/20 px-4 py-3">
+            <Lock size={13} className="text-primary shrink-0" />
+            <p className="text-[11px] text-primary leading-relaxed">
+              يتم تشفير جميع القيم بـ AES-256-GCM قبل التخزين. لا تُعرض القيم الكاملة أبداً.
+            </p>
+          </div>
+
+          {/* API Key */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold flex items-center gap-2">
+              <Key size={13} className="text-muted-foreground" />
+              {labels.apiKey ?? "API Key"}
+              {record?.has_api_key && (
+                <span className="ms-auto inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
+                  <CheckCheck size={9} /> محفوظ
+                </span>
+              )}
+            </Label>
+            <div className="relative">
+              <Input
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={e => setApiKey(e.target.value)}
+                placeholder={record?.has_api_key ? maskValue("configured") : `أدخل ${labels.apiKey ?? "API Key"}...`}
+                className="pe-10 font-mono text-sm bg-muted/30"
+                dir="ltr"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(p => !p)}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showApiKey ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Secret Key (if provider has it) */}
+          {labels.secretKey && (
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2">
+                <Key size={13} className="text-muted-foreground" />
+                {labels.secretKey}
+                {record?.has_secret_key && (
+                  <span className="ms-auto inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
+                    <CheckCheck size={9} /> محفوظ
+                  </span>
+                )}
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showSecretKey ? "text" : "password"}
+                  value={secretKey}
+                  onChange={e => setSecretKey(e.target.value)}
+                  placeholder={record?.has_secret_key ? maskValue("configured") : `أدخل ${labels.secretKey}...`}
+                  className="pe-10 font-mono text-sm bg-muted/30"
+                  dir="ltr"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecretKey(p => !p)}
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showSecretKey ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Webhook Secret */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold flex items-center gap-2">
+              <Webhook size={13} className="text-muted-foreground" />
+              {labels.webhookSecret ?? "Webhook Secret"}
+              {record?.has_webhook_secret && (
+                <span className="ms-auto inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
+                  <CheckCheck size={9} /> محفوظ
+                </span>
+              )}
+            </Label>
+            <div className="relative">
+              <Input
+                type={showWebhookSecret ? "text" : "password"}
+                value={webhookSecret}
+                onChange={e => setWebhookSecret(e.target.value)}
+                placeholder={record?.has_webhook_secret ? maskValue("configured") : `أدخل ${labels.webhookSecret ?? "Webhook Secret"}...`}
+                className="pe-10 font-mono text-sm bg-muted/30"
+                dir="ltr"
+              />
+              <button
+                type="button"
+                onClick={() => setShowWebhookSecret(p => !p)}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showWebhookSecret ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground pe-1">
+              يُستخدم للتحقق من توقيع الـ Webhooks الواردة من {provider.label}
+            </p>
+          </div>
+
+          {/* Test Result feedback */}
+          <AnimatePresence>
+            {testResult && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className={cn(
+                  "flex items-start gap-3 rounded-xl border p-4",
+                  testResult.success
+                    ? "border-success/30 bg-success/5 text-success"
+                    : "border-destructive/30 bg-destructive/5 text-destructive"
+                )}
+              >
+                {testResult.success
+                  ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                  : <XCircle size={16} className="shrink-0 mt-0.5" />
+                }
+                <div>
+                  <p className="text-xs font-semibold">
+                    {testResult.success ? "الاتصال ناجح" : "فشل الاتصال"}
+                  </p>
+                  <p className="text-[11px] opacity-80 mt-0.5">{testResult.message}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── Action Buttons ── */}
+        <div className="border-t border-border bg-muted/20 px-6 py-4 space-y-3">
+          {/* Save button */}
+          <Button
+            className="w-full gap-2"
+            onClick={handleSave}
+            disabled={saving || (!apiKey && !secretKey && !webhookSecret)}
+          >
+            {saving ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <Lock size={14} />
+            )}
+            {saving ? "جاري الحفظ المشفّر..." : "حفظ البيانات المشفّرة"}
+          </Button>
+
+          {/* Test + Disable row */}
+          {isConnected && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 text-sm"
+                onClick={handleTest}
+                disabled={testing}
+              >
+                {testing ? (
+                  <RefreshCw size={13} className="animate-spin" />
+                ) : (
+                  <TestTube2 size={13} />
+                )}
+                {testing ? "جاري الاختبار..." : "اختبار الاتصال"}
+              </Button>
+
+              <Button
+                variant="outline"
+                className={cn(
+                  "flex-1 gap-2 text-sm",
+                  status === "disabled"
+                    ? "border-success/40 text-success hover:bg-success/10"
+                    : "border-destructive/40 text-destructive hover:bg-destructive/10"
+                )}
+                onClick={handleToggleDisable}
+                disabled={disabling}
+              >
+                {disabling ? (
+                  <RefreshCw size={13} className="animate-spin" />
+                ) : status === "disabled" ? (
+                  <Power size={13} />
+                ) : (
+                  <PowerOff size={13} />
+                )}
+                {status === "disabled" ? "إعادة تفعيل" : "تعطيل"}
+              </Button>
+            </div>
+          )}
+
+          {/* Security indicators */}
+          <div className="flex items-center justify-center gap-4 pt-1">
+            {[
+              { icon: Lock, label: "AES-256-GCM" },
+              { icon: Shield, label: "مشفّر" },
+              { icon: Zap, label: "آمن" },
+            ].map(b => (
+              <div key={b.label} className="flex items-center gap-1 text-muted-foreground">
+                <b.icon size={10} />
+                <span className="text-[10px] font-medium">{b.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+/* ════════════════════════════════════════════════════════════
+   Provider Card Component
    ════════════════════════════════════════════════════════════ */
 const ProviderCard = ({
   provider,
   record,
-  onConfigure,
+  onOpen,
   onTest,
   testing,
 }: {
   provider: ProviderDef;
   record?: ProviderRecord;
-  onConfigure: () => void;
+  onOpen: () => void;
   onTest: () => void;
   testing: boolean;
 }) => {
@@ -187,17 +659,14 @@ const ProviderCard = ({
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm
                  hover:-translate-y-1 hover:shadow-lg hover:border-primary/40
                  transition-all duration-300 ease-out cursor-pointer"
-      onClick={onConfigure}
+      onClick={onOpen}
     >
-      {/* ── Status top bar ── */}
+      {/* Status top bar */}
       <div className={cn("h-1 w-full transition-colors duration-500", cfg.barColor)} />
 
-      {/* ── Card body ── */}
       <div className="flex flex-col flex-1 p-5 gap-4">
-
-        {/* Header row: logo + status badge */}
+        {/* Header row */}
         <div className="flex items-start justify-between gap-3">
-          {/* Logo container */}
           <div className={cn(
             "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background p-2 shadow-sm",
             "transition-all duration-300 group-hover:shadow-md",
@@ -205,8 +674,6 @@ const ProviderCard = ({
           )}>
             <BrandLogo provider={provider.key} className="h-9 w-auto max-w-[44px] object-contain" />
           </div>
-
-          {/* Status badge + featured */}
           <div className="flex flex-col items-end gap-1.5">
             <span className={cn(
               "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
@@ -225,11 +692,9 @@ const ProviderCard = ({
 
         {/* Name + tagline */}
         <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
-              {provider.label}
-            </h3>
-          </div>
+          <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+            {provider.label}
+          </h3>
           <p className="text-xs font-medium text-muted-foreground">{provider.tagline}</p>
         </div>
 
@@ -240,7 +705,7 @@ const ProviderCard = ({
 
         {/* Method chips */}
         <div className="flex flex-wrap gap-1.5">
-          {provider.methods.slice(0, 4).map((m) => (
+          {provider.methods.slice(0, 4).map(m => (
             <span
               key={m}
               className={cn(
@@ -260,7 +725,7 @@ const ProviderCard = ({
           )}
         </div>
 
-        {/* Category badge */}
+        {/* Category + website */}
         <div className="flex items-center gap-2">
           {provider.category === "bnpl" && (
             <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
@@ -277,54 +742,35 @@ const ProviderCard = ({
               <Globe size={10} /> عالمية
             </span>
           )}
-
-          {/* Website link */}
           <a
             href={provider.website}
             target="_blank"
             rel="noopener noreferrer"
             className="ms-auto text-muted-foreground hover:text-foreground transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <ExternalLink size={13} />
           </a>
         </div>
       </div>
 
-      {/* ── Action buttons ── */}
+      {/* Action buttons */}
       <div className="border-t border-border bg-muted/30 px-5 py-3 flex items-center gap-2" onClick={e => e.stopPropagation()}>
         {isConnected ? (
           <>
-            <Button
-              size="sm"
-              variant="default"
-              className="flex-1 gap-1.5 text-xs h-8"
-              onClick={onConfigure}
-            >
+            <Button size="sm" variant="default" className="flex-1 gap-1.5 text-xs h-8" onClick={onOpen}>
               <Settings2 size={13} />
               إدارة
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 gap-1.5 text-xs h-8"
-              onClick={onTest}
-              disabled={testing}
-            >
-              {testing ? (
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <TestTube2 size={13} />
-              )}
+            <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs h-8" onClick={onTest} disabled={testing}>
+              {testing
+                ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                : <TestTube2 size={13} />}
               اختبار
             </Button>
           </>
         ) : (
-          <Button
-            size="sm"
-            className="w-full gap-2 text-xs h-8"
-            onClick={onConfigure}
-          >
+          <Button size="sm" className="w-full gap-2 text-xs h-8" onClick={onOpen}>
             <Plus size={13} />
             تفعيل البوابة
             <ArrowRight size={12} className="ms-auto rtl:rotate-180" />
@@ -350,14 +796,11 @@ const SkeletonCard = () => (
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-3 w-24" />
       </div>
-      <div className="space-y-1.5">
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-3 w-4/5" />
-      </div>
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-4/5" />
       <div className="flex gap-1.5">
         <Skeleton className="h-5 w-12 rounded-full" />
         <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-14 rounded-full" />
       </div>
     </div>
     <div className="border-t border-border bg-muted/30 px-5 py-3">
@@ -372,50 +815,53 @@ const SkeletonCard = () => (
 const PaymentMarketplace = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const [tenantId, setTenantId]       = useState<string | null>(null);
   const [providerRecords, setProviderRecords] = useState<Record<string, ProviderRecord>>({});
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [search, setSearch]           = useState("");
+  const [activeTab, setActiveTab]     = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [testing, setTesting] = useState<Record<string, boolean>>({});
-  const [configureProvider, setConfigureProvider] = useState<string | null>(null);
+  const [testing, setTesting]         = useState<Record<string, boolean>>({});
+  const [drawerProvider, setDrawerProvider] = useState<ProviderDef | null>(null);
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   /* ── Load provider statuses ── */
-  useEffect(() => {
+  const loadProviders = async () => {
     if (!user) return;
-    const load = async () => {
-      const { data: member } = await supabase
-        .from("tenant_members")
-        .select("tenant_id")
-        .eq("user_id", user.id)
-        .limit(1)
-        .single();
-      if (!member) { setLoading(false); return; }
+    const { data: member } = await supabase
+      .from("tenant_members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .single();
+    if (!member) { setLoading(false); return; }
+    setTenantId(member.tenant_id);
 
-      const { data: records } = await supabase
-        .from("tenant_payment_providers")
-        .select("provider, status, last_tested_at, webhook_secret_encrypted")
-        .eq("tenant_id", member.tenant_id)
-        .in("provider", PROVIDERS.map(p => p.key));
+    const { data: records } = await supabase
+      .from("tenant_payment_providers")
+      .select("provider, status, last_tested_at, webhook_secret_encrypted, credentials_encrypted")
+      .eq("tenant_id", member.tenant_id)
+      .in("provider", PROVIDERS.map(p => p.key));
 
-      const map: Record<string, ProviderRecord> = {};
-      for (const r of records || []) {
-        map[r.provider] = {
-          status: r.status as ProviderStatus,
-          last_tested_at: r.last_tested_at,
-          has_webhook_secret: !!r.webhook_secret_encrypted,
-        };
-      }
-      setProviderRecords(map);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+    const map: Record<string, ProviderRecord> = {};
+    for (const r of records || []) {
+      map[r.provider] = {
+        status: r.status as ProviderStatus,
+        last_tested_at: r.last_tested_at,
+        has_webhook_secret: !!r.webhook_secret_encrypted,
+        has_api_key: !!r.credentials_encrypted,
+        has_secret_key: !!r.credentials_encrypted,
+      };
+    }
+    setProviderRecords(map);
+    setLoading(false);
+  };
 
-  /* ── Test connection ── */
-  const handleTest = async (providerKey: string) => {
+  useEffect(() => { loadProviders(); }, [user]);
+
+  /* ── Quick test from card ── */
+  const handleQuickTest = async (providerKey: string) => {
     setTesting(p => ({ ...p, [providerKey]: true }));
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -440,65 +886,43 @@ const PaymentMarketplace = () => {
   };
 
   /* ── Filtered providers ── */
-  const filtered = useMemo(() => {
-    return PROVIDERS.filter(p => {
-      const catMatch = activeTab === "all" || p.category === activeTab;
-      const statusMatch =
-        statusFilter === "all" ||
-        (statusFilter === "connected" && (providerRecords[p.key]?.status ?? "disconnected") !== "disconnected") ||
-        (statusFilter === "disconnected" && (providerRecords[p.key]?.status ?? "disconnected") === "disconnected");
-      const searchMatch =
-        !search ||
-        p.label.toLowerCase().includes(search.toLowerCase()) ||
-        p.labelAr.includes(search) ||
-        p.tagline.includes(search) ||
-        p.methods.some(m => m.includes(search));
-      return catMatch && statusMatch && searchMatch;
-    });
-  }, [activeTab, statusFilter, search, providerRecords]);
+  const filtered = useMemo(() => PROVIDERS.filter(p => {
+    const catMatch    = activeTab === "all" || p.category === activeTab;
+    const statusMatch =
+      statusFilter === "all" ||
+      (statusFilter === "connected"    && (providerRecords[p.key]?.status ?? "disconnected") !== "disconnected") ||
+      (statusFilter === "disconnected" && (providerRecords[p.key]?.status ?? "disconnected") === "disconnected");
+    const searchMatch =
+      !search ||
+      p.label.toLowerCase().includes(search.toLowerCase()) ||
+      p.labelAr.includes(search) ||
+      p.tagline.includes(search) ||
+      p.methods.some(m => m.includes(search));
+    return catMatch && statusMatch && searchMatch;
+  }), [activeTab, statusFilter, search, providerRecords]);
 
-  /* ── Connected count ── */
   const connectedCount = PROVIDERS.filter(
     p => (providerRecords[p.key]?.status ?? "disconnected") !== "disconnected"
   ).length;
 
-  /* ── If configure modal is open, show PaymentProvidersPage (reuse existing) ── */
-  if (configureProvider) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Back bar */}
-        <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-6 py-3">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-              onClick={() => setConfigureProvider(null)}
-            >
-              <ArrowRight size={14} className="rtl:rotate-0 ltr:rotate-180" />
-              العودة إلى السوق
-            </Button>
-            <span className="text-muted-foreground">/</span>
-            <span className="text-sm font-medium">
-              إعداد {PROVIDERS.find(p => p.key === configureProvider)?.label}
-            </span>
-          </div>
-        </div>
-        <PaymentProvidersPage />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
+      {/* ════════ Provider Drawer ════════ */}
+      <ProviderDrawer
+        provider={drawerProvider}
+        record={drawerProvider ? providerRecords[drawerProvider.key] : undefined}
+        tenantId={tenantId}
+        open={!!drawerProvider}
+        onClose={() => setDrawerProvider(null)}
+        onRefresh={loadProviders}
+      />
+
       {/* ════════ Hero Header ════════ */}
       <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-background via-muted/30 to-background px-6 py-10">
-        {/* Decorative blobs */}
         <div className="pointer-events-none absolute -top-20 -end-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-10 -start-10 h-48 w-48 rounded-full bg-accent/5 blur-3xl" />
 
         <div className="relative mx-auto max-w-5xl">
-          {/* Title row */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -511,15 +935,13 @@ const PaymentMarketplace = () => {
                 اربط حساب بوابة الدفع الخاصة بك بأمان كامل. نحن نوفّر البنية التحتية والتشفير والربط — أنت تتحكم بالمفاتيح.
               </p>
             </div>
-
-            {/* Connected counter */}
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground tabular-nums">{connectedCount}</p>
                 <p className="text-xs text-muted-foreground">من {PROVIDERS.length} متصل</p>
               </div>
               <div className="h-12 w-px bg-border hidden sm:block" />
-              <Button size="sm" className="gap-2 hidden sm:flex">
+              <Button size="sm" className="gap-2 hidden sm:flex" onClick={() => setDrawerProvider(PROVIDERS[0])}>
                 <Plus size={14} />
                 إضافة بوابة
               </Button>
@@ -528,7 +950,7 @@ const PaymentMarketplace = () => {
 
           {/* Security badges */}
           <div className="mt-6 flex flex-wrap gap-2">
-            {SECURITY_BADGES.map((badge) => (
+            {SECURITY_BADGES.map(badge => (
               <div
                 key={badge.label}
                 className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 shadow-sm backdrop-blur-sm"
@@ -542,11 +964,10 @@ const PaymentMarketplace = () => {
         </div>
       </div>
 
-      {/* ════════ Filters & Search ════════ */}
+      {/* ════════ Sticky Filters ════════ */}
       <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-6 py-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search */}
             <div className="relative flex-1">
               <Search size={15} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -556,8 +977,6 @@ const PaymentMarketplace = () => {
                 className="ps-9 h-9 text-sm bg-muted/40 border-border"
               />
             </div>
-
-            {/* Status filter chips */}
             <div className="flex items-center gap-1.5 shrink-0">
               <Filter size={14} className="text-muted-foreground" />
               {STATUS_FILTERS.map(f => (
@@ -582,7 +1001,6 @@ const PaymentMarketplace = () => {
       {/* ════════ Main Content ════════ */}
       <div className="mx-auto max-w-5xl px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Tab list */}
           <TabsList className="mb-6 h-auto p-1 bg-muted/60 gap-1 flex flex-wrap">
             {CATEGORIES.map(cat => (
               <TabsTrigger
@@ -601,10 +1019,8 @@ const PaymentMarketplace = () => {
             ))}
           </TabsList>
 
-          {/* Tab content (all in one to avoid layout shift) */}
           {CATEGORIES.map(cat => (
             <TabsContent key={cat.key} value={cat.key} className="mt-0">
-              {/* Results count */}
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                   {loading ? "جاري التحميل..." : `${filtered.length} بوابة`}
@@ -612,7 +1028,6 @@ const PaymentMarketplace = () => {
                 </p>
               </div>
 
-              {/* Grid */}
               {loading ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
@@ -629,18 +1044,15 @@ const PaymentMarketplace = () => {
                   </Button>
                 </div>
               ) : (
-                <motion.div
-                  layout
-                  className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                >
+                <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <AnimatePresence mode="popLayout">
-                    {filtered.map((provider) => (
+                    {filtered.map(provider => (
                       <ProviderCard
                         key={provider.key}
                         provider={provider}
                         record={providerRecords[provider.key]}
-                        onConfigure={() => setConfigureProvider(provider.key)}
-                        onTest={() => handleTest(provider.key)}
+                        onOpen={() => setDrawerProvider(provider)}
+                        onTest={() => handleQuickTest(provider.key)}
                         testing={testing[provider.key] ?? false}
                       />
                     ))}
@@ -651,7 +1063,7 @@ const PaymentMarketplace = () => {
           ))}
         </Tabs>
 
-        {/* ── BYO Model info banner ── */}
+        {/* BYO Model banner */}
         <div className="mt-10 rounded-2xl border border-border bg-muted/30 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
