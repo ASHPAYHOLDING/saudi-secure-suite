@@ -13,6 +13,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
+import { RamadanBadge, RamadanGlow, RamadanDivider } from "@/components/ramadan";
+import { useTheme } from "@/theme/ThemeProvider";
+
 
 const floatingIcons = [
   { Icon: BarChart3, x: "10%", y: "15%", delay: 0, size: 28 },
@@ -41,6 +44,8 @@ const Auth = () => {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { seasonalTheme } = useTheme();
+  const isRamadan = seasonalTheme === "ramadan";
 
   const passwordStrength = (pwd: string) => {
     let score = 0;
@@ -197,7 +202,14 @@ const Auth = () => {
   return (
     <div dir="rtl" className="min-h-screen flex overflow-hidden">
       {/* Left Branding Panel */}
-      <div className="hidden lg:flex lg:w-[45%] relative bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(210,60%,15%)] to-[hsl(210,70%,10%)] flex-col items-center justify-center p-12 overflow-hidden">
+      <div className={`hidden lg:flex lg:w-[45%] relative flex-col items-center justify-center p-12 overflow-hidden ${
+        isRamadan
+          ? "bg-gradient-to-br from-[hsl(240,45%,10%)] via-[hsl(240,40%,14%)] to-[hsl(160,50%,12%)]"
+          : "bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(210,60%,15%)] to-[hsl(210,70%,10%)]"
+      }`}>
+        {/* Ramadan glow on auth panel */}
+        <RamadanGlow variant="hero" />
+
         {/* Floating accounting icons */}
         {floatingIcons.map(({ Icon, x, y, delay, size }, i) => (
           <motion.div
@@ -212,8 +224,8 @@ const Auth = () => {
         ))}
 
         {/* Glowing orbs */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-accent/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-accent/5 rounded-full blur-[80px]" />
+        <div className={`absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-[100px] ${isRamadan ? "bg-[hsl(var(--ramadan-gold)/0.08)]" : "bg-accent/10"}`} />
+        <div className={`absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full blur-[80px] ${isRamadan ? "bg-[hsl(var(--ramadan-emerald)/0.06)]" : "bg-accent/5"}`} />
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -225,16 +237,30 @@ const Auth = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="mb-8 flex justify-center"
+            className="mb-6 flex flex-col items-center gap-3"
           >
             <NumaxioLogo variant="light" size="lg" />
+            <RamadanBadge text="رمضان كريم 🌙" size="sm" />
           </motion.div>
           <h2 className="text-3xl font-bold text-white mb-4 leading-relaxed">
-            نظام محاسبي سحابي متكامل
+            {isRamadan ? "نظام محاسبي سحابي متكامل" : "نظام محاسبي سحابي متكامل"}
           </h2>
-          <p className="text-white/50 text-base leading-relaxed mb-10">
+          {isRamadan && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-[hsl(var(--ramadan-gold)/0.8)] text-sm mb-3 font-arabic"
+            >
+              🌙 عروض حصرية طوال شهر رمضان المبارك
+            </motion.p>
+          )}
+          <p className="text-white/50 text-base leading-relaxed mb-8">
             إدارة الفواتير، المصروفات، التقارير المالية، وضريبة القيمة المضافة في منصة واحدة آمنة ومتوافقة مع هيئة الزكاة والدخل
           </p>
+
+          {/* Ramadan divider */}
+          <RamadanDivider className="mb-4" />
 
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-3">
@@ -244,7 +270,11 @@ const Auth = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 + i * 0.15 }}
-                className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/[0.08] text-white/70 border border-white/[0.06] backdrop-blur-sm"
+                className={`px-4 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm ${
+                  isRamadan
+                    ? "bg-[hsl(var(--ramadan-gold)/0.1)] text-[hsl(var(--ramadan-gold)/0.8)] border border-[hsl(var(--ramadan-gold)/0.2)]"
+                    : "bg-white/[0.08] text-white/70 border border-white/[0.06]"
+                }`}
               >
                 {f}
               </motion.span>
