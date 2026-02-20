@@ -388,14 +388,14 @@ const IntegrationFlowPage = () => {
         <button onClick={() => navigate("/dashboard/paid-integrations")} className="hover:text-foreground transition-colors">
           التكاملات
         </button>
-        <ChevronLeft size={14} />
+        <ChevronLeft size={14} className="rotate-180" />
         <span className="text-foreground font-semibold">{integrationState.name_ar}</span>
       </nav>
 
       {/* ── رأس الصفحة ── */}
       <div className="flex items-center gap-3">
         <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={() => navigate("/dashboard/paid-integrations")}>
-          <ArrowLeft size={15} /> رجوع
+          <ArrowLeft size={15} className="rotate-180" /> رجوع
         </Button>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
