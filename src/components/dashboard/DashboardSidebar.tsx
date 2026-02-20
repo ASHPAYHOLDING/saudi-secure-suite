@@ -17,6 +17,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntitlements";
 import { NAV_PATH_TO_FEATURE } from "@/lib/feature-route-map";
 import { motion, AnimatePresence } from "framer-motion";
+import { RamadanBadge } from "@/components/ramadan";
+import { useTheme } from "@/theme/ThemeProvider";
+
 
 interface NavItemDef {
   icon: any;
@@ -126,6 +129,9 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const { entitlements, loading: loadingEntitlements } = useEntitlements();
+  const { seasonalTheme } = useTheme();
+  const isRamadan = seasonalTheme === "ramadan";
+
 
   // Check if a feature is entitled (backend-driven) using NAV_PATH_TO_FEATURE map
   const isPathLocked = (path: string): boolean => {
@@ -182,13 +188,19 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       <Link
         to={path}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+          "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           isActive
-            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
+            ? isRamadan
+              ? "bg-sidebar-accent font-semibold"
+              : "bg-sidebar-accent text-sidebar-primary font-semibold"
             : isLocked
               ? "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
               : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
         )}
+        style={isActive && isRamadan ? {
+          color: "hsl(var(--ramadan-emerald))",
+          borderInlineStart: "2px solid hsl(var(--ramadan-gold)/0.5)",
+        } : undefined}
       >
         <Icon size={18} className="shrink-0" />
         {!collapsed && (
@@ -211,6 +223,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       </Link>
     );
   };
+
 
   const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
     const filteredItems = group.items.filter((item) => isModuleAllowed(tenantType, item.module));
@@ -287,10 +300,13 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         mobileOpen && "max-md:!flex"
       )}
     >
-      {/* Logo */}
+      {/* Logo + Ramadan badge */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         {!collapsed ? (
-          <NumaxioLogo variant="dark" size="sm" />
+          <div className="flex items-center gap-2">
+            <NumaxioLogo variant="dark" size="sm" />
+            <RamadanBadge size="sm" text="🌙" className="hidden sm:inline-flex" />
+          </div>
         ) : (
           <NumaxioLogo variant="dark" size="sm" showText={false} />
         )}
@@ -301,6 +317,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
           <CollapseIcon size={16} className="transition-transform" />
         </button>
       </div>
+
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-3">
@@ -376,7 +393,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         {isPlatformAdmin && (
           <Link
             to="/admin"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-amber-400 transition-colors hover:bg-sidebar-accent"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-sidebar-accent"
           >
             <Crown size={18} className="shrink-0" />
             {!collapsed && <span>{t("nav.superAdmin")}</span>}
