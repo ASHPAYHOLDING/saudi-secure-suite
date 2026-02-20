@@ -31,11 +31,11 @@ export function RamadanDivider({ enabled = true, className, variant = "centered"
       )}
       aria-hidden="true"
     >
-      {/* خط يسار */}
+      {/* خط — يسار (نهاية في RTL) */}
       <div
         className="flex-1 h-px max-w-32"
         style={{
-          background: `linear-gradient(to end, transparent, hsl(var(--ramadan-gold) / ${lineOpacity}))`,
+          background: `linear-gradient(to left, transparent, hsl(var(--ramadan-gold) / ${lineOpacity}))`,
         }}
       />
 
@@ -54,11 +54,11 @@ export function RamadanDivider({ enabled = true, className, variant = "centered"
         <path d="M12 2L13.8 8.2H20.4L15 11.8L16.8 18L12 14.4L7.2 18L9 11.8L3.6 8.2H10.2L12 2Z"/>
       </svg>
 
-      {/* خط يمين */}
+      {/* خط — يمين (بداية في RTL) */}
       <div
         className="flex-1 h-px max-w-32"
         style={{
-          background: `linear-gradient(to start, transparent, hsl(var(--ramadan-emerald) / ${lineOpacity}))`,
+          background: `linear-gradient(to right, transparent, hsl(var(--ramadan-emerald) / ${lineOpacity}))`,
         }}
       />
     </div>

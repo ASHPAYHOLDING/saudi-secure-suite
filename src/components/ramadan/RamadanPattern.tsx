@@ -26,19 +26,19 @@ export function RamadanPattern({ enabled = true, className, opacity }: RamadanPa
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute inset-0 z-0",
-        // في الشاشات الصغيرة نخفف أكثر
-        "opacity-50 sm:opacity-100",
         className
       )}
-      style={{ opacity: finalOpacity * (1 / 1) }} // نمرر opacity مباشرة
+      style={{
+        // في الشاشات الصغيرة نخفّف عبر media query — هنا نضع القيمة الكاملة
+        opacity: finalOpacity,
+      }}
     >
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 sm:opacity-100 opacity-50"
         style={{
           backgroundImage: `url('/themes/ramadan/pattern.svg')`,
           backgroundRepeat: "repeat",
           backgroundSize: "120px 120px",
-          // لون الباترن عبر filter
           filter: isDark
             ? "invert(0.8) sepia(0.3) hue-rotate(20deg)"
             : "sepia(0.5) hue-rotate(200deg)",

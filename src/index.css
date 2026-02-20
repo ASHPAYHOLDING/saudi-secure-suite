@@ -267,43 +267,49 @@
   }
 
   /* ═══════════════════════════════════════════════
-     Theme Transition — ناعم بين جميع الثيمات
+     Theme Transition — ناعم بين جميع الثيمات بدون وميض
      ═══════════════════════════════════════════════ */
   html {
     transition:
-      background-color 200ms ease,
-      color 200ms ease;
+      background-color 180ms ease,
+      color 180ms ease;
   }
 
+  /* Only transition color-related properties — NOT transform/opacity/layout */
+  /* هذا يمنع الوميض ويحافظ على الأنيميشن */
   *,
   *::before,
   *::after {
-    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-    transition-duration: 200ms;
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color;
+    transition-duration: 180ms;
     transition-timing-function: ease;
   }
 
-  /* استثناء من الانتقال: العناصر المتحركة والتفاعلية */
+  /* لا تُطبّق الانتقال على العناصر المتحركة (Framer Motion / keyframes) */
+  [data-motion],
+  [data-animate],
+  .motion-safe\:animate-none,
+  [class*="animate-"] {
+    transition-duration: 0ms !important;
+  }
+
+  /* Interactive elements: أسرع */
   button,
   a,
   input,
   textarea,
   select,
   [role="button"],
-  [data-state],
   [data-radix-collection-item] {
-    transition-duration: 150ms;
+    transition-duration: 120ms;
   }
 
   /* ═══════════════════════════════════════════════
      Ramadan Theme — نمط زخرفي خفيف في الخلفية
      ═══════════════════════════════════════════════ */
-  [data-theme="ramadan"] body {
-    background-image: var(--ramadan-pattern, none);
-    background-size: 60px 60px;
-    background-repeat: repeat;
-    background-attachment: fixed;
-  }
+
+  /* إزالة background-image على body — يسبب تكراراً مع RamadanPattern component */
+  /* بدلاً منه نستخدم المكوّن RamadanPattern المستقل */
 
   /* بطاقات رمضانية: حد ذهبي خفيف */
   [data-theme="ramadan"] .card,
@@ -316,15 +322,10 @@
   [data-theme="ramadan"] *:focus-visible {
     outline-color: hsl(var(--ramadan-gold));
   }
-
-  /* Sidebar رمضاني: حد ذهبي سفلي للعناصر النشطة */
-  [data-theme="ramadan"] [data-active="true"],
-  [data-theme="ramadan"] [aria-current="page"] {
-    border-inline-start: 2px solid hsl(var(--ramadan-gold) / 0.7);
-  }
 }
 
 @layer components {
+
   .gradient-hero {
     background: var(--gradient-hero);
   }
