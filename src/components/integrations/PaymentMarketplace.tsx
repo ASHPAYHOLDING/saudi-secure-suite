@@ -1172,6 +1172,99 @@ const PaymentMarketplace = () => {
           ))}
         </Tabs>
 
+        {/* ════════ Enterprise Security Section ════════ */}
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="mx-auto max-w-5xl px-6 pb-10 pt-4"
+        >
+          {/* Header */}
+          <div className="mb-5 text-center">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <Shield size={11} />
+              أمان المؤسسات
+            </div>
+            <h2 className="text-lg font-bold text-foreground">أمان على مستوى المؤسسات</h2>
+            <p className="mt-1 text-sm text-muted-foreground">جميع بيانات التكامل محمية بمعايير أمنية عالمية</p>
+          </div>
+
+          {/* Cards grid */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              {
+                icon: <Lock size={18} />,
+                emoji: "🔐",
+                title: "تشفير AES-256-GCM",
+                desc: "جميع المفاتيح مشفرة بمعيار التشفير الحكومي الأمريكي",
+                color: "text-violet-500",
+                bg: "bg-violet-500/8",
+                border: "border-violet-500/20",
+              },
+              {
+                icon: <CheckCheck size={18} />,
+                emoji: "🧾",
+                title: "Audit Logs",
+                desc: "تسجيل كامل لكل عملية وصول وتغيير في الإعدادات",
+                color: "text-blue-500",
+                bg: "bg-blue-500/8",
+                border: "border-blue-500/20",
+              },
+              {
+                icon: <RefreshCw size={18} />,
+                emoji: "🔁",
+                title: "Idempotency",
+                desc: "حماية من تكرار المعاملات المالية عبر معرفات فريدة",
+                color: "text-teal-500",
+                bg: "bg-teal-500/8",
+                border: "border-teal-500/20",
+              },
+              {
+                icon: <Shield size={18} />,
+                emoji: "🛡",
+                title: "HMAC Signature",
+                desc: "التحقق من صحة كل Webhook بتوقيع رقمي مشفر",
+                color: "text-green-500",
+                bg: "bg-green-500/8",
+                border: "border-green-500/20",
+              },
+              {
+                icon: <Eye size={18} />,
+                emoji: "🚫",
+                title: "لا Plaintext",
+                desc: "لا يُخزَّن أي مفتاح كنص صريح في قاعدة البيانات",
+                color: "text-rose-500",
+                bg: "bg-rose-500/8",
+                border: "border-rose-500/20",
+              },
+            ].map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                className={cn(
+                  "group relative flex flex-col gap-2 rounded-xl border p-4 transition-all duration-200",
+                  "bg-gradient-to-br from-background to-muted/30 hover:shadow-md",
+                  card.border,
+                )}
+              >
+                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110", card.bg, card.color)}>
+                  {card.icon}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-tight">{card.title}</p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{card.desc}</p>
+                </div>
+                {/* subtle glow on hover */}
+                <div className={cn("pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100", card.bg)} style={{ filter: "blur(12px)" }} />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* BYO Model banner */}
         <div className="mt-10 rounded-2xl border border-border bg-muted/30 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
