@@ -3976,7 +3976,7 @@ export type Database = {
           notes: string | null
           payment_date: string
           payment_method: string
-          reference_number: string | null
+          reference_number: string
           tenant_id: string
         }
         Insert: {
@@ -3988,7 +3988,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: string
-          reference_number?: string | null
+          reference_number: string
           tenant_id: string
         }
         Update: {
@@ -4000,7 +4000,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: string
-          reference_number?: string | null
+          reference_number?: string
           tenant_id?: string
         }
         Relationships: [
