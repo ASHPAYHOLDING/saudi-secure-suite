@@ -9635,13 +9635,13 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: {
           activation_source: string
-          api_key_encrypted: string
           api_key_label: string
           can_activate: boolean
           description_ar: string
           entitlement_allowed: boolean
           entitlement_reason: string
           has_api_client: boolean
+          has_secret_configured: boolean
           has_service: boolean
           has_test_connection: boolean
           integration_id: string
