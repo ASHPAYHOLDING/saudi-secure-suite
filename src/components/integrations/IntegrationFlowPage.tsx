@@ -41,6 +41,107 @@ const FLOW_STEPS: { key: FlowStep; label: string; icon: any }[] = [
   { key: "done",     label: "مفعّل",          icon: CheckCircle2 },
 ];
 
+// ── أدلة الاستخدام الخاصة بكل تكامل ────────────────────────────────────────────
+const INTEGRATION_GUIDES: Record<string, {
+  steps: { title: string; desc: string; tip?: string }[];
+  faq: { q: string; a: string }[];
+}> = {
+  // ── محاسبة ──
+  foodics: {
+    steps: [
+      { title: "ربط حساب فودكس", desc: "سجّل دخولك على dashboard.foodics.com وانتقل إلى Settings → Developer → API Keys.", tip: "تأكد أن حسابك لديه صلاحيات Business أو Owner" },
+      { title: "أنشئ مفتاح API", desc: "اضغط Create Token، اختر الصلاحيات المطلوبة (Orders, Products, Customers)، ثم انسخ الـ Token." },
+      { title: "أدخل المفتاح هنا", desc: "الصق مفتاح API في خانة الإعداد، سيتم تشفيره فوراً وبشكل آمن." },
+      { title: "ابدأ الاستخدام", desc: "ستظهر بيانات الفواتير والمبيعات من فودكس تلقائياً في لوحة التقارير.", tip: "يُحدَّث السجل كل 15 دقيقة تلقائياً" },
+    ],
+    faq: [
+      { q: "ما الصلاحيات المطلوبة لمفتاح فودكس؟", a: "Orders (Read), Products (Read)، وCustomers (Read) كافية للتشغيل الأساسي." },
+      { q: "هل يعمل مع فودكس الإصدار القديم؟", a: "يدعم النظام الإصدار F5 وما فوق. تأكد من تحديث حسابك." },
+      { q: "كيف أعرف إذا كان الربط يعمل؟", a: "ستظهر آخر 5 فواتير من فودكس في لوحة التقارير خلال دقيقتين من الإعداد." },
+    ],
+  },
+  zatca: {
+    steps: [
+      { title: "الحصول على بيانات هيئة الزكاة", desc: "تأكد من تسجيل منشأتك في بوابة فاتورة على fatoora.zatca.gov.sa." },
+      { title: "إدخال الرقم الضريبي", desc: "أدخل الرقم الضريبي المكوّن من 15 رقماً كما هو مسجل في هيئة الزكاة والضريبة." },
+      { title: "توليد شهادة CSR", desc: "سيقوم النظام تلقائياً بإنشاء طلب الشهادة (CSR) ورفعه لهيئة الزكاة.", tip: "قد تستغرق العملية حتى 24 ساعة" },
+      { title: "تفعيل المرحلة الثانية", desc: "بعد قبول الشهادة، سيُفعَّل إصدار الفواتير الإلكترونية المتوافقة مع المرحلة الثانية تلقائياً." },
+    ],
+    faq: [
+      { q: "ما الفرق بين المرحلة الأولى والثانية من زاتكا؟", a: "المرحلة الأولى إصدار فواتير إلكترونية، المرحلة الثانية ربط مباشر مع منظومة هيئة الزكاة." },
+      { q: "هل يمكنني الاستمرار في العمل أثناء التفعيل؟", a: "نعم، الفواتير العادية تستمر بشكل طبيعي حتى اكتمال ربط زاتكا." },
+      { q: "ماذا أفعل إذا رُفض طلب الشهادة؟", a: "تحقق من صحة بياناتك في بوابة فاتورة أو تواصل مع الدعم الفني." },
+    ],
+  },
+  ocr: {
+    steps: [
+      { title: "رفع الفواتير الورقية", desc: "انتقل لقسم الفواتير واضغط 'رفع فاتورة'، ثم اختر صورة أو PDF للفاتورة." },
+      { title: "مراجعة البيانات المستخرجة", desc: "سيستخرج الذكاء الاصطناعي بيانات الفاتورة تلقائياً — راجعها وعدّل ما يلزم.", tip: "الصور عالية الدقة تعطي نتائج أدق" },
+      { title: "اعتماد وحفظ الفاتورة", desc: "بعد التحقق، اضغط 'اعتماد' لحفظ الفاتورة في النظام بشكل نهائي." },
+      { title: "تتبع الفواتير المُستخرجة", desc: "تجد جميع الفواتير المُستخرجة بالـ OCR في تبويب 'الفواتير الواردة' مع حالة كل منها." },
+    ],
+    faq: [
+      { q: "ما أنواع الملفات المدعومة؟", a: "PDF، JPG، PNG، وTIFF بحجم أقصى 10 ميجابايت للملف الواحد." },
+      { q: "ما مدى دقة استخراج البيانات؟", a: "دقة متوسطة 94% للفواتير العربية والإنجليزية. الصور الواضحة تعطي نتائج أعلى." },
+      { q: "هل يدعم الفواتير العربية؟", a: "نعم، يدعم العربية والإنجليزية وثنائية اللغة بشكل كامل." },
+    ],
+  },
+  crm: {
+    steps: [
+      { title: "إضافة بيانات العملاء", desc: "انتقل لقسم العملاء وأضف العملاء يدوياً أو استورد من Excel." },
+      { title: "ربط العملاء بالفواتير", desc: "عند إنشاء فاتورة، اختر العميل من القائمة لربط جميع معاملاته تلقائياً." },
+      { title: "متابعة سجل العميل", desc: "اضغط على أي عميل لرؤية كامل تاريخ معاملاته، الفواتير، والمدفوعات.", tip: "يمكنك إضافة ملاحظات وتذكيرات لكل عميل" },
+      { title: "تحليلات العملاء", desc: "تجد في التقارير تحليلاً لأفضل العملاء والديون المستحقة ومتوسط وقت الدفع." },
+    ],
+    faq: [
+      { q: "كم عدد العملاء الذي يمكنني إضافته؟", a: "لا يوجد حد في الباقات المدفوعة. الباقة المجانية تسمح بـ 50 عميلاً." },
+      { q: "هل يمكن استيراد العملاء من Excel؟", a: "نعم، من قسم العملاء → استيراد، بتنسيق CSV أو Excel." },
+      { q: "هل يُرسل النظام تذكيرات للعملاء تلقائياً؟", a: "نعم عبر تفعيل 'تذكيرات الدفع' من إعدادات الشركة." },
+    ],
+  },
+  inventory: {
+    steps: [
+      { title: "إضافة المنتجات والمستودعات", desc: "انتقل لقسم المخزون وأضف منتجاتك مع تحديد كميات البداية لكل مستودع." },
+      { title: "ربط المخزون بالفواتير", desc: "عند إنشاء فاتورة بيع، يُخصم المخزون تلقائياً من المستودع المحدد.", tip: "تأكد من ضبط مستوى التنبيه للمخزون المنخفض" },
+      { title: "متابعة حركة المخزون", desc: "تجد سجلاً كاملاً لجميع عمليات الإدخال والإخراج في قسم حركات المخزون." },
+      { title: "جرد المخزون الدوري", desc: "استخدم خاصية الجرد لمطابقة الكميات الفعلية مع الأرصدة في النظام." },
+    ],
+    faq: [
+      { q: "هل يدعم النظام تتبع الدُّفعات (Batch Tracking)؟", a: "نعم، يدعم تتبع الدفعات وتواريخ الانتهاء للمنتجات." },
+      { q: "ماذا يحدث إذا نفد المخزون وأصدرت فاتورة؟", a: "يُنبّهك النظام ويمكنك السماح بالبيع المكشوف أو إيقافه من الإعدادات." },
+      { q: "هل يمكن نقل المخزون بين المستودعات؟", a: "نعم، من قسم المخزون → تحويلات المستودعات." },
+    ],
+  },
+  accounting: {
+    steps: [
+      { title: "إعداد شجرة الحسابات", desc: "انتقل للمالية → شجرة الحسابات وتحقق من الحسابات الافتراضية أو أضف حسابات مخصصة." },
+      { title: "ربط الحسابات بالعمليات", desc: "يُنشئ النظام قيوداً محاسبية تلقائياً عند كل فاتورة ومدفوعات ومصروفات.", tip: "راجع إعدادات الحسابات الافتراضية لكل نوع عملية" },
+      { title: "القوائم المالية", desc: "من قسم التقارير → المالية، ستجد الميزانية العمومية وقائمة الدخل ومتاحة دائماً." },
+      { title: "إقفال الفترات المحاسبية", desc: "في نهاية كل شهر، قفّل الفترة لمنع التعديل على القيود المحاسبية المؤرخة." },
+    ],
+    faq: [
+      { q: "هل يدعم النظام معايير IFRS؟", a: "نعم، تتوافق التقارير مع معايير المحاسبة الدولية وكذلك متطلبات هيئة الزكاة." },
+      { q: "هل يمكن تصدير القيود المحاسبية؟", a: "نعم، يمكن تصديرها بصيغة Excel أو PDF من قسم القيود المحاسبية." },
+      { q: "من يمكنه الوصول للتقارير المالية؟", a: "المدير المالي والمحاسب فقط افتراضياً. يمكن تعديل الصلاحيات من إعدادات الفريق." },
+    ],
+  },
+  // ── دليل افتراضي لأي تكامل غير معروف ──
+  default: {
+    steps: [
+      { title: "إدخال مفتاح API", desc: "أدخل مفتاح API الخاص بك من إعدادات حسابك في الخدمة الخارجية في تبويب الإعداد.", tip: "يُخزَّن المفتاح بشكل مشفَّر ولا يُعرض مجدداً" },
+      { title: "اختبار الاتصال", desc: "بعد الحفظ، يختبر النظام تلقائياً صحة الربط مع الخدمة الخارجية." },
+      { title: "بدء الاستخدام", desc: "بعد نجاح الاختبار، يُفعَّل التكامل في جميع أقسام النظام ذات الصلة.", tip: "ستظهر أيقونة ✅ عند اكتمال الإعداد" },
+      { title: "تجديد المفاتيح", desc: "إذا غيّرت مفتاح API في الخدمة الخارجية، عُد لهذه الصفحة وحدّثه.", tip: "يُنصح بتغيير المفاتيح دورياً لأسباب أمنية" },
+    ],
+    faq: [
+      { q: "هل يمكن تعطيل التكامل مؤقتاً؟", a: "نعم، يمكنك إيقافه من صفحة التكاملات دون فقدان إعداداتك." },
+      { q: "ماذا يحدث لو انتهت صلاحية المفتاح؟", a: "يتوقف التكامل عن العمل ويصلك إشعار. قم بتحديث المفتاح من هذه الصفحة." },
+      { q: "هل البيانات المرسلة آمنة؟", a: "جميع البيانات مشفَّرة بـ AES-256-GCM ولا تُرسَل أبداً بنص صريح." },
+      { q: "كيف أعرف أن التكامل يعمل؟", a: "ستظهر علامة ✅ خضراء في صفحة التكاملات، ويمكنك اختبار الاتصال في أي وقت." },
+    ],
+  },
+};
+
 interface IntegrationState {
   integration_id: string;
   key: string;
@@ -718,56 +819,58 @@ const IntegrationFlowPage = () => {
 
         {/* ════════════════ تبويب دليل الاستخدام ════════════════ */}
         <TabsContent value="guide" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap size={16} className="text-amber-500" />
-                كيفية استخدام {integrationState.name_ar}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 pt-0 space-y-3">
-              {[
-                { title: "اكتمل تفعيل التكامل", desc: "بعد إضافة المفاتيح المطلوبة، يتم تفعيل التكامل تلقائياً في النظام.", tip: "ستظهر أيقونة ✅ عند اكتمال الإعداد" },
-                { title: "استخدمه في الفواتير", desc: "انتقل لقسم الفواتير وستجد الخيار متاحاً تلقائياً عند إنشاء أو إرسال فاتورة." },
-                { title: "راقب الأداء", desc: "يمكنك متابعة عمليات التكامل من لوحة التقارير والتحقق من حالة الاتصال في أي وقت." },
-                { title: "تجديد المفاتيح", desc: "إذا غيّرت مفاتيح API في الخدمة الخارجية، عُد لهذه الصفحة وحدّثها.", tip: "يُنصح بتغيير المفاتيح دورياً لأسباب أمنية" },
-              ].map((s, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary mt-0.5">
-                    {i + 1}
-                  </div>
-                  <div className="space-y-0.5 flex-1 pb-3 border-b last:border-b-0 last:pb-0">
-                    <p className="font-medium text-sm text-foreground">{s.title}</p>
-                    <p className="text-sm text-muted-foreground">{s.desc}</p>
-                    {s.tip && (
-                      <div className="flex items-start gap-1.5 mt-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg p-2">
-                        <Info size={12} className="mt-0.5 shrink-0" /> {s.tip}
+          {(() => {
+            const key = integrationState.key?.toLowerCase() || "";
+            const type = integrationState.integration_type?.toLowerCase() || "";
+            const guide =
+              INTEGRATION_GUIDES[key] ||
+              INTEGRATION_GUIDES[type] ||
+              INTEGRATION_GUIDES["default"];
+            return (
+              <>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Zap size={16} className="text-amber-500" />
+                      كيفية استخدام {integrationState.name_ar}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0 space-y-3">
+                    {guide.steps.map((s, i) => (
+                      <div key={i} className="flex gap-3">
+                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary mt-0.5">
+                          {i + 1}
+                        </div>
+                        <div className="space-y-0.5 flex-1 pb-3 border-b last:border-b-0 last:pb-0">
+                          <p className="font-medium text-sm text-foreground">{s.title}</p>
+                          <p className="text-sm text-muted-foreground">{s.desc}</p>
+                          {s.tip && (
+                            <div className="flex items-start gap-1.5 mt-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg p-2">
+                              <Info size={12} className="mt-0.5 shrink-0" /> {s.tip}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                    ))}
+                  </CardContent>
+                </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">أسئلة شائعة</CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 pt-0 space-y-3">
-              {[
-                { q: "هل يمكن تعطيل التكامل مؤقتاً؟", a: "نعم، يمكنك إيقافه من صفحة التكاملات دون فقدان إعداداتك." },
-                { q: "ماذا يحدث لو انتهت صلاحية المفتاح؟", a: "يتوقف التكامل عن العمل ويصلك إشعار. قم بتحديث المفتاح من هذه الصفحة." },
-                { q: "هل البيانات المرسلة آمنة؟", a: "جميع البيانات مشفَّرة بـ AES-256-GCM ولا تُرسَل أبداً بنص صريح." },
-                { q: "كيف أعرف أن التكامل يعمل؟", a: "ستظهر علامة ✅ خضراء في صفحة التكاملات، ويمكنك اختبار الاتصال في أي وقت." },
-              ].map((item, i) => (
-                <div key={i} className="space-y-1 pb-3 border-b last:border-b-0 last:pb-0">
-                  <p className="font-medium text-sm text-foreground">{item.q}</p>
-                  <p className="text-sm text-muted-foreground">{item.a}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">أسئلة شائعة</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0 space-y-3">
+                    {guide.faq.map((item, i) => (
+                      <div key={i} className="space-y-1 pb-3 border-b last:border-b-0 last:pb-0">
+                        <p className="font-medium text-sm text-foreground">{item.q}</p>
+                        <p className="text-sm text-muted-foreground">{item.a}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </>
+            );
+          })()}
         </TabsContent>
 
         {/* ════════════════ تبويب رفع مشكلة ════════════════ */}
