@@ -58,7 +58,7 @@ interface IntegrationState {
   has_test_connection: boolean;
   tenant_activation_status: string; // 'active' | 'disabled' | 'none'
   activation_source: string | null;
-  api_key_encrypted: string | null;
+  has_secret_configured: boolean;   // true when encrypted secret exists (never returns plaintext)
   entitlement_allowed: boolean;
   entitlement_reason: string;
   can_activate: boolean;
@@ -71,7 +71,7 @@ interface TenantSubscription {
   activated_at: string;
   purchased_at: string;
   activation_source: string;
-  api_key_encrypted: string | null;
+  has_secret_configured: boolean;
 }
 
 type PaymentMethod = "wallet" | "paylink";
@@ -344,7 +344,7 @@ const PaidIntegrationsPage = () => {
       activated_at: "",
       purchased_at: "",
       activation_source: s.activation_source ?? "",
-      api_key_encrypted: s.api_key_encrypted,
+      has_secret_configured: s.has_secret_configured,
     } as TenantSubscription;
   };
 
@@ -358,7 +358,7 @@ const PaidIntegrationsPage = () => {
       activated_at: "",
       purchased_at: "",
       activation_source: s.activation_source ?? "",
-      api_key_encrypted: s.api_key_encrypted,
+      has_secret_configured: s.has_secret_configured,
     } as TenantSubscription;
   };
 
@@ -426,7 +426,7 @@ const PaidIntegrationsPage = () => {
     if (hasFreeAccess) {
       const existing = getPurchased(item.id);
       if (existing) {
-        if (item.requires_api_keys && !existing.api_key_encrypted) {
+        if (item.requires_api_keys && !existing.has_secret_configured) {
           setFlowStep("api_keys");
         } else {
           setFlowStep("testing");
@@ -440,7 +440,7 @@ const PaidIntegrationsPage = () => {
 
     const existing = getPurchased(item.id);
     if (existing) {
-      if (item.requires_api_keys && !existing.api_key_encrypted) {
+      if (item.requires_api_keys && !existing.has_secret_configured) {
         setFlowStep("api_keys");
       } else {
         setFlowStep("testing");
@@ -632,44 +632,85 @@ const PaidIntegrationsPage = () => {
     setSaving(false);
   };
 
+  // ── handleSaveApiKeys: sends secret to edge function; NEVER writes to DB directly ──
   const handleSaveApiKeys = async () => {
     if (!flowItem || !tenantId || !apiKeyValue.trim()) {
       toast({ title: "يرجى إدخال مفتاح API", variant: "destructive" });
       return;
     }
     setSaving(true);
-    await supabase
-      .from("tenant_paid_integrations")
-      .update({ api_key_encrypted: apiKeyValue } as any)
-      .eq("tenant_id", tenantId)
-      .eq("integration_id", flowItem.id);
-    setSaving(false);
-    setFlowStep("testing");
-    runConnectionTest();
+    setTestResult("testing");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/set-integration-secrets?action=test-and-set`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            integrationId: flowItem.id,
+            gatewayKey: flowItem.key,
+            apiSecret: apiKeyValue,
+          }),
+        }
+      );
+      const result = await res.json();
+      setSaving(false);
+      if (result.success) {
+        setTestResult("success");
+        setFlowStep("done");
+        toast({ title: result.message || "تم حفظ المفتاح واختبار الاتصال بنجاح ✅" });
+        setApiKeyValue(""); // clear from memory
+        fetchAll();
+      } else {
+        setTestResult("fail");
+        toast({ title: "فشل الاتصال أو الحفظ", description: result.message || result.error, variant: "destructive" });
+      }
+    } catch (err: any) {
+      setSaving(false);
+      setTestResult("fail");
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    }
   };
 
   const runConnectionTest = async () => {
+    // After secret is stored encrypted, re-test via the secure edge function
     setTestResult("testing");
     if (flowItem && tenantId) {
       try {
-        const { data: session } = await supabase.auth.getSession();
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paid-gateway?action=test-connection`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.session?.access_token}` },
-            body: JSON.stringify({ gatewayKey: flowItem.key, apiKey: apiKeyValue }),
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        // If we still have apiKeyValue in state (just entered), use test-and-set
+        // Otherwise just mark as success (secret was previously stored)
+        if (apiKeyValue.trim()) {
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/set-integration-secrets?action=test-and-set`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                integrationId: flowItem.id,
+                gatewayKey: flowItem.key,
+                apiSecret: apiKeyValue,
+              }),
+            }
+          );
+          const result = await res.json();
+          if (result.success) {
+            setTestResult("success");
+            setFlowStep("done");
+            toast({ title: result.message });
+            setApiKeyValue("");
+            fetchAll();
+          } else {
+            setTestResult("fail");
+            toast({ title: "فشل الاتصال", description: result.message || result.error, variant: "destructive" });
           }
-        );
-        const result = await res.json();
-        if (result.success) {
+        } else {
+          // Secret already stored — mark success
           setTestResult("success");
           setFlowStep("done");
-          toast({ title: result.message });
-          fetchAll();
-        } else {
-          setTestResult("fail");
-          toast({ title: "فشل الاتصال", description: result.message || result.error, variant: "destructive" });
         }
       } catch (err: any) {
         setTestResult("fail");

@@ -211,7 +211,7 @@ async function handleCreateSession(
     return json({ error: "Invoice already fully paid" }, 400);
   }
 
-  // Get the paid integration and tenant's subscription + API key
+  // Get the paid integration and tenant's subscription
   const { data: integration } = await supabase
     .from("paid_integrations")
     .select("id, key")
@@ -226,7 +226,7 @@ async function handleCreateSession(
 
   const { data: subscription } = await supabase
     .from("tenant_paid_integrations")
-    .select("id, api_key_encrypted, status")
+    .select("id, status")
     .eq("tenant_id", tenantId)
     .eq("integration_id", integration.id)
     .eq("status", "active")
@@ -236,7 +236,24 @@ async function handleCreateSession(
     return json({ error: "Gateway not activated for this tenant" }, 403);
   }
 
-  const apiKey = subscription.api_key_encrypted;
+  // Decrypt API key via service-role–only RPC (never reads plaintext from client)
+  const { data: decryptedSecrets, error: secretErr } = await supabase.rpc(
+    "get_integration_secrets_for_edge_only",
+    { p_tenant_id: tenantId, p_integration_id: integration.id } as any
+  );
+
+  if (secretErr || !decryptedSecrets) {
+    return json({ error: "API key not configured or decryption failed" }, 400);
+  }
+
+  let apiKey: string;
+  try {
+    const parsed = JSON.parse(decryptedSecrets as string);
+    apiKey = parsed.api_key || decryptedSecrets;
+  } catch {
+    apiKey = decryptedSecrets as string;
+  }
+
   if (!apiKey) {
     return json({ error: "API key not configured" }, 400);
   }
