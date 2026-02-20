@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEntitlements, FEATURE_KEYS } from "@/hooks/useEntitlements";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -38,6 +37,31 @@ interface PaidIntegration {
   has_service: boolean;
   has_api_client: boolean;
   has_test_connection: boolean;
+}
+
+// Shape returned by get_paid_integrations_state RPC
+interface IntegrationState {
+  integration_id: string;
+  key: string;
+  name_ar: string;
+  name_en: string;
+  description_ar: string;
+  integration_type: string;
+  price_once: number;
+  sort_order: number;
+  is_ready: boolean;
+  requires_api_keys: boolean;
+  api_key_label: string;
+  trial_days: number;
+  has_service: boolean;
+  has_api_client: boolean;
+  has_test_connection: boolean;
+  tenant_activation_status: string; // 'active' | 'disabled' | 'none'
+  activation_source: string | null;
+  api_key_encrypted: string | null;
+  entitlement_allowed: boolean;
+  entitlement_reason: string;
+  can_activate: boolean;
 }
 
 interface TenantSubscription {
@@ -278,17 +302,65 @@ const IntegrationCard = ({
 // ─── Main Page ───
 const PaidIntegrationsPage = () => {
   const { tenantId, user } = useAuth();
-  const { entitlements, loading: loadingEntitlements, planSlug } = useEntitlements([
-    FEATURE_KEYS.PAID_INTEGRATIONS,
-  ]);
-  const [integrations, setIntegrations] = useState<PaidIntegration[]>([]);
-  const [subscriptions, setSubscriptions] = useState<TenantSubscription[]>([]);
+
+  // ── Single-RPC state (replaces N+1 waterfall) ──
+  const [integrationStates, setIntegrationStates] = useState<IntegrationState[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isTrial = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.reason === "trial";
-  const isEnterprise = planSlug === "enterprise";
-  const canPurchase = entitlements[FEATURE_KEYS.PAID_INTEGRATIONS]?.allowed ?? false;
-  const hasFreeAccess = isTrial || isEnterprise;
+  // Derived from the first row (all rows share same entitlement)
+  const isTrial          = integrationStates[0]?.entitlement_reason === "trial";
+  const canPurchase      = integrationStates[0]?.entitlement_allowed ?? false;
+  const isEnterprise     = integrationStates[0]?.entitlement_reason === "plan" && canPurchase;
+  const hasFreeAccess    = isTrial || isEnterprise;
+
+  // Compatibility helpers — shape PaidIntegration from IntegrationState
+  const toItem = (s: IntegrationState): PaidIntegration => ({
+    id: s.integration_id,
+    key: s.key,
+    name_ar: s.name_ar,
+    name_en: s.name_en,
+    description_ar: s.description_ar,
+    integration_type: s.integration_type,
+    price_once: s.price_once,
+    is_listed: true,
+    is_ready: s.is_ready,
+    requires_api_keys: s.requires_api_keys,
+    api_key_label: s.api_key_label,
+    trial_days: s.trial_days,
+    has_service: s.has_service,
+    has_api_client: s.has_api_client,
+    has_test_connection: s.has_test_connection,
+  });
+
+  const integrations = integrationStates.map(toItem);
+
+  const getSubscription = (integrationId: string) => {
+    const s = integrationStates.find((r) => r.integration_id === integrationId);
+    if (!s || s.tenant_activation_status !== "active") return undefined;
+    return {
+      id: integrationId,
+      integration_id: integrationId,
+      status: s.tenant_activation_status,
+      activated_at: "",
+      purchased_at: "",
+      activation_source: s.activation_source ?? "",
+      api_key_encrypted: s.api_key_encrypted,
+    } as TenantSubscription;
+  };
+
+  const getPurchased = (integrationId: string) => {
+    const s = integrationStates.find((r) => r.integration_id === integrationId);
+    if (!s || s.tenant_activation_status === "none") return undefined;
+    return {
+      id: integrationId,
+      integration_id: integrationId,
+      status: s.tenant_activation_status,
+      activated_at: "",
+      purchased_at: "",
+      activation_source: s.activation_source ?? "",
+      api_key_encrypted: s.api_key_encrypted,
+    } as TenantSubscription;
+  };
 
   // Flow state
   const [flowItem, setFlowItem] = useState<PaidIntegration | null>(null);
@@ -303,17 +375,31 @@ const PaidIntegrationsPage = () => {
   const [paylinkTransactionNo, setPaylinkTransactionNo] = useState<string | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    if (tenantId && !loadingEntitlements) {
-      fetchAll();
-      if (!hasFreeAccess) fetchWalletBalance();
+  // ─── Single RPC fetch — 1 round-trip ───
+  const fetchAll = useCallback(async () => {
+    if (!tenantId) return;
+    setLoading(true);
+    const { data, error } = await supabase.rpc("get_paid_integrations_state", {
+      p_tenant_id: tenantId,
+    } as any);
+    if (!error && data) {
+      setIntegrationStates(data as IntegrationState[]);
+      // Fetch wallet balance only if canPurchase (not trial/enterprise)
+      const firstRow = (data as IntegrationState[])[0];
+      const needsWallet = firstRow?.entitlement_allowed && firstRow?.entitlement_reason !== "trial";
+      if (needsWallet) fetchWalletBalance();
     }
+    setLoading(false);
+  }, [tenantId]);
+
+  useEffect(() => {
+    if (tenantId) fetchAll();
     return () => {
       if (paymentCheckInterval) clearInterval(paymentCheckInterval);
     };
-  }, [tenantId, loadingEntitlements]);
+  }, [tenantId, fetchAll]);
 
-  // ─── Data Fetchers (unchanged logic) ───
+  // ─── Wallet balance (secondary fetch, non-blocking) ───
   const fetchWalletBalance = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -329,23 +415,6 @@ const PaidIntegrationsPage = () => {
       setWalletExists(false);
     }
   };
-
-  const fetchAll = async () => {
-    setLoading(true);
-    const [{ data: catalog }, { data: subs }] = await Promise.all([
-      supabase.from("paid_integrations").select("*").eq("is_listed", true).eq("is_ready", true).order("sort_order"),
-      supabase.from("tenant_paid_integrations").select("*").eq("tenant_id", tenantId!),
-    ]);
-    setIntegrations((catalog as any[]) || []);
-    setSubscriptions((subs as any[]) || []);
-    setLoading(false);
-  };
-
-  const getSubscription = (integrationId: string) =>
-    subscriptions.find((s) => s.integration_id === integrationId && s.status === "active");
-
-  const getPurchased = (integrationId: string) =>
-    subscriptions.find((s) => s.integration_id === integrationId);
 
   // ─── Flow Handlers (ALL unchanged business logic) ───
   const openFlow = (item: PaidIntegration) => {
@@ -620,7 +689,7 @@ const PaidIntegrationsPage = () => {
     fetchAll();
   };
 
-  const activeSubscriptions = subscriptions.filter((s) => s.status === "active");
+  const activeSubscriptions = integrationStates.filter((s) => s.tenant_activation_status === "active");
   const categories = [...new Set(integrations.map((i) => i.integration_type))];
 
   // Flow progress
@@ -789,7 +858,7 @@ const PaidIntegrationsPage = () => {
                   const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
                   const CatIcon = cat.icon;
                   return (
-                    <motion.div key={sub.id} variants={cardVariants}>
+                    <motion.div key={sub.integration_id} variants={cardVariants}>
                       <Card className="ring-1 ring-accent/20 overflow-hidden">
                         <div className={`h-1 bg-gradient-to-l ${cat.gradient}`} />
                         <CardContent className="pt-5 pb-5">
@@ -800,7 +869,7 @@ const PaidIntegrationsPage = () => {
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-sm">{item.name_ar}</p>
                               <p className="text-xs text-muted-foreground">
-                                مفعّل منذ {new Date(sub.activated_at).toLocaleDateString("ar-SA")}
+                                مصدر التفعيل: {sub.activation_source ?? "—"}
                               </p>
                             </div>
                             <Badge className="gap-1 bg-accent/10 text-accent border-accent/20 text-[10px]">
