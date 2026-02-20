@@ -25,7 +25,7 @@ const AdminMonitoring = lazy(() => import("@/components/admin/AdminMonitoring"))
 const AdminPaylinkFees = lazy(() => import("@/components/admin/AdminPaylinkFees"));
 const AdminPaylinkManagement = lazy(() => import("@/components/admin/AdminPaylinkManagement"));
 const AdminSupportTickets = lazy(() => import("@/components/admin/AdminSupportTickets"));
-const AdminPaidIntegrations = lazy(() => import("@/components/admin/AdminPaidIntegrations"));
+
 const AdminWalletRequests = lazy(() => import("@/components/admin/AdminWalletRequests"));
 const AdminDiscountCodes = lazy(() => import("@/components/admin/AdminDiscountCodes"));
 const AdminAffiliateManagement = lazy(() => import("@/components/admin/AdminAffiliateManagement"));
@@ -88,7 +88,7 @@ const Admin = () => {
     if (path === "/admin/paylink-fees") return <AdminPaylinkFees />;
     if (path === "/admin/paylink-management") return <AdminPaylinkManagement />;
     if (path === "/admin/support") return <AdminSupportTickets />;
-    if (path === "/admin/paid-integrations") return <AdminPaidIntegrations />;
+    
     if (path === "/admin/wallet-requests") return <AdminWalletRequests />;
     if (path === "/admin/discount-codes") return <AdminDiscountCodes />;
     if (path === "/admin/affiliates") return <AdminAffiliateManagement />;

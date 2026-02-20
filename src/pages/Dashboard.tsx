@@ -40,7 +40,7 @@ const SettingsPage = lazy(() => import("@/components/settings/SettingsPage"));
 const HelpPage = lazy(() => import("@/components/help/HelpPage"));
 const SubscriptionPage = lazy(() => import("@/components/subscription/SubscriptionPage"));
 const IntegrationsPage = lazy(() => import("@/components/integrations/IntegrationsPage"));
-const PaidIntegrationsPage = lazy(() => import("@/components/integrations/PaidIntegrationsPage"));
+
 const SheetViewPage = lazy(() => import("@/components/sheet-view/SheetViewPage"));
 const FinancialOverview = lazy(() => import("@/components/finance/FinancialOverview"));
 const BranchManagement = lazy(() => import("@/components/branches/BranchManagement"));
@@ -111,7 +111,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   branches: "branches",
   chat: "chat",
   integrations: "integrations",
-  "paid-integrations": "integrations",
+  
   "integrations/payments": "integrations",
   "smart-query": "analytics",
   wallet: "finance",
@@ -196,7 +196,7 @@ const Dashboard = () => {
     if (path === "/dashboard/settings") return <SettingsPage />;
     if (path === "/dashboard/finance") return <FinancialOverview />;
     if (path === "/dashboard/integrations") return <IntegrationsPage />;
-    if (path === "/dashboard/paid-integrations") return withGate("paid-integrations", <PaidIntegrationsPage />);
+    
     if (path === "/dashboard/sheet-view") return <SheetViewPage />;
     if (path === "/dashboard/branches") return withGate("branches", <BranchManagement />);
     if (path === "/dashboard/permissions") return withGate("permissions", <PermissionsManagement />);

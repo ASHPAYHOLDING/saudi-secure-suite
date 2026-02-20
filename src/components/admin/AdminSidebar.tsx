@@ -43,7 +43,7 @@ const menuItems = [
   { icon: Wallet, label: "رسوم الدفع", path: "/admin/paylink-fees" },
   { icon: CreditCard, label: "إدارة نيوماكسيو باي", path: "/admin/paylink-management" },
   { icon: Headphones, label: "تذاكر الدعم", path: "/admin/support" },
-  { icon: Wallet, label: "التكاملات المدفوعة", path: "/admin/paid-integrations" },
+  
   { icon: Wallet, label: "طلبات شحن المحفظة", path: "/admin/wallet-requests" },
   { icon: Tag, label: "أكواد الخصم", path: "/admin/discount-codes" },
   { icon: Crown, label: "إدارة الشركاء", path: "/admin/affiliates" },

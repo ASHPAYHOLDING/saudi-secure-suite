@@ -111,11 +111,6 @@ export const ROUTE_FEATURE_MAP: Record<string, { featureKey: FeatureKey; label: 
     label: "إدارة الفريق",
     description: "إدارة أعضاء الفريق وتعيين الأدوار.",
   },
-  "paid-integrations": {
-    featureKey: FEATURE_KEYS.PAID_INTEGRATIONS,
-    label: "التكاملات المدفوعة",
-    description: "الربط مع خدمات خارجية متقدمة.",
-  },
   branches: {
     featureKey: FEATURE_KEYS.BRANCHES,
     label: "إدارة الفروع",
