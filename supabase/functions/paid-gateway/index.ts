@@ -237,9 +237,10 @@ async function handleCreateSession(
   }
 
   // Decrypt API key via service-role–only RPC (never reads plaintext from client)
+  const masterKey = Deno.env.get("INTEGRATION_SECRET_KEY") || "";
   const { data: decryptedSecrets, error: secretErr } = await supabase.rpc(
     "get_integration_secrets_for_edge_only",
-    { p_tenant_id: tenantId, p_integration_id: integration.id } as any
+    { p_tenant_id: tenantId, p_integration_id: integration.id, p_master_key: masterKey } as any
   );
 
   if (secretErr || !decryptedSecrets) {

@@ -81,13 +81,13 @@ Deno.serve(async (req) => {
       // Build secrets JSON (extensible for multi-key integrations)
       const secretsJson = JSON.stringify({ api_key: apiSecret });
 
-      // Call service-role–only RPC to encrypt & store
-      // We set app.integration_secret_key so the RPC can read it
+      // Call service-role–only RPC; pass master key so it can encrypt
       const { error: rpcErr } = await adminClient.rpc("set_integration_secrets", {
         p_tenant_id:      tenantId,
         p_integration_id: integrationId,
         p_secrets_json:   secretsJson,
         p_actor_id:       user.id,
+        p_master_key:     masterKey,
       } as any);
 
       if (rpcErr) {
@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
         p_integration_id: integrationId,
         p_secrets_json:   secretsJson,
         p_actor_id:       user.id,
+        p_master_key:     masterKey,
       } as any);
 
       if (rpcErr) {
