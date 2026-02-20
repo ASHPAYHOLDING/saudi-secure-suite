@@ -20,6 +20,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { RamadanGlow, RamadanDivider, RamadanBadge } from "@/components/ramadan";
+import { useTheme } from "@/theme/ThemeProvider";
+
 
 // Lazy-load heavy chart components
 import { lazy, Suspense } from "react";
@@ -103,6 +105,56 @@ const FINANCIAL_WISDOMS = [
   { text: "في إدارة الأعمال: ما لا يُقاس لا يُدار", author: "بيتر دراكر", category: "القياس" },
   { text: "الامتثال للأنظمة ليس خياراً بل ضرورة لاستدامة الأعمال", author: "حكمة تنظيمية", category: "الامتثال" },
 ];
+
+// بانر رمضان — قابل للإغلاق، خفيف جداً
+const RamadanAnnouncementBanner = () => {
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem("ramadan-banner-dismissed-2025") === "1"; } catch { return false; }
+  });
+  const { seasonalTheme } = useTheme();
+
+  if (dismissed || seasonalTheme !== "ramadan") return null;
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem("ramadan-banner-dismissed-2025", "1"); } catch {}
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8, height: 0 }}
+      animate={{ opacity: 1, y: 0, height: "auto" }}
+      exit={{ opacity: 0, y: -8, height: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      <div
+        className="relative flex items-center gap-3 rounded-xl border px-4 py-3 text-sm"
+        style={{
+          borderColor: "hsl(var(--ramadan-gold)/0.3)",
+          background: "linear-gradient(135deg, hsl(var(--ramadan-gold)/0.06) 0%, hsl(var(--ramadan-emerald)/0.04) 100%)",
+        }}
+      >
+        {/* هلال بسيط SVG */}
+        <svg width="18" height="18" viewBox="0 0 80 80" fill="none" aria-hidden="true" className="shrink-0" style={{ color: "hsl(var(--ramadan-gold))" }}>
+          <path d="M52 16C43.5 16 36.5 22.4 36.5 30.5C36.5 38.6 43.5 45 52 45C55.2 45 58.2 44.1 60.7 42.5C57.5 48.5 51 52.5 43.5 52.5C32.7 52.5 24 43.8 24 33C24 22.2 32.7 13.5 43.5 13.5C46.5 13.5 49.4 14.2 52 15.4V16Z" fill="currentColor" />
+        </svg>
+        <p className="flex-1 font-medium" style={{ color: "hsl(var(--ramadan-gold))" }}>
+          رمضان كريم 🌙
+          <span className="text-muted-foreground font-normal ms-2">
+            — ساعات العمل والدعم خلال رمضان قد تختلف. نتمنى لكم صياماً مقبولاً.
+          </span>
+        </p>
+        <button
+          onClick={handleDismiss}
+          aria-label="إخفاء البانر"
+          className="shrink-0 rounded-md p-1 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
 
 // إعلان نيوماكسيو باي
 const NumaxioPayBanner = () => {
@@ -193,6 +245,7 @@ const NumaxioPayBanner = () => {
     </motion.div>
   );
 };
+
 
 const DailyWisdom = () => {
   const today = new Date();
@@ -341,6 +394,9 @@ const DashboardHome = () => {
   const { tenantId, profile } = useAuth();
   const { t, dir, currentLang } = useLanguage();
   const navigate = useNavigate();
+  const { seasonalTheme } = useTheme();
+  const isRamadan = seasonalTheme === "ramadan";
+
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard-stats", tenantId],
@@ -568,7 +624,16 @@ const DashboardHome = () => {
                 className="cursor-pointer"
                 onClick={() => navigate(kpi.path)}
               >
-                <Card className="border-border/60 hover:border-accent/30 hover:shadow-md transition-all h-full">
+                <Card className="border-border/60 hover:border-accent/30 hover:shadow-md transition-all h-full overflow-hidden">
+                  {/* خط gradient رفيع أعلى الكارد — رمضاني فقط */}
+                  {isRamadan && (
+                    <div
+                      className="h-[3px] w-full"
+                      style={{
+                        background: "linear-gradient(90deg, hsl(var(--ramadan-emerald)) 0%, hsl(var(--ramadan-gold)) 100%)",
+                      }}
+                    />
+                  )}
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-3">
                       <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${kpi.bg} flex items-center justify-center`}>
@@ -593,6 +658,7 @@ const DashboardHome = () => {
                 </Card>
               </motion.div>
             ))
+
           )}
         </div>
       )}
