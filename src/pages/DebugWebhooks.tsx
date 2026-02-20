@@ -23,6 +23,18 @@ const WEBHOOK_URLS = [
   { provider: "Tap", fn: "tap-webhook", header: "hashid", note: "HMAC-SHA256(raw_body, secret)" },
   { provider: "Moyasar", fn: "moyasar-webhook", header: "x-moyasar-signature", note: "HMAC-SHA256(raw_body, secret)" },
   { provider: "HyperPay", fn: "hyperpay-webhook", header: "x-webhook-signature", note: "HMAC-SHA256(raw_body, secret)" },
+  {
+    provider: "Stripe",
+    fn: "stripe-webhook",
+    header: "Stripe-Signature",
+    note: "Stripe-standard: t=<unix_ts>,v1=HMAC-SHA256('<ts>.<raw_body>', whsec_…) — 5-min replay window",
+  },
+  {
+    provider: "Geidea",
+    fn: "geidea-webhook",
+    header: "X-Geidea-Signature",
+    note: "HMAC-SHA256(raw_body, webhook_secret) — hex encoded",
+  },
 ];
 
 
@@ -172,6 +184,8 @@ const DebugWebhooks = () => {
                 <SelectItem value="tap">Tap</SelectItem>
                 <SelectItem value="moyasar">Moyasar</SelectItem>
                 <SelectItem value="hyperpay">HyperPay</SelectItem>
+                <SelectItem value="stripe">Stripe</SelectItem>
+                <SelectItem value="geidea">Geidea</SelectItem>
               </SelectContent>
             </Select>
 
