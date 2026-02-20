@@ -44,3 +44,24 @@ verify_jwt = false
 
 [functions.regenerate-zatca-credentials]
 verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.tap-webhook]
+verify_jwt = false
+
+[functions.moyasar-webhook]
+verify_jwt = false
+
+[functions.hyperpay-webhook]
+verify_jwt = false
+
+[functions.provider-save]
+verify_jwt = false
+
+[functions.provider-test]
+verify_jwt = false
+
+[functions.payment-create-intent]
+verify_jwt = false
