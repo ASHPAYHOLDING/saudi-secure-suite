@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" width="220" height="60">
+  <rect width="220" height="60" fill="none"/>
+  <circle cx="30" cy="30" r="22" fill="#00B4A0"/>
+  <text x="30" y="36" font-family="'Arial Black',sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle">mf</text>
+  <text x="62" y="38" font-family="'Arial Black',sans-serif" font-size="19" font-weight="900" fill="#00B4A0" letter-spacing="-0.3">myFatoorah</text>
+</svg>

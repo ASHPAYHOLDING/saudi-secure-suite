@@ -45,7 +45,10 @@ Deno.serve(async (req) => {
 
   const { provider } = body;
 
-  const VALID_PROVIDERS = ["tap", "moyasar", "hyperpay", "stripe", "geidea"];
+  const VALID_PROVIDERS = [
+    "tap", "moyasar", "hyperpay", "stripe", "geidea",
+    "paytabs", "myfatoorah", "telr", "paypal", "tabby", "tamara",
+  ];
   if (!VALID_PROVIDERS.includes(provider)) {
     return json({ error: "Invalid provider" }, 400, corsHeaders);
   }
@@ -85,6 +88,18 @@ Deno.serve(async (req) => {
       result = await testStripe(credentials.secret_key || "");
     } else if (provider === "geidea") {
       result = await testGeidea(credentials.merchant_public_key || "", credentials.api_password || "");
+    } else if (provider === "paytabs") {
+      result = await testPayTabs(credentials.profile_id || "", credentials.server_key || "");
+    } else if (provider === "myfatoorah") {
+      result = await testMyFatoorah(credentials.api_token || "");
+    } else if (provider === "telr") {
+      result = await testTelr(credentials.store_id || "", credentials.auth_key || "");
+    } else if (provider === "paypal") {
+      result = await testPayPal(credentials.client_id || "", credentials.client_secret || "");
+    } else if (provider === "tabby") {
+      result = await testTabby(credentials.secret_key || "");
+    } else if (provider === "tamara") {
+      result = await testTamara(credentials.api_token || "");
     } else {
       result = { success: false, message: "مزود غير معروف" };
     }
@@ -213,4 +228,105 @@ function json(data: any, status = 200, headers = corsHeaders) {
     status,
     headers: { ...headers, "Content-Type": "application/json" },
   });
+}
+
+async function testPayTabs(profileId: string, serverKey: string): Promise<{ success: boolean; message: string }> {
+  if (!profileId || !serverKey) return { success: false, message: "Profile ID و Server Key مطلوبان" };
+  try {
+    const res = await fetch("https://secure.paytabs.sa/payment/request", {
+      method: "POST",
+      headers: { Authorization: serverKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ profile_id: profileId, tran_type: "auth", tran_class: "ecom",
+        cart_id: "test", cart_currency: "SAR", cart_amount: 1, cart_description: "test",
+        paypage_lang: "ar", return: "https://example.com", callback: "https://example.com" }),
+    });
+    if (res.status === 401 || res.status === 403) return { success: false, message: "بيانات PayTabs غير صالحة" };
+    if (res.status === 400 || res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع PayTabs" };
+    return { success: false, message: `خطأ من PayTabs: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testMyFatoorah(apiToken: string): Promise<{ success: boolean; message: string }> {
+  if (!apiToken) return { success: false, message: "API Token مطلوب" };
+  try {
+    const res = await fetch("https://api.myfatoorah.com/v2/GetPaymentStatus", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ Key: "test", KeyType: "PaymentId" }),
+    });
+    if (res.status === 401) return { success: false, message: "API Token غير صالح (401)" };
+    if (res.status === 400 || res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع MyFatoorah" };
+    return { success: false, message: `خطأ من MyFatoorah: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testTelr(storeId: string, authKey: string): Promise<{ success: boolean; message: string }> {
+  if (!storeId || !authKey) return { success: false, message: "Store ID و Auth Key مطلوبان" };
+  try {
+    const res = await fetch("https://secure.telr.com/gateway/order.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ivp_method: "check", ivp_store: storeId, ivp_authkey: authKey,
+        ivp_cart: "test_cart", ivp_test: 1 }),
+    });
+    if (res.status === 401 || res.status === 403) return { success: false, message: "بيانات Telr غير صالحة" };
+    const data = await res.json().catch(() => ({}));
+    if (data?.error?.note?.includes("Unknown Store")) return { success: false, message: "Store ID غير موجود في Telr" };
+    return { success: true, message: "✅ تم الاتصال بنجاح مع Telr" };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testPayPal(clientId: string, clientSecret: string): Promise<{ success: boolean; message: string }> {
+  if (!clientId || !clientSecret) return { success: false, message: "Client ID و Client Secret مطلوبان" };
+  try {
+    const credentials = btoa(`${clientId}:${clientSecret}`);
+    const res = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
+      method: "POST",
+      headers: { Authorization: `Basic ${credentials}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: "grant_type=client_credentials",
+    });
+    if (res.status === 401) return { success: false, message: "بيانات PayPal غير صالحة (401)" };
+    if (res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع PayPal" };
+    return { success: false, message: `خطأ من PayPal: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testTabby(secretKey: string): Promise<{ success: boolean; message: string }> {
+  if (!secretKey) return { success: false, message: "Secret Key مطلوب" };
+  try {
+    const res = await fetch("https://api.tabby.ai/api/v2/checkout", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secretKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ payment: { amount: "1.00", currency: "SAR", description: "test",
+        buyer: { email: "test@test.com", name: "Test", phone: "500000001" },
+        order: { reference_id: "test_001", items: [] } } }),
+    });
+    if (res.status === 401) return { success: false, message: "Secret Key غير صالح (401)" };
+    if (res.status === 400 || res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع Tabby" };
+    return { success: false, message: `خطأ من Tabby: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
+}
+
+async function testTamara(apiToken: string): Promise<{ success: boolean; message: string }> {
+  if (!apiToken) return { success: false, message: "API Token مطلوب" };
+  try {
+    const res = await fetch("https://api-sandbox.tamara.co/merchants/payment-types", {
+      headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
+    });
+    if (res.status === 401) return { success: false, message: "API Token غير صالح (401)" };
+    if (res.ok) return { success: true, message: "✅ تم الاتصال بنجاح مع Tamara" };
+    return { success: false, message: `خطأ من Tamara: ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: "فشل الاتصال: " + err.message };
+  }
 }

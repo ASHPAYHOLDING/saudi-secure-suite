@@ -25,7 +25,7 @@ interface ProviderRecord {
 }
 
 interface ProviderDef {
-  key: "tap" | "moyasar" | "hyperpay" | "stripe" | "geidea";
+  key: "tap" | "moyasar" | "hyperpay" | "stripe" | "geidea" | "paytabs" | "myfatoorah" | "telr" | "paypal" | "tabby" | "tamara";
   label: string;
   labelAr: string;
   tagline: string;
@@ -34,8 +34,8 @@ interface ProviderDef {
   accentCss: string;
   methods: string[];
   webhookFn?: string;
-  /** Signature header name used by this provider */
   signatureHeader: string;
+  category?: "bnpl";
   credentialFields: { key: string; label: string; placeholder: string; hint?: string; secret?: boolean }[];
   setupSteps: string[];
 }
@@ -172,6 +172,140 @@ const PROVIDERS: ProviderDef[] = [
       "في Merchant Portal → Integration، انسخ Merchant Public Key و API Password",
       "في Notification URLs، أضف Webhook URL من الأسفل",
       "اختبر بالبطاقة المقدمة من Geidea في بيئة UAT",
+    ],
+  },
+  {
+    key: "paytabs",
+    label: "PayTabs",
+    labelAr: "بيتابس",
+    tagline: "بوابة الشرق الأوسط",
+    description: "شركة تقنية مالية رائدة في منطقة الشرق الأوسط وأفريقيا. تقدم حلول دفع شاملة للتجارة الإلكترونية مع دعم لأكثر من 168 عملة.",
+    website: "https://www.paytabs.com",
+    accentCss: "#1A3C78",
+    signatureHeader: "x-paytabs-signature",
+    webhookFn: "paytabs-webhook",
+    methods: ["مدى", "فيزا", "ماستركارد", "Apple Pay", "SADAD", "KNET"],
+    credentialFields: [
+      { key: "profile_id",  label: "Profile ID",  placeholder: "12345",                     hint: "PayTabs → Developers → Profile ID" },
+      { key: "server_key",  label: "Server Key",  placeholder: "SKSA-XXXX...",               hint: "PayTabs → Developers → Server Key", secret: true },
+    ],
+    setupSteps: [
+      "سجّل في paytabs.com واحصل على حساب تاجر معتمد",
+      "في Developers → Integration Settings، انسخ Profile ID و Server Key",
+      "في Developers → Webhooks، أضف Webhook URL من الأسفل",
+      "اختر أحداث: payment_authorized, payment_captured, payment_refunded",
+    ],
+  },
+  {
+    key: "myfatoorah",
+    label: "MyFatoorah",
+    labelAr: "ماي فاتورة",
+    tagline: "بوابة الكويت والخليج",
+    description: "منصة فاتورة الإلكترونية ومدفوعات رائدة في الكويت والخليج. تدعم KNET والبطاقات المحلية والدولية مع واجهة عربية متكاملة.",
+    website: "https://myfatoorah.com",
+    accentCss: "#00B4A0",
+    signatureHeader: "x-myfatoorah-signature",
+    webhookFn: "myfatoorah-webhook",
+    methods: ["KNET", "مدى", "فيزا", "ماستركارد", "Apple Pay", "Benefit"],
+    credentialFields: [
+      { key: "api_token",  label: "API Token",  placeholder: "bearer_XXXXXXXXXX...",  hint: "MyFatoorah → API Keys → API Key", secret: true },
+    ],
+    setupSteps: [
+      "سجّل في portal.myfatoorah.com وأكمل التحقق",
+      "في Settings → API Keys، انسخ API Token",
+      "في Settings → Webhooks، أضف Webhook URL وحدد الأحداث",
+      "اختبر بحساب Sandbox المقدم من MyFatoorah",
+    ],
+  },
+  {
+    key: "telr",
+    label: "Telr",
+    labelAr: "تيلر",
+    tagline: "بوابة الإمارات والشرق الأوسط",
+    description: "بوابة دفع رائدة في الإمارات وجنوب آسيا. تقدم حلول متكاملة للبطاقات ومحافظ الدفع الرقمية مع دعم قوي لمنطقة الإمارات.",
+    website: "https://telr.com",
+    accentCss: "#E63946",
+    signatureHeader: "x-telr-signature",
+    webhookFn: "telr-webhook",
+    methods: ["فيزا", "ماستركارد", "Apple Pay", "بطاقات محلية"],
+    credentialFields: [
+      { key: "store_id",  label: "Store ID",   placeholder: "12345",        hint: "Telr → Dashboard → Integration" },
+      { key: "auth_key",  label: "Auth Key",   placeholder: "XXXXXXXX...",  hint: "Telr → Dashboard → Integration → Auth Key", secret: true },
+    ],
+    setupSteps: [
+      "سجّل في telr.com واحصل على حساب تاجر",
+      "في Dashboard → Integration، انسخ Store ID و Auth Key",
+      "في Notification URL، أضف Webhook URL من الأسفل",
+      "اختبر بالبطاقة 4111111111111111 في بيئة الاختبار",
+    ],
+  },
+  {
+    key: "paypal",
+    label: "PayPal",
+    labelAr: "باي بال",
+    tagline: "المدفوعات الدولية الأشهر",
+    description: "منصة الدفع الإلكتروني الأشهر عالمياً مع أكثر من 400 مليون مستخدم. مثالية للمدفوعات الدولية والتجارة الإلكترونية العابرة للحدود.",
+    website: "https://paypal.com",
+    accentCss: "#003087",
+    signatureHeader: "paypal-transmission-sig",
+    webhookFn: "paypal-webhook",
+    methods: ["PayPal", "فيزا", "ماستركارد", "Venmo", "Pay Later"],
+    credentialFields: [
+      { key: "client_id",     label: "Client ID",     placeholder: "AYSq3...",    hint: "developer.paypal.com → Apps → Client ID" },
+      { key: "client_secret", label: "Client Secret", placeholder: "EBWKjlE...", hint: "developer.paypal.com → Apps → Client Secret", secret: true },
+      { key: "webhook_id",    label: "Webhook ID (اختياري)", placeholder: "XXXXXXXX...", hint: "للتحقق المتقدم من Webhooks" },
+    ],
+    setupSteps: [
+      "اذهب إلى developer.paypal.com وأنشئ تطبيقاً جديداً",
+      "انسخ Client ID و Client Secret من التطبيق",
+      "في Webhooks، أضف Webhook URL من الأسفل",
+      "حدد أحداث: PAYMENT.CAPTURE.COMPLETED, CHECKOUT.ORDER.APPROVED",
+      "انسخ Webhook ID إذا أردت التحقق المتقدم",
+    ],
+  },
+  {
+    key: "tabby",
+    label: "Tabby",
+    labelAr: "تابي",
+    tagline: "اشترِ الآن وادفع لاحقاً",
+    description: "منصة BNPL الرائدة في الشرق الأوسط. تتيح للعملاء تقسيم مشترياتهم على 4 دفعات بدون فوائد. مرخصة من ساما وتخدم السعودية والإمارات والكويت.",
+    website: "https://tabby.ai",
+    accentCss: "#3DCC91",
+    signatureHeader: "x-tabby-signature",
+    webhookFn: "tabby-webhook",
+    category: "bnpl",
+    methods: ["BNPL 4 أقساط", "بدون فوائد", "مدى", "فيزا"],
+    credentialFields: [
+      { key: "public_key",  label: "Public Key",  placeholder: "pk_test_XXXX...",  hint: "merchants.tabby.ai → Integration → API Keys" },
+      { key: "secret_key",  label: "Secret Key",  placeholder: "sk_test_XXXX...",  hint: "merchants.tabby.ai → Integration → API Keys", secret: true },
+    ],
+    setupSteps: [
+      "سجّل في merchants.tabby.ai كتاجر",
+      "في Integration → API Keys، انسخ Public Key و Secret Key",
+      "في Integration → Webhooks، أضف Webhook URL من الأسفل",
+      "اختبر بالبطاقة التجريبية المقدمة من Tabby",
+    ],
+  },
+  {
+    key: "tamara",
+    label: "Tamara",
+    labelAr: "تمارا",
+    tagline: "حلول الدفع المرنة",
+    description: "منصة BNPL سعودية رائدة ومرخصة من ساما. توفر خيارات دفع مرنة بالتقسيط بدون بطاقات ائتمان. تخدم أكثر من 10 مليون مستخدم في المنطقة.",
+    website: "https://tamara.co",
+    accentCss: "#00D4AA",
+    signatureHeader: "tamara-signature",
+    webhookFn: "tamara-webhook",
+    category: "bnpl",
+    methods: ["BNPL", "3-4 أقساط", "STC Pay", "مدى"],
+    credentialFields: [
+      { key: "api_token",  label: "API Token",  placeholder: "eyJhbGciOi...",  hint: "merchants.tamara.co → API Credentials → Token", secret: true },
+    ],
+    setupSteps: [
+      "سجّل في merchants.tamara.co كشريك تجاري",
+      "في API Credentials، انسخ API Token",
+      "في Notifications، أضف Webhook URL من الأسفل وانسخ الـ Secret",
+      "اختبر بحساب Sandbox المقدم من Tamara",
     ],
   },
 ];
