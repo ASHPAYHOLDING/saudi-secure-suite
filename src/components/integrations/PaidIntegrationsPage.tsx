@@ -357,8 +357,12 @@ const PaidIntegrationsPage = () => {
         return;
       }
     }
-    // Generic integration flow page
-    navigate(`/dashboard/integrations/setup/${item.id}`);
+    // Generic integration flow page (fallback — item.id not undefined)
+    if (item.id) {
+      navigate(`/dashboard/integrations/setup/${item.id}`);
+    } else {
+      toast({ title: "خطأ", description: "معرّف التكامل غير متاح", variant: "destructive" });
+    }
   };
 
   const handleDeactivate = async (integrationId: string) => {

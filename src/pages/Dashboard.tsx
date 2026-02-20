@@ -219,9 +219,11 @@ const Dashboard = () => {
     if (path.startsWith("/dashboard/integrations/gateway/")) return <GatewaySetupPage />;
     if (path.startsWith("/dashboard/integrations/setup/")) return <IntegrationFlowPage />;
     // Provider detail page: /dashboard/integrations/:category/:provider
-    // Must come AFTER more specific paths above
+    // CRITICAL: key={path} forces full remount on every provider change — prevents state/cache mixing
     const intMatch = path.match(/^\/dashboard\/integrations\/([^/]+)\/([^/]+)$/);
-    if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") return <ProviderDetailPage />;
+    if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") {
+      return <ProviderDetailPage key={path} />;
+    }
     // Provider detail page — handled via sub-routes below
     return <DashboardHome />;
   };
