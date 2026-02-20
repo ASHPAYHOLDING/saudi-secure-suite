@@ -9740,16 +9740,16 @@ export type Database = {
         Returns: {
           activation_source: string
           api_key_label: string
-          can_activate: boolean
           description_ar: string
-          entitlement_allowed: boolean
-          entitlement_reason: string
+          ent_allowed: boolean
+          ent_reason: string
           has_api_client: boolean
           has_secret_configured: boolean
           has_service: boolean
           has_test_connection: boolean
-          integration_id: string
+          id: string
           integration_type: string
+          is_accessible: boolean
           is_ready: boolean
           key: string
           name_ar: string
@@ -9757,7 +9757,7 @@ export type Database = {
           price_once: number
           requires_api_keys: boolean
           sort_order: number
-          tenant_activation_status: string
+          tenant_status: string
           trial_days: number
         }[]
       }
