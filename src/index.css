@@ -370,4 +370,13 @@
   [dir="rtl"] .rtl\:rotate-180 {
     transform: rotate(180deg);
   }
+
+  /* Hide scrollbar but keep scroll (for horizontal chip rows) */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
