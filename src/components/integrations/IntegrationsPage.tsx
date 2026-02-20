@@ -40,6 +40,91 @@ const containerVariants = {
   visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
 };
 
+// ── Marketing Cards (custom, not manifest-based) ──────────────────────────────
+const MARKETING_CARDS = [
+  {
+    id: "tiktok", route: "/dashboard/integrations/marketing/tiktok",
+    name: "TikTok Conversion API", nameEn: "TikTok CAPI",
+    logo: "/brands/marketing/tiktok.svg", color: "from-pink-500/10 to-cyan-400/5",
+    desc: "تتبع التحويلات وإرسال الأحداث إلى TikTok لرفع أداء الحملات وقياس ROAS بدقة.",
+    badges: ["🌍 عالمي", "📣 Marketing", "🔒 Server-side"],
+    group: "تتبع وتحويلات",
+  },
+  {
+    id: "meta", route: "/dashboard/integrations/marketing/meta",
+    name: "Meta Pixel + Conversions API", nameEn: "Meta (Facebook) CAPI",
+    logo: "/brands/marketing/meta.svg", color: "from-blue-500/10 to-blue-400/5",
+    desc: "تتبع التحويلات على Facebook/Instagram عبر Pixel و Server-side CAPI لرفع دقة القياس.",
+    badges: ["🌍 عالمي", "📣 Marketing", "🔒 Server-side CAPI"],
+    group: "تتبع وتحويلات",
+  },
+  {
+    id: "x", route: "/dashboard/integrations/marketing/x",
+    name: "X Pixel", nameEn: "X (Twitter) Pixel",
+    logo: "/brands/marketing/x.svg", color: "from-gray-800/10 to-gray-600/5",
+    desc: "تتبع التحويلات والجماهير على X (تويتر) عبر Universal Website Tag.",
+    badges: ["🌍 عالمي", "📣 Marketing", "🏷️ Browser Tag"],
+    group: "تتبع وتحويلات",
+  },
+  {
+    id: "gtm", route: "/dashboard/integrations/marketing/gtm",
+    name: "Google Tag Manager", nameEn: "Google Tag Manager",
+    logo: "/brands/marketing/google-tag-manager.svg", color: "from-blue-400/10 to-yellow-400/5",
+    desc: "أدر جميع تاقات التتبع (Meta, Google Ads, TikTok...) من مكان واحد.",
+    badges: ["🌍 عالمي", "📣 Marketing", "⚙️ Tag Manager"],
+    group: "تتبع وتحويلات",
+  },
+  {
+    id: "google_ads", route: "/dashboard/integrations/marketing/google-ads",
+    name: "Google Ads Conversions", nameEn: "Google Ads",
+    logo: "/brands/marketing/google-ads.svg", color: "from-green-400/10 to-blue-400/5",
+    desc: "ارفع تحويلات Google Ads من السيرفر لتحسين قياس ROAS وتحسين Smart Bidding.",
+    badges: ["🌍 عالمي", "📣 Marketing", "🔒 Server-side"],
+    group: "تتبع وتحويلات",
+  },
+  {
+    id: "meta_catalog", route: "/dashboard/integrations/marketing/meta-catalog",
+    name: "Meta Catalog (Facebook + Instagram)", nameEn: "Meta Product Catalog",
+    logo: "/brands/marketing/meta.svg", color: "from-blue-500/10 to-purple-400/5",
+    desc: "زامن كاتالوج منتجاتك مع Facebook Shop و Instagram Shopping وحملات Dynamic Ads.",
+    badges: ["🌍 عالمي", "📣 Marketing", "🧾 Catalog"],
+    group: "كاتالوج منتجات",
+  },
+];
+
+interface MktCard { id: string; route: string; name: string; nameEn: string; logo: string; color: string; desc: string; badges: string[]; group: string; }
+const MarketingCard = ({ card, onClick }: { card: MktCard; onClick: () => void }) => (
+  <motion.div variants={cardVariants} layout>
+    <Card className="group relative overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 hover:ring-1 hover:ring-accent/30 flex flex-col h-full" onClick={onClick}>
+      <div className={`absolute top-0 inset-x-0 h-0.5 bg-gradient-to-l ${card.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+      <div className="p-5 flex flex-col flex-1 gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl border border-border/30 bg-background flex items-center justify-center shrink-0 overflow-hidden p-1.5">
+            <img src={card.logo} alt={card.nameEn} className="w-full h-full object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm text-foreground leading-tight">{card.name}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5" dir="ltr">{card.nameEn}</p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{card.desc}</p>
+        <div className="flex flex-wrap gap-1">
+          {card.badges.map((b, i) => (
+            <span key={i} className="text-[10px] bg-muted/50 text-muted-foreground rounded px-2 py-0.5">{b}</span>
+          ))}
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto">
+          <code className="text-[10px] text-muted-foreground/50 font-mono">{card.id}</code>
+          <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-8 text-accent hover:bg-accent/5" onClick={(e) => { e.stopPropagation(); onClick(); }}>
+            الإعداد والتفعيل <ArrowLeft size={12} />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </motion.div>
+);
+
 // ── Provider Card ──────────────────────────────────────────────────────────────
 const ProviderCard = ({ manifest, onOpen }: { manifest: IntegrationManifest; onOpen: () => void }) => {
   const isGlobal = GLOBAL_PAYMENT_IDS.includes(manifest.providerId);
@@ -170,6 +255,13 @@ const IntegrationsPage = () => {
     navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
   };
 
+  const filteredMarketingCards = useMemo(() => {
+    if (activeCategory !== "all" && activeCategory !== "marketing") return [];
+    if (!search.trim()) return MARKETING_CARDS;
+    const q = search.toLowerCase();
+    return MARKETING_CARDS.filter(c => c.name.toLowerCase().includes(q) || c.nameEn.toLowerCase().includes(q) || c.id.includes(q));
+  }, [activeCategory, search]);
+
   const renderSection = (title: string, emoji: string, items: IntegrationManifest[]) => {
     if (items.length === 0) return null;
     return (
@@ -260,7 +352,36 @@ const IntegrationsPage = () => {
             {renderSection("تقسيط BNPL", "💳", bnpl)}
             {renderSection("متاجر إلكترونية", "🛒", ecommerce)}
             {renderSection("نقاط البيع", "📱", pos)}
-            {renderSection("التسويق", "📣", marketing)}
+            {/* ── قسم التسويق بالبطاقات الجديدة ── */}
+            {filteredMarketingCards.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📣</span>
+                  <h2 className="font-bold text-foreground">التسويق</h2>
+                  <Badge variant="secondary" className="text-xs">{filteredMarketingCards.length}</Badge>
+                </div>
+                {/* تتبع وتحويلات */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">تتبع وتحويلات</p>
+                  <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredMarketingCards.filter(c => c.group === "تتبع وتحويلات").map(card => (
+                      <MarketingCard key={card.id} card={card} onClick={() => navigate(card.route)} />
+                    ))}
+                  </motion.div>
+                </div>
+                {/* كاتالوج منتجات */}
+                {filteredMarketingCards.some(c => c.group === "كاتالوج منتجات") && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">كاتالوج منتجات</p>
+                    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {filteredMarketingCards.filter(c => c.group === "كاتالوج منتجات").map(card => (
+                        <MarketingCard key={card.id} card={card} onClick={() => navigate(card.route)} />
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div

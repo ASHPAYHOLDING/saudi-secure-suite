@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <rect width="40" height="40" rx="8" fill="#F4F4F4"/>
+  <!-- GTM box shape -->
+  <rect x="8" y="8" width="11" height="24" rx="2" fill="#8AB4F8"/>
+  <rect x="21" y="8" width="11" height="11" rx="2" fill="#4285F4"/>
+  <rect x="21" y="21" width="11" height="11" rx="2" fill="#FBBC04"/>
+  <text x="20" y="38" text-anchor="middle" font-family="Arial" font-size="6" fill="#555" font-weight="bold">GTM</text>
+</svg>

@@ -75,6 +75,12 @@ const IntegrationFlowPage = lazy(() => import("@/components/integrations/Integra
 const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
 const TikTokDetailPage = lazy(() => import("@/components/integrations/TikTokDetailPage"));
 const MetaDetailPage = lazy(() => import("@/components/integrations/MetaDetailPage"));
+const MetaPixelCapiPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaPixelCapiPage })));
+const XPixelPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.XPixelPage })));
+const GTMPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GTMPage })));
+const GoogleAdsPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.GoogleAdsPage })));
+const MetaCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaCatalogPage })));
+
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -222,12 +228,15 @@ const Dashboard = () => {
     if (path.startsWith("/dashboard/integrations/setup/")) return <IntegrationFlowPage />;
     // Provider detail page: /dashboard/integrations/:category/:provider
     // CRITICAL: key={path} forces full remount on every provider change — prevents state/cache mixing
-    if (path === "/dashboard/integrations/marketing/tiktok") {
-      return <TikTokDetailPage key={path} />;
-    }
-    if (path === "/dashboard/integrations/marketing/meta") {
-      return <MetaDetailPage key={path} />;
-    }
+    if (path === "/dashboard/integrations/marketing/tiktok") return <TikTokDetailPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/meta") return <MetaDetailPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/meta-pixel-capi") return <MetaPixelCapiPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/x") return <XPixelPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/x-catalog") return <XPixelPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/gtm") return <GTMPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/google-ads") return <GoogleAdsPage key={path} />;
+    if (path === "/dashboard/integrations/marketing/meta-catalog") return <MetaCatalogPage key={path} />;
+
     const intMatch = path.match(/^\/dashboard\/integrations\/([^/]+)\/([^/]+)$/);
     if (intMatch && intMatch[1] !== "provider" && intMatch[1] !== "gateway" && intMatch[1] !== "setup") {
       return <ProviderDetailPage key={path} />;
