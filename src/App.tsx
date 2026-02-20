@@ -28,6 +28,7 @@ const DebugPerf = lazy(() => import("./pages/DebugPerf"));
 const DebugEntitlements = lazy(() => import("./pages/DebugEntitlements"));
 const DebugFeatureGates = lazy(() => import("./pages/DebugFeatureGates"));
 const DebugPaymentProviders = lazy(() => import("./pages/DebugPaymentProviders"));
+const DebugWebhooks = lazy(() => import("./pages/DebugWebhooks"));
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="/debug/entitlements" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugEntitlements /></Suspense></ProtectedRoute>} />
               <Route path="/debug/feature-gates" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugFeatureGates /></Suspense></ProtectedRoute>} />
               <Route path="/debug/payment-providers" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugPaymentProviders /></Suspense></ProtectedRoute>} />
+              <Route path="/debug/webhooks" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" /></div>}><DebugWebhooks /></Suspense></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

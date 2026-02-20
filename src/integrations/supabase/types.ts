@@ -8938,9 +8938,15 @@ export type Database = {
           event_id: string
           id: string
           payload: Json | null
-          processed_at: string
+          payload_hash: string | null
+          processed_at: string | null
+          processing_error: string | null
           provider: string
+          provider_event_id: string | null
           provider_response: Json | null
+          raw_headers: Json | null
+          received_at: string
+          signature_valid: boolean | null
           status: string
           tenant_id: string | null
         }
@@ -8949,9 +8955,15 @@ export type Database = {
           event_id: string
           id?: string
           payload?: Json | null
-          processed_at?: string
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
           provider: string
+          provider_event_id?: string | null
           provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
           status?: string
           tenant_id?: string | null
         }
@@ -8960,9 +8972,15 @@ export type Database = {
           event_id?: string
           id?: string
           payload?: Json | null
-          processed_at?: string
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
           provider?: string
+          provider_event_id?: string | null
           provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
           status?: string
           tenant_id?: string | null
         }
