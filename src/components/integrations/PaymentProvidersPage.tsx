@@ -155,7 +155,7 @@ const PROVIDERS: ProviderDef[] = [
   {
     key: "geidea",
     label: "Geidea",
-    labelAr: "جيدة",
+    labelAr: "جيديا",
     tagline: "بوابة الدفع السعودية الرائدة",
     description: "شركة تقنية مالية سعودية رائدة مرخصة من ساما. متخصصة في حلول نقاط البيع والتجارة الإلكترونية وحلول الدفع B2B للسوق السعودية.",
     website: "https://geidea.net",
