@@ -69,6 +69,7 @@ const AdvancedAccountingGate = lazy(() => import("@/components/accounting/Advanc
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
 const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
+const IntegrationDetailPage = lazy(() => import("@/components/integrations/IntegrationDetailPage"));
 
 // Map path segments to module keys
 const PATH_MODULE_MAP: Record<string, Module> = {
@@ -119,6 +120,7 @@ const PATH_MODULE_MAP: Record<string, Module> = {
   group: "company",
   "api-keys": "integrations",
   "payment-marketplace": "integrations",
+  "integrations/provider": "integrations",
 };
 
 const Dashboard = () => {
@@ -210,6 +212,7 @@ const Dashboard = () => {
     if (path === "/dashboard/api-keys") return <ApiKeysManagement />;
     if (path === "/dashboard/integrations/payments") return <PaymentProvidersPage />;
     if (path === "/dashboard/payment-marketplace") return <PaymentMarketplace />;
+    if (path.startsWith("/dashboard/integrations/provider/")) return <IntegrationDetailPage />;
     return <DashboardHome />;
   };
 

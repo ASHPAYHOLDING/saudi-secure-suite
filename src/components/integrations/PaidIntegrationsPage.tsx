@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +18,10 @@ import {
   Power, PowerOff, Key, BookOpen, MessageSquare, Radio,
   ShieldCheck, Loader2, AlertTriangle, Zap, Settings2, CircleDot,
   ArrowRight, Lock, Unlock, WifiOff, Wifi, Wallet, Crown, Sparkles,
-  Layers, TrendingUp, ArrowLeft,
+  Layers, TrendingUp, ArrowLeft, ExternalLink,
 } from "lucide-react";
 import { PaymentGatewayWizard, GATEWAY_DEFS, type GatewayDef } from "./PaymentGatewayWizard";
+import { ALL_PROVIDERS } from "./IntegrationDetailPage";
 
 // ─── Types ───
 interface PaidIntegration {
@@ -150,7 +152,7 @@ const IntegrationSkeleton = () => (
 // ─── Integration Card Component ───
 const IntegrationCard = ({
   item, sub, purchased, hasFreeAccess, isTrial, canPurchase,
-  onActivate, onDeactivate, onComplete,
+  onActivate, onDeactivate, onComplete, onOpenDetail,
 }: {
   item: PaidIntegration;
   sub: TenantSubscription | undefined;
@@ -161,10 +163,13 @@ const IntegrationCard = ({
   onActivate: () => void;
   onDeactivate: () => void;
   onComplete: () => void;
+  onOpenDetail?: () => void;
 }) => {
   const cat = CATEGORY_MAP[item.integration_type] || CATEGORY_MAP.other;
   const CatIcon = cat.icon;
   const isActive = !!sub;
+  const isPaymentGateway = item.integration_type === "payment_gateway";
+  const hasDetailPage = isPaymentGateway && ALL_PROVIDERS.find((p) => p.integrationKey === item.key);
 
   return (
     <motion.div variants={cardVariants} layout>
@@ -230,7 +235,7 @@ const IntegrationCard = ({
           </div>
 
           {/* Price + Action */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto">
+          <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto gap-2">
             <div>
               {hasFreeAccess ? (
                 <div className="flex items-center gap-1.5">
@@ -248,51 +253,74 @@ const IntegrationCard = ({
               )}
             </div>
 
-            {isActive ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs h-9"
-                onClick={onDeactivate}
-              >
-                <PowerOff size={14} /> إيقاف
-              </Button>
-            ) : purchased ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5 text-xs h-9"
-                onClick={onComplete}
-              >
-                <Settings2 size={14} /> إكمال التفعيل
-              </Button>
-            ) : hasFreeAccess ? (
-              <Button
-                size="sm"
-                className="gap-1.5 text-xs h-9"
-                disabled={!item.is_ready}
-                onClick={onActivate}
-              >
-                {item.is_ready ? (
-                  <><Sparkles size={14} /> تفعيل فوري</>
-                ) : (
-                  <><Lock size={14} /> غير متاح</>
-                )}
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                className="gap-1.5 text-xs h-9"
-                disabled={!item.is_ready || !canPurchase}
-                onClick={onActivate}
-              >
-                {!canPurchase ? (
-                  <><Lock size={14} /> ترقية الباقة</>
-                ) : (
-                  <><Power size={14} /> شراء وتفعيل</>
-                )}
-              </Button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {/* For payment gateways with dedicated page: show "open page" button */}
+              {hasDetailPage && isActive && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 text-xs h-9 border-accent/30 text-accent hover:bg-accent/5"
+                  onClick={onOpenDetail}
+                >
+                  <ExternalLink size={13} /> الإعدادات
+                </Button>
+              )}
+
+              {isActive && !hasDetailPage ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs h-9"
+                  onClick={onDeactivate}
+                >
+                  <PowerOff size={14} /> إيقاف
+                </Button>
+              ) : isActive && hasDetailPage ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs h-9"
+                  onClick={onDeactivate}
+                >
+                  <PowerOff size={14} />
+                </Button>
+              ) : purchased ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5 text-xs h-9"
+                  onClick={hasDetailPage ? onOpenDetail : onComplete}
+                >
+                  <Settings2 size={14} /> {hasDetailPage ? "إعداد" : "إكمال التفعيل"}
+                </Button>
+              ) : hasFreeAccess ? (
+                <Button
+                  size="sm"
+                  className="gap-1.5 text-xs h-9"
+                  disabled={!item.is_ready}
+                  onClick={onActivate}
+                >
+                  {item.is_ready ? (
+                    <><Sparkles size={14} /> {hasDetailPage ? "فتح الإعداد" : "تفعيل فوري"}</>
+                  ) : (
+                    <><Lock size={14} /> غير متاح</>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  className="gap-1.5 text-xs h-9"
+                  disabled={!item.is_ready || !canPurchase}
+                  onClick={onActivate}
+                >
+                  {!canPurchase ? (
+                    <><Lock size={14} /> ترقية الباقة</>
+                  ) : (
+                    <><Power size={14} /> شراء وتفعيل</>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Card>
@@ -303,12 +331,13 @@ const IntegrationCard = ({
 // ─── Main Page ───
 const PaidIntegrationsPage = () => {
   const { tenantId, user } = useAuth();
+  const navigate = useNavigate();
 
   // ── Single-RPC state (replaces N+1 waterfall) ──
   const [integrationStates, setIntegrationStates] = useState<IntegrationState[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ── Gateway Wizard state ──
+  // ── Gateway Wizard state (kept for non-payment integrations only) ──
   const [gatewayWizard, setGatewayWizard] = useState<GatewayDef | null>(null);
 
   // Derived from the first row (all rows share same entitlement)
@@ -422,25 +451,33 @@ const PaidIntegrationsPage = () => {
 
   // ─── Flow Handlers (ALL unchanged business logic) ───
   const openFlow = (item: PaidIntegration) => {
-    // ── Payment gateways get the dedicated Wizard ──
+    // ── Payment gateways → navigate to dedicated inner page ──
     if (item.integration_type === "payment_gateway") {
-      const def = GATEWAY_DEFS.find((d) => d.integrationKey === item.key);
-      if (def) {
+      // Find provider id from ALL_PROVIDERS by integrationKey
+      const providerDef = ALL_PROVIDERS.find((p) => p.integrationKey === item.key);
+      if (providerDef) {
         // Auto-activate entry in tenant_paid_integrations first (so provider config is linked)
         if (tenantId && user && !getPurchased(item.id)) {
           const source = hasFreeAccess
             ? (isTrial ? "trial_auto" : "enterprise_auto")
-            : "purchase_pending"; // will be updated after payment
+            : "purchase_pending";
           supabase.from("tenant_paid_integrations").upsert({
             tenant_id: tenantId,
             integration_id: item.id,
-            status: "disabled", // becomes active after wizard completes
+            status: "disabled",
             activated_by: user.id,
             purchased_at: new Date().toISOString(),
             activated_at: new Date().toISOString(),
             activation_source: source,
           } as any, { onConflict: "tenant_id,integration_id" }).then(() => fetchAll());
         }
+        // Navigate to the dedicated inner page
+        navigate(`/dashboard/integrations/provider/${providerDef.id}`);
+        return;
+      }
+      // Fallback: old wizard if def not in ALL_PROVIDERS
+      const def = GATEWAY_DEFS.find((d) => d.integrationKey === item.key);
+      if (def) {
         setGatewayWizard(def);
         return;
       }
@@ -889,6 +926,10 @@ const PaidIntegrationsPage = () => {
                         onActivate={() => openFlow(item)}
                         onDeactivate={() => handleDeactivate(item.id)}
                         onComplete={() => openFlow(item)}
+                        onOpenDetail={() => {
+                          const provDef = ALL_PROVIDERS.find((p) => p.integrationKey === item.key);
+                          if (provDef) navigate(`/dashboard/integrations/provider/${provDef.id}`);
+                        }}
                       />
                     ))}
                 </motion.div>
