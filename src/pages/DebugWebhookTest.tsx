@@ -329,6 +329,39 @@ const PROVIDERS: ProviderConfig[] = [
     eventIdMissing: "hp_ui_test_missing",
     eventIdWrong: "hp_ui_test_wrong",
   },
+  {
+    name: "Stripe",
+    fnName: "stripe-webhook",
+    sigHeader: "stripe-signature",
+    buildBody: (tenantId, invoiceId) => ({
+      id: `evt_ui_test_stripe_${Date.now()}`,
+      type: "payment_intent.succeeded",
+      data: {
+        object: {
+          id: `pi_ui_test_${Date.now()}`,
+          amount_received: 10000,
+          currency: "sar",
+          metadata: { tenant_id: tenantId, invoice_id: invoiceId },
+        },
+      },
+    }),
+    eventIdMissing: "evt_ui_test_stripe_missing",
+    eventIdWrong: "evt_ui_test_stripe_wrong",
+  },
+  {
+    name: "Geidea",
+    fnName: "geidea-webhook",
+    sigHeader: "x-geidea-signature",
+    buildBody: (tenantId, invoiceId) => ({
+      orderId: `geidea_ui_test_${Date.now()}`,
+      status: "Paid",
+      amount: 100,
+      currency: "SAR",
+      merchantReferenceId: `inv_${invoiceId.slice(0, 20)}_tenant_${tenantId.slice(0, 8)}`,
+    }),
+    eventIdMissing: "geidea_ui_test_missing",
+    eventIdWrong: "geidea_ui_test_wrong",
+  },
 ];
 
 interface ProviderTabProps {
@@ -659,7 +692,7 @@ const DebugWebhookTest = () => {
 
       {/* Provider Tabs */}
       <Tabs defaultValue="tap">
-      <TabsList className="grid grid-cols-3 w-full max-w-sm">
+        <TabsList className="grid grid-cols-5 w-full">
           {PROVIDERS.map((p) => (
             <TabsTrigger key={p.fnName} value={p.name.toLowerCase().replace(/\s+/g, "")} className="text-xs">
               {p.name}
@@ -667,7 +700,7 @@ const DebugWebhookTest = () => {
           ))}
         </TabsList>
 
-      {PROVIDERS.map((p) => (
+        {PROVIDERS.map((p) => (
           <TabsContent key={p.fnName} value={p.name.toLowerCase().replace(/\s+/g, "")}>
             <ProviderTab
               provider={p}

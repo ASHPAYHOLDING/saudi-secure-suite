@@ -20,10 +20,11 @@ interface ProviderRecord {
 }
 
 interface ProviderDef {
-  key: "tap" | "moyasar" | "hyperpay";
+  key: "tap" | "moyasar" | "hyperpay" | "stripe" | "geidea";
   label: string;
   description: string;
   color: string;
+  webhookFn?: string; // if has dedicated webhook function
   credentialFields: { key: string; label: string; placeholder: string; secret?: boolean }[];
 }
 
@@ -56,6 +57,28 @@ const PROVIDERS: ProviderDef[] = [
     credentialFields: [
       { key: "access_token", label: "Access Token", placeholder: "OGE4...", secret: true },
       { key: "entity_id", label: "Entity ID", placeholder: "8a8294174b7ecb28014b9699220015ca" },
+    ],
+  },
+  {
+    key: "stripe",
+    label: "Stripe",
+    description: "بوابة الدفع العالمية الأشهر – تدعم أكثر من 135 عملة وطرق دفع متعددة.",
+    color: "from-indigo-500/10 to-indigo-600/5 border-indigo-500/20",
+    webhookFn: "stripe-webhook",
+    credentialFields: [
+      { key: "secret_key", label: "Secret Key (sk_...)", placeholder: "sk_live_...", secret: true },
+      { key: "publishable_key", label: "Publishable Key (pk_...)", placeholder: "pk_live_..." },
+    ],
+  },
+  {
+    key: "geidea",
+    label: "Geidea",
+    description: "بوابة دفع سعودية رائدة – تدعم مدى، فيزا، ماستركارد، والدفع عبر الرابط.",
+    color: "from-orange-500/10 to-orange-600/5 border-orange-500/20",
+    webhookFn: "geidea-webhook",
+    credentialFields: [
+      { key: "merchant_public_key", label: "Merchant Public Key", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
+      { key: "api_password", label: "API Password", placeholder: "Password123!", secret: true },
     ],
   },
 ];
@@ -207,15 +230,19 @@ const PaymentProvidersPage = () => {
     }
   };
 
-  const copyWebhookUrl = (provider: string) => {
-    if (!tenantId) return;
-    const url = `${supabaseUrl}/functions/v1/payment-webhook?provider=${provider}&tenant_id=${tenantId}`;
+  const getWebhookUrl = (providerKey: string) => {
+    if (!tenantId) return "";
+    const dedicatedFn = PROVIDERS.find((p) => p.key === providerKey)?.webhookFn;
+    if (dedicatedFn) return `${supabaseUrl}/functions/v1/${dedicatedFn}?tenant_id=${tenantId}`;
+    return `${supabaseUrl}/functions/v1/payment-webhook?provider=${providerKey}&tenant_id=${tenantId}`;
+  };
+
+  const copyWebhookUrl = (providerKey: string) => {
+    const url = getWebhookUrl(providerKey);
+    if (!url) return;
     navigator.clipboard.writeText(url);
     toast({ title: "تم النسخ", description: "تم نسخ Webhook URL" });
   };
-
-  const getWebhookUrl = (provider: string) =>
-    tenantId ? `${supabaseUrl}/functions/v1/payment-webhook?provider=${provider}&tenant_id=${tenantId}` : "";
 
   if (loading) {
     return (
