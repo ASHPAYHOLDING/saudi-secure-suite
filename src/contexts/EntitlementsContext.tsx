@@ -70,6 +70,7 @@ export async function fetchEntitlementsBulk(tenantId: string): Promise<{
           .from("subscriptions")
           .select("status, plan_id, subscription_plans(slug)")
           .eq("tenant_id", tenantId)
+          .order("status", { ascending: true }) // 'active' sorts before 'cancelled'/'expired'
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
