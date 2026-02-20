@@ -151,6 +151,12 @@ Deno.serve(async (req) => {
   // (Security: always check signature before revealing provider configuration status)
   const sig = req.headers.get("hashid") ?? req.headers.get("x-tap-signature");
   if (!sig) {
+    await db.from("webhook_events").insert({
+      provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
+      tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
+      status: "rejected", signature_valid: false,
+      processing_error: "missing_signature_header", received_at: new Date().toISOString(),
+    }).catch(() => {});
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_hashid_header" });
     return json({ error: "Missing required Tap signature" }, 401);
   }
@@ -189,6 +195,12 @@ Deno.serve(async (req) => {
   // 6. Verify HMAC
   const expected = await hmacSha256hex(webhookSecret, rawBody);
   if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
+    await db.from("webhook_events").insert({
+      provider: PROVIDER, provider_event_id: providerEventId, event_id: providerEventId,
+      tenant_id: tenantId, payload_hash: payloadHash, raw_headers: rawHeaders,
+      status: "rejected", signature_valid: false,
+      processing_error: "hmac_mismatch", received_at: new Date().toISOString(),
+    }).catch(() => {});
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
     return json({ error: "Tap signature verification failed" }, 401);
   }
