@@ -112,7 +112,8 @@ Deno.serve(async (req) => {
       const r = await createHyperPaySession(credentials, { amount, currency, invoiceId, tenantId });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "stripe") {
-      const r = await createStripeSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl, customer });
+      const appUrl = req.headers.get("origin") || "";
+      const r = await createStripeSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl, customer, appUrl });
       sessionId = r.id; paymentUrl = r.url; rawResponse = r.raw;
     } else if (provider === "geidea") {
       const r = await createGeideaSession(credentials, { amount, currency, invoiceId, tenantId, webhookUrl });
@@ -206,15 +207,31 @@ async function createHyperPaySession(creds: any, opts: any) {
 
 async function createStripeSession(creds: any, opts: any) {
   const secretKey = creds.secret_key || creds.api_key || "";
-  // Create a PaymentIntent via Stripe API
+
+  // Determine success/cancel URLs — use a generic hosted page if not provided
+  const successUrl = opts.successUrl || `${opts.appUrl || "https://saudi-secure-suite.lovable.app"}/dashboard/invoices?payment=success&invoice_id=${opts.invoiceId}`;
+  const cancelUrl  = opts.cancelUrl  || `${opts.appUrl || "https://saudi-secure-suite.lovable.app"}/dashboard/invoices?payment=cancelled&invoice_id=${opts.invoiceId}`;
+
+  // Use Stripe Checkout Session — gives a hosted payment page URL
   const params = new URLSearchParams({
-    amount: String(Math.round(opts.amount * 100)), // Stripe uses smallest unit
-    currency: (opts.currency || "SAR").toLowerCase(),
+    "payment_method_types[0]": "card",
+    "line_items[0][price_data][currency]": (opts.currency || "SAR").toLowerCase(),
+    "line_items[0][price_data][unit_amount]": String(Math.round(opts.amount * 100)), // Stripe uses smallest unit (halalas)
+    "line_items[0][price_data][product_data][name]": `فاتورة ${opts.invoiceId.slice(0, 20)}`,
+    "line_items[0][quantity]": "1",
+    "mode": "payment",
+    "success_url": successUrl,
+    "cancel_url": cancelUrl,
     "metadata[invoice_id]": opts.invoiceId,
     "metadata[tenant_id]": opts.tenantId,
-    "automatic_payment_methods[enabled]": "true",
   });
-  const res = await fetch("https://api.stripe.com/v1/payment_intents", {
+
+  // Attach customer email if available
+  if (opts.customer?.email) {
+    params.set("customer_email", opts.customer.email);
+  }
+
+  const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${secretKey}`,
@@ -222,10 +239,16 @@ async function createStripeSession(creds: any, opts: any) {
     },
     body: params.toString(),
   });
+
   const d = await res.json();
-  if (!res.ok || !d.id) throw new Error(d.error?.message || "Stripe API error");
-  // Return client_secret as URL so frontend can use Stripe.js
-  return { id: d.id, url: `stripe://payment_intent/${d.id}?client_secret=${d.client_secret}`, raw: { id: d.id, status: d.status } };
+  if (!res.ok || !d.id) throw new Error(d.error?.message || "Stripe Checkout Session API error");
+
+  // Return hosted checkout URL directly — frontend just opens this URL
+  return {
+    id: d.id,
+    url: d.url,  // Stripe-hosted checkout page URL
+    raw: { sessionId: d.id, payment_status: d.payment_status, url: d.url },
+  };
 }
 
 async function createGeideaSession(creds: any, opts: any) {
