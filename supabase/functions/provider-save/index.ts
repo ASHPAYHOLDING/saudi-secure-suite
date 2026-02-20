@@ -46,9 +46,33 @@ Deno.serve(async (req) => {
 
   const { provider, credentials, webhookSecret } = body;
 
-  // Validate provider
-  if (!["tap", "moyasar", "hyperpay"].includes(provider)) {
-    return json({ error: "Invalid provider. Must be tap, moyasar, or hyperpay" }, 400, corsHeaders);
+  // Validate provider — includes new gateways
+  const VALID_PROVIDERS = ["tap", "moyasar", "hyperpay", "stripe", "geidea"];
+  if (!VALID_PROVIDERS.includes(provider)) {
+    return json({ error: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(", ")}` }, 400, corsHeaders);
+  }
+
+  // Provider-specific required fields validation
+  const REQUIRED_FIELDS: Record<string, string[]> = {
+    tap:      ["secret_key"],
+    moyasar:  ["secret_key"],
+    hyperpay: ["access_token", "entity_id"],
+    stripe:   ["secret_key"],
+    geidea:   ["merchant_public_key", "api_password"],
+  };
+  const required = REQUIRED_FIELDS[provider] || [];
+  for (const field of required) {
+    const val = credentials?.[field];
+    if (!val || typeof val !== "string" || !val.trim()) {
+      return json({ error: `الحقل "${field}" مطلوب لمزود ${provider}` }, 400, corsHeaders);
+    }
+  }
+
+  // Stripe key format check
+  if (provider === "stripe" && credentials.secret_key) {
+    if (!credentials.secret_key.startsWith("sk_live_") && !credentials.secret_key.startsWith("sk_test_")) {
+      return json({ error: "مفتاح Stripe يجب أن يبدأ بـ sk_live_ أو sk_test_" }, 400, corsHeaders);
+    }
   }
 
   if (!credentials || typeof credentials !== "object") {
