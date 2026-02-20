@@ -395,7 +395,7 @@ const IntegrationFlowPage = () => {
       {/* ── رأس الصفحة ── */}
       <div className="flex items-center gap-3">
         <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={() => navigate("/dashboard/paid-integrations")}>
-          <ArrowLeft size={15} className="rotate-180" /> رجوع
+          <ArrowLeft size={15} /> رجوع
         </Button>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -419,16 +419,16 @@ const IntegrationFlowPage = () => {
       </div>
 
       {/* ── التبويبات ── */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-3 h-11">
-          <TabsTrigger value="setup" className="gap-1.5 text-sm">
-            <Settings2 size={14} /> الإعداد
+      <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+        <TabsList className="w-full grid grid-cols-3 h-11" dir="rtl">
+          <TabsTrigger value="support" className="gap-1.5 text-sm">
+            <Headphones size={14} /> رفع مشكلة
           </TabsTrigger>
           <TabsTrigger value="guide" className="gap-1.5 text-sm">
             <BookOpen size={14} /> دليل الاستخدام
           </TabsTrigger>
-          <TabsTrigger value="support" className="gap-1.5 text-sm">
-            <Headphones size={14} /> رفع مشكلة
+          <TabsTrigger value="setup" className="gap-1.5 text-sm">
+            <Settings2 size={14} /> الإعداد
           </TabsTrigger>
         </TabsList>
 
