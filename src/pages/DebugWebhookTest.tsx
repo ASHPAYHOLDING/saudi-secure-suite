@@ -389,18 +389,30 @@ function ProviderTab({ provider, projectRef, tenantId, invoiceId }: ProviderTabP
     }
     setter({ status: null, body: "", ok: null, loading: true });
 
-    const body = JSON.stringify(provider.buildBody(tenantId, invoiceId));
+    const reqBody = JSON.stringify(provider.buildBody(tenantId, invoiceId));
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (type === "wrong") headers[provider.sigHeader] = "bad_signature_intentional";
 
-    try {
-      const res = await fetch(baseUrl, { method: "POST", headers, body });
-      const text = await res.text();
-      setter({ status: res.status, body: text, ok: res.ok, loading: false });
-    } catch (e: any) {
-      const msg = e?.message ?? String(e) ?? "Network error (CORS or connection refused)";
-      setter({ status: null, body: msg, ok: false, loading: false, error: msg });
-    }
+    // Use XMLHttpRequest instead of fetch to avoid Supabase client interceptors
+    // and browser unhandledrejection events that can trigger error monitoring.
+    const result = await new Promise<TestResult>((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", baseUrl, true);
+      Object.entries(headers).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+      xhr.onload = () => {
+        resolve({ status: xhr.status, body: xhr.responseText, ok: xhr.status >= 200 && xhr.status < 300, loading: false });
+      };
+      xhr.onerror = () => {
+        resolve({ status: null, body: "Network error (CORS or connection refused)", ok: false, loading: false, error: "Network error" });
+      };
+      xhr.ontimeout = () => {
+        resolve({ status: null, body: "Request timed out", ok: false, loading: false, error: "Timeout" });
+      };
+      xhr.timeout = 15000;
+      xhr.send(reqBody);
+    });
+
+    setter(result);
 
     // Run DB queries after invocation — in its own try-catch so it never crashes the page
     try { await runQueries(); } catch { /* non-critical */ }
