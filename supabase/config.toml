@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.payment-create-intent]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.geidea-webhook]
+verify_jwt = false
