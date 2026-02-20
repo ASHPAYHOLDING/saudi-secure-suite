@@ -4407,34 +4407,106 @@ export type Database = {
       }
       marketing_events_logs: {
         Row: {
+          action: string | null
           created_at: string
           duration_ms: number | null
+          environment: string | null
           event_name: string
           id: string
+          idempotency_key: string | null
           provider: string
+          request_body: Json | null
           response_body: string | null
           status_code: number | null
           tenant_id: string
         }
         Insert: {
+          action?: string | null
           created_at?: string
           duration_ms?: number | null
+          environment?: string | null
           event_name: string
           id?: string
+          idempotency_key?: string | null
           provider?: string
+          request_body?: Json | null
           response_body?: string | null
           status_code?: number | null
           tenant_id: string
         }
         Update: {
+          action?: string | null
           created_at?: string
           duration_ms?: number | null
+          environment?: string | null
           event_name?: string
           id?: string
+          idempotency_key?: string | null
           provider?: string
+          request_body?: Json | null
           response_body?: string | null
           status_code?: number | null
           tenant_id?: string
+        }
+        Relationships: []
+      }
+      marketing_idempotency: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          provider: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          provider: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          provider?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      marketing_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          environment: string
+          id: string
+          provider: string
+          secrets_encrypted: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          environment?: string
+          id?: string
+          provider: string
+          secrets_encrypted?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          environment?: string
+          id?: string
+          provider?: string
+          secrets_encrypted?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
