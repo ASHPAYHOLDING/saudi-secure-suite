@@ -50,7 +50,7 @@ interface ProviderRecord {
 }
 
 interface ProviderDef {
-  key: "paytabs" | "myfatoorah" | "telr" | "paypal" | "tabby" | "tamara";
+  key: "paytabs" | "myfatoorah" | "telr" | "paypal" | "tabby" | "tamara" | "emkan" | "mispay";
   label: string;
   labelAr: string;
   tagline: string;
@@ -139,17 +139,43 @@ const PROVIDERS: ProviderDef[] = [
     fieldLabels: { apiKey: "Public Key", secretKey: "Secret Key", webhookSecret: "Webhook Secret" },
   },
   {
-    key: "tamara",
+    key: "tamara" as const,
     label: "Tamara",
     labelAr: "تمارا",
     tagline: "حلول الدفع المرنة",
     description: "منصة BNPL سعودية رائدة ومرخصة من ساما. توفر خيارات دفع مرنة بالتقسيط بدون بطاقات ائتمان. تخدم أكثر من 10 مليون مستخدم في المنطقة.",
     website: "https://tamara.co",
     accentColor: "#00D4AA",
-    category: "bnpl",
+    category: "bnpl" as const,
     methods: ["BNPL", "3-4 أقساط", "STC Pay", "مدى"],
     popularity: 4,
     fieldLabels: { apiKey: "API Token", secretKey: "Notification Key", webhookSecret: "Webhook Secret" },
+  },
+  {
+    key: "emkan" as const,
+    label: "Emkan",
+    labelAr: "إمكان",
+    tagline: "تقسيط فوري داخل صفحة الدفع",
+    description: "تقسيط فوري للعملاء داخل الدفع — تقليل التراجع وزيادة التحويل. حل BNPL سعودي مرخّص يخدم التجار داخل المملكة.",
+    website: "https://merchants.emkanfinance.com.sa",
+    accentColor: "#0D9488",
+    category: "bnpl" as const,
+    methods: ["BNPL", "تقسيط فوري", "🇸🇦 SA"],
+    popularity: 3,
+    fieldLabels: { apiKey: "Merchant ID", secretKey: "Client Secret", webhookSecret: "Webhook Secret" },
+  },
+  {
+    key: "mispay" as const,
+    label: "MISPAY",
+    labelAr: "ميسباي",
+    tagline: "تقسيط مرن مع موافقة فورية",
+    description: "تقسيط مرن للعملاء داخل صفحة الدفع مع موافقة فورية وزيادة معدل التحويل. حل BNPL سعودي مع دعم Webhook و Redirect Flow.",
+    website: "https://mispay.co",
+    accentColor: "#7C3AED",
+    category: "bnpl" as const,
+    methods: ["BNPL", "تقسيط مرن", "🇸🇦 SA"],
+    popularity: 3,
+    fieldLabels: { apiKey: "Merchant ID", secretKey: "Client Secret", webhookSecret: "Webhook Secret" },
   },
 ];
 

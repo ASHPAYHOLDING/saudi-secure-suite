@@ -2,7 +2,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 interface BrandLogoProps {
-  provider: "tap" | "moyasar" | "hyperpay" | "stripe" | "geidea" | "paytabs" | "myfatoorah" | "telr" | "paypal" | "tabby" | "tamara";
+  provider: "tap" | "moyasar" | "hyperpay" | "stripe" | "geidea" | "paytabs" | "myfatoorah" | "telr" | "paypal" | "tabby" | "tamara" | "emkan" | "mispay";
   className?: string;
   variant?: "light" | "dark";
 }
@@ -19,6 +19,8 @@ const LOGO_PATHS: Record<string, { light: string; dark: string }> = {
   paypal:      { light: "/brands/payment/paypal.svg",      dark: "/brands/payment/paypal.svg"       },
   tabby:       { light: "/brands/payment/tabby.svg",       dark: "/brands/payment/tabby.svg"        },
   tamara:      { light: "/brands/payment/tamara.svg",      dark: "/brands/payment/tamara.svg"       },
+  emkan:       { light: "/brands/bnpl/emkan.svg",          dark: "/brands/bnpl/emkan.svg"           },
+  mispay:      { light: "/brands/bnpl/mispay.svg",         dark: "/brands/bnpl/mispay.svg"          },
 };
 
 const ALT_LABELS: Record<string, string> = {
@@ -33,6 +35,8 @@ const ALT_LABELS: Record<string, string> = {
   paypal:     "PayPal",
   tabby:      "Tabby",
   tamara:     "Tamara",
+  emkan:      "إمكان (Emkan)",
+  mispay:     "MISPAY",
 };
 
 export const BrandLogo = ({ provider, className, variant }: BrandLogoProps) => {
