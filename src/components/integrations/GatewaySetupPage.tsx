@@ -56,27 +56,164 @@ const GATEWAY_GUIDES: Record<string, { steps: { title: string; desc: string; tip
       { title: "سجّل دخولك على Stripe Dashboard", desc: "اذهب إلى dashboard.stripe.com وسجّل دخولك بحسابك." },
       { title: "انتقل إلى إعدادات المطوّرين", desc: "من القائمة الجانبية اختر Developers → API Keys.", tip: "تأكد أنك في الوضع الصحيح (Live أو Test)" },
       { title: "انسخ Secret Key", desc: "اضغط على Reveal live key واحفظها — ستبدأ بـ sk_live_...", tip: "لا تشارك هذا المفتاح مع أحد أبداً" },
-      { title: "أنشئ Webhook Endpoint", desc: "اذهب إلى Developers → Webhooks → Add Endpoint وأضف URL الخاص بنومكسيو.", tip: "اختر الأحداث: payment_intent.succeeded, charge.refunded" },
-      { title: "انسخ Signing Secret", desc: "بعد إنشاء الـ Webhook، انقر عليه وانسخ Signing Secret — ستجده في قسم Webhook details." },
+      { title: "أنشئ Webhook Endpoint", desc: "اذهب إلى Developers → Webhooks → Add Endpoint وأضف URL نومكسيو.", tip: "اختر الأحداث: payment_intent.succeeded, charge.refunded" },
+      { title: "انسخ Signing Secret", desc: "بعد إنشاء الـ Webhook، انقر عليه وانسخ Signing Secret من قسم Webhook details." },
     ],
     faq: [
-      { q: "هل يمكنني البدء بـ Test Mode؟", a: "نعم، يمكنك استخدام sk_test_... في البداية للتجربة ثم الانتقال لـ sk_live_ لاحقاً." },
-      { q: "ماذا لو نسيت Secret Key؟", a: "لا يمكن استرداده — يجب إنشاء مفتاح جديد من Stripe Dashboard." },
-      { q: "هل يدعم النظام Stripe Connect؟", a: "يدعم النظام Stripe القياسي حالياً. لـ Connect يرجى التواصل مع الدعم." },
+      { q: "هل يمكنني البدء بـ Test Mode؟", a: "نعم، استخدم sk_test_... للتجربة ثم انتقل لـ sk_live_ عند الإطلاق." },
+      { q: "ماذا لو نسيت Secret Key؟", a: "لا يمكن استرداده — أنشئ مفتاحاً جديداً من Stripe Dashboard." },
+      { q: "هل يدعم النظام Stripe Connect؟", a: "يدعم Stripe القياسي حالياً. للـ Connect تواصل مع الدعم." },
     ],
   },
   geidea: {
     steps: [
       { title: "سجّل دخولك على Geidea Merchant Portal", desc: "اذهب إلى merchant.geidea.net وسجّل دخولك." },
       { title: "انتقل إلى Integration Settings", desc: "من القائمة اختر Integration → API Credentials." },
-      { title: "انسخ Merchant Public Key", desc: "هذا المفتاح العام — يمكنك مشاركته بأمان نسبي.", tip: "تأكد أنك تستخدم بيانات الإنتاج وليس البيئة التجريبية" },
-      { title: "انسخ API Password", desc: "كلمة المرور السرية — احفظها بأمان.", tip: "لا تضعها في أي كود مصدري أو رسائل" },
+      { title: "انسخ Merchant Public Key", desc: "هذا المفتاح العام — يمكنك مشاركته بأمان نسبي.", tip: "تأكد من استخدام بيانات الإنتاج وليس البيئة التجريبية" },
+      { title: "انسخ API Password", desc: "كلمة المرور السرية — احفظها بأمان ولا تضعها في أي رسائل.", tip: "لا تشارك هذا المفتاح أبداً" },
       { title: "أضف Webhook URL", desc: "من Webhooks → Add Webhook أضف URL نومكسيو وانسخ الـ Shared Secret." },
     ],
     faq: [
-      { q: "ما الفرق بين البيئة التجريبية والإنتاجية؟", a: "البيئة التجريبية للاختبار فقط والمدفوعات وهمية. الإنتاجية تستقبل مدفوعات حقيقية." },
-      { q: "لا أجد خيار Webhooks في البوابة؟", a: "يجب أن يكون حسابك مُفعّلاً بالكامل. تواصل مع فريق دعم Geidea." },
-      { q: "هل يدعم نظام نومكسيو SAR و USD؟", a: "نعم، يدعم متعدد العملات بشكل تلقائي." },
+      { q: "ما الفرق بين البيئة التجريبية والإنتاجية؟", a: "التجريبية للاختبار فقط والمدفوعات وهمية. الإنتاجية تستقبل مدفوعات حقيقية." },
+      { q: "لا أجد خيار Webhooks؟", a: "يجب تفعيل الحساب بالكامل. تواصل مع دعم Geidea." },
+      { q: "هل يدعم SAR و USD؟", a: "نعم، يدعم متعدد العملات تلقائياً." },
+    ],
+  },
+  tap: {
+    steps: [
+      { title: "سجّل دخولك على Tap Dashboard", desc: "اذهب إلى dashboard.tap.company وسجّل دخولك بحسابك التجاري." },
+      { title: "انتقل إلى Developer Settings", desc: "من القائمة اختر Developers → API Keys.", tip: "تأكد من اختيار Live Keys وليس Test Keys للإنتاج" },
+      { title: "انسخ Secret Key", desc: "اضغط على Secret Key وانسخها — ستبدأ بـ sk_live_..." },
+      { title: "انسخ Public Key", desc: "انسخ Public Key كذلك — ستبدأ بـ pk_live_..." },
+      { title: "أضف Webhook URL", desc: "من Webhooks → Create New أضف URL نومكسيو واحفظ الـ Webhook Secret." },
+    ],
+    faq: [
+      { q: "هل تدعم Tap المدفوعات بالريال؟", a: "نعم، تدعم SAR وعدة عملات خليجية وعالمية." },
+      { q: "ما طرق الدفع التي تدعمها Tap؟", a: "بطاقات Visa/Mastercard، KNET، Benefit، Fawry، وApple Pay." },
+      { q: "كيف أختبر التكامل؟", a: "استخدم Test Keys من لوحة Tap مع بطاقات الاختبار المتوفرة في وثائقهم." },
+    ],
+  },
+  moyasar: {
+    steps: [
+      { title: "سجّل دخولك على Moyasar Dashboard", desc: "اذهب إلى dashboard.moyasar.com وسجّل دخولك." },
+      { title: "انتقل إلى API Keys", desc: "من القائمة الجانبية اختر Developer → API Keys.", tip: "استخدم Live API Keys للإنتاج" },
+      { title: "انسخ Secret Key", desc: "اضغط على عرض Secret Key وانسخها — ابدأ بـ sk_live_..." },
+      { title: "انسخ Publishable Key", desc: "انسخ كذلك Publishable Key — ابدأ بـ pk_live_..." },
+      { title: "سجّل Webhook", desc: "من Webhooks أضف URL نومكسيو واحفظ الـ Secret." },
+    ],
+    faq: [
+      { q: "هل تدعم Moyasar مدفوعات Mada؟", a: "نعم، Moyasar تدعم Mada ومدى وفيزا وماستركارد وApple Pay." },
+      { q: "هل تعمل Moyasar في السعودية فقط؟", a: "متخصصة بالسوق السعودي لكنها تدعم بعض العملات الأخرى." },
+      { q: "كيف أختبر قبل الإطلاق؟", a: "استخدم Test Keys مع بطاقات الاختبار من صفحة Moyasar للمطورين." },
+    ],
+  },
+  hyperpay: {
+    steps: [
+      { title: "تواصل مع HyperPay للحصول على بيانات الاعتماد", desc: "HyperPay تتطلب تفعيلاً يدوياً — تواصل مع فريقهم على hyperpay.com للحصول على بيانات الاعتماد.", tip: "قد تستغرق عملية التفعيل 2-5 أيام عمل" },
+      { title: "استلم Entity ID", desc: "ستستلم Entity ID لكل طريقة دفع (فيزا، ماستركارد، Mada) كلٌّ منها بـ Entity ID مختلف." },
+      { title: "استلم Access Token", desc: "احفظ Access Token الذي تستلمه — يُجدَّد دورياً من HyperPay." },
+      { title: "أضف Webhook URL", desc: "أخبر فريق HyperPay بـ URL نومكسيو لإضافته كـ Webhook Endpoint رسمي." },
+    ],
+    faq: [
+      { q: "هل HyperPay تدعم Mada؟", a: "نعم، تدعم Mada ومدى وفيزا وماستركارد وApple Pay وSTC Pay." },
+      { q: "لماذا يوجد أكثر من Entity ID؟", a: "كل طريقة دفع لها Entity ID خاص بها في نظام HyperPay." },
+      { q: "كم وقت التفعيل؟", a: "عادةً 3-7 أيام عمل بعد تقديم الوثائق المطلوبة." },
+    ],
+  },
+  paytabs: {
+    steps: [
+      { title: "سجّل دخولك على PayTabs Merchant Portal", desc: "اذهب إلى merchant.paytabs.com وسجّل دخولك بحسابك." },
+      { title: "انتقل إلى Developers", desc: "من القائمة اختر Developers → API Keys.", tip: "تأكد من اختيار Production Profile" },
+      { title: "انسخ Profile ID", desc: "الـ Profile ID معرّف حسابك التجاري في PayTabs — ضروري لجميع العمليات." },
+      { title: "انسخ Server Key", desc: "هذا المفتاح السري — لا تشاركه أبداً ولا تضعه في كود العميل.", tip: "استخدم مفتاحاً مختلفاً لبيئة الاختبار" },
+      { title: "أضف Webhook URL", desc: "من Notifications → IPN أضف URL نومكسيو لاستقبال تحديثات المدفوعات." },
+    ],
+    faq: [
+      { q: "ما الدول التي تدعمها PayTabs؟", a: "السعودية، الإمارات، مصر، والبحرين وغيرها في منطقة MENA." },
+      { q: "هل تدعم PayTabs المدفوعات المؤجلة (BNPL)؟", a: "تدعم خطط تقسيط عبر شركاء محددين. تواصل مع PayTabs لمعرفة المتاح في منطقتك." },
+      { q: "ما طرق الدفع المدعومة؟", a: "Visa، Mastercard، Mada، Amex، Tabby، Tamara، وApple Pay." },
+    ],
+  },
+  myfatoorah: {
+    steps: [
+      { title: "سجّل دخولك على MyFatoorah Portal", desc: "اذهب إلى portal.myfatoorah.com وسجّل دخولك." },
+      { title: "انتقل إلى API Settings", desc: "من القائمة اختر Settings → API Keys.", tip: "تأكد من استخدام مفاتيح Sandbox للاختبار أولاً" },
+      { title: "أنشئ API Token", desc: "اضغط Generate Token وانسخه — صلاحيته 90 يوم افتراضياً.", tip: "سيُرسَل إشعار قبل انتهاء الصلاحية" },
+      { title: "أضف Webhook URL", desc: "من Webhooks → Add New أضف URL نومكسيو واحفظ الـ Secret Key المولَّد." },
+    ],
+    faq: [
+      { q: "ما الدول التي تخدمها MyFatoorah؟", a: "الكويت، السعودية، الإمارات، البحرين، قطر، الأردن، ومصر." },
+      { q: "ينتهي الـ Token بعد 90 يوم، ماذا أفعل؟", a: "ولّد Token جديداً وحدّثه في صفحة الإعداد هنا — ستبقى إعداداتك الأخرى." },
+      { q: "هل تدعم KNET في الكويت؟", a: "نعم، KNET هي طريقة الدفع الرئيسية لـ MyFatoorah في الكويت." },
+    ],
+  },
+  telr: {
+    steps: [
+      { title: "سجّل دخولك على Telr Merchant Portal", desc: "اذهب إلى merchant.telr.com وسجّل دخولك بحسابك." },
+      { title: "انتقل إلى API Keys", desc: "من إعدادات الحساب اختر API Keys.", tip: "احرص على استخدام مفاتيح بيئة الإنتاج" },
+      { title: "انسخ Store ID", desc: "الـ Store ID هو معرّف متجرك في Telr — ضروري لجميع الطلبات." },
+      { title: "انسخ Auth Key", desc: "هذا المفتاح السري للمصادقة — لا تشاركه أبداً." },
+      { title: "فعّل Webhook", desc: "من إعدادات الإشعارات أضف URL نومكسيو لاستقبال تحديثات المدفوعات." },
+    ],
+    faq: [
+      { q: "ما المناطق التي يغطيها Telr؟", a: "الإمارات، السعودية، وعدد من دول الخليج والشرق الأوسط." },
+      { q: "هل يدعم Telr المدفوعات المتكررة؟", a: "نعم، يدعم الاشتراكات والمدفوعات المتكررة." },
+      { q: "ما العملات المدعومة؟", a: "AED، SAR، USD، GBP، EUR وغيرها." },
+    ],
+  },
+  paypal: {
+    steps: [
+      { title: "سجّل دخولك على PayPal Developer", desc: "اذهب إلى developer.paypal.com وسجّل دخولك بحسابك التجاري.", tip: "تأكد أن الحساب من نوع Business وليس Personal" },
+      { title: "أنشئ تطبيقاً جديداً", desc: "من My Apps & Credentials → Create App، اختر Merchant وأدخل اسماً للتطبيق." },
+      { title: "انسخ Client ID", desc: "الـ Client ID للتعريف العام — ابدأ بـ AV... في الإنتاج." },
+      { title: "انسخ Secret", desc: "اضغط Show وانسخ الـ Secret — احتفظ به في مكان آمن.", tip: "أنشئ Secret منفصلاً لبيئة Sandbox للاختبار" },
+      { title: "فعّل Webhooks", desc: "من إعدادات التطبيق → Webhooks أضف URL نومكسيو واختر أحداث الدفع المطلوبة." },
+    ],
+    faq: [
+      { q: "هل يعمل PayPal في السعودية؟", a: "PayPal متاح للعملاء الدوليين. للمدفوعات المحلية استخدم Tap أو Moyasar." },
+      { q: "ما رسوم PayPal؟", a: "تختلف حسب البلد والعملة — راجع صفحة الرسوم على موقع PayPal." },
+      { q: "هل يدعم PayPal الريال السعودي؟", a: "حالياً يعتمد PayPal على USD للتسويات. يتم التحويل تلقائياً." },
+    ],
+  },
+  tabby: {
+    steps: [
+      { title: "تقدّم بطلب إلى Tabby", desc: "اذهب إلى tabby.ai/merchants وقدّم طلبك التجاري — يستغرق التفعيل 2-5 أيام.", tip: "يتطلب سجلاً تجارياً ساري المفعول" },
+      { title: "استلم بيانات الاعتماد", desc: "بعد القبول، ستستلم API Key خاصاً بحسابك عبر البريد الإلكتروني." },
+      { title: "انسخ Public Key", desc: "يُستخدَم Public Key في صفحة الدفع — يمكن مشاركته بأمان." },
+      { title: "انسخ Secret Key", desc: "يُستخدَم Secret Key في التحقق من الطلبات — لا تشاركه أبداً.", tip: "احفظه في مكان آمن فوراً" },
+      { title: "أضف Webhook URL", desc: "من إعدادات Tabby أضف URL نومكسيو ليستقبل تحديثات حالة الأقساط." },
+    ],
+    faq: [
+      { q: "ما الحد الأقصى لقيمة الطلب مع Tabby؟", a: "يختلف حسب العميل وتاريخه الائتماني. عادةً 5,000 إلى 15,000 ريال." },
+      { q: "كيف يدفع العميل عبر Tabby؟", a: "يختار العميل Tabby عند الدفع وينقسم المبلغ لـ 4 أقساط بدون فوائد." },
+      { q: "متى أحصل على المبلغ كتاجر؟", a: "تحوّل Tabby المبلغ الكامل للتاجر خلال 3-5 أيام عمل من الطلب." },
+    ],
+  },
+  tamara: {
+    steps: [
+      { title: "تقدّم بطلب إلى Tamara", desc: "اذهب إلى tamara.co/merchants وقدّم طلبك التجاري مع الوثائق المطلوبة.", tip: "يستغرق التفعيل عادةً 3-7 أيام عمل" },
+      { title: "استلم API Token", desc: "بعد الموافقة، ستستلم API Token من فريق Tamara عبر البريد." },
+      { title: "انسخ Token الإنتاج", desc: "استخدم Production Token فقط في بيئة الإنتاج الحقيقية.", tip: "لا تضع Sandbox Token في بيئة الإنتاج أبداً" },
+      { title: "أضف Notification URL", desc: "أخبر فريق Tamara بـ URL نومكسيو لإضافته كـ Notification Endpoint." },
+    ],
+    faq: [
+      { q: "ما الفرق بين Tabby وTamara؟", a: "كلاهما BNPL. Tamara أكثر انتشاراً في السعودية وتوفر خيارات أكثر مرونة." },
+      { q: "كم عدد الأقساط التي يوفرها Tamara؟", a: "تصل إلى 4 أقساط شهرية بدون فوائد أو حتى 12 قسطاً." },
+      { q: "ما الحد الأقصى للسلة؟", a: "يختلف حسب العميل وعادةً يصل لـ 20,000 ريال." },
+    ],
+  },
+  // ── افتراضي ──
+  default: {
+    steps: [
+      { title: "احصل على بيانات الاعتماد", desc: "سجّل دخولك على بوابة المزوّد واذهب لإعدادات المطوّرين أو API Keys." },
+      { title: "انسخ المفاتيح المطلوبة", desc: "انسخ Secret Key والـ Public Key إن وُجد — احفظهما في مكان آمن.", tip: "لا تشارك Secret Key أبداً" },
+      { title: "أدخل المفاتيح هنا", desc: "الصق المفاتيح في خانة الإعداد — تُشفَّر فوراً بـ AES-256-GCM." },
+      { title: "أضف Webhook URL", desc: "أضف URL نومكسيو في إعدادات Webhook لدى المزوّد لاستقبال تحديثات المدفوعات." },
+    ],
+    faq: [
+      { q: "أين أجد مفاتيح API؟", a: "عادةً في قسم Developers أو Settings → API Keys في لوحة تحكم المزوّد." },
+      { q: "هل المفاتيح آمنة؟", a: "نعم، تُشفَّر بـ AES-256-GCM ولا تُعرض بعد الحفظ." },
+      { q: "ماذا لو فشل اختبار الاتصال؟", a: "تحقق من صحة المفاتيح وأن الحساب مفعَّل لدى المزوّد، ثم أعد المحاولة." },
     ],
   },
 };
@@ -90,7 +227,7 @@ const GatewaySetupPage = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 
   const gatewayDef = GATEWAY_DEFS.find((d) => d.provider === providerParam);
-  const guide = GATEWAY_GUIDES[providerParam || ""] || GATEWAY_GUIDES["stripe"];
+  const guide = GATEWAY_GUIDES[providerParam || ""] || GATEWAY_GUIDES["default"];
 
   const initialCreds = () =>
     Object.fromEntries((gatewayDef?.credentialFields || []).map((f) => [f.key, ""]));
