@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, Database, Code, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
@@ -124,10 +125,18 @@ const DebugEntitlements = () => {
     <div dir="ltr" className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">🔍 Entitlements Debug</h1>
-        <Button size="sm" variant="outline" onClick={invalidate} className="gap-2">
-          <RefreshCw className="w-3.5 h-3.5" />
-          Refetch
-        </Button>
+        <div className="flex gap-2">
+          <Link to="/debug/feature-gates">
+            <Button size="sm" variant="outline" className="gap-2">
+              <ArrowRight className="w-3.5 h-3.5" />
+              Feature Gates Map
+            </Button>
+          </Link>
+          <Button size="sm" variant="outline" onClick={invalidate} className="gap-2">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refetch
+          </Button>
+        </div>
       </div>
 
       {/* Status Cards */}
