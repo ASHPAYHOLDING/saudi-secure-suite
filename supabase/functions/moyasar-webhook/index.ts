@@ -133,7 +133,14 @@ Deno.serve(async (req) => {
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
 
-  // Load + decrypt webhook secret FIRST (before idempotency to prevent signature-bypass attacks)
+  // STRICT Moyasar signature check FIRST — before revealing provider config status
+  const sig = req.headers.get("x-moyasar-signature");
+  if (!sig) {
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
+    return json({ error: "Missing required Moyasar signature" }, 401);
+  }
+
+  // Load + decrypt webhook secret (after confirming signature header exists)
   const { data: providerRecord } = await db
     .from("tenant_payment_providers")
     .select("webhook_secret_encrypted, credentials_encrypted, status")
@@ -142,8 +149,8 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!providerRecord) {
-    await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "provider_not_configured" });
-    return json({ error: "Moyasar not configured for this tenant" }, 400);
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "provider_not_configured" });
+    return json({ error: "Missing required Moyasar signature" }, 401);
   }
 
   let webhookSecret: string | null = null;
@@ -160,17 +167,11 @@ Deno.serve(async (req) => {
   }
 
   if (!webhookSecret) {
-    await writeAudit(db, tenantId, "webhook_rejected", providerEventId, { reason: "webhook_secret_not_configured" });
-    return json({ error: "Moyasar webhook secret not configured" }, 401);
-  }
-
-  // STRICT Moyasar signature: "X-Moyasar-Signature" — BEFORE idempotency insert
-  const sig = req.headers.get("x-moyasar-signature");
-  if (!sig) {
-    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "missing_signature_header" });
+    await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "webhook_secret_not_configured" });
     return json({ error: "Missing required Moyasar signature" }, 401);
   }
 
+  // Verify HMAC
   const expected = await hmacSha256hex(webhookSecret, rawBody);
   if (!timingSafeEqual(sig.toLowerCase(), expected.toLowerCase())) {
     await writeAudit(db, tenantId, "webhook_signature_invalid", providerEventId, { reason: "hmac_mismatch" });
