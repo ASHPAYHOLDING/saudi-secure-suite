@@ -598,6 +598,50 @@ export type Database = {
           },
         ]
       }
+      ai_usage_tracking: {
+        Row: {
+          created_at: string
+          id: string
+          period_month: number
+          period_year: number
+          query_text: string | null
+          query_type: string
+          tenant_id: string
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_month: number
+          period_year: number
+          query_text?: string | null
+          query_type?: string
+          tenant_id: string
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_month?: number
+          period_year?: number
+          query_text?: string | null
+          query_type?: string
+          tenant_id?: string
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_tracking_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_daily_cashflow: {
         Row: {
           branch_id: string | null
@@ -13364,6 +13408,7 @@ export type Database = {
         Returns: Json
       }
       check_account_locked: { Args: { p_email: string }; Returns: boolean }
+      check_ai_quota: { Args: { p_tenant_id: string }; Returns: Json }
       check_dual_approval_required: {
         Args: { p_amount: number; p_entity_type: string; p_tenant_id: string }
         Returns: boolean
