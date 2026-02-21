@@ -11024,6 +11024,7 @@ export type Database = {
           paylink_enabled_at: string | null
           phone: string | null
           referral_code: string | null
+          region: Database["public"]["Enums"]["tenant_region"]
           slug: string
           stamp_company_name: string | null
           stamp_cr_number: string | null
@@ -11070,6 +11071,7 @@ export type Database = {
           paylink_enabled_at?: string | null
           phone?: string | null
           referral_code?: string | null
+          region?: Database["public"]["Enums"]["tenant_region"]
           slug: string
           stamp_company_name?: string | null
           stamp_cr_number?: string | null
@@ -11116,6 +11118,7 @@ export type Database = {
           paylink_enabled_at?: string | null
           phone?: string | null
           referral_code?: string | null
+          region?: Database["public"]["Enums"]["tenant_region"]
           slug?: string
           stamp_company_name?: string | null
           stamp_cr_number?: string | null
@@ -12880,6 +12883,14 @@ export type Database = {
           },
         ]
       }
+      tenant_region_stats: {
+        Row: {
+          active_subscriptions: number | null
+          region: string | null
+          tenant_count: number | null
+        }
+        Relationships: []
+      }
       vat_summary_view: {
         Row: {
           account_name: string | null
@@ -13925,6 +13936,7 @@ export type Database = {
       integration_alert_severity: "info" | "warn" | "critical"
       integration_health_status: "healthy" | "degraded" | "down"
       journal_approval_status: "none" | "pending" | "approved" | "rejected"
+      tenant_region: "ksa" | "gcc" | "eu"
       tenant_type: "company" | "individual" | "freelancer"
       wf_instance_status:
         | "pending"
@@ -14083,6 +14095,7 @@ export const Constants = {
       integration_alert_severity: ["info", "warn", "critical"],
       integration_health_status: ["healthy", "degraded", "down"],
       journal_approval_status: ["none", "pending", "approved", "rejected"],
+      tenant_region: ["ksa", "gcc", "eu"],
       tenant_type: ["company", "individual", "freelancer"],
       wf_instance_status: [
         "pending",
