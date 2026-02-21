@@ -123,6 +123,7 @@ const navGroups: NavGroup[] = [
       { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
       { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
       { icon: Building2, key: "nav.governanceCenter", path: "/dashboard/governance-center", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: Shield, key: "nav.complianceScore", path: "/dashboard/enterprise/compliance-score", module: "enterprise", featureKey: "enterprise_mode" as any },
       { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
       { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },

@@ -10768,6 +10768,44 @@ export type Database = {
           },
         ]
       }
+      tenant_compliance_scores: {
+        Row: {
+          breakdown_json: Json
+          created_at: string
+          id: string
+          last_calculated_at: string
+          score: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          breakdown_json?: Json
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          score?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          breakdown_json?: Json
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          score?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_compliance_scores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_email_templates: {
         Row: {
           body_html: string | null
