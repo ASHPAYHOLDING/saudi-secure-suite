@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
-import { RamadanBadge } from "@/components/ramadan";
+
 import { useTheme } from "@/theme/ThemeProvider";
 
 const Navbar = () => {
@@ -45,23 +45,6 @@ const Navbar = () => {
             className="flex items-center gap-2.5"
           >
             <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
-            {/* Ramadan badge بجوار اللوجو في الـ Navbar */}
-            {scrolled ? (
-              <RamadanBadge size="sm" text="رمضان كريم 🌙" />
-            ) : (
-              isRamadan && (
-                <span
-                  className="hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium"
-                  style={{
-                    borderColor: "hsl(var(--ramadan-gold)/0.4)",
-                    background: "hsl(var(--ramadan-gold)/0.1)",
-                    color: "hsl(var(--ramadan-gold))",
-                  }}
-                >
-                  🌙 رمضان كريم
-                </span>
-              )
-            )}
           </motion.div>
         </Link>
 
@@ -135,12 +118,7 @@ const Navbar = () => {
             className="border-t border-border bg-background lg:hidden"
           >
             <div className="container mx-auto flex flex-col gap-4 px-4 py-6">
-              {/* Ramadan badge في المحمول */}
-              {isRamadan && (
-                <div className="flex justify-center pb-2">
-                  <RamadanBadge text="🌙 رمضان كريم — عروض حصرية" size="sm" />
-                </div>
-              )}
+              
               {links.map((link) => (
                 <a
                   key={link.href}
