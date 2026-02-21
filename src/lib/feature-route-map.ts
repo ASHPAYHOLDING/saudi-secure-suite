@@ -286,6 +286,62 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "محرك المستندات",
     description: "تصميم وإدارة قوالب المستندات (فواتير، أوامر شراء، قيود).",
   },
+
+  // ── Routes added in P1 gating fix ──
+  "cost-profit-centers": {
+    featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
+    permissionKeys: ["finance.view_reports"],
+    label: "مراكز التكلفة والربح",
+    description: "إدارة مراكز التكلفة والربحية وتوزيع المصروفات.",
+  },
+  "my-approvals": {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    permissionKeys: ["invoices.view"],
+    label: "موافقاتي",
+    description: "عرض ومعالجة طلبات الموافقة المعلقة.",
+  },
+  "workflows-designer": {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    permissionKeys: ["invoices.view"],
+    label: "مصمم سلاسل العمل",
+    description: "تصميم وتعديل مسارات الموافقة.",
+  },
+  productivity: {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    permissionKeys: [],
+    label: "لوحة الإنتاجية",
+    description: "لوحة عمل المحاسب وملخص المهام اليومية.",
+  },
+  "sheet-view": {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    permissionKeys: [],
+    label: "العرض الجدولي",
+    description: "عرض البيانات بنمط جدول بيانات تفاعلي.",
+  },
+  "affiliate-dashboard": {
+    featureKey: FEATURE_KEYS.PAID_INTEGRATIONS,
+    permissionKeys: ["settings.integrations"],
+    label: "برنامج الشراكة",
+    description: "لوحة تحكم برنامج الإحالة والعمولات.",
+  },
+  company: {
+    featureKey: FEATURE_KEYS.TEAM_MANAGEMENT,
+    permissionKeys: ["company.view"],
+    label: "إعدادات المنشأة",
+    description: "إعدادات المنشأة الأساسية والبيانات التجارية.",
+  },
+  "sso-settings": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "تسجيل الدخول الموحد",
+    description: "إعدادات تسجيل الدخول الموحد (SSO) للمؤسسة.",
+  },
+  "payment-marketplace": {
+    featureKey: FEATURE_KEYS.PAID_INTEGRATIONS,
+    permissionKeys: ["settings.integrations"],
+    label: "سوق بوابات الدفع",
+    description: "استعراض واختيار بوابات الدفع المتاحة.",
+  },
 };
 
 /**
