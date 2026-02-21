@@ -47,12 +47,12 @@ const Footer = () => {
   };
 
   return (
-    <footer id="contact" className="relative overflow-hidden bg-primary" dir="rtl">
+    <footer id="contact" className="relative overflow-hidden bg-sidebar-background" dir="rtl">
       {/* Decorative top wave */}
       <div className="absolute top-0 left-0 right-0">
         <svg viewBox="0 0 1440 60" className="w-full h-auto" preserveAspectRatio="none">
           <path
-            fill="hsl(210 20% 98%)"
+            fill="hsl(var(--background))"
             d="M0,0 L1440,0 L1440,30 C1200,60 960,10 720,40 C480,70 240,20 0,50 Z"
           />
         </svg>
@@ -80,20 +80,20 @@ const Footer = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 md:p-12"
+          className="mb-16 rounded-2xl border border-sidebar-foreground/10 bg-sidebar-foreground/5 backdrop-blur-sm p-8 md:p-12"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+              <h3 className="text-xl md:text-2xl font-bold text-sidebar-foreground mb-2">
                 ابدأ رحلتك مع نيوماكسيو اليوم
               </h3>
-              <p className="text-white/60 text-sm">
+              <p className="text-sidebar-foreground/60 text-sm">
                 انضم لأكثر من 1,200 شركة سعودية تثق بنا في إدارة أعمالها المحاسبية
               </p>
             </div>
             <Link
               to="/auth"
-              className="shrink-0 inline-flex items-center gap-2 gradient-accent text-white px-8 py-3.5 rounded-xl font-semibold text-sm shadow-accent-glow hover:opacity-90 transition-all duration-300 hover:scale-105"
+              className="shrink-0 inline-flex items-center gap-2 gradient-accent text-accent-foreground px-8 py-3.5 rounded-xl font-semibold text-sm shadow-accent-glow hover:opacity-90 transition-all duration-300 hover:scale-105"
             >
               ابدأ مجاناً — 14 يوم
               <ExternalLink size={16} />
@@ -114,7 +114,7 @@ const Footer = () => {
             <div className="mb-5">
               <NumaxioLogo variant="light" size="md" />
             </div>
-            <p className="max-w-sm text-sm leading-relaxed text-white/50 mb-8">
+            <p className="max-w-sm text-sm leading-relaxed text-sidebar-foreground/50 mb-8">
               المنصة المحاسبية السحابية الأولى المصممة للمنشآت السعودية.
               فواتير إلكترونية، عقود، تقارير مالية، وامتثال كامل مع هيئة الزكاة والدخل.
             </p>
@@ -122,7 +122,7 @@ const Footer = () => {
             <div className="space-y-4">
               {[
                 { icon: Mail, text: "info@numaxio.com", href: "mailto:info@numaxio.com" },
-                { icon: Phone, text: "+966 50 000 0000", href: "tel:+966500000000", dir: "ltr" },
+                { icon: Phone, text: "+966 50 000 0000", href: "tel:+966500000000", dir: "ltr" as const },
                 { icon: MapPin, text: "الرياض، المملكة العربية السعودية", href: undefined },
               ].map((item, i) => (
                 <motion.div
@@ -133,16 +133,16 @@ const Footer = () => {
                   {item.href ? (
                     <a
                       href={item.href}
-                      className="flex items-center gap-3 text-sm text-white/40 hover:text-accent transition-colors duration-300"
+                      className="flex items-center gap-3 text-sm text-sidebar-foreground/40 hover:text-accent transition-colors duration-300"
                     >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 group-hover:bg-accent/10 transition-colors duration-300">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-foreground/5 group-hover:bg-accent/10 transition-colors duration-300">
                         <item.icon size={14} className="group-hover:text-accent transition-colors" />
                       </span>
                       <span dir={item.dir}>{item.text}</span>
                     </a>
                   ) : (
-                    <div className="flex items-center gap-3 text-sm text-white/40">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
+                    <div className="flex items-center gap-3 text-sm text-sidebar-foreground/40">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-foreground/5">
                         <item.icon size={14} />
                       </span>
                       {item.text}
@@ -155,7 +155,7 @@ const Footer = () => {
 
           {/* Product links */}
           <motion.div variants={itemVariants} className="md:col-span-2">
-            <h4 className="mb-6 text-sm font-bold text-white tracking-wide">المنتج</h4>
+            <h4 className="mb-6 text-sm font-bold text-sidebar-foreground tracking-wide">المنتج</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((item) => (
                 <li key={item.label}>
@@ -163,7 +163,7 @@ const Footer = () => {
                     href={item.href}
                     onMouseEnter={() => setHoveredLink(item.label)}
                     onMouseLeave={() => setHoveredLink(null)}
-                    className="relative text-sm text-white/40 transition-colors duration-300 hover:text-accent inline-block"
+                    className="relative text-sm text-sidebar-foreground/40 transition-colors duration-300 hover:text-accent inline-block"
                   >
                     <span className="relative">
                       {item.label}
@@ -182,7 +182,7 @@ const Footer = () => {
 
           {/* Company links */}
           <motion.div variants={itemVariants} className="md:col-span-2">
-            <h4 className="mb-6 text-sm font-bold text-white tracking-wide">الشركة</h4>
+            <h4 className="mb-6 text-sm font-bold text-sidebar-foreground tracking-wide">الشركة</h4>
             <ul className="space-y-3">
               {footerLinks.company.map((item) => (
                 <li key={item.label}>
@@ -190,7 +190,7 @@ const Footer = () => {
                     href={item.href}
                     onMouseEnter={() => setHoveredLink(item.label)}
                     onMouseLeave={() => setHoveredLink(null)}
-                    className="relative text-sm text-white/40 transition-colors duration-300 hover:text-accent inline-block"
+                    className="relative text-sm text-sidebar-foreground/40 transition-colors duration-300 hover:text-accent inline-block"
                   >
                     <span className="relative">
                       {item.label}
@@ -209,18 +209,18 @@ const Footer = () => {
 
           {/* Legal links */}
           <motion.div variants={itemVariants} className="md:col-span-4">
-            <h4 className="mb-6 text-sm font-bold text-white tracking-wide">القانونية والامتثال</h4>
+            <h4 className="mb-6 text-sm font-bold text-sidebar-foreground tracking-wide">القانونية والامتثال</h4>
             <div className="grid grid-cols-1 gap-3">
               {footerLinks.legal.map((item) => (
                 <Link
                   key={item.label}
                   to={item.href}
-                  className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-all duration-300 hover:border-accent/20 hover:bg-accent/5"
+                  className="group flex items-center gap-3 rounded-xl border border-sidebar-foreground/5 bg-sidebar-foreground/[0.02] p-3 transition-all duration-300 hover:border-accent/20 hover:bg-accent/5"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 group-hover:bg-accent/10 transition-colors duration-300">
-                    <item.icon size={16} className="text-white/40 group-hover:text-accent transition-colors" />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-foreground/5 group-hover:bg-accent/10 transition-colors duration-300">
+                    <item.icon size={16} className="text-sidebar-foreground/40 group-hover:text-accent transition-colors" />
                   </span>
-                  <span className="text-sm text-white/50 group-hover:text-white/80 transition-colors">
+                  <span className="text-sm text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80 transition-colors">
                     {item.label}
                   </span>
                 </Link>
@@ -249,9 +249,9 @@ const Footer = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 md:flex-row"
+          className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-sidebar-foreground/5 pt-8 md:flex-row"
         >
-          <p className="text-xs text-white/30">
+          <p className="text-xs text-sidebar-foreground/30">
             © {new Date().getFullYear()} نيوماكسيو. جميع الحقوق محفوظة. صنع بـ ❤️ في السعودية
           </p>
 
@@ -261,7 +261,7 @@ const Footer = () => {
                 <Link
                   key={item.label}
                   to={item.href}
-                  className="text-xs text-white/30 hover:text-accent transition-colors duration-300"
+                  className="text-xs text-sidebar-foreground/30 hover:text-accent transition-colors duration-300"
                 >
                   {item.label}
                 </Link>
@@ -273,7 +273,7 @@ const Footer = () => {
               whileHover={{ y: -3, scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToTop}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40 hover:text-accent hover:border-accent/30 transition-all duration-300"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-sidebar-foreground/10 bg-sidebar-foreground/5 text-sidebar-foreground/40 hover:text-accent hover:border-accent/30 transition-all duration-300"
               aria-label="العودة للأعلى"
             >
               <ArrowUp size={16} />

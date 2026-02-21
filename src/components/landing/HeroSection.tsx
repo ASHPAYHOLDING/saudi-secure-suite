@@ -10,7 +10,7 @@ const HeroSection = () => {
   const isRamadan = seasonalTheme === "ramadan";
 
   return (
-    <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl">
+    <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl" style={{ overflowX: 'clip' }}>
       <RamadanPattern />
       <RamadanGlow variant="hero" />
 
@@ -39,9 +39,9 @@ const HeroSection = () => {
       </div>
 
       <div className="container relative mx-auto flex min-h-screen items-center px-4 pt-24 pb-16 z-20">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
           {/* Left: Content */}
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8 min-w-0">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-4xl font-bold leading-[1.15] text-primary-foreground md:text-5xl lg:text-6xl"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.2] text-primary-foreground"
             >
               ERP سعودي مؤسسي.
               <br />
@@ -85,7 +85,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="max-w-lg text-lg leading-relaxed text-primary-foreground/60"
+              className="max-w-lg text-base sm:text-lg leading-relaxed text-primary-foreground/80"
             >
               فواتير في 10 ثوانٍ. امتثال ZATCA تلقائي. AI محاسبي يحلل أعمالك ويوصيك بخطوتك التالية.
             </motion.p>
@@ -127,12 +127,12 @@ const HeroSection = () => {
                 "☁️ سحابي",
                 "🇸🇦 دعم عربي كامل",
               ].map((item) => (
-                <span key={item} className="text-xs text-primary-foreground/40">{item}</span>
+                <span key={item} className="text-xs text-primary-foreground/60">{item}</span>
               ))}
             </motion.div>
           </div>
 
-          {/* Right: Dashboard Preview */}
+          {/* Right: Dashboard Preview — visible on lg+, simplified on md */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
