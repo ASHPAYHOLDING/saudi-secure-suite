@@ -5,13 +5,9 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 
-import { useTheme } from "@/theme/ThemeProvider";
-
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { seasonalTheme } = useTheme();
-  const isRamadan = seasonalTheme === "ramadan";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -82,21 +78,9 @@ const Navbar = () => {
           </Link>
           <Link to="/auth">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              {isRamadan ? (
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--ramadan-emerald)) 0%, hsl(160 70% 30%) 100%)",
-                    boxShadow: "0 0 0 1px hsl(var(--ramadan-gold)/0.3), 0 4px 16px -4px hsl(var(--ramadan-emerald)/0.5)",
-                  }}
-                >
-                  ابدأ مجاناً
-                </button>
-              ) : (
-                <Button size="sm" className="gradient-accent text-accent-foreground shadow-accent-glow transition-shadow duration-300 hover:shadow-[0_6px_24px_-4px_hsl(172_66%_36%/0.5)]">
-                  ابدأ مجاناً
-                </Button>
-              )}
+              <Button size="sm" className="gradient-accent text-accent-foreground shadow-accent-glow transition-shadow duration-300 hover:shadow-[0_6px_24px_-4px_hsl(172_66%_36%/0.5)]">
+                ابدأ مجاناً
+              </Button>
             </motion.div>
           </Link>
         </motion.div>
@@ -130,21 +114,9 @@ const Navbar = () => {
                 </a>
               ))}
               <Link to="/auth" onClick={() => setMobileOpen(false)}>
-                {isRamadan ? (
-                  <button
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white"
-                    style={{
-                      background: "linear-gradient(135deg, hsl(var(--ramadan-emerald)) 0%, hsl(160 70% 30%) 100%)",
-                      boxShadow: "0 0 0 1px hsl(var(--ramadan-gold)/0.25)",
-                    }}
-                  >
-                    ابدأ مجاناً
-                  </button>
-                ) : (
-                  <Button className="w-full gradient-accent text-accent-foreground">
-                    ابدأ مجاناً
-                  </Button>
-                )}
+                <Button className="w-full gradient-accent text-accent-foreground">
+                  ابدأ مجاناً
+                </Button>
               </Link>
             </div>
           </motion.div>
