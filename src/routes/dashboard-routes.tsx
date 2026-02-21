@@ -90,6 +90,7 @@ const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
 const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
 const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
+const MigrationsDashboardPage = lazy(() => import("@/components/system/MigrationsDashboardPage"));
 const AuditIntelligencePage = lazy(() => import("@/components/audit/AuditIntelligencePage"));
 
 export interface DashboardRouteConfig {
@@ -214,6 +215,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "enterprise/audit-export", element: EnterpriseAuditExport, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "governance", element: GovernancePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "system/storage", element: StorageReportPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "system/migrations", element: MigrationsDashboardPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

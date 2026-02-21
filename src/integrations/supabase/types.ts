@@ -1718,6 +1718,42 @@ export type Database = {
           },
         ]
       }
+      background_reindex_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          index_name: string
+          started_at: string | null
+          status: string
+          table_name: string
+          tenant_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          index_name: string
+          started_at?: string | null
+          status?: string
+          table_name: string
+          tenant_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          index_name?: string
+          started_at?: string | null
+          status?: string
+          table_name?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
       branch_members: {
         Row: {
           assigned_at: string
@@ -6285,6 +6321,39 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      migration_versions: {
+        Row: {
+          applied_at: string
+          applied_by: string | null
+          checksum: string
+          description: string | null
+          execution_time_ms: number | null
+          is_backward_compatible: boolean | null
+          rollback_sql: string | null
+          version: string
+        }
+        Insert: {
+          applied_at?: string
+          applied_by?: string | null
+          checksum: string
+          description?: string | null
+          execution_time_ms?: number | null
+          is_backward_compatible?: boolean | null
+          rollback_sql?: string | null
+          version: string
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string | null
+          checksum?: string
+          description?: string | null
+          execution_time_ms?: number | null
+          is_backward_compatible?: boolean | null
+          rollback_sql?: string | null
+          version?: string
         }
         Relationships: []
       }
@@ -13004,6 +13073,25 @@ export type Database = {
         }
         Returns: Json
       }
+      get_applied_migrations: {
+        Args: never
+        Returns: {
+          applied_at: string
+          applied_by: string | null
+          checksum: string
+          description: string | null
+          execution_time_ms: number | null
+          is_backward_compatible: boolean | null
+          rollback_sql: string | null
+          version: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "migration_versions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_audit_heatmap: {
         Args: { p_days?: number; p_tenant_id: string }
         Returns: {
@@ -13152,6 +13240,15 @@ export type Database = {
         }[]
       }
       get_rls_audit: { Args: never; Returns: Json }
+      get_schema_checksum: {
+        Args: never
+        Returns: {
+          last_migration: string
+          last_migration_at: string
+          schema_checksum: string
+          table_count: number
+        }[]
+      }
       get_storage_report: { Args: never; Returns: Json }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
@@ -13340,6 +13437,10 @@ export type Database = {
           _method?: string
         }
         Returns: Json
+      }
+      request_background_reindex: {
+        Args: { p_index_name: string; p_table_name: string }
+        Returns: string
       }
       requeue_stale_jobs: { Args: never; Returns: number }
       reserve_stock_for_order: {
