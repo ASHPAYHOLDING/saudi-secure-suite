@@ -8818,10 +8818,12 @@ export type Database = {
       }
       tenant_sso_settings: {
         Row: {
+          auto_provisioning_enabled: boolean
           cert: string | null
           client_id: string | null
           client_secret_encrypted: string | null
           created_at: string
+          default_role_id: string | null
           enabled: boolean
           entry_point: string | null
           id: string
@@ -8831,10 +8833,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_provisioning_enabled?: boolean
           cert?: string | null
           client_id?: string | null
           client_secret_encrypted?: string | null
           created_at?: string
+          default_role_id?: string | null
           enabled?: boolean
           entry_point?: string | null
           id?: string
@@ -8844,10 +8848,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_provisioning_enabled?: boolean
           cert?: string | null
           client_id?: string | null
           client_secret_encrypted?: string | null
           created_at?: string
+          default_role_id?: string | null
           enabled?: boolean
           entry_point?: string | null
           id?: string
@@ -8857,6 +8863,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_sso_settings_default_role_id_fkey"
+            columns: ["default_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tenant_sso_settings_tenant_id_fkey"
             columns: ["tenant_id"]
