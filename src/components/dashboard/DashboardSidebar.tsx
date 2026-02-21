@@ -122,6 +122,7 @@ const navGroups: NavGroup[] = [
       { icon: Globe, key: "nav.enterpriseIPRestrictions", path: "/dashboard/enterprise/ip-restrictions", module: "enterprise" },
       { icon: Crown, key: "nav.enterpriseRoleTemplates", path: "/dashboard/enterprise/role-templates", module: "enterprise" },
       { icon: Shield, key: "nav.enterpriseAuditExport", path: "/dashboard/enterprise/audit-export", module: "enterprise" },
+      { icon: Shield, key: "nav.governance", path: "/dashboard/governance", module: "enterprise" },
     ],
   },
 ];
