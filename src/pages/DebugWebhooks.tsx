@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
@@ -23,19 +23,139 @@ const WEBHOOK_URLS = [
   { provider: "Tap", fn: "tap-webhook", header: "hashid", note: "HMAC-SHA256(raw_body, secret)" },
   { provider: "Moyasar", fn: "moyasar-webhook", header: "x-moyasar-signature", note: "HMAC-SHA256(raw_body, secret)" },
   { provider: "HyperPay", fn: "hyperpay-webhook", header: "x-webhook-signature", note: "HMAC-SHA256(raw_body, secret)" },
-  {
-    provider: "Stripe",
-    fn: "stripe-webhook",
-    header: "Stripe-Signature",
-    note: "Stripe-standard: t=<unix_ts>,v1=HMAC-SHA256('<ts>.<raw_body>', whsec_…) — 5-min replay window",
-  },
-  {
-    provider: "Geidea",
-    fn: "geidea-webhook",
-    header: "X-Geidea-Signature",
-    note: "HMAC-SHA256(raw_body, webhook_secret) — hex encoded",
-  },
+  { provider: "Stripe", fn: "stripe-webhook", header: "Stripe-Signature", note: "t=<ts>,v1=HMAC-SHA256('<ts>.<body>', whsec_…) — 5-min replay" },
+  { provider: "Geidea", fn: "geidea-webhook", header: "X-Geidea-Signature", note: "HMAC-SHA256(raw_body, webhook_secret)" },
+  { provider: "PayTabs", fn: "paytabs-webhook", header: "x-paytabs-signature", note: "HMAC-SHA256(raw_body, server_key)" },
+  { provider: "MyFatoorah", fn: "myfatoorah-webhook", header: "—", note: "API verification (GetPaymentStatus)" },
+  { provider: "PayPal", fn: "paypal-webhook", header: "paypal-transmission-sig", note: "PayPal /verify-webhook-signature API" },
+  { provider: "Tabby", fn: "tabby-webhook", header: "x-tabby-signature", note: "HMAC-SHA256(raw_body, secret)" },
+  { provider: "Tamara", fn: "tamara-webhook", header: "tamara-signature", note: "HMAC-SHA256(raw_body, secret)" },
+  { provider: "Telr", fn: "telr-webhook", header: "x-telr-signature", note: "HMAC-SHA256(raw_body, secret)" },
+  { provider: "MISPAY", fn: "mispay-webhook", header: "x-mispay-signature", note: "HMAC-SHA256(raw_body, secret)" },
+
+  // Unified fallback handler (used when provider doesn't have a dedicated endpoint)
+  { provider: "Unified", fn: "payment-webhook", header: "per-provider", note: "Shared handler — ?provider=tap|moyasar|hyperpay|stripe|geidea" },
 ];
+// ── Expanded row: shows headers, related invoice_payments, payment_intents ──
+const ExpandedEventDetails = ({ event: ev }: { event: WebhookEvent }) => {
+  const [relatedPayments, setRelatedPayments] = useState<any[]>([]);
+  const [relatedIntents, setRelatedIntents] = useState<any[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(true);
+
+  useEffect(() => {
+    const loadRelated = async () => {
+      setLoadingRelated(true);
+      const eventId = ev.provider_event_id;
+
+      // Fetch invoice_payments with this reference_number
+      const { data: payments } = await supabase
+        .from("invoice_payments")
+        .select("id, invoice_id, amount, payment_method, payment_date, reference_number, status, currency")
+        .eq("reference_number", eventId)
+        .limit(5);
+
+      // Fetch payment_intents linked to this event
+      const { data: intents } = await supabase
+        .from("payment_intents")
+        .select("id, invoice_id, amount, currency, provider, status, created_at, updated_at, provider_session_id")
+        .eq("provider_session_id", eventId)
+        .limit(5);
+
+      setRelatedPayments(payments ?? []);
+      setRelatedIntents(intents ?? []);
+      setLoadingRelated(false);
+    };
+    loadRelated();
+  }, [ev.provider_event_id]);
+
+  return (
+    <div className="space-y-4 text-xs">
+      {/* Event details + headers */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <p className="font-semibold text-foreground">تفاصيل الحدث</p>
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">Hash:</span>{" "}
+            <span className="font-mono" dir="ltr">{ev.payload_hash ?? "—"}</span>
+          </p>
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">Processed at:</span>{" "}
+            {ev.processed_at ? new Date(ev.processed_at).toLocaleString("ar-SA") : "—"}
+          </p>
+          {ev.processing_error && (
+            <p className="text-destructive mt-1 bg-destructive/5 rounded p-2">
+              <span className="font-medium">خطأ:</span> {ev.processing_error}
+            </p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <p className="font-semibold text-foreground">Headers المستلمة</p>
+          {ev.raw_headers
+            ? Object.entries(ev.raw_headers).map(([k, v]) => (
+              <p key={k} className="font-mono text-[10px] break-all" dir="ltr">
+                <span className="text-primary">{k}:</span>{" "}
+                <span className="text-muted-foreground">{v}</span>
+              </p>
+            ))
+            : <p className="text-muted-foreground">لا توجد headers محفوظة</p>}
+        </div>
+      </div>
+
+      {/* Related invoice_payments */}
+      <div className="border-t border-border pt-3">
+        <p className="font-semibold text-foreground mb-2">💳 الدفعات المرتبطة (invoice_payments)</p>
+        {loadingRelated ? (
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : relatedPayments.length === 0 ? (
+          <p className="text-muted-foreground">لا توجد دفعات مرتبطة بهذا الحدث</p>
+        ) : (
+          <div className="space-y-1">
+            {relatedPayments.map((p: any) => (
+              <div key={p.id} className="flex items-center gap-3 bg-muted/30 rounded p-2 font-mono text-[10px]" dir="ltr">
+                <Badge variant="outline" className="text-[9px]">{p.payment_method}</Badge>
+                <span>{p.amount} {p.currency}</span>
+                <span className="text-muted-foreground">{p.payment_date}</span>
+                <Badge variant={p.status === "completed" ? "default" : "secondary"} className="text-[9px]">
+                  {p.status ?? "—"}
+                </Badge>
+                <span className="text-muted-foreground truncate max-w-[200px]">inv: {p.invoice_id}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Related payment_intents */}
+      <div className="border-t border-border pt-3">
+        <p className="font-semibold text-foreground mb-2">🔗 Payment Intents المرتبطة</p>
+        {loadingRelated ? (
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : relatedIntents.length === 0 ? (
+          <p className="text-muted-foreground">لا توجد Payment Intents مرتبطة</p>
+        ) : (
+          <div className="space-y-1">
+            {relatedIntents.map((pi: any) => (
+              <div key={pi.id} className="flex items-center gap-3 bg-muted/30 rounded p-2 font-mono text-[10px]" dir="ltr">
+                <span className="font-semibold capitalize">{pi.provider}</span>
+                <span>{pi.amount} {pi.currency}</span>
+                <Badge
+                  variant={pi.status === "paid" ? "default" : pi.status === "failed" ? "destructive" : "secondary"}
+                  className="text-[9px]"
+                >
+                  {pi.status}
+                </Badge>
+                <span className="text-muted-foreground">
+                  {new Date(pi.created_at).toLocaleDateString("ar-SA")}
+                  {pi.updated_at !== pi.created_at && ` → ${new Date(pi.updated_at).toLocaleDateString("ar-SA")}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 
 type WebhookStatus = "received" | "processing" | "processed" | "rejected" | "failed" | "duplicate";
@@ -186,6 +306,13 @@ const DebugWebhooks = () => {
                 <SelectItem value="hyperpay">HyperPay</SelectItem>
                 <SelectItem value="stripe">Stripe</SelectItem>
                 <SelectItem value="geidea">Geidea</SelectItem>
+                <SelectItem value="paytabs">PayTabs</SelectItem>
+                <SelectItem value="myfatoorah">MyFatoorah</SelectItem>
+                <SelectItem value="paypal">PayPal</SelectItem>
+                <SelectItem value="tabby">Tabby</SelectItem>
+                <SelectItem value="tamara">Tamara</SelectItem>
+                <SelectItem value="telr">Telr</SelectItem>
+                <SelectItem value="mispay">MISPAY</SelectItem>
               </SelectContent>
             </Select>
 
@@ -336,37 +463,7 @@ const DebugWebhooks = () => {
                       {expandedId === ev.id && (
                         <TableRow key={`${ev.id}-expanded`} className="bg-muted/20">
                           <TableCell colSpan={8} className="py-3 px-4">
-                            <div className="grid md:grid-cols-2 gap-4 text-xs">
-                              <div className="space-y-1.5">
-                                <p className="font-semibold text-foreground">تفاصيل الحدث</p>
-                                <p className="text-muted-foreground">
-                                  <span className="font-medium text-foreground">Hash:</span>{" "}
-                                  <span className="font-mono" dir="ltr">{ev.payload_hash ?? "—"}</span>
-                                </p>
-                                <p className="text-muted-foreground">
-                                  <span className="font-medium text-foreground">Processed at:</span>{" "}
-                                  {ev.processed_at
-                                    ? new Date(ev.processed_at).toLocaleString("ar-SA")
-                                    : "—"}
-                                </p>
-                                {ev.processing_error && (
-                                  <p className="text-destructive mt-1 bg-destructive/5 rounded p-2">
-                                    <span className="font-medium">خطأ:</span> {ev.processing_error}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="space-y-1.5">
-                                <p className="font-semibold text-foreground">Headers المستلمة</p>
-                                {ev.raw_headers
-                                  ? Object.entries(ev.raw_headers).map(([k, v]) => (
-                                    <p key={k} className="font-mono text-[10px] break-all" dir="ltr">
-                                      <span className="text-primary">{k}:</span>{" "}
-                                      <span className="text-muted-foreground">{v}</span>
-                                    </p>
-                                  ))
-                                  : <p className="text-muted-foreground">لا توجد headers محفوظة</p>}
-                              </div>
-                            </div>
+                            <ExpandedEventDetails event={ev} />
                           </TableCell>
                         </TableRow>
                       )}
