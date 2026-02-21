@@ -3178,6 +3178,38 @@ export type Database = {
           },
         ]
       }
+      enterprise_allowed_ips: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string
+          label: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address: string
+          label?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string
+          label?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_allowed_ips_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enterprise_security_policies: {
         Row: {
           audit_retention_days: number
@@ -10807,6 +10839,10 @@ export type Database = {
       check_entitlements_bulk: {
         Args: { _feature_keys: string[]; _tenant_id: string }
         Returns: Json
+      }
+      check_ip_allowed: {
+        Args: { p_ip: string; p_tenant_id: string }
+        Returns: boolean
       }
       check_rate_limit: {
         Args: {

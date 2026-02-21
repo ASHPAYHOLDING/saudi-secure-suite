@@ -114,6 +114,7 @@
     "enterpriseGovernance": "Governance Center",
     "enterpriseSecurityPolicies": "Security Policies",
     "enterpriseSessions": "Session Management",
+    "enterpriseIPRestrictions": "IP Restrictions",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
