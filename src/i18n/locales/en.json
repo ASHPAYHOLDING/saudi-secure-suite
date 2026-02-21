@@ -117,6 +117,7 @@
     "budgets": "Budgets",
     "dataQuality": "Data Quality",
     "enterpriseGovernance": "Governance Center",
+    "governanceCenter": "Governance Center",
     "enterpriseSecurityPolicies": "Security Policies",
     "enterpriseSessions": "Session Management",
     "enterpriseIPRestrictions": "IP Restrictions",

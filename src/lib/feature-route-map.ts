@@ -244,6 +244,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "حوكمة المؤسسة",
     description: "مركز الحوكمة والسياسات الأمنية وإدارة الجلسات.",
   },
+  "governance-center": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "مركز الحوكمة",
+    description: "نظرة شاملة على الأمان والصلاحيات والامتثال المؤسسي.",
+  },
   "corporate-structure": {
     featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
     permissionKeys: ["company.view"],
@@ -397,4 +403,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/finance/statements": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/approvals/journal": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/finance-repair": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/governance-center": FEATURE_KEYS.ENTERPRISE_MODE,
 };
