@@ -844,6 +844,7 @@ export type Database = {
           condition_type: string
           created_at: string
           created_by: string
+          definition_json: Json | null
           document_type: string
           id: string
           is_active: boolean
@@ -859,6 +860,7 @@ export type Database = {
           condition_type?: string
           created_at?: string
           created_by: string
+          definition_json?: Json | null
           document_type: string
           id?: string
           is_active?: boolean
@@ -874,6 +876,7 @@ export type Database = {
           condition_type?: string
           created_at?: string
           created_by?: string
+          definition_json?: Json | null
           document_type?: string
           id?: string
           is_active?: boolean
@@ -9761,6 +9764,60 @@ export type Database = {
             columns: ["workflow_id"]
             isOneToOne: false
             referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          definition_json: Json
+          id: string
+          is_published: boolean
+          published_at: string | null
+          published_by: string | null
+          tenant_id: string
+          version: number
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          definition_json?: Json
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          tenant_id: string
+          version?: number
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          definition_json?: Json
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          tenant_id?: string
+          version?: number
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_versions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflows"
             referencedColumns: ["id"]
           },
         ]
