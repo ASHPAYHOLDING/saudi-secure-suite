@@ -2791,6 +2791,107 @@ export type Database = {
           },
         ]
       }
+      dual_approval_actions: {
+        Row: {
+          acted_at: string
+          acted_by: string
+          action: string
+          comment: string | null
+          id: string
+          request_id: string
+          tenant_id: string
+        }
+        Insert: {
+          acted_at?: string
+          acted_by: string
+          action: string
+          comment?: string | null
+          id?: string
+          request_id: string
+          tenant_id: string
+        }
+        Update: {
+          acted_at?: string
+          acted_by?: string
+          action?: string
+          comment?: string | null
+          id?: string
+          request_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dual_approval_actions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "dual_approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dual_approval_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dual_approval_requests: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          requested_at: string
+          requested_by: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          requested_at?: string
+          requested_by: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dual_approval_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edge_request_logs: {
         Row: {
           action: string | null
@@ -8836,6 +8937,7 @@ export type Database = {
           branding_config: Json
           created_at: string
           email_preferences: Json | null
+          financial_controls: Json
           id: string
           security_settings: Json | null
           tenant_id: string
@@ -8847,6 +8949,7 @@ export type Database = {
           branding_config?: Json
           created_at?: string
           email_preferences?: Json | null
+          financial_controls?: Json
           id?: string
           security_settings?: Json | null
           tenant_id: string
@@ -8858,6 +8961,7 @@ export type Database = {
           branding_config?: Json
           created_at?: string
           email_preferences?: Json | null
+          financial_controls?: Json
           id?: string
           security_settings?: Json | null
           tenant_id?: string
@@ -10552,6 +10656,10 @@ export type Database = {
         Returns: Json
       }
       check_account_locked: { Args: { p_email: string }; Returns: boolean }
+      check_dual_approval_required: {
+        Args: { p_amount: number; p_entity_type: string; p_tenant_id: string }
+        Returns: boolean
+      }
       check_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: Json
@@ -10923,6 +11031,10 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: undefined
+      }
+      submit_dual_approval: {
+        Args: { p_action: string; p_comment?: string; p_request_id: string }
+        Returns: string
       }
       sync_budget_actuals_for_tenant: {
         Args: { p_tenant_id: string }

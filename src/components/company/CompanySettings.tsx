@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import FinanceControlPanel from "@/components/company/FinanceControlPanel";
+import DualApprovalSettings from "@/components/company/DualApprovalSettings";
 import EmailPreferencesPanel from "@/components/company/EmailPreferencesPanel";
 import SecuritySettingsPanel from "@/components/company/SecuritySettingsPanel";
 import { useSmartSaveSettingsCAS } from "@/hooks/useSmartSaveSettingsCAS";
@@ -605,6 +606,7 @@ const CompanySettings = () => {
       </Card>
 
       <FinanceControlPanel />
+      <DualApprovalSettings />
       <EmailPreferencesPanel />
       <SecuritySettingsPanel />
     </div>
