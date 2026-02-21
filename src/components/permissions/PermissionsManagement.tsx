@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Shield, Plus, Save, Eye, Trash2, Copy, FileText, Lock, Pencil } from "lucide-react";
+import { Shield, Plus, Save, Eye, Trash2, Copy, FileText, Lock, Pencil, Sparkles } from "lucide-react";
+import RoleTemplatesModal from "@/components/permissions/RoleTemplatesModal";
 
 interface PermissionDef {
   key: string;
@@ -75,6 +76,7 @@ const PermissionsManagement = () => {
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [templateNameAr, setTemplateNameAr] = useState("");
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [templates, setTemplates] = useState<Array<{ id: string; name: string; name_ar: string; permissions: string[] }>>([]);
 
   const lang = isRTL ? "ar" : "en";
@@ -302,10 +304,16 @@ const PermissionsManagement = () => {
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreateRole(true)} size="sm">
-          <Plus className="h-4 w-4 me-1" />
-          {isRTL ? "دور جديد" : "New Role"}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowTemplatesModal(true)} size="sm" className="gap-1.5">
+            <Sparkles className="h-4 w-4" />
+            {isRTL ? "إنشاء من قالب" : "Create from Template"}
+          </Button>
+          <Button onClick={() => setShowCreateRole(true)} size="sm">
+            <Plus className="h-4 w-4 me-1" />
+            {isRTL ? "دور جديد" : "New Role"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -601,6 +609,24 @@ const PermissionsManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Role Templates Modal */}
+      <RoleTemplatesModal
+        open={showTemplatesModal}
+        onOpenChange={setShowTemplatesModal}
+        onRoleCreated={(roleId) => {
+          // Refresh data
+          if (!tenantId) return;
+          Promise.all([
+            supabase.from("custom_roles").select("*").eq("tenant_id", tenantId).order("is_system", { ascending: false }),
+            supabase.from("role_permissions").select("role_id, permission_key").eq("tenant_id", tenantId),
+          ]).then(([rolesRes, rpRes]) => {
+            setRoles(rolesRes.data as CustomRole[] ?? []);
+            setRolePermissions(rpRes.data ?? []);
+            setSelectedRoleId(roleId);
+          });
+        }}
+      />
     </div>
   );
 };
