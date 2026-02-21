@@ -1,18 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, FileText, Calculator, Wallet, Stamp, Play } from "lucide-react";
+import { ArrowLeft, Play, CheckCircle2, TrendingUp, Shield, Zap, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RamadanGlow, RamadanPattern, RamadanBadge, RamadanDivider } from "@/components/ramadan";
+import { RamadanGlow, RamadanPattern, RamadanBadge } from "@/components/ramadan";
 import { useTheme } from "@/theme/ThemeProvider";
-
-const floatingFeatures = [
-  { icon: FileText, label: "فواتير ZATCA", x: "8%", y: "20%", delay: 0.8 },
-  { icon: Calculator, label: "حسابات تلقائية", x: "85%", y: "25%", delay: 1.0 },
-  { icon: Wallet, label: "محفظة رقمية", x: "5%", y: "72%", delay: 1.2 },
-  { icon: Stamp, label: "ختم إلكتروني", x: "88%", y: "68%", delay: 1.4 },
-];
-
-const trustedLogos = ["stc", "أرامكو", "الراجحي", "البنك الأهلي", "NEOM"];
 
 const HeroSection = () => {
   const { seasonalTheme } = useTheme();
@@ -20,229 +11,207 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl">
-      {/* Ramadan overlays */}
       <RamadanPattern />
       <RamadanGlow variant="hero" />
 
-      {/* Animated grid background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-      </div>
+      {/* Subtle grid */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
+      }} />
 
-      {/* Animated gradient orbs */}
+      {/* Background orbs */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.06, 0.1, 0.06] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{
-            background: isRamadan
-              ? "radial-gradient(circle, hsl(var(--ramadan-gold) / 0.12) 0%, transparent 70%)"
-              : "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)"
+          style={{ background: isRamadan
+            ? "radial-gradient(circle, hsl(var(--ramadan-gold) / 0.12) 0%, transparent 70%)"
+            : "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)"
           }}
         />
         <motion.div
           animate={{ scale: [1.2, 1, 1.2], opacity: [0.04, 0.08, 0.04] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-[10%] left-[5%] w-[400px] h-[400px] rounded-full blur-3xl"
-          style={{
-            background: isRamadan
-              ? "radial-gradient(circle, hsl(var(--ramadan-emerald) / 0.1) 0%, transparent 70%)"
-              : "radial-gradient(circle, hsl(220 70% 60% / 0.1), transparent 70%)"
-          }}
-        />
-        <motion.div
-          animate={{ y: [0, -30, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[40%] left-[50%] w-[300px] h-[300px] rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, hsl(260 50% 50% / 0.06), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, hsl(220 70% 60% / 0.1), transparent 70%)" }}
         />
       </div>
 
-      {/* Floating feature pills */}
-      {floatingFeatures.map((f, i) => (
-        <motion.div
-          key={f.label}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: f.delay, duration: 0.6, type: "spring" }}
-          className="absolute hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.1] shadow-lg z-10"
-          style={{ left: f.x, top: f.y }}
-        >
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}
-            className="flex items-center gap-2"
-          >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isRamadan ? "bg-[hsl(var(--ramadan-gold)/0.2)]" : "bg-accent/20"}`}>
-              <f.icon size={14} className={isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-accent"} />
-            </div>
-            <span className="text-xs font-medium text-white/80">{f.label}</span>
-          </motion.div>
-        </motion.div>
-      ))}
-
-      <div className="container relative mx-auto flex min-h-screen flex-col items-center justify-center px-4 pt-28 pb-16 z-20">
-        {/* Badge area */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-6 flex flex-col items-center gap-3"
-        >
-          {/* Ramadan badge — يظهر تلقائياً عند تفعيل الثيم */}
-          <RamadanBadge size="md" />
-
-          <div className={`inline-flex items-center gap-3 rounded-full border px-5 py-2.5 backdrop-blur-sm ${
-            isRamadan
-              ? "border-[hsl(var(--ramadan-gold)/0.3)] bg-[hsl(var(--ramadan-gold)/0.1)]"
-              : "border-accent/30 bg-accent/10"
-          }`}>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
-            </span>
-            <span className={`text-sm font-semibold ${isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-accent"}`}>
-              🇸🇦 المنصة المحاسبية #1 في المملكة العربية السعودية
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Ramadan greeting line */}
-        {isRamadan && (
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-4 text-center text-base text-white/60 font-arabic"
-          >
-            🌙 رمضان كريم — عروض حصرية طوال الشهر الكريم
-          </motion.p>
-        )}
-
-        {/* Main Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15 }}
-          className="mb-6 text-center text-4xl font-bold leading-[1.15] text-primary-foreground md:text-6xl lg:text-7xl max-w-5xl"
-        >
-          أدِر أعمالك المحاسبية
-          <br />
-          <span className="relative inline-block">
-            <span className={isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-gradient"}>
-              بذكاء وأمان مطلق
-            </span>
-            <motion.span
-              className={`absolute -bottom-2 left-0 right-0 h-0.5 rounded-full ${isRamadan ? "bg-[hsl(var(--ramadan-gold)/0.4)]" : "bg-accent/40"}`}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 1, duration: 0.8 }}
-            />
-          </span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="mb-10 max-w-3xl text-center text-lg leading-relaxed text-primary-foreground/65 md:text-xl"
-        >
-          فواتير إلكترونية ZATCA · عقود · عروض أسعار · أوامر شراء · محفظة رقمية ·{" "}
-          تقارير مالية · ختم إلكتروني · إدارة مخزون — كل شيء في منصة واحدة.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35 }}
-          className="mb-12 flex flex-col items-center gap-4 sm:flex-row"
-        >
-          <Link to="/auth">
-            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              {isRamadan ? (
-                /* CTA رمضاني: Emerald مع حافة ذهبية خفيفة */
-                <button className="inline-flex items-center gap-2 rounded-2xl px-10 py-4 text-base font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--ramadan-emerald)) 0%, hsl(160 75% 32%) 100%)",
-                    boxShadow: "0 0 0 1px hsl(var(--ramadan-gold)/0.3), 0 8px 32px -4px hsl(var(--ramadan-emerald)/0.4)",
-                  }}
-                >
-                  ابدأ مجاناً — 14 يوم
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-              ) : (
-                <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-7 text-base font-bold transition-shadow duration-300 hover:shadow-[0_8px_40px_-4px_hsl(172_66%_36%/0.5)]">
-                  ابدأ مجاناً — 14 يوم
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
-              )}
+      <div className="container relative mx-auto flex min-h-screen items-center px-4 pt-24 pb-16 z-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
+          {/* Left: Content */}
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-start gap-3"
+            >
+              <RamadanBadge size="md" />
+              <div className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 backdrop-blur-sm ${
+                isRamadan
+                  ? "border-[hsl(var(--ramadan-gold)/0.3)] bg-[hsl(var(--ramadan-gold)/0.1)]"
+                  : "border-accent/30 bg-accent/10"
+              }`}>
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
+                </span>
+                <span className={`text-xs font-semibold ${isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-accent"}`}>
+                  جاهز لمرحلة الفوترة الإلكترونية Phase 2
+                </span>
+              </div>
             </motion.div>
-          </Link>
-          <a href="#features">
-            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 py-7 text-base backdrop-blur-sm gap-2 rounded-2xl">
-                <Play size={16} className="fill-current" />
-                شاهد العرض التوضيحي
-              </Button>
-            </motion.div>
-          </a>
-        </motion.div>
 
-        {/* Feature highlights row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mb-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3"
-        >
-          {[
-            "✅ متوافق مع ZATCA المرحلة الثانية",
-            "🔒 تشفير 256-bit",
-            "☁️ سحابي بالكامل",
-            "🇸🇦 دعم عربي كامل",
-          ].map((item, i) => (
-            <motion.span
-              key={item}
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-4xl font-bold leading-[1.15] text-primary-foreground md:text-5xl lg:text-6xl"
+            >
+              ERP سعودي مؤسسي.
+              <br />
+              <span className={isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-gradient"}>
+                أسرع. أذكى.
+              </span>
+              <br />
+              <span className="text-primary-foreground/90">
+                متوافق بالكامل مع هيئة الزكاة.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="max-w-lg text-lg leading-relaxed text-primary-foreground/60"
+            >
+              فواتير في 10 ثوانٍ. امتثال ZATCA تلقائي. AI محاسبي يحلل أعمالك ويوصيك بخطوتك التالية.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col gap-4 sm:flex-row"
+            >
+              <Link to="/auth">
+                <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
+                  <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-7 text-base font-bold">
+                    ابدأ مجاناً — 14 يوم
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
+              </Link>
+              <a href="#demo">
+                <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
+                  <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 py-7 text-base backdrop-blur-sm gap-2 rounded-2xl">
+                    <Play size={16} className="fill-current" />
+                    احجز عرض مباشر
+                  </Button>
+                </motion.div>
+              </a>
+            </motion.div>
+
+            {/* Trust signals */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 + i * 0.1 }}
-              className="text-sm text-primary-foreground/50"
+              transition={{ delay: 0.5 }}
+              className="flex flex-wrap gap-x-5 gap-y-2"
             >
-              {item}
-            </motion.span>
-          ))}
-        </motion.div>
+              {[
+                "✅ متوافق ZATCA Phase 2",
+                "🔒 تشفير 256-bit",
+                "☁️ سحابي",
+                "🇸🇦 دعم عربي كامل",
+              ].map((item) => (
+                <span key={item} className="text-xs text-primary-foreground/40">{item}</span>
+              ))}
+            </motion.div>
+          </div>
 
-        {/* Ramadan divider — يظهر فقط في ثيم رمضان */}
-        <RamadanDivider className="w-full max-w-sm" />
+          {/* Right: Dashboard Preview */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="hidden lg:block"
+          >
+            <div className="relative rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-sm p-5 shadow-2xl">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
+                </div>
+                <div className="flex-1 text-center">
+                  <span className="text-[10px] text-white/30 bg-white/5 px-3 py-0.5 rounded-full">
+                    app.numaxio.com/dashboard
+                  </span>
+                </div>
+              </div>
 
-        {/* Trusted by logos */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="mt-8 text-center"
-        >
-          <p className="text-xs text-primary-foreground/25 mb-4 uppercase tracking-widest text-center">موثوق من أكثر من منشأة سعودية</p>
-          <div className="flex items-center justify-center gap-8 flex-wrap">
-            {trustedLogos.map((logo, i) => (
-              <motion.span
-                key={logo}
+              {/* KPI Cards */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { label: "الإيرادات الشهرية", value: "٢٤٥,٠٠٠ ﷼", trend: "+12%", color: "text-emerald-400" },
+                  { label: "صافي الربح", value: "١٦٢,٦٠٠ ﷼", trend: "+8%", color: "text-blue-400" },
+                  { label: "DSO", value: "٢٣ يوم", trend: "-3", color: "text-amber-400" },
+                  { label: "درجة الامتثال", value: "٩٤٪", trend: "A+", color: "text-emerald-400" },
+                ].map((kpi, i) => (
+                  <motion.div
+                    key={kpi.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
+                    className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-3"
+                  >
+                    <p className="text-[10px] text-white/40 mb-1">{kpi.label}</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm font-bold text-white/90">{kpi.value}</span>
+                      <span className={`text-[10px] font-semibold ${kpi.color}`}>{kpi.trend}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* ZATCA Status */}
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1.4 + i * 0.1 }}
-                className="text-sm font-medium text-primary-foreground/20"
+                transition={{ delay: 1.0 }}
+                className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 mb-3"
               >
-                {logo}
-              </motion.span>
-            ))}
-          </div>
-        </motion.div>
+                <Shield size={14} className="text-emerald-400" />
+                <span className="text-[11px] text-emerald-300 font-medium">ZATCA Phase 2 — متوافق ✓</span>
+                <span className="mr-auto text-[10px] text-emerald-400/60">آخر مزامنة: الآن</span>
+              </motion.div>
+
+              {/* AI Popup */}
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 1.3, type: "spring" }}
+                className="rounded-xl bg-white/[0.08] border border-accent/20 p-3"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Zap size={12} className="text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-accent font-semibold mb-0.5">توصية AI</p>
+                    <p className="text-[11px] text-white/60 leading-relaxed">
+                      لاحظت ارتفاع DSO بمقدار 3 أيام. يُوصى بتفعيل التحصيل الذكي لـ 4 عملاء متأخرين.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       {/* Bottom wave */}
