@@ -256,6 +256,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "شجرة الحسابات",
     description: "إدارة شجرة الحسابات المؤسسية مع الإصدارات.",
   },
+  "enterprise-journal": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "دفتر اليومية",
+    description: "إنشاء وترحيل القيود اليومية المؤسسية.",
+  },
 };
 
 /**
@@ -300,4 +306,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/audit-export": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/corporate-structure": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/coa": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/journal": FEATURE_KEYS.ENTERPRISE_MODE,
 };

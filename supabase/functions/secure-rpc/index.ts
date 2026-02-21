@@ -35,6 +35,7 @@ const ENTERPRISE_ONLY_RPCS = new Set([
   "auto_activate_enterprise_integrations",
   "get_rls_audit",
   "clone_chart_of_accounts",
+  "post_journal_entry",
 ]);
 
 // Whitelist of functions allowed through this proxy
@@ -78,6 +79,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   get_rls_audit: true,
   // COA
   clone_chart_of_accounts: true,
+  // Journal
+  post_journal_entry: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

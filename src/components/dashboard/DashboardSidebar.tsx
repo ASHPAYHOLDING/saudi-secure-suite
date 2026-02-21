@@ -69,6 +69,7 @@ const navGroups: NavGroup[] = [
       { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
       { icon: Building2, key: "nav.corporateStructure", path: "/dashboard/finance/corporate-structure", module: "enterprise", featureKey: "enterprise_mode" as any },
       { icon: BookOpen, key: "nav.chartOfAccounts", path: "/dashboard/finance/coa", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: BookOpen, key: "nav.generalJournal", path: "/dashboard/finance/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
       { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: ShieldCheck, key: "nav.dataQuality", path: "/dashboard/data-quality", module: "finance" },
