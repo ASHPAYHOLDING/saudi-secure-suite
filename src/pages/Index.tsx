@@ -1,11 +1,13 @@
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
-import FeaturesSection from "@/components/landing/FeaturesSection";
-import PlatformShowcase from "@/components/landing/PlatformShowcase";
-import WhySection from "@/components/landing/WhySection";
-import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import PowerStrip from "@/components/landing/PowerStrip";
+import CoreAdvantages from "@/components/landing/CoreAdvantages";
+import InvoiceDemo from "@/components/landing/InvoiceDemo";
+import EnterpriseSection from "@/components/landing/EnterpriseSection";
+import AISection from "@/components/landing/AISection";
 import DynamicPricingSection from "@/components/landing/DynamicPricingSection";
-import CTASection from "@/components/landing/CTASection";
+import TrustSection from "@/components/landing/TrustSection";
+import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
@@ -13,12 +15,14 @@ const Index = () => {
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
       <HeroSection />
-      <FeaturesSection />
-      <PlatformShowcase />
-      <WhySection />
-      <TestimonialsSection />
+      <PowerStrip />
+      <CoreAdvantages />
+      <InvoiceDemo />
+      <EnterpriseSection />
+      <AISection />
       <DynamicPricingSection />
-      <CTASection />
+      <TrustSection />
+      <FinalCTA />
       <Footer />
     </div>
   );
