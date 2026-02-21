@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Check, X, Sparkles, Building2, User, Briefcase, Crown, TrendingDown, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -270,18 +270,15 @@ const DynamicPricingSection = () => {
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <AnimatePresence mode="wait">
-                          <motion.span
+                         <motion.span
                             key={`${plan.id}-${cycle}`}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.25 }}
                             className="text-4xl sm:text-5xl font-bold text-foreground tabular-nums"
                           >
                             {price.toLocaleString("ar-SA")}
                           </motion.span>
-                        </AnimatePresence>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-muted-foreground">ر.س</span>
                           <span className="text-[11px] text-muted-foreground">/ {CYCLE_LABELS[cycle]}</span>
@@ -362,33 +359,30 @@ const DynamicPricingSection = () => {
 
                 {/* Feature Comparison: ✔️ / ❌ */}
                 <div className="space-y-0">
-                  <AnimatePresence initial={false}>
-                    {visibleItems.map((item, fi) => (
-                      <motion.div
-                        key={item.label}
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2, delay: fi * 0.02 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex items-center gap-2.5 py-2 text-sm border-b border-border/30 last:border-b-0">
-                          {item.has ? (
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
-                              <Check size={12} className="text-accent" />
-                            </div>
-                          ) : (
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/60 shrink-0">
-                              <X size={12} className="text-muted-foreground/50" />
-                            </div>
-                          )}
-                          <span className={item.has ? "text-foreground" : "text-muted-foreground/60 line-through decoration-muted-foreground/30"}>
-                            {item.label}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                  {visibleItems.map((item, fi) => (
+                    <motion.div
+                      key={item.label}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.2, delay: fi * 0.02 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2.5 py-2 text-sm border-b border-border/30 last:border-b-0">
+                        {item.has ? (
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 shrink-0">
+                            <Check size={12} className="text-accent" />
+                          </div>
+                        ) : (
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted/60 shrink-0">
+                            <X size={12} className="text-muted-foreground/50" />
+                          </div>
+                        )}
+                        <span className={item.has ? "text-foreground" : "text-muted-foreground/60 line-through decoration-muted-foreground/30"}>
+                          {item.label}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
 
                   {/* Expand / Collapse */}
                   {hasMore && (
