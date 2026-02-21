@@ -119,6 +119,8 @@
     "enterpriseIPRestrictions": "تقييد عناوين IP",
     "enterpriseRoleTemplates": "قوالب الأدوار",
     "enterpriseAuditExport": "تصدير التدقيق",
+    "generalJournal": "دفتر اليومية",
+    "periodClose": "إغلاق الفترات",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",

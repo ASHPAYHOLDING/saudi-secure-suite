@@ -119,6 +119,8 @@
     "enterpriseIPRestrictions": "IP Restrictions",
     "enterpriseRoleTemplates": "Role Templates",
     "enterpriseAuditExport": "Audit Export",
+    "generalJournal": "General Journal",
+    "periodClose": "Period Close",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",

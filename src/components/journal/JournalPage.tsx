@@ -73,7 +73,8 @@ interface DraftLine {
 const premiumFade = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 
 const JournalPage = () => {
-  const { tenantId, userId } = useAuth();
+  const { tenantId, user } = useAuth();
+  const userId = user?.id;
   const { currentLang } = useLanguage();
   const isRTL = currentLang === "ar";
 
@@ -90,7 +91,7 @@ const JournalPage = () => {
       .select("*")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false });
-    setEntries((data as JournalEntry[]) || []);
+    setEntries((data as unknown as JournalEntry[]) || []);
     setLoading(false);
   }, [tenantId]);
 
@@ -299,19 +300,20 @@ function CreateEntryDialog({ tenantId, userId, isRTL, onCreated }: {
 
     setSaving(true);
     // Insert header
-    const { data: entry, error: entryErr } = await supabase.from("journal_entries").insert({
+    const insertPayload: any = {
       tenant_id: tenantId,
       legal_entity_id: entityId === "__none__" ? null : entityId,
       entry_date: entryDate,
       reference: reference.trim(),
       memo: memo.trim() || null,
       created_by: userId,
-    }).select("id").single();
+    };
+    const { data: entry, error: entryErr } = await supabase.from("journal_entries").insert(insertPayload).select("id").single();
 
     if (entryErr || !entry) { setSaving(false); toast.error(entryErr?.message || "Error"); return; }
 
     // Insert lines
-    const lineInserts = validLines.map(l => ({
+    const lineInserts: any[] = validLines.map(l => ({
       tenant_id: tenantId,
       entry_id: entry.id,
       account_id: l.account_id,
