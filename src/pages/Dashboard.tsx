@@ -3,6 +3,7 @@ import { useLocation, Outlet } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
+import DashboardBreadcrumbs from "@/components/dashboard/DashboardBreadcrumbs";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import UsageLimitAlert from "@/components/subscription/UsageLimitAlert";
@@ -64,6 +65,7 @@ const DashboardLayout = memo(() => {
               <div className="px-6 space-y-3">
                 <UsageLimitAlert />
               </div>
+              <DashboardBreadcrumbs />
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Outlet />
               </Suspense>
