@@ -10121,6 +10121,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_my_permissions: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: string[]
+      }
       get_next_icv: { Args: { _tenant_id: string }; Returns: number }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
