@@ -9346,6 +9346,234 @@ export type Database = {
           },
         ]
       }
+      workflow_instance_steps: {
+        Row: {
+          acted_at: string | null
+          acted_by: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          instance_id: string
+          status: Database["public"]["Enums"]["wf_step_status"]
+          step_id: string
+          step_order: number
+          tenant_id: string
+        }
+        Insert: {
+          acted_at?: string | null
+          acted_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          instance_id: string
+          status?: Database["public"]["Enums"]["wf_step_status"]
+          step_id: string
+          step_order: number
+          tenant_id: string
+        }
+        Update: {
+          acted_at?: string | null
+          acted_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string
+          status?: Database["public"]["Enums"]["wf_step_status"]
+          step_id?: string
+          step_order?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instance_steps_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instance_steps_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instance_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_instances: {
+        Row: {
+          completed_at: string | null
+          current_step_order: number
+          entity_id: string
+          entity_type: string
+          id: string
+          started_at: string
+          started_by: string
+          status: Database["public"]["Enums"]["wf_instance_status"]
+          tenant_id: string
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          current_step_order?: number
+          entity_id: string
+          entity_type: string
+          id?: string
+          started_at?: string
+          started_by: string
+          status?: Database["public"]["Enums"]["wf_instance_status"]
+          tenant_id: string
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          current_step_order?: number
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          started_at?: string
+          started_by?: string
+          status?: Database["public"]["Enums"]["wf_instance_status"]
+          tenant_id?: string
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instances_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_steps: {
+        Row: {
+          auto_condition: Json | null
+          created_at: string
+          id: string
+          is_required: boolean
+          name: string
+          name_en: string | null
+          permission_required: string | null
+          role_required: string | null
+          step_order: number
+          tenant_id: string
+          timeout_hours: number | null
+          type: Database["public"]["Enums"]["wf_step_type"]
+          workflow_id: string
+        }
+        Insert: {
+          auto_condition?: Json | null
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          name: string
+          name_en?: string | null
+          permission_required?: string | null
+          role_required?: string | null
+          step_order?: number
+          tenant_id: string
+          timeout_hours?: number | null
+          type?: Database["public"]["Enums"]["wf_step_type"]
+          workflow_id: string
+        }
+        Update: {
+          auto_condition?: Json | null
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          name?: string
+          name_en?: string | null
+          permission_required?: string | null
+          role_required?: string | null
+          step_order?: number
+          tenant_id?: string
+          timeout_hours?: number | null
+          type?: Database["public"]["Enums"]["wf_step_type"]
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_steps_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          entity_type: string
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          entity_type: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_en?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zatca_certificates: {
         Row: {
           certificate: string | null
@@ -10359,6 +10587,19 @@ export type Database = {
       budget_period_type: "monthly" | "quarterly" | "yearly"
       budget_status: "draft" | "active" | "locked" | "archived"
       tenant_type: "company" | "individual" | "freelancer"
+      wf_instance_status:
+        | "pending"
+        | "in_progress"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+      wf_step_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "skipped"
+        | "auto_passed"
+      wf_step_type: "approval" | "condition" | "auto"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -10493,6 +10734,21 @@ export const Constants = {
       budget_period_type: ["monthly", "quarterly", "yearly"],
       budget_status: ["draft", "active", "locked", "archived"],
       tenant_type: ["company", "individual", "freelancer"],
+      wf_instance_status: [
+        "pending",
+        "in_progress",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
+      wf_step_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "skipped",
+        "auto_passed",
+      ],
+      wf_step_type: ["approval", "condition", "auto"],
     },
   },
 } as const
