@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FileText, TrendingUp, CreditCard, FileSignature, Users, Loader2,
+  FileText, TrendingUp, CreditCard, FileSignature, Users, 
   ArrowUpRight, ArrowDownRight, Receipt, Wallet, BarChart3,
   Plus, Eye, Clock, CheckCircle2, AlertTriangle, Zap,
-  PieChart, Target, Sparkles, Activity, Lightbulb, Rocket, X, ChevronLeft, RefreshCw
+  Target, Sparkles, Activity, RefreshCw, ShieldAlert, 
+  Banknote, CircleDollarSign, CalendarClock, ArrowRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,10 +20,8 @@ import { ar, enUS } from "date-fns/locale";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { RamadanGlow, RamadanDivider, RamadanBadge } from "@/components/ramadan";
-import { useTheme } from "@/theme/ThemeProvider";
+import { cn } from "@/lib/utils";
 
-// Lazy-load heavy components
 import { lazy, Suspense } from "react";
 const ChartsSection = lazy(() => import("./DashboardCharts"));
 const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
@@ -51,10 +50,9 @@ interface AuditEntry {
   user_id: string;
 }
 
-// Animated counter component
+// ─── Animated counter ───
 const AnimatedCounter = ({ value, duration = 1.2 }: { value: number; duration?: number }) => {
   const [display, setDisplay] = useState(0);
-
   useEffect(() => {
     let start = 0;
     const end = value;
@@ -68,233 +66,23 @@ const AnimatedCounter = ({ value, duration = 1.2 }: { value: number; duration?: 
     }, stepTime);
     return () => clearInterval(timer);
   }, [value, duration]);
-
   return <>{display.toLocaleString("ar-SA")}</>;
 };
 
-// حكمة اليوم المالية
-const FINANCIAL_WISDOMS = [
-  { text: "الميزانية ليست مجرد أرقام، بل هي خارطة طريق لأهدافك المالية", author: "بيتر دراكر", category: "الميزانية" },
-  { text: "لا تنفق ما تبقى بعد الادخار، بل ادخر ما تبقى بعد الإنفاق", author: "وارن بافت", category: "الادخار" },
-  { text: "المحاسبة هي لغة الأعمال", author: "وارن بافت", category: "المحاسبة" },
-  { text: "الإيرادات تأتي من المبيعات، لكن الأرباح تأتي من التحكم بالتكاليف", author: "حكمة إدارية", category: "الربحية" },
-  { text: "التدفق النقدي هو شريان الحياة لأي مشروع تجاري ناجح", author: "ريتشارد برانسون", category: "السيولة" },
-  { text: "في عالم المال، الشفافية هي أساس الثقة بين الشركاء والعملاء", author: "حكمة مالية", category: "الشفافية" },
-  { text: "أفضل استثمار يمكنك القيام به هو الاستثمار في نفسك وفريقك", author: "بنجامين فرانكلين", category: "الاستثمار" },
-  { text: "الفاتورة المنظمة تعكس شركة محترفة وتبني ثقة العميل", author: "حكمة تجارية", category: "الفوترة" },
-  { text: "من يتابع أرقامه يومياً لن تفاجئه النتائج السنوية", author: "حكمة محاسبية", category: "المتابعة" },
-  { text: "الضرائب ليست عبئاً بل مسؤولية وطنية تعزز الاقتصاد", author: "حكمة ضريبية", category: "الالتزام" },
-  { text: "القرار المالي الجيد يعتمد على بيانات دقيقة وليس على الحدس", author: "حكمة إدارية", category: "اتخاذ القرار" },
-  { text: "كل ريال تدخره اليوم هو ريالان في المستقبل", author: "حكمة استثمارية", category: "الادخار" },
-  { text: "النجاح المالي يبدأ بفهم الفرق بين الأصول والخصوم", author: "روبرت كيوساكي", category: "الأساسيات" },
-  { text: "المراجعة الدورية للحسابات تمنع المفاجآت غير السارة", author: "حكمة محاسبية", category: "التدقيق" },
-  { text: "العميل الراضي هو أفضل مصدر للإيرادات المتكررة", author: "حكمة تجارية", category: "العملاء" },
-  { text: "الأرباح ليست فقط ما تكسبه، بل ما تحافظ عليه", author: "حكمة مالية", category: "إدارة الأرباح" },
-  { text: "التخطيط المالي الجيد يحول الأحلام إلى أهداف قابلة للتحقيق", author: "حكمة إدارية", category: "التخطيط" },
-  { text: "إدارة المخزون بذكاء توفر رأس المال وتقلل الهدر", author: "حكمة لوجستية", category: "المخزون" },
-  { text: "الاستثمار في التقنية المالية يوفر الوقت ويقلل الأخطاء", author: "حكمة تقنية", category: "التحول الرقمي" },
-  { text: "لا تؤجل ما يمكن فوترته اليوم إلى الغد", author: "حكمة محاسبية", category: "الفوترة" },
-  { text: "التنويع في مصادر الدخل هو أفضل تأمين ضد المخاطر", author: "حكمة استثمارية", category: "إدارة المخاطر" },
-  { text: "الشركة الناجحة هي التي تعرف تكلفة كل منتج وخدمة تقدمها", author: "حكمة إدارية", category: "محاسبة التكاليف" },
-  { text: "سجّل كل شيء، فالذاكرة تخون لكن الدفاتر لا تكذب", author: "حكمة محاسبية", category: "التوثيق" },
-  { text: "الثقة تُبنى بالتزام المواعيد: مواعيد التسليم ومواعيد السداد", author: "حكمة تجارية", category: "الالتزام" },
-  { text: "رأس المال العامل هو الفرق بين البقاء والازدهار", author: "حكمة مالية", category: "السيولة" },
-  { text: "أفضل وقت للتخطيط الضريبي هو بداية السنة وليس نهايتها", author: "حكمة ضريبية", category: "التخطيط الضريبي" },
-  { text: "العقد الواضح يحمي الطرفين ويبني علاقة مهنية طويلة", author: "حكمة قانونية", category: "العقود" },
-  { text: "تقرير مالي واحد دقيق خير من عشرة تقارير مبهمة", author: "حكمة محاسبية", category: "التقارير" },
-  { text: "في إدارة الأعمال: ما لا يُقاس لا يُدار", author: "بيتر دراكر", category: "القياس" },
-  { text: "الامتثال للأنظمة ليس خياراً بل ضرورة لاستدامة الأعمال", author: "حكمة تنظيمية", category: "الامتثال" },
-];
-
-// بانر رمضان — قابل للإغلاق، خفيف جداً
-const RamadanAnnouncementBanner = () => {
-  const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem("ramadan-banner-dismissed-2025") === "1"; } catch { return false; }
-  });
-  const { seasonalTheme } = useTheme();
-
-  if (dismissed || seasonalTheme !== "ramadan") return null;
-
-  const handleDismiss = () => {
-    setDismissed(true);
-    try { localStorage.setItem("ramadan-banner-dismissed-2025", "1"); } catch {}
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8, height: 0 }}
-      animate={{ opacity: 1, y: 0, height: "auto" }}
-      exit={{ opacity: 0, y: -8, height: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-    >
-      <div
-        className="relative flex items-center gap-3 rounded-xl border px-4 py-3 text-sm"
-        style={{
-          borderColor: "hsl(var(--ramadan-gold)/0.3)",
-          background: "linear-gradient(135deg, hsl(var(--ramadan-gold)/0.06) 0%, hsl(var(--ramadan-emerald)/0.04) 100%)",
-        }}
-      >
-        {/* هلال بسيط SVG */}
-        <svg width="18" height="18" viewBox="0 0 80 80" fill="none" aria-hidden="true" className="shrink-0" style={{ color: "hsl(var(--ramadan-gold))" }}>
-          <path d="M52 16C43.5 16 36.5 22.4 36.5 30.5C36.5 38.6 43.5 45 52 45C55.2 45 58.2 44.1 60.7 42.5C57.5 48.5 51 52.5 43.5 52.5C32.7 52.5 24 43.8 24 33C24 22.2 32.7 13.5 43.5 13.5C46.5 13.5 49.4 14.2 52 15.4V16Z" fill="currentColor" />
-        </svg>
-        <p className="flex-1 font-medium" style={{ color: "hsl(var(--ramadan-gold))" }}>
-          رمضان كريم 🌙
-          <span className="text-muted-foreground font-normal ms-2">
-            — ساعات العمل والدعم خلال رمضان قد تختلف. نتمنى لكم صياماً مقبولاً.
-          </span>
-        </p>
-        <button
-          onClick={handleDismiss}
-          aria-label="إخفاء البانر"
-          className="shrink-0 rounded-md p-1 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <X size={14} />
-        </button>
-      </div>
-    </motion.div>
-  );
-};
-
-// إعلان نيوماكسيو باي
-const NumaxioPayBanner = () => {
-  const [dismissed, setDismissed] = useState(false);
-  const navigate = useNavigate();
-
-  if (dismissed) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.97, y: 15 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-    >
-      <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-l from-accent/10 via-accent/5 to-primary/5 p-5 sm:p-6">
-        <motion.div
-          className="absolute -top-10 -end-10 w-40 h-40 rounded-full bg-accent/10 blur-2xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -bottom-8 -start-8 w-32 h-32 rounded-full bg-primary/10 blur-2xl"
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <button
-          onClick={() => setDismissed(true)}
-          className="absolute top-3 start-3 z-10 rounded-full p-1 text-muted-foreground/60 hover:text-foreground hover:bg-background/50 transition-colors"
-        >
-          <X size={14} />
-        </button>
-        <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <motion.div
-            className="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-lg shadow-accent/20"
-            animate={{ rotate: [0, -3, 3, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Rocket className="w-7 h-7 text-accent-foreground" />
-          </motion.div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <motion.span
-                className="text-xs font-bold text-accent tracking-wide"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                🎉 جديد
-              </motion.span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-foreground font-[IBM_Plex_Sans_Arabic] mb-1">
-              نيوماكسيو باي — بوابة الدفع الذكية
-            </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              استقبل مدفوعاتك من عملائك عبر مدى، فيزا، ماستركارد، Apple Pay و STC Pay مباشرة من فواتيرك. تفعيل فوري بدون تعقيد.
-            </p>
-          </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="shrink-0">
-            <Button
-              size="sm"
-              className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-md shadow-accent/20 rounded-xl px-5"
-              onClick={() => navigate("/dashboard/numaxio-pay")}
-            >
-              <span>اكتشف الآن</span>
-              <ChevronLeft size={16} />
-            </Button>
-          </motion.div>
-        </div>
-        <motion.div
-          className="relative mt-4 pt-3 border-t border-accent/10 flex items-center gap-3 flex-wrap"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          {["مدى", "Visa", "Mastercard", "Apple Pay", "STC Pay"].map((method, i) => (
-            <motion.span
-              key={method}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 + i * 0.1 }}
-              className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-background/60 text-muted-foreground border border-border/50"
-            >
-              {method}
-            </motion.span>
-          ))}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
-
-const DailyWisdom = () => {
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-  const wisdom = FINANCIAL_WISDOMS[dayOfYear % FINANCIAL_WISDOMS.length];
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-      <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-l from-accent/5 via-accent/[0.02] to-transparent p-5 sm:p-6">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-accent/5 rounded-full -translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 right-0 w-24 h-24 bg-accent/5 rounded-full translate-x-12 translate-y-12" />
-        <div className="relative flex items-start gap-4">
-          <div className="shrink-0 w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-accent" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[11px] font-semibold text-accent tracking-wide">حكمة اليوم</span>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-accent/20 text-accent/70">
-                {wisdom.category}
-              </Badge>
-            </div>
-            <blockquote className="text-sm sm:text-base font-medium text-foreground leading-relaxed font-[IBM_Plex_Sans_Arabic]">
-              "{wisdom.text}"
-            </blockquote>
-            <p className="text-[11px] text-muted-foreground mt-2">— {wisdom.author}</p>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-/** Skeleton card for KPIs */
+// ─── Skeleton ───
 const KpiSkeleton = () => (
-  <Card className="border-border/60">
-    <CardContent className="p-4 sm:p-5 space-y-3">
+  <Card className="border-border/40 shadow-sm">
+    <CardContent className="p-5 space-y-3">
       <div className="flex items-center justify-between">
         <Skeleton className="w-10 h-10 rounded-xl" />
-        <Skeleton className="w-8 h-5 rounded" />
+        <Skeleton className="w-16 h-5 rounded" />
       </div>
-      <Skeleton className="w-24 h-7 rounded" />
-      <Skeleton className="w-32 h-3 rounded" />
-      <Skeleton className="w-20 h-3 rounded" />
+      <Skeleton className="w-28 h-8 rounded" />
+      <Skeleton className="w-36 h-3 rounded" />
     </CardContent>
   </Card>
 );
 
-/** Error card with retry */
 const ErrorCard = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
   <Card className="border-destructive/30">
     <CardContent className="p-6 text-center space-y-3">
@@ -308,7 +96,80 @@ const ErrorCard = ({ message, onRetry }: { message: string; onRetry: () => void 
   </Card>
 );
 
-/** Fetches dashboard stats using timedCall with dedup */
+// ─── VAT Alert Banner ───
+const VatAlertBanner = ({ totalVat, totalRevenue }: { totalVat: number; totalRevenue: number }) => {
+  const vatRate = totalRevenue > 0 ? (totalVat / totalRevenue) * 100 : 0;
+  const now = new Date();
+  const daysUntilEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+  const isUrgent = daysUntilEnd <= 5;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <div className={cn(
+        "flex items-center gap-4 rounded-xl border px-5 py-4",
+        isUrgent
+          ? "border-destructive/30 bg-destructive/5"
+          : "border-warning/25 bg-warning/5"
+      )}>
+        <div className={cn(
+          "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center",
+          isUrgent ? "bg-destructive/10" : "bg-warning/10"
+        )}>
+          <ShieldAlert className={cn("w-5 h-5", isUrgent ? "text-destructive" : "text-warning")} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={cn("text-sm font-semibold", isUrgent ? "text-destructive" : "text-warning")}>
+            {isUrgent ? "⚠️ موعد تقديم إقرار ضريبة القيمة المضافة قريب" : "تنبيه ضريبة القيمة المضافة"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            إجمالي الضريبة المستحقة: <span className="font-semibold text-foreground">{totalVat.toLocaleString("ar-SA")} ر.س</span>
+            {" · "}
+            متبقي {daysUntilEnd} يوم على نهاية الفترة
+          </p>
+        </div>
+        <Badge variant="outline" className={cn(
+          "shrink-0 text-[10px]",
+          isUrgent ? "border-destructive/30 text-destructive" : "border-warning/30 text-warning"
+        )}>
+          {vatRate.toFixed(1)}% نسبة الضريبة
+        </Badge>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Cashflow Alert ───
+const CashflowAlert = ({ revenue, expenses }: { revenue: number; expenses: number }) => {
+  const net = revenue - expenses;
+  const isNegative = net < 0;
+  const ratio = revenue > 0 ? (expenses / revenue) * 100 : 0;
+  const isHighBurn = ratio > 85;
+
+  if (!isNegative && !isHighBurn) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+      <div className="flex items-center gap-4 rounded-xl border border-destructive/25 bg-destructive/5 px-5 py-4">
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+          <Banknote className="w-5 h-5 text-destructive" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-destructive">
+            {isNegative ? "🔴 تدفق نقدي سلبي" : "⚠️ معدل حرق مرتفع"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {isNegative
+              ? `العجز: ${Math.abs(net).toLocaleString("ar-SA")} ر.س — المصروفات تتجاوز الإيرادات`
+              : `المصروفات تشكل ${ratio.toFixed(0)}% من الإيرادات — ينصح بمراجعة الإنفاق`
+            }
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Data fetcher ───
 async function fetchDashboardStats(tenantId: string): Promise<{
   stats: DashboardStats;
   activities: AuditEntry[];
@@ -348,25 +209,24 @@ async function fetchDashboardStats(tenantId: string): Promise<{
   const today = new Date().toISOString().split("T")[0];
 
   const totalExpenses = expenses
-    .filter(e => e.status === "approved" || e.status === "paid")
-    .reduce((s, e) => s + (e.total_amount || 0), 0);
+    .filter((e: any) => e.status === "approved" || e.status === "paid")
+    .reduce((s: number, e: any) => s + (e.total_amount || 0), 0);
 
   const stats: DashboardStats = {
     totalInvoices: invoices.length,
-    draftInvoices: invoices.filter((i) => i.status === "draft").length,
-    paidInvoices: invoices.filter((i) => i.status === "paid").length,
-    pendingInvoices: invoices.filter((i) => i.status === "sent" || i.status === "pending").length,
-    cancelledInvoices: invoices.filter((i) => i.status === "cancelled").length,
-    overdueInvoices: invoices.filter((i) => i.status !== "paid" && i.status !== "cancelled" && i.due_date < today).length,
-    totalRevenue: invoices.filter((i) => i.status === "paid").reduce((s, i) => s + (i.grand_total || 0), 0),
-    totalVat: invoices.reduce((s, i) => s + (i.vat_total || 0), 0),
-    activeContracts: contracts.filter((c) => c.status === "active" || c.status === "signed").length,
+    draftInvoices: invoices.filter((i: any) => i.status === "draft").length,
+    paidInvoices: invoices.filter((i: any) => i.status === "paid").length,
+    pendingInvoices: invoices.filter((i: any) => i.status === "sent" || i.status === "pending").length,
+    cancelledInvoices: invoices.filter((i: any) => i.status === "cancelled").length,
+    overdueInvoices: invoices.filter((i: any) => i.status !== "paid" && i.status !== "cancelled" && i.due_date < today).length,
+    totalRevenue: invoices.filter((i: any) => i.status === "paid").reduce((s: number, i: any) => s + (i.grand_total || 0), 0),
+    totalVat: invoices.reduce((s: number, i: any) => s + (i.vat_total || 0), 0),
+    activeContracts: contracts.filter((c: any) => c.status === "active" || c.status === "signed").length,
     totalContracts: contracts.length,
     totalCustomers: customersRes.data?.length || 0,
     totalExpenses,
   };
 
-  // Build monthly data (last 6 months)
   const monthlyData: { month: string; revenue: number; expenses: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date();
@@ -374,11 +234,11 @@ async function fetchDashboardStats(tenantId: string): Promise<{
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const monthLabel = d.toLocaleDateString("ar-SA", { month: "short" });
     const rev = invoices
-      .filter(inv => inv.status === "paid" && inv.invoice_date?.startsWith(key))
-      .reduce((s, inv) => s + (inv.grand_total || 0), 0);
+      .filter((inv: any) => inv.status === "paid" && inv.invoice_date?.startsWith(key))
+      .reduce((s: number, inv: any) => s + (inv.grand_total || 0), 0);
     const exp = expenses
-      .filter(e => e.expense_date?.startsWith(key))
-      .reduce((s, e) => s + (e.total_amount || 0), 0);
+      .filter((e: any) => e.expense_date?.startsWith(key))
+      .reduce((s: number, e: any) => s + (e.total_amount || 0), 0);
     monthlyData.push({ month: monthLabel, revenue: rev, expenses: exp });
   }
 
@@ -390,225 +250,171 @@ async function fetchDashboardStats(tenantId: string): Promise<{
   };
 }
 
+// ─── Action helpers ───
+const actionLabel = (action: string, entityType: string, t: any) => {
+  const actionMap: Record<string, string> = {
+    create: t("dashboard.actionCreate"), update: t("dashboard.actionUpdate"),
+    delete: t("dashboard.actionDelete"), sign: t("dashboard.actionSign"),
+    cancel: t("dashboard.actionCancel"), mark_paid: t("dashboard.actionMarkPaid"),
+    approve: "اعتماد", reject: "رفض", send: "إرسال",
+    lock: "قفل", unlock: "فتح قفل",
+  };
+  const entityMap: Record<string, string> = {
+    invoice: t("dashboard.entityInvoice"), contract: t("dashboard.entityContract"),
+    customer: t("dashboard.entityCustomer"), expense: t("dashboard.entityExpense") || "مصروف",
+    journal_entry: "قيد يومية", payment: "دفعة", quotation: "عرض سعر",
+    purchase_order: "أمر شراء", budget: "ميزانية",
+  };
+  return `${actionMap[action] || action} ${entityMap[entityType] || entityType}`;
+};
+
+const actionIcon = (entityType: string) => {
+  const icons: Record<string, any> = {
+    invoice: CreditCard, contract: FileSignature, customer: Users,
+    expense: Receipt, payment: CreditCard, journal_entry: FileText,
+  };
+  return icons[entityType] || FileText;
+};
+
+// ═══════════════════════════════════════
+//  MAIN DASHBOARD
+// ═══════════════════════════════════════
 const DashboardHome = () => {
   const { tenantId, profile } = useAuth();
   const { t, dir, currentLang } = useLanguage();
   const navigate = useNavigate();
-  const { seasonalTheme } = useTheme();
-  const isRamadan = seasonalTheme === "ramadan";
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard-stats", tenantId],
     queryFn: () => fetchDashboardStats(tenantId!),
     enabled: !!tenantId,
-    staleTime: 60_000, // 1 minute
+    staleTime: 60_000,
     gcTime: 120_000,
     refetchOnWindowFocus: false,
     retry: 1,
   });
 
-  // Realtime: auto-refresh stats on invoice/expense changes
   useEffect(() => {
     if (!tenantId) return;
-
     const channel = supabase
       .channel(`dashboard-realtime-${tenantId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "invoices", filter: `tenant_id=eq.${tenantId}` },
-        () => { refetch(); }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "expenses", filter: `tenant_id=eq.${tenantId}` },
-        () => { refetch(); }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "invoices", filter: `tenant_id=eq.${tenantId}` }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "expenses", filter: `tenant_id=eq.${tenantId}` }, () => refetch())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [tenantId, refetch]);
-
-  const actionLabel = (action: string, entityType: string) => {
-    const actionMap: Record<string, string> = {
-      create: t("dashboard.actionCreate"),
-      update: t("dashboard.actionUpdate"),
-      delete: t("dashboard.actionDelete"),
-      sign: t("dashboard.actionSign"),
-      cancel: t("dashboard.actionCancel"),
-      mark_paid: t("dashboard.actionMarkPaid"),
-      wallet_tx_credit: "إيداع",
-      wallet_tx_debit: "خصم",
-      wallet_balance_update: "تحديث رصيد",
-      balance_update: "تحديث رصيد",
-      affiliate_commission: "عمولة شريك",
-      affiliate_payout: "صرف عمولة",
-      lock_period_lock: "قفل فترة محاسبية",
-      unlock_period_lock: "فتح فترة محاسبية",
-      lock: "قفل",
-      unlock: "فتح قفل",
-      approve: "اعتماد",
-      reject: "رفض",
-      send: "إرسال",
-      archive: "أرشفة",
-      restore: "استرجاع",
-      login: "تسجيل دخول",
-      logout: "تسجيل خروج",
-      credit: "إيداع",
-      debit: "خصم",
-    };
-    const entityMap: Record<string, string> = {
-      invoice: t("dashboard.entityInvoice"),
-      contract: t("dashboard.entityContract"),
-      customer: t("dashboard.entityCustomer"),
-      stamp: t("dashboard.entityStamp"),
-      expense: t("dashboard.entityExpense") || "مصروف",
-      wallet: "المحفظة",
-      wallet_transaction: "معاملة محفظة",
-      subscription: "الاشتراك",
-      affiliate: "الشريك",
-      affiliate_commission: "عمولة",
-      affiliate_payout: "صرف عمولة",
-      paylink_transaction: "معاملة دفع",
-      period_lock: "فترة محاسبية",
-      auth: "المصادقة",
-      budget: "الميزانية",
-      product: "المنتج",
-      quotation: "عرض السعر",
-      purchase_order: "أمر شراء",
-      sales_order: "أمر بيع",
-      delivery_note: "سند تسليم",
-      credit_note: "إشعار دائن",
-      journal_entry: "قيد يومية",
-      payment: "دفعة",
-    };
-    return `${actionMap[action] || action} ${entityMap[entityType] || entityType}`;
-  };
-
-  const actionIcon = (entityType: string) => {
-    const icons: Record<string, any> = {
-      invoice: CreditCard,
-      contract: FileSignature,
-      customer: Users,
-      stamp: CheckCircle2,
-      expense: Receipt,
-      wallet: CreditCard,
-      wallet_transaction: CreditCard,
-      subscription: CheckCircle2,
-      affiliate: Users,
-      affiliate_commission: Receipt,
-      affiliate_payout: CreditCard,
-      paylink_transaction: CreditCard,
-    };
-    return icons[entityType] || FileText;
-  };
 
   const firstName = data?.tenantName || profile?.full_name?.split(" ")[0] || t("common.user");
   const sar = t("common.sar");
   const dateLocale = currentLang === "ar" ? ar : enUS;
-
-  // Render immediately with skeletons — never block whole page
   const s = data?.stats;
+  const netProfit = s ? s.totalRevenue - s.totalExpenses : 0;
+  const collectionRate = s && s.totalInvoices > 0 ? Math.round((s.paidInvoices / s.totalInvoices) * 100) : 0;
 
+  // ─── Executive KPI definitions ───
   const kpiCards = s ? [
     {
-      label: t("dashboard.totalInvoices"),
-      value: s.totalInvoices,
-      sub: t("dashboard.paidDraft", { paid: s.paidInvoices, draft: s.draftInvoices }),
-      icon: CreditCard,
-      bg: "bg-accent/10",
-      color: "text-accent",
-      trend: s.paidInvoices > 0 ? "up" as const : null,
-      path: "/dashboard/billing",
-    },
-    {
-      label: t("dashboard.collectedRevenue"),
+      label: "إجمالي الإيرادات",
       value: s.totalRevenue,
       isCurrency: true,
-      sub: t("dashboard.taxLabel", { amount: s.totalVat.toLocaleString("ar-SA") }),
-      icon: TrendingUp,
-      bg: "bg-success/10",
-      color: "text-success",
+      sub: `${s.paidInvoices} فاتورة محصّلة`,
+      icon: CircleDollarSign,
+      iconBg: "bg-accent/10",
+      iconColor: "text-accent",
       trend: s.totalRevenue > 0 ? "up" as const : null,
+      trendLabel: "محصّل",
       path: "/dashboard/finance",
     },
     {
       label: "المصروفات",
       value: s.totalExpenses,
       isCurrency: true,
-      sub: `صافي الربح: ${(s.totalRevenue - s.totalExpenses).toLocaleString("ar-SA")} ${sar}`,
+      sub: `هامش الربح: ${s.totalRevenue > 0 ? ((netProfit / s.totalRevenue) * 100).toFixed(0) : 0}%`,
       icon: Receipt,
-      bg: "bg-destructive/10",
-      color: "text-destructive",
-      trend: (s.totalRevenue - s.totalExpenses) > 0 ? "up" as const : (s.totalRevenue - s.totalExpenses) < 0 ? "down" as const : null,
+      iconBg: "bg-warning/10",
+      iconColor: "text-warning",
+      trend: netProfit >= 0 ? "up" as const : "down" as const,
+      trendLabel: netProfit >= 0 ? "ربح" : "خسارة",
       path: "/dashboard/expenses",
     },
     {
-      label: t("dashboard.customersLabel"),
-      value: s.totalCustomers,
-      sub: s.overdueInvoices > 0 ? t("dashboard.overdueInvoices", { count: s.overdueInvoices }) : t("dashboard.noOverdue"),
-      icon: Users,
-      bg: s.overdueInvoices > 0 ? "bg-destructive/10" : "bg-info/10",
-      color: s.overdueInvoices > 0 ? "text-destructive" : "text-info",
+      label: "فواتير متأخرة",
+      value: s.overdueInvoices,
+      isCurrency: false,
+      sub: `من أصل ${s.totalInvoices} فاتورة`,
+      icon: CalendarClock,
+      iconBg: s.overdueInvoices > 0 ? "bg-destructive/10" : "bg-success/10",
+      iconColor: s.overdueInvoices > 0 ? "text-destructive" : "text-success",
+      trend: s.overdueInvoices > 0 ? "down" as const : "up" as const,
+      trendLabel: s.overdueInvoices > 0 ? "متأخر" : "ممتاز",
+      path: "/dashboard/billing",
+    },
+    {
+      label: "ضريبة القيمة المضافة",
+      value: s.totalVat,
+      isCurrency: true,
+      sub: "VAT 15% — مستحق للهيئة",
+      icon: ShieldAlert,
+      iconBg: "bg-info/10",
+      iconColor: "text-info",
       trend: null,
-      path: "/dashboard/customers",
+      trendLabel: "ZATCA",
+      path: "/dashboard/vat-return",
     },
   ] : null;
 
-  const isAr = currentLang === "ar";
+  // ─── Quick Actions ───
   const quickActions = [
-    { label: isAr ? "⚡ فاتورة سريعة" : "Quick Invoice", icon: Zap, path: "", color: "bg-accent/10 text-accent hover:bg-accent/20", isQuickInvoice: true },
-    { label: isAr ? "فاتورة جديدة" : "New Invoice", icon: CreditCard, path: "/dashboard/billing", color: "bg-accent/10 text-accent hover:bg-accent/20" },
-    { label: isAr ? "قيد يومي" : "Journal Entry", icon: FileText, path: "/dashboard/journal-entries", color: "bg-info/10 text-info hover:bg-info/20" },
-    { label: isAr ? "مصروف جديد" : "New Expense", icon: Receipt, path: "/dashboard/expenses", color: "bg-warning/10 text-warning hover:bg-warning/20" },
-    { label: isAr ? "عميل جديد" : "New Customer", icon: Users, path: "/dashboard/customers", color: "bg-success/10 text-success hover:bg-success/20" },
-    { label: isAr ? "سند قبض" : "Receipt Voucher", icon: Wallet, path: "/dashboard/finance", color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" },
-    { label: isAr ? "التقارير المالية" : "Financial Reports", icon: BarChart3, path: "/dashboard/reports", color: "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20" },
+    { label: "⚡ فاتورة سريعة", icon: Zap, action: () => setQuickInvoiceOpen(true), accent: true },
+    { label: "فاتورة جديدة", icon: CreditCard, action: () => navigate("/dashboard/billing") },
+    { label: "قيد يومي", icon: FileText, action: () => navigate("/dashboard/journal-entries") },
+    { label: "مصروف جديد", icon: Receipt, action: () => navigate("/dashboard/expenses") },
+    { label: "عميل جديد", icon: Users, action: () => navigate("/dashboard/customers") },
+    { label: "التقارير", icon: BarChart3, action: () => navigate("/dashboard/reports") },
   ];
 
-  const netProfit = s ? s.totalRevenue - s.totalExpenses : 0;
-  const collectionRate = s && s.totalInvoices > 0 ? Math.round((s.paidInvoices / s.totalInvoices) * 100) : 0;
-
   return (
-    <div dir={dir} className="relative space-y-6 p-4 sm:p-6">
-      {/* Ramadan glow — أعلى الداشبورد */}
-      <RamadanGlow variant="top" />
+    <div dir={dir} className="space-y-5 p-4 sm:p-6 max-w-[1400px] mx-auto">
 
-      {/* Welcome Header — always renders immediately */}
+      {/* ═══ Header ═══ */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-              {t("dashboard.welcome", { name: firstName })} 👋
-            </h1>
-            <RamadanBadge />
-          </div>
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5" />
-            {t("dashboard.overview")}
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground font-arabic">
+            {t("dashboard.welcome", { name: firstName })}
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+            <Activity className="w-3 h-3" />
+            {new Date().toLocaleDateString("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/dashboard/billing")}>
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">فاتورة جديدة</span>
+          <Button
+            size="sm"
+            className="gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm"
+            onClick={() => setQuickInvoiceOpen(true)}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            فاتورة سريعة
           </Button>
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/dashboard/reports")}>
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">التقارير</span>
           </Button>
         </div>
       </motion.div>
 
-      <NumaxioPayBanner />
-      <DailyWisdom />
-      <RamadanDivider />
+      {/* ═══ Alerts: VAT + Cashflow ═══ */}
+      {s && s.totalVat > 0 && (
+        <VatAlertBanner totalVat={s.totalVat} totalRevenue={s.totalRevenue} />
+      )}
+      {s && <CashflowAlert revenue={s.totalRevenue} expenses={s.totalExpenses} />}
 
-      {/* KPI Cards — skeleton-first */}
+      {/* ═══ KPI Cards ═══ */}
       {isError ? (
         <ErrorCard message="تعذّر تحميل البيانات" onRetry={() => refetch()} />
       ) : (
@@ -619,85 +425,175 @@ const DashboardHome = () => {
             kpiCards.map((kpi, i) => (
               <motion.div
                 key={kpi.label}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                className="cursor-pointer"
+                transition={{ delay: i * 0.06 }}
+                className="cursor-pointer group"
                 onClick={() => navigate(kpi.path)}
               >
-                <Card className="border-border/60 hover:border-accent/30 hover:shadow-md transition-all h-full overflow-hidden">
-                  {/* خط gradient رفيع أعلى الكارد — رمضاني فقط */}
-                  {isRamadan && (
-                    <div
-                      className="h-[3px] w-full"
-                      style={{
-                        background: "linear-gradient(90deg, hsl(var(--ramadan-emerald)) 0%, hsl(var(--ramadan-gold)) 100%)",
-                      }}
-                    />
-                  )}
+                <Card className="border-border/40 shadow-sm hover:shadow-md hover:border-accent/20 transition-all h-full relative overflow-hidden">
+                  {/* Top accent line */}
+                  <div className={cn(
+                    "absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity",
+                    "bg-gradient-to-l from-accent to-accent/40"
+                  )} />
                   <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${kpi.bg} flex items-center justify-center`}>
-                        <kpi.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${kpi.color}`} />
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", kpi.iconBg)}>
+                        <kpi.icon className={cn("w-5 h-5", kpi.iconColor)} />
                       </div>
                       {kpi.trend && (
-                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${kpi.trend === "up" ? "text-success border-success/30" : "text-destructive border-destructive/30"}`}>
+                        <span className={cn(
+                          "inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full",
+                          kpi.trend === "up" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                        )}>
                           {kpi.trend === "up" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        </Badge>
+                          {kpi.trendLabel}
+                        </span>
+                      )}
+                      {!kpi.trend && kpi.trendLabel && (
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-info/10 text-info">
+                          {kpi.trendLabel}
+                        </span>
                       )}
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground font-arabic tracking-tight">
                       {kpi.isCurrency ? (
-                        <><AnimatedCounter value={kpi.value} /> <span className="text-xs font-normal text-muted-foreground">{sar}</span></>
+                        <>
+                          <AnimatedCounter value={kpi.value} />
+                          <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
+                        </>
                       ) : (
                         <AnimatedCounter value={kpi.value} />
                       )}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">{kpi.label}</p>
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground/70 mt-0.5">{kpi.sub}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1.5 font-medium">{kpi.label}</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">{kpi.sub}</p>
                   </CardContent>
                 </Card>
               </motion.div>
             ))
-
           )}
         </div>
       )}
 
-      {/* Quick Actions — always rendered immediately */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-        <Card className="border-border/60">
-          <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Zap className="w-4 h-4 text-accent" /> إجراءات سريعة
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4">
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-              {quickActions.map((action, i) => (
-                <motion.button
-                  key={action.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 + i * 0.05 }}
-                  onClick={() => (action as any).isQuickInvoice ? setQuickInvoiceOpen(true) : navigate(action.path)}
-                  className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl transition-all ${action.color}`}
-                >
-                  <action.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-[10px] sm:text-xs font-medium text-center leading-tight">{action.label}</span>
-                </motion.button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* ═══ Executive Summary Row ═══ */}
+      {s && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            {/* Collection Rate */}
+            <Card className="border-border/40 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Target className="w-4 h-4 text-accent" />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground">نسبة التحصيل</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground font-arabic">
+                  <AnimatedCounter value={collectionRate} /><span className="text-sm">%</span>
+                </p>
+                <Progress value={collectionRate} className="mt-2.5 h-1.5" />
+                <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                  {s.paidInvoices} من {s.totalInvoices}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Net Profit */}
+            <Card className="border-border/40 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", netProfit >= 0 ? "bg-success/10" : "bg-destructive/10")}>
+                    <TrendingUp className={cn("w-4 h-4", netProfit >= 0 ? "text-success" : "text-destructive")} />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground">صافي الربح</span>
+                </div>
+                <p className={cn("text-2xl font-bold font-arabic", netProfit >= 0 ? "text-success" : "text-destructive")}>
+                  <AnimatedCounter value={Math.abs(netProfit)} />
+                  <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
+                </p>
+                <div className="flex items-center gap-1 mt-1.5">
+                  {netProfit >= 0 ? <ArrowUpRight className="w-3 h-3 text-success" /> : <ArrowDownRight className="w-3 h-3 text-destructive" />}
+                  <span className="text-[10px] text-muted-foreground/60">الإيرادات − المصروفات</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Active Contracts */}
+            <Card className="border-border/40 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
+                    <FileSignature className="w-4 h-4 text-info" />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground">العقود النشطة</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground font-arabic">
+                  <AnimatedCounter value={s.activeContracts} />
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                  من أصل {s.totalContracts} عقد
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Customers */}
+            <Card className="border-border/40 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-accent" />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground">إجمالي العملاء</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground font-arabic">
+                  <AnimatedCounter value={s.totalCustomers} />
+                </p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                  {s.overdueInvoices > 0 ? (
+                    <span className="text-destructive font-medium">{s.overdueInvoices} فاتورة متأخرة</span>
+                  ) : "لا مستحقات متأخرة"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══ Quick Actions Bar ═══ */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {quickActions.map((action, i) => (
+            <motion.button
+              key={action.label}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.38 + i * 0.03 }}
+              onClick={action.action}
+              className={cn(
+                "shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all",
+                action.accent
+                  ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent/90"
+                  : "bg-muted/50 text-foreground hover:bg-muted"
+              )}
+            >
+              <action.icon className="w-3.5 h-3.5" />
+              {action.label}
+            </motion.button>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Charts — lazy loaded AFTER initial render */}
+      {/* ═══ Charts ═══ */}
       <Suspense fallback={
         <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="lg:col-span-2 border-border/60"><CardContent className="p-6"><Skeleton className="h-[240px] w-full rounded-xl" /></CardContent></Card>
-          <Card className="border-border/60"><CardContent className="p-6"><Skeleton className="h-[240px] w-full rounded-xl" /></CardContent></Card>
+          <Card className="lg:col-span-2 border-border/40"><CardContent className="p-6"><Skeleton className="h-[220px] w-full rounded-xl" /></CardContent></Card>
+          <Card className="border-border/40"><CardContent className="p-6"><Skeleton className="h-[220px] w-full rounded-xl" /></CardContent></Card>
         </div>
       }>
         {s && data && (
@@ -714,202 +610,65 @@ const DashboardHome = () => {
         )}
       </Suspense>
 
-      {/* Performance cards */}
-      {s && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-            <Card className="border-border/60 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <Target className="w-4 h-4 text-accent" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">نسبة التحصيل</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-                  <AnimatedCounter value={collectionRate} />%
-                </p>
-                <Progress value={collectionRate} className="mt-3 h-2" />
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  {s.paidInvoices} مدفوعة من {s.totalInvoices}
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="border-border/60 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center">
-                    <Wallet className="w-4 h-4 text-success" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">صافي الربح</span>
-                </div>
-                <p className={`text-2xl font-bold font-[IBM_Plex_Sans_Arabic] ${netProfit >= 0 ? "text-success" : "text-destructive"}`}>
-                  <AnimatedCounter value={Math.abs(netProfit)} />
-                  <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
-                </p>
-                <div className="flex items-center gap-1 mt-2">
-                  {netProfit >= 0 ? (
-                    <ArrowUpRight className="w-3.5 h-3.5 text-success" />
-                  ) : (
-                    <ArrowDownRight className="w-3.5 h-3.5 text-destructive" />
-                  )}
-                  <span className="text-[10px] text-muted-foreground">الإيرادات - المصروفات</span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
-            <Card className="border-border/60 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-warning/10 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-warning" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">فواتير متأخرة</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-                  <AnimatedCounter value={s.overdueInvoices} />
-                </p>
-                {s.overdueInvoices > 0 ? (
-                  <Badge variant="outline" className="text-[10px] mt-2 text-destructive border-destructive/30">
-                    <AlertTriangle className="w-3 h-3 mie-1" /> تحتاج متابعة
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[10px] mt-2 text-success border-success/30">
-                    <CheckCircle2 className="w-3 h-3 mie-1" /> ممتاز
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-            <Card className="border-border/60 h-full">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-info/10 flex items-center justify-center">
-                    <FileSignature className="w-4 h-4 text-info" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">العقود النشطة</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-                  <AnimatedCounter value={s.activeContracts} />
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  من أصل {s.totalContracts} عقد
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Activity + Company Info */}
+      {/* ═══ Recent Activity ═══ */}
       {s && data && (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.75 }}
-            className="lg:col-span-2"
-          >
-            <Card className="border-border/60 h-full">
-              <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-accent" /> {t("dashboard.recentActivities")}
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate("/dashboard/audit")}>
-                    <Eye className="w-3 h-3" /> عرض الكل
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 sm:px-6 pb-4">
-                {data.activities.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground">
-                    <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">{t("dashboard.noActivities")}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <AnimatePresence>
-                      {data.activities.map((item, i) => {
-                        const Icon = actionIcon(item.entity_type);
-                        return (
-                          <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.8 + i * 0.04 }}
-                            className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent shrink-0">
-                                <Icon size={14} />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-foreground">
-                                  {actionLabel(item.action, item.entity_type)}
-                                </p>
-                                {item.entity_label && (
-                                  <p className="text-[11px] text-muted-foreground">{item.entity_label}</p>
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
-                              {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: dateLocale })}
-                            </span>
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <Card className="border-border/60 h-full">
-              <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Target className="w-4 h-4 text-accent" /> {t("dashboard.companyInfo")}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <Card className="border-border/40 shadow-sm">
+            <CardHeader className="pb-2 px-5 pt-5">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2 font-semibold">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  آخر العمليات
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 sm:px-6 pb-4">
-                <div className="space-y-4">
-                  {[
-                    { label: t("dashboard.companyName"), value: data.tenantName, icon: Users },
-                    { label: t("dashboard.customerCount"), value: s.totalCustomers.toString(), icon: Users },
-                    { label: t("dashboard.overdueInvoicesLabel"), value: s.overdueInvoices.toString(), icon: AlertTriangle, accent: s.overdueInvoices > 0 },
-                    { label: t("dashboard.totalTax"), value: `${s.totalVat.toLocaleString("ar-SA")} ${sar}`, icon: Receipt },
-                    { label: "إجمالي الفواتير", value: s.totalInvoices.toString(), icon: CreditCard },
-                    { label: "العقود", value: s.totalContracts.toString(), icon: FileSignature },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <item.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{item.label}</span>
-                      </div>
-                      <span className={`text-sm font-semibold ${item.accent ? "text-destructive" : "text-foreground"}`}>
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
+                <Button variant="ghost" size="sm" className="text-[11px] gap-1 text-muted-foreground hover:text-foreground" onClick={() => navigate("/dashboard/audit")}>
+                  عرض الكل <ArrowRight className="w-3 h-3 rtl-mirror" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              {data.activities.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-xs">{t("dashboard.noActivities")}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {data.activities.map((item, i) => {
+                    const Icon = actionIcon(item.entity_type);
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.55 + i * 0.03 }}
+                        className="flex items-center justify-between gap-3 py-3 first:pt-1"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground shrink-0">
+                            <Icon size={14} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {actionLabel(item.action, item.entity_type, t)}
+                            </p>
+                            {item.entity_label && (
+                              <p className="text-[10px] text-muted-foreground/70">{item.entity_label}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground/50 whitespace-nowrap shrink-0">
+                          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: dateLocale })}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
+
       {/* Quick Invoice Dialog */}
       <Suspense fallback={null}>
         <QuickInvoiceDialog open={quickInvoiceOpen} onOpenChange={setQuickInvoiceOpen} />
