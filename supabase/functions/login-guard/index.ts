@@ -91,6 +91,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    // On successful login, insert active session and auto-revoke expired ones
+    if (success && user_id && tenant_id) {
+      await supabase.from("active_sessions").insert({
+        tenant_id,
+        user_id,
+        ip_address: ip_address || null,
+        device_info: { user_agent: user_agent || null },
+        last_activity_at: new Date().toISOString(),
+      });
+
+      // Fire-and-forget: revoke expired sessions based on enterprise policy
+      await supabase.rpc("revoke_expired_sessions", { p_tenant_id: tenant_id }).catch(() => {});
+    }
+
     return new Response(
       JSON.stringify({ locked: false, recorded: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
