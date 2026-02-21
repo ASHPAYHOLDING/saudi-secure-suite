@@ -24,6 +24,7 @@ import {
   MonitorDot,
   ClipboardCheck,
   Copy,
+  Zap,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ const menuItems = [
   { icon: ClipboardCheck, label: "تدقيق النظام", path: "/admin/system/full-audit" },
   { icon: BarChart3, label: "تحليلات الاستخدام", path: "/admin/system/usage" },
   { icon: Copy, label: "كشف التكرارات", path: "/admin/system/duplicates" },
+  { icon: Zap, label: "محرك التنظيف", path: "/admin/system/cleanup" },
 ];
 
 interface AdminSidebarProps {
