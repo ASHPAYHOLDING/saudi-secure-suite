@@ -4155,6 +4155,53 @@ export type Database = {
           },
         ]
       }
+      integration_alerts: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          provider_key: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["integration_alert_severity"]
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          provider_key: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["integration_alert_severity"]
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          provider_key?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["integration_alert_severity"]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_docs: {
         Row: {
           created_at: string
@@ -4202,6 +4249,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      integration_health_checks: {
+        Row: {
+          consecutive_failures: number
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          last_checked_at: string
+          latency_ms: number | null
+          provider_key: string
+          status: Database["public"]["Enums"]["integration_health_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          provider_key: string
+          status?: Database["public"]["Enums"]["integration_health_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          provider_key?: string
+          status?: Database["public"]["Enums"]["integration_health_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_health_checks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integration_support_tickets: {
         Row: {
@@ -11728,6 +11825,8 @@ export type Database = {
       budget_line_type: "revenue" | "expense" | "capex"
       budget_period_type: "monthly" | "quarterly" | "yearly"
       budget_status: "draft" | "active" | "locked" | "archived"
+      integration_alert_severity: "info" | "warn" | "critical"
+      integration_health_status: "healthy" | "degraded" | "down"
       journal_approval_status: "none" | "pending" | "approved" | "rejected"
       tenant_type: "company" | "individual" | "freelancer"
       wf_instance_status:
@@ -11878,6 +11977,8 @@ export const Constants = {
       budget_line_type: ["revenue", "expense", "capex"],
       budget_period_type: ["monthly", "quarterly", "yearly"],
       budget_status: ["draft", "active", "locked", "archived"],
+      integration_alert_severity: ["info", "warn", "critical"],
+      integration_health_status: ["healthy", "degraded", "down"],
       journal_approval_status: ["none", "pending", "approved", "rejected"],
       tenant_type: ["company", "individual", "freelancer"],
       wf_instance_status: [
