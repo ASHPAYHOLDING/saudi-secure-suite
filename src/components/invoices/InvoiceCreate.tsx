@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useCenters } from "@/hooks/useCenters";
+import { startWorkflow } from "@/lib/workflows/engine";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, Trash2, Save, Loader2, AlertCircle } from "lucide-react";
 import { FormLabel } from "@/components/ui/form-tooltip";
@@ -178,6 +179,14 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
       toast({ title: "تنبيه", description: "تم حفظ الفاتورة لكن فشل حفظ بعض البنود", variant: "destructive" });
     } else {
       toast({ title: "تم حفظ الفاتورة بنجاح" });
+    }
+
+    // Auto-start workflow if one exists for invoices
+    const wfResult = await startWorkflow(tenantId, "invoice", invoice.id, user.id);
+    if ("instanceId" in wfResult) {
+      // Workflow started — set invoice to pending_approval
+      await supabase.from("invoices").update({ status: "pending_approval" } as any).eq("id", invoice.id);
+      toast({ title: "تم إرسال الفاتورة للموافقة", description: "الفاتورة بانتظار اعتماد المسؤول" });
     }
 
     setSaving(false);

@@ -169,8 +169,14 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
               </SelectContent>
             </Select>
           )}
-          <Button variant="outline" className="gap-2" onClick={() => setDeliveryOpen(true)}><Send size={16} />إرسال</Button>
-          {invoice && invoice.status !== 'paid' && invoice.status !== 'draft' && invoice.status !== 'cancelled' && (
+          {invoice?.status === 'pending_approval' && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              قيد الموافقة
+            </span>
+          )}
+          <Button variant="outline" className="gap-2" onClick={() => setDeliveryOpen(true)} disabled={invoice?.status === 'pending_approval'}><Send size={16} />إرسال</Button>
+          {invoice && invoice.status !== 'paid' && invoice.status !== 'draft' && invoice.status !== 'cancelled' && invoice.status !== 'pending_approval' && (
             <>
               <Button variant="outline" className="gap-2" onClick={() => setPaymentDialogOpen(true)}><Banknote size={16} />تسجيل دفعة</Button>
               <Button variant="outline" className="gap-2" onClick={() => setGatewayOpen(true)}><CreditCard size={16} />بوابة دفع</Button>

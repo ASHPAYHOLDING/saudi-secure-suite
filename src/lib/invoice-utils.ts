@@ -58,6 +58,7 @@ export const generateInvoiceNumber = (): string => {
 export const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {
     draft: 'مسودة',
+    pending_approval: 'قيد الموافقة',
     issued: 'صادرة',
     sent: 'مُرسلة',
     partially_paid: 'مدفوعة جزئياً',
@@ -71,6 +72,7 @@ export const getStatusLabel = (status: string): string => {
 export const getStatusColor = (status: string): string => {
   const colors: Record<string, string> = {
     draft: 'bg-muted text-muted-foreground',
+    pending_approval: 'bg-amber-100 text-amber-800',
     issued: 'bg-info/10 text-info',
     sent: 'bg-info/10 text-info',
     partially_paid: 'bg-warning/10 text-warning',
