@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
 import {
   Download, Search, AlertTriangle, CheckCircle2, XCircle,
   Shield, Users, Crown, Eye, EyeOff, Merge, Trash2, ArrowRight,
-  BarChart3,
+  BarChart3, Activity, TrendingDown, Clock,
 } from "lucide-react";
 import { DASHBOARD_ROUTES, type DashboardRouteConfig } from "@/routes/dashboard-routes";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
@@ -309,15 +310,111 @@ function findDuplicates(rows: AuditRow[]): { group: string; routes: string[]; re
 }
 
 /* ────────────────────────────────────────────────
+   Phase B consolidation data (module-level for reuse)
+──────────────────────────────────────────────── */
+const PHASE_B_CONSOLIDATIONS_STATIC = [
+  {
+    group: "الفواتير",
+    canonical: "/dashboard/billing",
+    hidden: ["/dashboard/invoices"],
+    reason: "نفس المكوّن (InvoicesPage) — redirect مُفعّل",
+  },
+  {
+    group: "المؤسسات والحوكمة",
+    canonical: "/dashboard/enterprise",
+    hidden: [
+      "/dashboard/enterprise/security-policies",
+      "/dashboard/enterprise/sessions",
+      "/dashboard/enterprise/ip-restrictions",
+      "/dashboard/enterprise/role-templates",
+      "/dashboard/enterprise/audit-export",
+      "/dashboard/governance",
+    ],
+    reason: "صفحات فرعية — الوصول من داخل لوحة المؤسسات",
+  },
+  {
+    group: "التكاملات",
+    canonical: "/dashboard/integrations",
+    hidden: ["/dashboard/integrations/marketplace", "/dashboard/integrations/payments"],
+    reason: "صفحات فرعية — الوصول من صفحة التكاملات الرئيسية",
+  },
+  {
+    group: "التحليلات",
+    canonical: "/dashboard/analytics",
+    hidden: ["/dashboard/analytics/executive"],
+    reason: "صفحة فرعية — الوصول من لوحة التحليلات",
+  },
+  {
+    group: "سجل التدقيق",
+    canonical: "/dashboard/audit",
+    hidden: ["/dashboard/audit/intelligence"],
+    reason: "صفحة فرعية — الوصول من سجل التدقيق",
+  },
+];
+
+/* ────────────────────────────────────────────────
    Component
 ──────────────────────────────────────────────── */
+interface RouteUsageStat {
+  route: string;
+  visit_count: number;
+  unique_users: number;
+  last_visited: string;
+}
+
 const ArchitectureAudit = () => {
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState<Zone | "all">("all");
   const [statusFilter, setStatusFilter] = useState<GateStatus | "all">("all");
+  const [usageStats, setUsageStats] = useState<RouteUsageStat[]>([]);
+  const [usageLoading, setUsageLoading] = useState(false);
 
   const allRows = useMemo(() => buildAuditRows(), []);
   const duplicates = useMemo(() => findDuplicates(allRows), [allRows]);
+
+  // Fetch usage stats
+  useEffect(() => {
+    const fetchUsage = async () => {
+      setUsageLoading(true);
+      const { data } = await supabase.rpc("get_route_usage_stats" as any);
+      if (data) setUsageStats(data as RouteUsageStat[]);
+      setUsageLoading(false);
+    };
+    fetchUsage();
+  }, []);
+
+  // Routes with 0 usage (registered but never visited)
+  const allRegisteredRoutes = useMemo(() => allRows.map(r => r.route), [allRows]);
+  const visitedRoutes = useMemo(() => new Set(usageStats.map(s => s.route)), [usageStats]);
+  const zeroUsageRoutes = useMemo(() => 
+    allRegisteredRoutes.filter(r => !visitedRoutes.has(r)),
+  [allRegisteredRoutes, visitedRoutes]);
+
+  // Hidden routes from Phase B that also have 0 usage
+  const PHASE_B_HIDDEN = useMemo(() => {
+    const hidden: string[] = [];
+    for (const c of PHASE_B_CONSOLIDATIONS_STATIC) {
+      hidden.push(...c.hidden);
+    }
+    return hidden;
+  }, []);
+  const hiddenUnused = useMemo(() => 
+    PHASE_B_HIDDEN.filter(r => !visitedRoutes.has(r)),
+  [PHASE_B_HIDDEN, visitedRoutes]);
+
+  // Suggested deletion list
+  const deletionCandidates = useMemo(() => {
+    const candidates: { route: string; reason: string }[] = [];
+    for (const r of zeroUsageRoutes) {
+      candidates.push({ route: r, reason: "0 زيارات خلال 30 يوم" });
+    }
+    for (const r of hiddenUnused) {
+      if (!candidates.some(c => c.route === r)) {
+        candidates.push({ route: r, reason: "مخفي (Phase B) + 0 زيارات" });
+      }
+    }
+    return candidates;
+  }, [zeroUsageRoutes, hiddenUnused]);
 
   const filtered = useMemo(() => {
     return allRows.filter((r) => {
@@ -395,45 +492,7 @@ const ArchitectureAudit = () => {
     return <Badge variant={m.variant}>{m.label}</Badge>;
   };
 
-  const PHASE_B_CONSOLIDATIONS = [
-    {
-      group: "الفواتير",
-      canonical: "/dashboard/billing",
-      hidden: ["/dashboard/invoices"],
-      reason: "نفس المكوّن (InvoicesPage) — redirect مُفعّل",
-    },
-    {
-      group: "المؤسسات والحوكمة",
-      canonical: "/dashboard/enterprise",
-      hidden: [
-        "/dashboard/enterprise/security-policies",
-        "/dashboard/enterprise/sessions",
-        "/dashboard/enterprise/ip-restrictions",
-        "/dashboard/enterprise/role-templates",
-        "/dashboard/enterprise/audit-export",
-        "/dashboard/governance",
-      ],
-      reason: "صفحات فرعية — الوصول من داخل لوحة المؤسسات",
-    },
-    {
-      group: "التكاملات",
-      canonical: "/dashboard/integrations",
-      hidden: ["/dashboard/integrations/marketplace", "/dashboard/integrations/payments"],
-      reason: "صفحات فرعية — الوصول من صفحة التكاملات الرئيسية",
-    },
-    {
-      group: "التحليلات",
-      canonical: "/dashboard/analytics",
-      hidden: ["/dashboard/analytics/executive"],
-      reason: "صفحة فرعية — الوصول من لوحة التحليلات",
-    },
-    {
-      group: "سجل التدقيق",
-      canonical: "/dashboard/audit",
-      hidden: ["/dashboard/audit/intelligence"],
-      reason: "صفحة فرعية — الوصول من سجل التدقيق",
-    },
-  ];
+  const PHASE_B_CONSOLIDATIONS = PHASE_B_CONSOLIDATIONS_STATIC;
 
   const PHASE_A_MIGRATIONS = [
     { from: "/dashboard/system/storage", to: "/admin/system/storage", label: "تقرير التخزين" },
@@ -512,6 +571,44 @@ const ArchitectureAudit = () => {
         </CardContent>
       </Card>
 
+      {/* Phase C Applied Banner */}
+      <Card className="border-orange-300 bg-orange-500/10">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Activity className="h-6 w-6 text-orange-600" />
+            <h3 className="text-lg font-bold text-orange-700">Phase C Active 📊</h3>
+            <Badge variant="outline" className="border-orange-400 text-orange-700">قيد التجميع</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">
+            تم تفعيل تتبع استخدام المسارات (آخر 30 يوم). بعد أسبوع سيظهر تقرير Top/Bottom routes مع قائمة حذف نهائية.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-card/50 rounded-md px-3 py-2 text-center">
+              <p className="text-2xl font-bold text-orange-700">{usageStats.length}</p>
+              <p className="text-xs text-muted-foreground">مسارات مُتتبَّعة</p>
+            </div>
+            <div className="bg-card/50 rounded-md px-3 py-2 text-center">
+              <p className="text-2xl font-bold text-orange-700">{usageStats.reduce((s, r) => s + r.visit_count, 0)}</p>
+              <p className="text-xs text-muted-foreground">إجمالي الزيارات</p>
+            </div>
+            <div className="bg-card/50 rounded-md px-3 py-2 text-center">
+              <p className="text-2xl font-bold text-destructive">{zeroUsageRoutes.length}</p>
+              <p className="text-xs text-muted-foreground">مسارات بدون زيارات</p>
+            </div>
+            <div className="bg-card/50 rounded-md px-3 py-2 text-center">
+              <p className="text-2xl font-bold text-destructive">{deletionCandidates.length}</p>
+              <p className="text-xs text-muted-foreground">مرشحة للحذف</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary">✓ Tracking مُفعّل</Badge>
+            <Badge variant="secondary">✓ تنظيف تلقائي كل 30 يوم</Badge>
+            <Badge variant="secondary">✓ Soft-delete جاهز</Badge>
+            <Badge variant="secondary">✓ deprecated_routes جدول مُفعّل</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -551,7 +648,8 @@ const ArchitectureAudit = () => {
 
       <Tabs defaultValue="routes" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="routes">جدول المسارات ({filtered.length})</TabsTrigger>
+         <TabsTrigger value="routes">جدول المسارات ({filtered.length})</TabsTrigger>
+          <TabsTrigger value="usage">الاستخدام 📊</TabsTrigger>
           <TabsTrigger value="duplicates">التكرارات ({duplicates.length})</TabsTrigger>
           <TabsTrigger value="decisions">قائمة القرارات</TabsTrigger>
           <TabsTrigger value="phases">خطة الترتيب</TabsTrigger>
@@ -640,6 +738,118 @@ const ArchitectureAudit = () => {
               </TableBody>
             </Table>
           </div>
+        </TabsContent>
+
+        {/* ── Usage Report ── */}
+        <TabsContent value="usage" className="space-y-4">
+          {usageLoading ? (
+            <Card><CardContent className="py-8 text-center text-muted-foreground">جاري تحميل بيانات الاستخدام...</CardContent></Card>
+          ) : (
+            <>
+              {/* Top Routes */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 rotate-180 text-emerald-600" />
+                    أعلى المسارات استخداماً (Top 15)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-lg overflow-auto max-h-[400px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="sticky top-0 bg-card">#</TableHead>
+                          <TableHead className="sticky top-0 bg-card">المسار</TableHead>
+                          <TableHead className="sticky top-0 bg-card">الزيارات</TableHead>
+                          <TableHead className="sticky top-0 bg-card">مستخدمين فريدين</TableHead>
+                          <TableHead className="sticky top-0 bg-card">آخر زيارة</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {usageStats.slice(0, 15).map((s, i) => (
+                          <TableRow key={s.route}>
+                            <TableCell className="font-bold">{i + 1}</TableCell>
+                            <TableCell className="font-mono text-xs">{s.route}</TableCell>
+                            <TableCell><Badge variant="secondary">{s.visit_count}</Badge></TableCell>
+                            <TableCell>{s.unique_users}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3 inline mr-1" />
+                              {new Date(s.last_visited).toLocaleDateString("ar-SA")}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bottom Routes */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 text-destructive" />
+                    أقل المسارات استخداماً (Bottom 10)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-lg overflow-auto max-h-[300px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="sticky top-0 bg-card">المسار</TableHead>
+                          <TableHead className="sticky top-0 bg-card">الزيارات</TableHead>
+                          <TableHead className="sticky top-0 bg-card">مستخدمين</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...usageStats].reverse().slice(0, 10).map((s) => (
+                          <TableRow key={s.route}>
+                            <TableCell className="font-mono text-xs">{s.route}</TableCell>
+                            <TableCell><Badge variant="destructive">{s.visit_count}</Badge></TableCell>
+                            <TableCell>{s.unique_users}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Deletion Candidates */}
+              <Card className="border-destructive/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                    قائمة الحذف المقترحة ({deletionCandidates.length} مسار)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {deletionCandidates.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد مسارات مرشحة للحذف حالياً — انتظر تجميع بيانات أسبوع كامل</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {deletionCandidates.map(c => (
+                        <div key={c.route} className="flex items-center justify-between gap-2 py-1.5 border-b border-border/50 last:border-0">
+                          <code className="text-xs font-mono">{c.route}</code>
+                          <Badge variant="destructive" className="text-xs shrink-0">{c.reason}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-md text-xs text-muted-foreground">
+                    <p className="font-semibold mb-1">⚠️ خطوات الحذف التدريجي:</p>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Soft Delete: إضافة المسار لجدول deprecated_routes مع redirect + تحذير</li>
+                      <li>مراقبة أسبوع إضافي للتأكد من عدم وجود استخدام</li>
+                      <li>Hard Delete: حذف الكود والمكونات نهائياً</li>
+                    </ol>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         {/* ── Duplicates ── */}
