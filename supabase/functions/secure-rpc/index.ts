@@ -46,6 +46,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Workflow approvals
   secure_workflow_action: true,
   secure_approval_action: true,
+  // Atomic workflow start
+  atomic_start_workflow: true,
   // RLS Audit
   get_rls_audit: true,
 };

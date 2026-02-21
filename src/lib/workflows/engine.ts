@@ -1,13 +1,10 @@
 /**
- * Workflow Engine — محرك سير العمل المؤسسي
+ * Workflow Engine — محرك سير العمل المؤسسي (Atomic)
  *
- * يدعم 3 أنواع خطوات:
- * - approval: تتطلب موافقة مستخدم بدور/صلاحية محددة
- * - condition: تمرر تلقائياً بناءً على شرط JSONB
- * - auto: تمرر تلقائياً دائماً (مثل إشعار أو تسجيل)
- *
- * الاستخدام:
- *   import { startWorkflow, processStep, getPendingApprovals } from "@/lib/workflows/engine";
+ * جميع العمليات تمر عبر دوال SQL ذرية (atomic) لضمان:
+ * - عدم وجود تحديثات جزئية في حال الخطأ
+ * - تسجيل تدقيق شامل في audit_logs
+ * - التحقق من الصلاحيات في جانب السيرفر حصراً
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -70,84 +67,46 @@ export interface WorkflowInstanceStep {
 // ── Engine Functions ─────────────────────────────────────────────────────────
 
 /**
- * startWorkflow — يبدأ سير عمل لكيان محدد
+ * startWorkflow — يبدأ سير عمل لكيان محدد (Atomic via SQL function)
+ *
+ * ✅ Single RPC call that atomically:
+ * - Finds active workflow + validates steps exist
+ * - Creates workflow_instance + all instance_steps
+ * - Advances auto/condition steps
+ * - Logs to audit_logs
+ * - Rolls back everything on any error
  */
 export async function startWorkflow(
   tenantId: string,
   entityType: string,
   entityId: string,
-  startedBy: string
+  _startedBy: string // kept for API compat, server uses auth.uid()
 ): Promise<{ instanceId: string; status: WfInstanceStatus } | { error: string }> {
-  // 1) البحث عن workflow مفعّل
-  const { data: workflow, error: wfErr } = await (supabase as any)
-    .from("workflows")
-    .select("id, name")
-    .eq("tenant_id", tenantId)
-    .eq("entity_type", entityType)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await secureRpc<{ instance_id: string; status: WfInstanceStatus }>(
+    "atomic_start_workflow",
+    {
+      p_tenant_id: tenantId,
+      p_entity_type: entityType,
+      p_entity_id: entityId,
+    }
+  );
 
-  if (wfErr) return { error: wfErr.message };
-  if (!workflow) return { error: `لا يوجد سير عمل مفعّل لنوع "${entityType}"` };
+  if (error) return { error: error.message };
+  if (!data) return { error: "لم يتم إرجاع بيانات من الخادم" };
 
-  // 2) جلب الخطوات مرتبة
-  const { data: steps, error: stepsErr } = await (supabase as any)
-    .from("workflow_steps")
-    .select("id, step_order, name, type, role_required, permission_required, auto_condition, is_required")
-    .eq("workflow_id", workflow.id)
-    .order("step_order", { ascending: true });
-
-  if (stepsErr) return { error: stepsErr.message };
-  if (!steps || steps.length === 0) return { error: "سير العمل لا يحتوي على خطوات" };
-
-  // 3) إنشاء instance
-  const { data: instance, error: instErr } = await (supabase as any)
-    .from("workflow_instances")
-    .insert({
-      workflow_id: workflow.id,
-      tenant_id: tenantId,
-      entity_id: entityId,
-      entity_type: entityType,
-      status: "in_progress",
-      current_step_order: 1,
-      started_by: startedBy,
-    })
-    .select("id")
-    .single();
-
-  if (instErr) return { error: instErr.message };
-
-  // 4) إنشاء instance steps
-  const instanceSteps = steps.map((s: WorkflowStep) => ({
-    instance_id: instance.id,
-    step_id: s.id,
-    tenant_id: tenantId,
-    step_order: s.step_order,
-    status: "pending",
-  }));
-
-  const { error: isErr } = await (supabase as any)
-    .from("workflow_instance_steps")
-    .insert(instanceSteps);
-
-  if (isErr) return { error: isErr.message };
-
-  // 5) معالجة الخطوات التلقائية المتتالية من البداية
-  const result = await advanceAutoSteps(instance.id, tenantId, steps);
-
-  return { instanceId: instance.id, status: result.status };
+  return { instanceId: data.instance_id, status: data.status };
 }
 
 /**
- * processStep — معالجة خطوة (موافقة/رفض) عبر secure-rpc
+ * processStep — معالجة خطوة (موافقة/رفض) عبر secure-rpc (Atomic)
  *
- * ✅ Server-side enforcement:
- * - Tenant membership check
- * - RBAC (role_required / permission_required)
- * - Self-approval prevention
- * - Full audit logging
+ * ✅ Single RPC call that atomically:
+ * - Validates permissions (RBAC, tenant membership, self-approval)
+ * - Updates current step status
+ * - Advances auto/condition steps
+ * - Updates instance status
+ * - Logs to audit_logs
+ * - Rolls back everything on any error
  */
 export async function processStep(
   instanceId: string,
@@ -164,33 +123,7 @@ export async function processStep(
     }
   );
 
-  if (error) {
-    return { error: error.message };
-  }
-
-  // After approval, advance auto steps if needed
-  if (data?.status === "in_progress") {
-    // Fetch all steps to advance auto ones
-    const { data: inst } = await (supabase as any)
-      .from("workflow_instances")
-      .select("workflow_id, tenant_id")
-      .eq("id", instanceId)
-      .single();
-
-    if (inst) {
-      const { data: allSteps } = await (supabase as any)
-        .from("workflow_steps")
-        .select("id, step_order, type, auto_condition, is_required")
-        .eq("workflow_id", inst.workflow_id)
-        .order("step_order", { ascending: true });
-
-      if (allSteps?.length) {
-        const result = await advanceAutoSteps(instanceId, inst.tenant_id, allSteps);
-        return { status: result.status };
-      }
-    }
-  }
-
+  if (error) return { error: error.message };
   return { status: data?.status || "in_progress" };
 }
 
@@ -258,75 +191,4 @@ export async function getWorkflowHistory(instanceId: string): Promise<WorkflowIn
 
   if (error) return { error: error.message };
   return data || [];
-}
-
-// ── Internal ─────────────────────────────────────────────────────────────────
-
-/**
- * advanceAutoSteps — يمرر الخطوات التلقائية (auto/condition) حتى يصل لخطوة approval
- */
-async function advanceAutoSteps(
-  instanceId: string,
-  tenantId: string,
-  allSteps: WorkflowStep[]
-): Promise<{ status: WfInstanceStatus }> {
-  const { data: inst } = await (supabase as any)
-    .from("workflow_instances")
-    .select("current_step_order")
-    .eq("id", instanceId)
-    .single();
-
-  if (!inst) return { status: "in_progress" };
-
-  let currentOrder = inst.current_step_order;
-
-  while (true) {
-    const step = allSteps.find((s) => s.step_order === currentOrder);
-    if (!step) {
-      await (supabase as any)
-        .from("workflow_instances")
-        .update({ status: "approved", completed_at: new Date().toISOString() })
-        .eq("id", instanceId);
-      return { status: "approved" };
-    }
-
-    if (step.type === "approval") {
-      return { status: "in_progress" };
-    }
-
-    const stepStatus: WfStepStatus = step.type === "condition"
-      ? evaluateCondition(step.auto_condition) ? "auto_passed" : "skipped"
-      : "auto_passed";
-
-    await (supabase as any)
-      .from("workflow_instance_steps")
-      .update({
-        status: stepStatus,
-        acted_at: new Date().toISOString(),
-      })
-      .eq("instance_id", instanceId)
-      .eq("step_order", currentOrder);
-
-    if (stepStatus === "skipped" && step.is_required) {
-      await (supabase as any)
-        .from("workflow_instances")
-        .update({ status: "rejected", completed_at: new Date().toISOString() })
-        .eq("id", instanceId);
-      return { status: "rejected" };
-    }
-
-    currentOrder++;
-    await (supabase as any)
-      .from("workflow_instances")
-      .update({ current_step_order: currentOrder })
-      .eq("id", instanceId);
-  }
-}
-
-/**
- * evaluateCondition — تقييم شرط JSONB بسيط
- */
-function evaluateCondition(condition?: Record<string, unknown> | null): boolean {
-  if (!condition) return true;
-  return condition.pass === true;
 }
