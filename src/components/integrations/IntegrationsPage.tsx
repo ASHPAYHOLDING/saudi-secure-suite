@@ -270,7 +270,7 @@ const IntegrationsPage = () => {
   const marketing = filtered.filter((m) => m.category === "marketing");
 
   const openProvider = (manifest: IntegrationManifest) => {
-    navigate(`/dashboard/integrations/${manifest.category}/${manifest.providerId}`);
+    navigate(`/dashboard/integrations/${manifest.providerId}`);
   };
 
   const filteredMarketingCards = useMemo(() => {
