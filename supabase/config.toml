@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.analytics-etl]
 verify_jwt = false
+
+[functions.ai-accountant]
+verify_jwt = false

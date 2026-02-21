@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, memo } from "react";
+import { useState, useEffect, Suspense, memo, lazy } from "react";
 import { useLocation, Outlet } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
@@ -12,6 +12,8 @@ import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { cn } from "@/lib/utils";
+
+const AIAccountantChat = lazy(() => import("@/components/ai/AIAccountantChat"));
 
 /**
  * Dashboard layout shell.
@@ -64,6 +66,9 @@ const DashboardLayout = memo(() => {
               </div>
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Outlet />
+              </Suspense>
+              <Suspense fallback={null}>
+                <AIAccountantChat />
               </Suspense>
             </div>
           </div>
