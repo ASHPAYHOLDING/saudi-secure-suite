@@ -93,41 +93,51 @@ const ACTION_LABELS: Record<string, string> = {
 
 const PLAN_META: Record<string, { popular?: boolean; tagline: string; gradient: string; summaryBadge?: string; icon: React.ReactNode; color: string; highlights?: string[]; emoji: string; valueTag?: string }> = {
   starter: { emoji: "⚡", tagline: "للمنشآت الناشئة والمتاجر الصغيرة", gradient: "from-slate-500/10 via-slate-500/5 to-transparent", icon: <Zap size={24} />, color: "text-slate-600 dark:text-slate-400" },
-  professional: { emoji: "👑", popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/20 via-accent/8 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={24} />, color: "text-accent", highlights: ["أدوات متقدمة للنمو", "دعم أولوية"], valueTag: "أفضل توازن بين السعر والقيمة" },
+  business: { emoji: "👑", popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/20 via-accent/8 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={24} />, color: "text-accent", highlights: ["ZATCA Phase 2 كامل", "AI محاسبي", "نظام موافقات", "دعم أولوية"], valueTag: "أفضل توازن بين السعر والقيمة" },
+  professional: { emoji: "👑", popular: true, tagline: "الأكثر طلباً — اختيار ٧٥٪ من عملائنا", gradient: "from-accent/20 via-accent/8 to-transparent", summaryBadge: "جميع الميزات مضمّنة", icon: <Crown size={24} />, color: "text-accent", highlights: ["ZATCA Phase 2 كامل", "AI محاسبي", "نظام موافقات", "دعم أولوية"], valueTag: "أفضل توازن بين السعر والقيمة" },
   enterprise: { emoji: "🏢", tagline: "للمنشآت الكبرى والجهات الحكومية", gradient: "from-primary/15 via-primary/5 to-transparent", summaryBadge: "جميع الميزات + التكاملات", icon: <Building2 size={24} />, color: "text-primary", highlights: ["كل التكاملات المدفوعة مجاناً", "مدير حساب مخصص", "SLA مضمون"] },
 };
 
 // Static pricing display per plan slug (UI only, psychological pricing)
 const STATIC_PRICING: Record<string, { monthly: string; yearly: string; yearlyNote: string; enterpriseNote?: string }> = {
-  starter:      { monthly: "199", yearly: "159",  yearlyNote: "تُحسب سنوياً" },
-  professional: { monthly: "499", yearly: "399",  yearlyNote: "تُحسب سنوياً" },
-  enterprise:   { monthly: "999", yearly: "799",  yearlyNote: "تُحسب سنوياً", enterpriseNote: "السعر يعتمد على عدد الفروع وحجم النشاط" },
+  starter:      { monthly: "149", yearly: "119",  yearlyNote: "تُحسب سنوياً" },
+  business:     { monthly: "399", yearly: "319",  yearlyNote: "تُحسب سنوياً" },
+  professional: { monthly: "399", yearly: "319",  yearlyNote: "تُحسب سنوياً" },
+  enterprise:   { monthly: "—",   yearly: "—",    yearlyNote: "تسعير مخصص", enterpriseNote: "السعر يعتمد على عدد الفروع وحجم النشاط" },
 };
 
 // Feature highlights per plan for the new design (static, UI only)
 const PLAN_QUICK_FEATURES: Record<string, string[]> = {
-  starter:      ["3 مستخدمين", "50 فاتورة / شهر", "5GB تخزين", "تقارير أساسية", "بدون تكاملات مدفوعة"],
-  professional: ["25 مستخدم", "500 فاتورة / شهر", "50GB تخزين", "جميع التقارير", "تكاملات مدفوعة", "دعم أولوية"],
-  enterprise:   ["مستخدمين غير محدود", "فواتير غير محدودة", "تخزين مخصص", "مدير حساب", "SLA مخصص", "صلاحيات متقدمة", "API متقدمة"],
+  starter:      ["2 مستخدمين", "100 فاتورة / شهر", "5GB تخزين", "تقارير أساسية", "ZATCA Phase 1", "فرع واحد"],
+  business:     ["15 مستخدم", "فواتير غير محدودة", "100GB تخزين", "ZATCA Phase 2", "AI محاسبي", "5 فروع", "نظام موافقات"],
+  professional: ["15 مستخدم", "فواتير غير محدودة", "100GB تخزين", "ZATCA Phase 2", "AI محاسبي", "5 فروع", "نظام موافقات"],
+  enterprise:   ["مستخدمين غير محدود", "فواتير غير محدودة", "تخزين مخصص", "AI متقدم", "سير عمل مخصص", "تمويل داخلي", "مدير حساب", "SLA 99.9%"],
 };
 
 // Comparison table rows (UI only)
 const COMPARISON_ROWS = [
-  { label: "المستخدمون", starter: "3", professional: "25", enterprise: "غير محدود" },
-  { label: "الفواتير / شهر", starter: "50", professional: "500", enterprise: "غير محدود" },
-  { label: "التخزين", starter: "5GB", professional: "50GB", enterprise: "مخصص" },
-  { label: "التقارير", starter: "أساسية", professional: "جميع التقارير", enterprise: "جميع التقارير" },
-  { label: "تكاملات مدفوعة", starter: false, professional: true, enterprise: true },
-  { label: "دعم أولوية", starter: false, professional: true, enterprise: true },
-  { label: "مدير حساب", starter: false, professional: false, enterprise: true },
-  { label: "SLA مخصص", starter: false, professional: false, enterprise: true },
-  { label: "API متقدمة", starter: false, professional: false, enterprise: true },
+  { label: "المستخدمون", starter: "2", business: "15", enterprise: "غير محدود" },
+  { label: "الفواتير / شهر", starter: "100", business: "غير محدود", enterprise: "غير محدود" },
+  { label: "التخزين", starter: "5GB", business: "100GB", enterprise: "مخصص" },
+  { label: "الفروع", starter: "1", business: "5", enterprise: "غير محدود" },
+  { label: "ZATCA Phase 2", starter: false, business: true, enterprise: true },
+  { label: "إقرار ضريبي آلي", starter: false, business: true, enterprise: true },
+  { label: "AI محاسبي", starter: false, business: "أساسي", enterprise: "متقدم" },
+  { label: "نظام موافقات", starter: false, business: true, enterprise: true },
+  { label: "التقارير", starter: "أساسية", business: "متقدمة", enterprise: "AI + تخصيص" },
+  { label: "تكاملات مدفوعة", starter: false, business: true, enterprise: true },
+  { label: "دعم أولوية", starter: false, business: true, enterprise: true },
+  { label: "مدير حساب", starter: false, business: false, enterprise: true },
+  { label: "SLA مخصص", starter: false, business: false, enterprise: true },
+  { label: "API متقدمة", starter: false, business: false, enterprise: true },
+  { label: "تمويل داخلي", starter: false, business: false, enterprise: true },
 ];
 
 const FEATURE_LABELS: Record<string, string> = {
   invoices_basic: "الفواتير الإلكترونية",
   customers: "إدارة العملاء",
   zatca_phase1: "توافق ZATCA المرحلة 1",
+  zatca_phase2: "توافق ZATCA المرحلة 2",
   limited_reports: "تقارير أساسية",
   expenses: "إدارة المصروفات",
   quotations: "عروض الأسعار",
@@ -156,6 +166,11 @@ const FEATURE_LABELS: Record<string, string> = {
   dedicated_support: "مدير حساب مخصص",
   api_access: "وصول API كامل",
   unlimited_everything: "كل شيء غير محدود",
+  ai_accounting: "AI محاسبي",
+  approvals_enabled: "نظام الموافقات",
+  custom_workflows: "سير عمل مخصص",
+  internal_financing: "تمويل داخلي",
+  vat_auto_return: "إقرار ضريبي آلي",
 };
 
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
@@ -1281,9 +1296,9 @@ const SubscriptionPage = () => {
                     {COMPARISON_ROWS.map((row, ri) => (
                       <tr key={ri} className={`border-b border-border/30 ${ri % 2 === 0 ? "bg-background" : "bg-muted/10"} hover:bg-muted/20 transition-colors`}>
                         <td className="py-3.5 px-5 font-medium text-foreground/85">{row.label}</td>
-                        {(["starter", "professional", "enterprise"] as const).map((slug) => {
+                        {(["starter", "business", "enterprise"] as const).map((slug) => {
                           const val = row[slug];
-                          const isPopularCol = slug === "professional";
+                          const isPopularCol = slug === "business";
                           return (
                             <td key={slug} className={`py-3.5 px-4 text-center ${isPopularCol ? "bg-accent/[0.03]" : ""}`}>
                               {typeof val === "boolean" ? (

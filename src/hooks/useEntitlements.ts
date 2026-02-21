@@ -1,8 +1,8 @@
 import { useEntitlementsContext, type EntitlementEntry } from "@/contexts/EntitlementsContext";
-import { FEATURE_KEYS, type FeatureKey, type EntitlementResult } from "@/lib/entitlement-types";
+import { FEATURE_KEYS, type FeatureKey, type EntitlementResult, type PlanSlug } from "@/lib/entitlement-types";
 
 // Re-export for backward compatibility
-export { FEATURE_KEYS, type FeatureKey, type EntitlementResult };
+export { FEATURE_KEYS, type FeatureKey, type EntitlementResult, type PlanSlug };
 
 interface EntitlementsState {
   entitlements: Record<string, EntitlementEntry>;
@@ -43,7 +43,6 @@ export const useFeatureGate = (
 
   const entry = entitlementsMap[featureKey];
 
-  // While loading, allow rendering (non-blocking)
   if (loading) {
     return { allowed: true, loading: true, limit: null, reason: "loading" };
   }
@@ -58,4 +57,43 @@ export const useFeatureGate = (
     limit: entry.limit ?? null,
     reason: entry.reason,
   };
+};
+
+// ═══════════════════════════════════════════════════════════
+//  Convenience helpers — read from cached entitlementsMap
+// ═══════════════════════════════════════════════════════════
+
+/** Check if current tenant can use a specific feature */
+export const useCanUseFeature = (featureKey: FeatureKey): boolean => {
+  const { allowed } = useFeatureGate(featureKey);
+  return allowed;
+};
+
+/** Check if current tenant can use AI at the required level (0=none, 1=basic, 2=advanced) */
+export const useCanUseAI = (requiredLevel: number = 1): boolean => {
+  const { entitlementsMap, loading } = useEntitlementsContext();
+  if (loading) return true; // non-blocking
+  const entry = entitlementsMap[FEATURE_KEYS.AI_ACCOUNTING];
+  if (!entry?.allowed) return requiredLevel === 0;
+  return (entry.limit ?? 0) >= requiredLevel;
+};
+
+/** Check if current tenant can create more invoices (within monthly limit) */
+export const useCanCreateInvoice = (): { allowed: boolean; limit: number | null } => {
+  const { entitlementsMap, loading } = useEntitlementsContext();
+  if (loading) return { allowed: true, limit: null };
+  const entry = entitlementsMap[FEATURE_KEYS.INVOICES_BASIC];
+  if (!entry) return { allowed: false, limit: null };
+  return { allowed: entry.allowed, limit: entry.limit ?? null };
+};
+
+/** Check if approvals/workflows are enabled for current plan */
+export const useCanUseApprovals = (): boolean => {
+  return useCanUseFeature(FEATURE_KEYS.APPROVALS_ENABLED);
+};
+
+/** Get current plan slug */
+export const usePlanSlug = (): PlanSlug | null => {
+  const { planSlug } = useEntitlementsContext();
+  return planSlug as PlanSlug | null;
 };
