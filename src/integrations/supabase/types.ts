@@ -5499,8 +5499,11 @@ export type Database = {
       invoice_payments: {
         Row: {
           amount: number
+          base_amount: number
           created_at: string
           created_by: string
+          currency_code: string
+          exchange_rate_used: number
           id: string
           invoice_id: string
           is_reversed: boolean
@@ -5514,8 +5517,11 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          base_amount?: number
           created_at?: string
           created_by: string
+          currency_code?: string
+          exchange_rate_used?: number
           id?: string
           invoice_id: string
           is_reversed?: boolean
@@ -5529,8 +5535,11 @@ export type Database = {
         }
         Update: {
           amount?: number
+          base_amount?: number
           created_at?: string
           created_by?: string
+          currency_code?: string
+          exchange_rate_used?: number
           id?: string
           invoice_id?: string
           is_reversed?: boolean
@@ -12822,6 +12831,17 @@ export type Database = {
           p_year: number
         }
         Returns: undefined
+      }
+      calculate_fx_gain_loss: {
+        Args: {
+          p_invoice_id: string
+          p_payment_id: string
+          p_tenant_id: string
+        }
+        Returns: {
+          fx_amount: number
+          fx_type: string
+        }[]
       }
       calculate_paylink_fee: {
         Args: { _gross_amount: number; _tenant_id: string }
