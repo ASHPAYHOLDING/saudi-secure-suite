@@ -10,6 +10,7 @@ import CommandPalette from "@/components/productivity/CommandPalette";
 import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,6 +24,8 @@ const DashboardLayout = memo(() => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const location = useLocation();
   const { isRTL } = useLanguage();
+  const { entitlements } = useEntitlements();
+  const isEnterprise = entitlements?.enterprise_mode?.allowed === true;
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -33,7 +36,7 @@ const DashboardLayout = memo(() => {
     <BrandingProvider>
       <BranchProvider>
         <SubscriptionGuard>
-          <div className="min-h-screen bg-background" dir={isRTL ? "rtl" : "ltr"}>
+          <div className={cn("min-h-screen bg-background", isEnterprise && "enterprise-mode")} dir={isRTL ? "rtl" : "ltr"}>
             {mobileSidebarOpen && (
               <div
                 className="fixed inset-0 z-30 bg-black/50 md:hidden"

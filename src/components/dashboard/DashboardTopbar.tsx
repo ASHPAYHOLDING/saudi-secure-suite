@@ -1,4 +1,4 @@
-import { Search, ChevronDown, LogOut, Globe, Menu, User, Settings, CreditCard } from "lucide-react";
+import { Search, ChevronDown, LogOut, Globe, Menu, User, Settings, CreditCard, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import BranchSelector from "@/components/branches/BranchSelector";
 import TenantSwitcher from "@/components/dashboard/TenantSwitcher";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ThemeSwitcher } from "@/theme/ThemeSwitcher";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,8 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { t, currentLang, toggleLanguage, dir } = useLanguage();
+  const { entitlements } = useEntitlements();
+  const isEnterprise = entitlements?.enterprise_mode?.allowed === true;
 
   const handleSignOut = async () => {
     await signOut();
@@ -33,7 +37,7 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
   const initials = profile?.full_name?.charAt(0) || (currentLang === "ar" ? "م" : "U");
 
   return (
-    <header dir={dir} className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-3 md:px-6 gap-2">
+    <header dir={dir} className={`sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between border-b px-3 md:px-6 gap-2 ${isEnterprise ? "border-border/50 bg-background/80 backdrop-blur-xl" : "border-border bg-background/95 backdrop-blur-sm"}`}>
       {/* Mobile menu + Search + Branch Selector */}
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         {onMobileMenuToggle && (
@@ -41,6 +45,20 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
             <Menu size={20} />
           </Button>
         )}
+
+        {/* Enterprise Mode Indicator */}
+        {isEnterprise && (
+          <div className="hidden sm:flex items-center gap-1.5 enterprise-indicator rounded-lg px-2.5 py-1.5">
+            <Building2 size={14} className="text-accent shrink-0" />
+            <span className="text-[11px] font-semibold text-foreground hidden lg:inline">
+              {currentLang === "ar" ? "وضع المؤسسات" : "Enterprise Mode"}
+            </span>
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-accent/30 text-accent font-bold">
+              {currentLang === "ar" ? "نشط" : "Active"}
+            </Badge>
+          </div>
+        )}
+
         <div className="hidden md:flex items-center gap-3">
           <TenantSwitcher />
           <BranchSelector />
