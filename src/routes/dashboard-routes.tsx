@@ -112,6 +112,8 @@ export interface DashboardRouteConfig {
   module?: Module;
   /** RBAC permission key for RouteGuard. undefined = no RBAC check. */
   permissionKey?: string;
+  /** Override denied reason shown in AccessDenied */
+  deniedReason?: string;
   /** If true, component receives `embedded` prop */
   embedded?: boolean;
   /** Force remount on path change via key={location.pathname} */
@@ -158,7 +160,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
   { path: "finance/collections-intelligence", element: CollectionsIntelligencePage, gateSegment: "collections-intelligence", module: "finance", permissionKey: "finance.view_reports" },
   { path: "finance/cashflow-radar", element: CashflowRadarPage, gateSegment: "cashflow-radar", module: "finance", permissionKey: "finance.view_reports" },
-  { path: "executive", element: ExecutiveIntelligencePage, gateSegment: "executive-intelligence", module: "finance", permissionKey: "finance.view_reports" },
+  { path: "executive", element: ExecutiveIntelligencePage, gateSegment: "executive-intelligence", module: "finance", permissionKey: "finance.view_executive_board", deniedReason: "executive_restricted" },
 
   // ── Reports & Analytics ──
   { path: "reports", element: ReportsPage, gateSegment: "reports", module: "reports" },

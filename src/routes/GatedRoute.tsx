@@ -9,12 +9,14 @@ type Props = {
   segment: string;
   module?: Module;
   permissionKey?: string;
+  /** Override denied reason in AccessDenied */
+  deniedReason?: import("@/components/guards/AccessDenied").AccessDeniedReason;
   /** Declared open in route config — bypasses entitlement/RBAC guards */
   isOpenRoute?: boolean;
   children: React.ReactNode;
 };
 
-export default function GatedRoute({ segment, module, permissionKey, isOpenRoute, children }: Props) {
+export default function GatedRoute({ segment, module, permissionKey, deniedReason, isOpenRoute, children }: Props) {
   const { tenantType } = useAuth();
 
   // 0) Intentionally open routes — declared in route config, not a string set
@@ -53,6 +55,7 @@ export default function GatedRoute({ segment, module, permissionKey, isOpenRoute
       featureKey={featureKey}
       permissionKey={resolvedPermissionKey}
       featureLabel={featureLabel}
+      deniedReason={deniedReason}
     >
       {children}
     </RouteGuard>

@@ -234,7 +234,7 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
   },
   "executive-intelligence": {
     featureKey: FEATURE_KEYS.ADVANCED_REPORTS,
-    permissionKeys: ["finance.view_reports"],
+    permissionKeys: ["finance.view_executive_board"],
     label: "لوحة الذكاء التنفيذي",
     description: "ملخص تنفيذي شامل للأداء المالي والمخاطر مع توصيات ذكية.",
   },

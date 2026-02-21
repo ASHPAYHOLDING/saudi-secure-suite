@@ -1,12 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Lock, ArrowUpCircle, Ban } from "lucide-react";
+import { Shield, Lock, ArrowUpCircle, Ban, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UpgradeWallEnterprise from "@/components/guards/UpgradeWallEnterprise";
 
 export type AccessDeniedReason =
   | "feature_not_in_plan"
   | "permission_denied"
+  | "executive_restricted"
   | "module_not_allowed"
   | "route_not_gated"
   | "loading";
@@ -29,14 +30,17 @@ export default function AccessDenied({ reason, featureLabel, featureKey }: Props
   const isUpgrade = reason === "feature_not_in_plan";
   const isModuleBlock = reason === "module_not_allowed";
   const isFailClosed = reason === "route_not_gated";
+  const isExecutiveRestricted = reason === "executive_restricted";
 
   const getIcon = () => {
+    if (isExecutiveRestricted) return <Crown className="h-12 w-12 text-primary" />;
     if (isUpgrade) return <Lock className="h-12 w-12 text-destructive" />;
     if (isFailClosed || isModuleBlock) return <Ban className="h-12 w-12 text-destructive" />;
     return <Shield className="h-12 w-12 text-destructive" />;
   };
 
   const getTitle = () => {
+    if (isExecutiveRestricted) return "هذه الصفحة مخصصة للإدارة العليا";
     if (isUpgrade) return "ميزة غير متاحة في باقتك الحالية";
     if (isModuleBlock) return "هذه الصفحة غير متاحة لنوع حسابك";
     if (isFailClosed) return "الصفحة غير متاحة";
@@ -45,6 +49,8 @@ export default function AccessDenied({ reason, featureLabel, featureKey }: Props
   };
 
   const getDescription = () => {
+    if (isExecutiveRestricted)
+      return "هذه اللوحة متاحة فقط للمالك أو المدير المالي. اطلب الصلاحية من المالك.";
     if (isUpgrade)
       return `${featureLabel ? `ميزة "${featureLabel}" ` : ""}غير مفعّلة في خطتك الحالية. قم بالترقية للوصول إليها.`;
     if (isModuleBlock)

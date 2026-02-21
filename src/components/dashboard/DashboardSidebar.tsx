@@ -16,6 +16,7 @@ import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntitlements";
 import { NAV_PATH_TO_FEATURE } from "@/lib/feature-route-map";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { motion, AnimatePresence } from "framer-motion";
 import { RamadanBadge } from "@/components/ramadan";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -27,6 +28,8 @@ interface NavItemDef {
   path: string;
   module: Module;
   featureKey?: FeatureKey;
+  /** If set, item is hidden unless user is owner or has this permission */
+  requiredPermission?: string;
 }
 
 interface NavGroup {
@@ -80,7 +83,7 @@ const navGroups: NavGroup[] = [
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: Shield, key: "nav.collectionsIntelligence", path: "/dashboard/finance/collections-intelligence", module: "finance" },
       { icon: Activity, key: "nav.cashflowRadar", path: "/dashboard/finance/cashflow-radar", module: "finance" },
-      { icon: BarChart3, key: "nav.executiveBoard", path: "/dashboard/executive", module: "finance" },
+      { icon: BarChart3, key: "nav.executiveBoard", path: "/dashboard/executive", module: "finance", requiredPermission: "finance.view_executive_board" as any },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
     ],
     subGroup: {
@@ -145,10 +148,12 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: DashboardSidebarProps) => {
   const location = useLocation();
-  const { user, tenantType } = useAuth();
+  const { user, tenantType, userRole } = useAuth();
   const { t, isRTL } = useLanguage();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const { entitlements, loading: loadingEntitlements } = useEntitlements();
+  const { canAny } = useGranularPermissions();
+  const isOwner = userRole === "owner";
   const { seasonalTheme } = useTheme();
   const isRamadan = seasonalTheme === "ramadan";
 
@@ -310,7 +315,11 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   };
 
   const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
-    const filteredItems = group.items.filter((item) => isModuleAllowed(tenantType, item.module));
+    const filteredItems = group.items.filter((item) => {
+      if (!isModuleAllowed(tenantType, item.module)) return false;
+      if (item.requiredPermission && !isOwner && !canAny(item.requiredPermission as any)) return false;
+      return true;
+    });
     const hasSubGroup = group.subGroup && group.subGroup.items.some((item) => isModuleAllowed(tenantType, item.module));
     if (filteredItems.length === 0 && !hasSubGroup) return null;
 
