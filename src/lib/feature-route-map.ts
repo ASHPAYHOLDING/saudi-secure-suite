@@ -342,6 +342,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "سوق بوابات الدفع",
     description: "استعراض واختيار بوابات الدفع المتاحة.",
   },
+  settings: {
+    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    permissionKeys: ["settings.view"],
+    label: "الإعدادات",
+    description: "إعدادات النظام العامة والتخصيصات.",
+  },
 };
 
 /**
