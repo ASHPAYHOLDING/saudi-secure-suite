@@ -282,4 +282,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   ),
   // Enterprise sub-routes
   "/dashboard/enterprise/security-policies": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/enterprise/sessions": FEATURE_KEYS.ENTERPRISE_MODE,
 };

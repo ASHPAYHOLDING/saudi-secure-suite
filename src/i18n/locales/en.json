@@ -113,6 +113,7 @@
     "dataQuality": "Data Quality",
     "enterpriseGovernance": "Governance Center",
     "enterpriseSecurityPolicies": "Security Policies",
+    "enterpriseSessions": "Session Management",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
