@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,57 +14,41 @@ interface GranularPermissions {
   refresh: () => void;
 }
 
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Fetches the current user's granular permissions from custom_roles + role_permissions.
- * Falls back to the old hasPermission system if no custom_roles are found.
+ * Fetches the current user's granular permissions via a single RPC call.
+ * Uses React Query with cache key ["perms", tenantId, userId].
+ * Returns a Set<string> for O(1) lookups.
  */
 export const useGranularPermissions = (): GranularPermissions => {
   const { user, tenantId, userRole: role } = useAuth();
-  const [permissionKeys, setPermissionKeys] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshCounter, setRefreshCounter] = useState(0);
+  const queryClient = useQueryClient();
+  const userId = user?.id;
 
-  useEffect(() => {
-    if (!user || !tenantId || !role) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchPermissions = async () => {
-      setLoading(true);
-      
-      // Find the custom_role for this tenant that matches the user's base role
-      const { data: customRole } = await supabase
-        .from("custom_roles")
-        .select("id")
-        .eq("tenant_id", tenantId)
-        .eq("base_role", role)
-        .maybeSingle();
-
-      if (!customRole) {
-        setPermissionKeys([]);
-        setLoading(false);
-        return;
+  const { data: permissionKeys = [], isLoading } = useQuery({
+    queryKey: ["perms", tenantId, userId],
+    queryFn: async (): Promise<string[]> => {
+      if (!userId || !tenantId) return [];
+      const { data, error } = await supabase.rpc("get_my_permissions" as any, {
+        p_user_id: userId,
+        p_tenant_id: tenantId,
+      });
+      if (error) {
+        console.error("[permissions] RPC error:", error.message);
+        return [];
       }
-
-      const { data: perms } = await supabase
-        .from("role_permissions")
-        .select("permission_key")
-        .eq("role_id", customRole.id)
-        .eq("tenant_id", tenantId);
-
-      setPermissionKeys(perms?.map((p) => p.permission_key) ?? []);
-      setLoading(false);
-    };
-
-    fetchPermissions();
-  }, [user, tenantId, role, refreshCounter]);
+      return (data as string[]) ?? [];
+    },
+    enabled: !!userId && !!tenantId && !!role,
+    staleTime: STALE_TIME,
+    gcTime: STALE_TIME * 3,
+  });
 
   const permissions = useMemo(() => new Set(permissionKeys), [permissionKeys]);
 
   const can = useCallback(
     (permission: PermissionKey) => {
-      // Owner always has all permissions as fallback
       if (role === "owner") return true;
       return permissions.has(permission);
     },
@@ -80,7 +65,10 @@ export const useGranularPermissions = (): GranularPermissions => {
     [can]
   );
 
-  const refresh = useCallback(() => setRefreshCounter((c) => c + 1), []);
+  const refresh = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["perms", tenantId, userId] }),
+    [queryClient, tenantId, userId]
+  );
 
-  return { permissions, loading, can, canAny, canAll, refresh };
+  return { permissions, loading: isLoading, can, canAny, canAll, refresh };
 };
