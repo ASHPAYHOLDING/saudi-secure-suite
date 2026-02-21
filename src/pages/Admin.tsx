@@ -34,6 +34,7 @@ const FullSystemAudit = lazy(() => import("@/components/admin/FullSystemAudit"))
 const UsageAnalytics = lazy(() => import("@/components/admin/UsageAnalytics"));
 const DuplicateDetection = lazy(() => import("@/components/admin/DuplicateDetection"));
 const CleanupEngine = lazy(() => import("@/components/admin/CleanupEngine"));
+const ArchitectureAudit = lazy(() => import("@/components/admin/ArchitectureAudit"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -102,6 +103,7 @@ const Admin = () => {
     if (path === "/admin/system/usage") return <UsageAnalytics />;
     if (path === "/admin/system/duplicates") return <DuplicateDetection />;
     if (path === "/admin/system/cleanup") return <CleanupEngine />;
+    if (path === "/admin/system/architecture-audit") return <ArchitectureAudit />;
     return <AdminDashboard />;
   };
 
