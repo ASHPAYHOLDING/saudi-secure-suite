@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Download, Filter, Loader2, TrendingUp, TrendingDown, CreditCard,
@@ -22,8 +22,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 import type { StampData } from "@/components/stamp/DigitalStamp";
+
+const LazyReportBuilder = lazy(() => import("@/components/reports/CustomReportBuilder"));
+const LazyScheduledReports = lazy(() => import("@/components/reports/ScheduledReportsPage"));
+const LazySheetView = lazy(() => import("@/components/sheet-view/SheetViewPage"));
 
 import {
   REPORT_DEFINITIONS,
@@ -48,6 +53,7 @@ const ReportsPage = () => {
   const { isRTL } = useLanguage();
 
   // ─── State ───
+  const [reportTab, setReportTab] = useState("reports");
   const [activeCategory, setActiveCategory] = useState<ReportCategory | "all">("all");
   const [selectedReport, setSelectedReport] = useState<ReportDefinition | null>(null);
   const [search, setSearch] = useState("");
@@ -676,12 +682,14 @@ const ReportsPage = () => {
   }
 
   // ─── Report Catalog ───
+  const loadingFallback = <div className="flex items-center justify-center p-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+
   return (
     <div dir="rtl" className="space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">{isRTL ? "التقارير المتقدمة" : "Advanced Reports"}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{isRTL ? "التقارير المالية" : "Financial Reports"}</h1>
           <p className="text-sm text-muted-foreground">
             {isRTL ? `${REPORT_DEFINITIONS.length}+ تقرير مالي وتشغيلي` : `${REPORT_DEFINITIONS.length}+ financial & operational reports`}
           </p>
@@ -705,6 +713,26 @@ const ReportsPage = () => {
         </div>
       </div>
 
+      {/* ── Tabs: التقارير | منشئ التقارير | التقارير المجدولة | عرض جدولي ── */}
+      <Tabs value={reportTab} onValueChange={setReportTab}>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-auto min-w-max h-9">
+            <TabsTrigger value="reports" className="text-xs gap-1.5 px-3">
+              <FileText className="h-3.5 w-3.5" />{isRTL ? "التقارير" : "Reports"}
+            </TabsTrigger>
+            <TabsTrigger value="builder" className="text-xs gap-1.5 px-3">
+              <BarChart3 className="h-3.5 w-3.5" />{isRTL ? "منشئ التقارير" : "Report Builder"}
+            </TabsTrigger>
+            <TabsTrigger value="scheduled" className="text-xs gap-1.5 px-3">
+              <Clock className="h-3.5 w-3.5" />{isRTL ? "التقارير المجدولة" : "Scheduled"}
+            </TabsTrigger>
+            <TabsTrigger value="sheet" className="text-xs gap-1.5 px-3">
+              <FileSpreadsheet className="h-3.5 w-3.5" />{isRTL ? "عرض جدولي" : "Sheet View"}
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="reports" className="space-y-6 mt-4">
       {/* Saved Presets */}
       {presets.length > 0 && (
         <div>
@@ -826,6 +854,26 @@ const ReportsPage = () => {
           <p className="text-sm">{isRTL ? "لا توجد تقارير مطابقة" : "No matching reports"}</p>
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="builder" className="mt-4">
+          <Suspense fallback={loadingFallback}>
+            <LazyReportBuilder />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="scheduled" className="mt-4">
+          <Suspense fallback={loadingFallback}>
+            <LazyScheduledReports />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="sheet" className="mt-4">
+          <Suspense fallback={loadingFallback}>
+            <LazySheetView />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

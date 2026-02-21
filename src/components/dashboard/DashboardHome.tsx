@@ -555,13 +555,14 @@ const DashboardHome = () => {
     },
   ] : null;
 
+  const isAr = currentLang === "ar";
   const quickActions = [
-    { label: "فاتورة جديدة", icon: CreditCard, path: "/dashboard/billing", color: "bg-accent/10 text-accent hover:bg-accent/20" },
-    { label: "عرض سعر", icon: FileText, path: "/dashboard/quotations", color: "bg-info/10 text-info hover:bg-info/20" },
-    { label: "مصروف جديد", icon: Receipt, path: "/dashboard/expenses", color: "bg-warning/10 text-warning hover:bg-warning/20" },
-    { label: "عميل جديد", icon: Users, path: "/dashboard/customers", color: "bg-success/10 text-success hover:bg-success/20" },
-    { label: "عقد جديد", icon: FileSignature, path: "/dashboard/contracts", color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" },
-    { label: "التقارير", icon: BarChart3, path: "/dashboard/reports", color: "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20" },
+    { label: isAr ? "فاتورة جديدة" : "New Invoice", icon: CreditCard, path: "/dashboard/billing", color: "bg-accent/10 text-accent hover:bg-accent/20" },
+    { label: isAr ? "قيد يومي" : "Journal Entry", icon: FileText, path: "/dashboard/journal-entries", color: "bg-info/10 text-info hover:bg-info/20" },
+    { label: isAr ? "مصروف جديد" : "New Expense", icon: Receipt, path: "/dashboard/expenses", color: "bg-warning/10 text-warning hover:bg-warning/20" },
+    { label: isAr ? "عميل جديد" : "New Customer", icon: Users, path: "/dashboard/customers", color: "bg-success/10 text-success hover:bg-success/20" },
+    { label: isAr ? "سند قبض" : "Receipt Voucher", icon: Wallet, path: "/dashboard/finance", color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" },
+    { label: isAr ? "التقارير المالية" : "Financial Reports", icon: BarChart3, path: "/dashboard/reports", color: "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20" },
   ];
 
   const netProfit = s ? s.totalRevenue - s.totalExpenses : 0;

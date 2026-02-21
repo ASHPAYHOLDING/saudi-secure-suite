@@ -308,13 +308,13 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
   },
   productivity: {
     featureKey: FEATURE_KEYS.INVOICES_BASIC,
-    permissionKeys: [],
+    permissionKeys: ["finance.view_overview"],
     label: "لوحة الإنتاجية",
     description: "لوحة عمل المحاسب وملخص المهام اليومية.",
   },
   "sheet-view": {
     featureKey: FEATURE_KEYS.INVOICES_BASIC,
-    permissionKeys: [],
+    permissionKeys: ["finance.view_reports"],
     label: "العرض الجدولي",
     description: "عرض البيانات بنمط جدول بيانات تفاعلي.",
   },
