@@ -5,21 +5,22 @@ import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import RouteGuard from "@/components/guards/RouteGuard";
 import AccessDenied from "@/components/guards/AccessDenied";
 
-const INTENTIONALLY_OPEN_SEGMENTS = new Set([
-  "help",
-  "subscription",
-  "support",
-]);
-
 type Props = {
   segment: string;
   module?: Module;
   permissionKey?: string;
+  /** Declared open in route config — bypasses entitlement/RBAC guards */
+  isOpenRoute?: boolean;
   children: React.ReactNode;
 };
 
-export default function GatedRoute({ segment, module, permissionKey, children }: Props) {
+export default function GatedRoute({ segment, module, permissionKey, isOpenRoute, children }: Props) {
   const { tenantType } = useAuth();
+
+  // 0) Intentionally open routes — declared in route config, not a string set
+  if (isOpenRoute) {
+    return <>{children}</>;
+  }
 
   // 1) Module guard — fail closed
   if (module && !isModuleAllowed(tenantType, module)) {
@@ -32,19 +33,17 @@ export default function GatedRoute({ segment, module, permissionKey, children }:
 
   // Auto-derive permissionKey from ROUTE_FEATURE_MAP if not explicitly passed
   const resolvedPermissionKey = permissionKey ?? mapping?.permissionKeys?.[0];
-  const isIntentionallyOpen = INTENTIONALLY_OPEN_SEGMENTS.has(segment);
 
   // 2) DEV warning for missing mapping
-  if (import.meta.env.DEV && !mapping && !isIntentionallyOpen) {
+  if (import.meta.env.DEV && !mapping) {
     console.warn(
       `[GatedRoute] ⚠️ Missing ROUTE_FEATURE_MAP entry for segment "${segment}". ` +
-        `Add it to ROUTE_FEATURE_MAP or INTENTIONALLY_OPEN_SEGMENTS.`
+        `Add it to ROUTE_FEATURE_MAP or mark the route as isOpenRoute.`
     );
   }
 
-  // 3) Fail-closed: unknown/ungated segments blocked unless intentionally open
+  // 3) Fail-closed: unknown/ungated segments blocked
   if (!featureKey && !resolvedPermissionKey) {
-    if (isIntentionallyOpen) return <>{children}</>;
     return <AccessDenied reason="route_not_gated" featureLabel={featureLabel} />;
   }
 
