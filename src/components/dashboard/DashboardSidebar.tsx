@@ -90,6 +90,7 @@ const navGroups: NavGroup[] = [
       { icon: BarChart3, key: "nav.reportBuilder", path: "/dashboard/report-builder", module: "reports" },
       { icon: CalendarClock, key: "nav.scheduledReports", path: "/dashboard/scheduled-reports", module: "reports" },
       { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
+      { icon: BarChart3, key: "nav.executiveAnalytics", path: "/dashboard/analytics/executive", module: "analytics" },
       { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
       { icon: Sparkles, key: "nav.smartQuery", path: "/dashboard/smart-query", module: "analytics" },
       { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },

@@ -87,6 +87,7 @@ const FinancialStatementsPage = lazy(() => import("@/components/finance/Financia
 const JournalApprovalsPage = lazy(() => import("@/components/journal/JournalApprovalsPage"));
 const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepairPage"));
 const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
+const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -147,6 +148,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "vat-return", element: VatReturnGenerator, gateSegment: "vat-return", module: "reports" },
   { path: "report-builder", element: CustomReportBuilder, gateSegment: "reports", module: "reports" },
   { path: "scheduled-reports", element: ScheduledReportsPage, gateSegment: "reports", module: "reports" },
+  { path: "analytics/executive", element: ExecutiveAnalyticsDashboard, gateSegment: "analytics", module: "analytics" },
   { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
   { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
