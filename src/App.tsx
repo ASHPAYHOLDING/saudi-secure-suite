@@ -116,17 +116,21 @@ const App = () => (
                 <Route path="/admin" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
                 <Route path="/admin/*" element={<PlatformAdminRoute><Admin /></PlatformAdminRoute>} />
 
-                {/* ── Debug routes ── */}
-                <Route path="/debug/rtl-lab" element={<ProtectedRoute><DebugSuspense><RtlLab /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/perf" element={<ProtectedRoute><DebugSuspense><DebugPerf /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/entitlements" element={<ProtectedRoute><DebugSuspense><DebugEntitlements /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/feature-gates" element={<ProtectedRoute><DebugSuspense><DebugFeatureGates /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/access-map" element={<ProtectedRoute><DebugSuspense><DebugAccessMap /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/rls-check" element={<ProtectedRoute><DebugSuspense><DebugRlsCheck /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/payment-providers" element={<ProtectedRoute><DebugSuspense><DebugPaymentProviders /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/webhooks" element={<ProtectedRoute><DebugSuspense><DebugWebhooks /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/webhook-test" element={<ProtectedRoute><DebugSuspense><DebugWebhookTest /></DebugSuspense></ProtectedRoute>} />
-                <Route path="/debug/workflows" element={<ProtectedRoute><DebugSuspense><DebugWorkflows /></DebugSuspense></ProtectedRoute>} />
+                {/* ── Debug routes — Platform Admin + DEV only ── */}
+                {import.meta.env.DEV && (
+                  <>
+                    <Route path="/debug/rtl-lab" element={<PlatformAdminRoute><DebugSuspense><RtlLab /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/perf" element={<PlatformAdminRoute><DebugSuspense><DebugPerf /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/entitlements" element={<PlatformAdminRoute><DebugSuspense><DebugEntitlements /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/feature-gates" element={<PlatformAdminRoute><DebugSuspense><DebugFeatureGates /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/access-map" element={<PlatformAdminRoute><DebugSuspense><DebugAccessMap /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/rls-check" element={<PlatformAdminRoute><DebugSuspense><DebugRlsCheck /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/payment-providers" element={<PlatformAdminRoute><DebugSuspense><DebugPaymentProviders /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/webhooks" element={<PlatformAdminRoute><DebugSuspense><DebugWebhooks /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/webhook-test" element={<PlatformAdminRoute><DebugSuspense><DebugWebhookTest /></DebugSuspense></PlatformAdminRoute>} />
+                    <Route path="/debug/workflows" element={<PlatformAdminRoute><DebugSuspense><DebugWorkflows /></DebugSuspense></PlatformAdminRoute>} />
+                  </>
+                )}
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
