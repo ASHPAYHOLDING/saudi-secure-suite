@@ -3356,6 +3356,53 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_events: {
+        Row: {
+          aggregate_id: string
+          aggregate_type: string
+          created_at: string
+          created_by: string
+          event_type: string
+          hash_current: string
+          hash_prev: string
+          id: string
+          payload_json: Json
+          tenant_id: string
+        }
+        Insert: {
+          aggregate_id: string
+          aggregate_type: string
+          created_at?: string
+          created_by: string
+          event_type: string
+          hash_current?: string
+          hash_prev?: string
+          id?: string
+          payload_json?: Json
+          tenant_id: string
+        }
+        Update: {
+          aggregate_id?: string
+          aggregate_type?: string
+          created_at?: string
+          created_by?: string
+          event_type?: string
+          hash_current?: string
+          hash_prev?: string
+          id?: string
+          payload_json?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goods_receipt_items: {
         Row: {
           description: string | null
@@ -10893,6 +10940,19 @@ export type Database = {
       validate_subscription_discount: {
         Args: { _code: string; _plan_id: string; _tenant_id: string }
         Returns: Json
+      }
+      verify_finance_event_chain: {
+        Args: {
+          p_aggregate_id: string
+          p_aggregate_type: string
+          p_tenant_id: string
+        }
+        Returns: {
+          actual_hash: string
+          event_id: string
+          expected_hash: string
+          is_valid: boolean
+        }[]
       }
     }
     Enums: {
