@@ -343,7 +343,7 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     description: "استعراض واختيار بوابات الدفع المتاحة.",
   },
   settings: {
-    featureKey: FEATURE_KEYS.INVOICES_BASIC,
+    featureKey: FEATURE_KEYS.TEAM_MANAGEMENT,
     permissionKeys: ["settings.view"],
     label: "الإعدادات",
     description: "إعدادات النظام العامة والتخصيصات.",

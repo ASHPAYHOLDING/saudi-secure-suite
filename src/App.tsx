@@ -97,9 +97,10 @@ const App = () => (
                       path={route.path}
                       element={
                         <GatedRoute
-                          segment={route.gateSegment || ""}
+                          segment={route.gateSegment ?? route.path.split("/")[0]}
                           module={route.module}
                           permissionKey={route.permissionKey}
+                          isOpenRoute={route.isOpenRoute}
                         >
                           {route.keyOnPath || route.embedded ? (
                             <KeyedElement Component={route.element} embedded={route.embedded} />

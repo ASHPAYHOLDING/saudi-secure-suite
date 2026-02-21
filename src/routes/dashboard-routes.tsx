@@ -110,6 +110,8 @@ export interface DashboardRouteConfig {
   embedded?: boolean;
   /** Force remount on path change via key={location.pathname} */
   keyOnPath?: boolean;
+  /** If true, this route is intentionally open (no entitlement/RBAC gate). */
+  isOpenRoute?: boolean;
 }
 
 /**
@@ -226,13 +228,13 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard" },
   { path: "sheet-view", element: SheetViewPage, gateSegment: "sheet-view", module: "sheet-view" },
 
-  // ── Support ──
-  { path: "support/new", element: CreateTicketPage, gateSegment: "support", module: "help" },
-  { path: "support", element: SupportTicketsPage, gateSegment: "support", module: "help" },
-  { path: "help", element: HelpPage, gateSegment: "help" },
+  // ── Support (intentionally open) ──
+  { path: "support/new", element: CreateTicketPage, gateSegment: "support", module: "help", isOpenRoute: true },
+  { path: "support", element: SupportTicketsPage, gateSegment: "support", module: "help", isOpenRoute: true },
+  { path: "help", element: HelpPage, gateSegment: "help", isOpenRoute: true },
 
-  // ── Subscription & Misc ──
-  { path: "subscription", element: SubscriptionPage, gateSegment: "subscription" },
+  // ── Subscription & Misc (intentionally open) ──
+  { path: "subscription", element: SubscriptionPage, gateSegment: "subscription", isOpenRoute: true },
   { path: "affiliate", element: AffiliateDashboardPage, gateSegment: "affiliate-dashboard", module: "finance" },
 ];
 
