@@ -273,9 +273,13 @@ export const FEATURE_RBAC_MAP: Partial<Record<string, string[]>> = (() => {
  * Maps sidebar nav items to their feature_key.
  * Used by DashboardSidebar to show lock icons on gated features.
  */
-export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = Object.fromEntries(
-  Object.entries(ROUTE_FEATURE_MAP).map(([segment, config]) => [
-    `/dashboard/${segment}`,
-    config.featureKey,
-  ])
-);
+export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
+  ...Object.fromEntries(
+    Object.entries(ROUTE_FEATURE_MAP).map(([segment, config]) => [
+      `/dashboard/${segment}`,
+      config.featureKey,
+    ])
+  ),
+  // Enterprise sub-routes
+  "/dashboard/enterprise/security-policies": FEATURE_KEYS.ENTERPRISE_MODE,
+};

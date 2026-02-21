@@ -108,6 +108,7 @@ const navGroups: NavGroup[] = [
     labelKey: "nav.group.enterprise",
     items: [
       { icon: Shield, key: "nav.enterpriseGovernance", path: "/dashboard/enterprise", module: "enterprise" },
+      { icon: Lock, key: "nav.enterpriseSecurityPolicies", path: "/dashboard/enterprise/security-policies", module: "enterprise" },
     ],
   },
 ];

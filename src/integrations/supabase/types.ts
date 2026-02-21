@@ -3137,6 +3137,56 @@ export type Database = {
           },
         ]
       }
+      enterprise_security_policies: {
+        Row: {
+          audit_retention_days: number
+          created_at: string
+          id: string
+          password_min_length: number
+          require_numbers: boolean
+          require_symbols: boolean
+          require_uppercase: boolean
+          session_timeout_minutes: number
+          tenant_id: string
+          updated_at: string
+          webhook_retention_days: number
+        }
+        Insert: {
+          audit_retention_days?: number
+          created_at?: string
+          id?: string
+          password_min_length?: number
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          session_timeout_minutes?: number
+          tenant_id: string
+          updated_at?: string
+          webhook_retention_days?: number
+        }
+        Update: {
+          audit_retention_days?: number
+          created_at?: string
+          id?: string
+          password_min_length?: number
+          require_numbers?: boolean
+          require_symbols?: boolean
+          require_uppercase?: boolean
+          session_timeout_minutes?: number
+          tenant_id?: string
+          updated_at?: string
+          webhook_retention_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_security_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enterprise_settings: {
         Row: {
           allow_multiple_sessions: boolean
