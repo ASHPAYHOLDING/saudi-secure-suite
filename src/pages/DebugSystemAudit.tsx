@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const IntegrationsHealthAudit = lazy(() => import("@/components/debug/IntegrationsHealthAudit"));
 const RlsAuditTab = lazy(() => import("@/components/debug/RlsAuditTab"));
+const E2EChecklistTab = lazy(() => import("@/components/debug/E2EChecklistTab"));
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import {
   Crown,
   Plug,
   Database,
+  ClipboardCheck,
 } from "lucide-react";
 
 // ── Types ──
@@ -379,6 +381,11 @@ const DebugSystemAudit = () => {
               <Database size={14} /> RLS Audit
             </TabsTrigger>
           )}
+          {isPlatformAdmin && (
+            <TabsTrigger value="e2e" className="gap-1.5">
+              <ClipboardCheck size={14} /> E2E Checklist
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Integrations tab */}
@@ -393,6 +400,15 @@ const DebugSystemAudit = () => {
           <TabsContent value="rls" className="mt-4">
             <Suspense fallback={<div className="flex justify-center py-12"><RefreshCw size={20} className="animate-spin text-muted-foreground" /></div>}>
               <RlsAuditTab />
+            </Suspense>
+          </TabsContent>
+        )}
+
+        {/* E2E Checklist tab — platform admin only */}
+        {isPlatformAdmin && (
+          <TabsContent value="e2e" className="mt-4">
+            <Suspense fallback={<div className="flex justify-center py-12"><RefreshCw size={20} className="animate-spin text-muted-foreground" /></div>}>
+              <E2EChecklistTab />
             </Suspense>
           </TabsContent>
         )}
