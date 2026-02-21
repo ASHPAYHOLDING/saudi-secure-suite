@@ -2,15 +2,10 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { RamadanGlow, RamadanPattern } from "@/components/ramadan";
-import { useTheme } from "@/theme/ThemeProvider";
 
 const FinalCTA = () => {
-  const { seasonalTheme } = useTheme();
-  const isRamadan = seasonalTheme === "ramadan";
-
   return (
-    <section className="py-24 md:py-32 bg-background" dir="rtl">
+    <section className="py-20 md:py-28 bg-background" dir="rtl">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -18,9 +13,6 @@ const FinalCTA = () => {
           viewport={{ once: true }}
           className="relative rounded-3xl gradient-hero overflow-hidden"
         >
-          <RamadanPattern opacity={0.05} />
-          <RamadanGlow variant="hero" />
-
           <div className="absolute inset-0 overflow-hidden">
             <motion.div
               animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.15, 0.1] }}
@@ -30,16 +22,16 @@ const FinalCTA = () => {
             />
           </div>
 
-          <div className="relative p-10 md:p-20 text-center">
+          <div className="relative p-8 md:p-16 lg:p-20 text-center">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-bold text-primary-foreground mb-6 leading-tight"
+              className="text-3xl md:text-5xl font-bold text-primary-foreground mb-5 leading-tight"
             >
               ابدأ ERP سعودي حقيقي
               <br />
-              <span className={isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-gradient"}>اليوم</span>
+              <span className="text-gradient">اليوم</span>
             </motion.h2>
 
             <motion.p
@@ -47,7 +39,7 @@ const FinalCTA = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-lg text-primary-foreground/60 mb-8 max-w-2xl mx-auto"
+              className="text-base sm:text-lg text-primary-foreground/70 mb-8 max-w-2xl mx-auto"
             >
               انضم لأكثر من 1,200 منشأة سعودية تدير أعمالها بذكاء عبر نيوماكسيو
             </motion.p>
@@ -64,7 +56,7 @@ const FinalCTA = () => {
                 { icon: Shield, text: "بياناتك مشفرة ومحمية" },
                 { icon: Zap, text: "إعداد في 5 دقائق" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/50">
+                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/60">
                   <item.icon size={16} className="text-accent" />
                   {item.text}
                 </div>

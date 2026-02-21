@@ -4,7 +4,7 @@ import { FileText, User, Package, CheckCircle2, Loader2, Shield } from "lucide-r
 import { Button } from "@/components/ui/button";
 
 const InvoiceDemo = () => {
-  const [step, setStep] = useState(0); // 0=idle, 1=customer, 2=item, 3=issuing, 4=done
+  const [step, setStep] = useState(0);
 
   const reset = () => setStep(0);
 
@@ -15,26 +15,41 @@ const InvoiceDemo = () => {
     setTimeout(() => setStep(4), 5500);
   };
 
+  const steps = [
+    {
+      icon: User,
+      title: "اختيار العميل",
+      detail: "✓ شركة الفلاح للتجارة — CR: 1010123456",
+      minStep: 1,
+    },
+    {
+      icon: Package,
+      title: "إضافة البنود",
+      detail: "✓ استشارات مالية × 10 ساعات = ٥,٠٠٠ ﷼ + ضريبة ٧٥٠ ﷼",
+      minStep: 2,
+    },
+  ];
+
   return (
-    <section id="demo" className="py-24 md:py-32 bg-secondary/30" dir="rtl">
+    <section id="demo" className="py-20 md:py-28 bg-secondary/30" dir="rtl">
       <div className="container mx-auto px-4">
-        <div className="mb-14 text-center">
+        <div className="mb-12 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-4 text-3xl font-bold text-foreground md:text-5xl"
+            className="mb-3 text-3xl font-bold text-foreground md:text-5xl"
           >
-            من الصفر إلى فاتورة متوافقة <span className="text-gradient">خلال 10 ثوانٍ</span>
+            فاتورة متوافقة <span className="text-gradient">خلال 10 ثوانٍ</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-lg text-muted-foreground"
+            className="text-base sm:text-lg text-muted-foreground"
           >
-            جرّب بنفسك — شاهد سرعة إصدار الفواتير
+            3 خطوات فقط — اختر العميل، أضف البنود، وأصدر فاتورة ZATCA متوافقة
           </motion.p>
         </div>
 
@@ -53,57 +68,32 @@ const InvoiceDemo = () => {
             </div>
 
             <div className="space-y-4 min-h-[280px]">
-              {/* Step 1: Customer */}
-              <div className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
-                step >= 1 ? "border-accent/30 bg-accent/5" : "border-border"
-              }`}>
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${
-                  step >= 1 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+              {steps.map((s) => (
+                <div key={s.title} className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
+                  step >= s.minStep ? "border-accent/30 bg-accent/5" : "border-border"
                 }`}>
-                  <User size={18} />
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${
+                    step >= s.minStep ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
+                    <s.icon size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{s.title}</p>
+                    <AnimatePresence>
+                      {step >= s.minStep && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="text-xs text-accent mt-0.5 truncate"
+                        >
+                          {s.detail}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  {step >= s.minStep && <CheckCircle2 size={18} className="text-accent shrink-0" />}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">اختيار العميل</p>
-                  <AnimatePresence>
-                    {step >= 1 && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="text-xs text-accent mt-0.5"
-                      >
-                        ✓ شركة الفلاح للتجارة — CR: 1010123456
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-                {step >= 1 && <CheckCircle2 size={18} className="text-accent" />}
-              </div>
-
-              {/* Step 2: Item */}
-              <div className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
-                step >= 2 ? "border-accent/30 bg-accent/5" : "border-border"
-              }`}>
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${
-                  step >= 2 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-                }`}>
-                  <Package size={18} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">إضافة البنود</p>
-                  <AnimatePresence>
-                    {step >= 2 && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="text-xs text-accent mt-0.5"
-                      >
-                        ✓ استشارات مالية × 10 ساعات = ٥,٠٠٠ ﷼ + ضريبة ٧٥٠ ﷼
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-                {step >= 2 && <CheckCircle2 size={18} className="text-accent" />}
-              </div>
+              ))}
 
               {/* Step 3: Issuing */}
               <div className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
@@ -114,17 +104,13 @@ const InvoiceDemo = () => {
                 }`}>
                   {step === 3 ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">
                     {step >= 4 ? "تم الإصدار!" : step === 3 ? "جارِ الإصدار..." : "إصدار الفاتورة"}
                   </p>
                   <AnimatePresence>
                     {step === 3 && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-2"
-                      >
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
                         <div className="h-2 rounded-full bg-muted overflow-hidden">
                           <motion.div
                             initial={{ width: "0%" }}
@@ -141,11 +127,7 @@ const InvoiceDemo = () => {
                       </motion.div>
                     )}
                     {step >= 4 && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-2 mt-1"
-                      >
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 mt-1">
                         <Shield size={12} className="text-emerald-500" />
                         <span className="text-xs text-emerald-600 dark:text-emerald-400">
                           فاتورة #INV-2026-1024 — ZATCA متوافقة — QR مرفق
@@ -154,7 +136,7 @@ const InvoiceDemo = () => {
                     )}
                   </AnimatePresence>
                 </div>
-                {step >= 4 && <CheckCircle2 size={18} className="text-emerald-500" />}
+                {step >= 4 && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
               </div>
             </div>
 
