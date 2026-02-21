@@ -89,3 +89,9 @@ verify_jwt = false
 
 [functions.sso-callback]
 verify_jwt = false
+
+[functions.secrets-vault]
+verify_jwt = false
+
+[functions.integration-health-check]
+verify_jwt = false

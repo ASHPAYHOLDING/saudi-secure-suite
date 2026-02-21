@@ -9343,6 +9343,44 @@ export type Database = {
           },
         ]
       }
+      tenant_integration_secrets: {
+        Row: {
+          created_at: string
+          id: string
+          provider_key: string
+          rotated_at: string | null
+          secret_encrypted: string
+          secret_name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_key: string
+          rotated_at?: string | null
+          secret_encrypted: string
+          secret_name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_key?: string
+          rotated_at?: string | null
+          secret_encrypted?: string
+          secret_name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_integration_secrets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_integrations: {
         Row: {
           config: Json
