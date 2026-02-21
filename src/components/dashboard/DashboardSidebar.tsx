@@ -104,6 +104,12 @@ const navGroups: NavGroup[] = [
       { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
     ],
   },
+  {
+    labelKey: "nav.group.enterprise",
+    items: [
+      { icon: Shield, key: "nav.enterpriseGovernance", path: "/dashboard/enterprise", module: "enterprise" },
+    ],
+  },
 ];
 
 const settingsMenuKeys: NavItemDef[] = [

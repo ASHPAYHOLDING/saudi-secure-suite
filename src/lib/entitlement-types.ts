@@ -37,6 +37,7 @@ export const FEATURE_KEYS = {
   BUDGETS_BASIC: "budgets_basic",
   BUDGETS_ALERTS: "budgets_alerts",
   BUDGETS_ADVANCED: "budgets_advanced",
+  ENTERPRISE_MODE: "enterprise_mode",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];

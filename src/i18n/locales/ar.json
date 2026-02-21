@@ -111,12 +111,14 @@
     "workflowDesigner": "مصمم المسارات",
     "budgets": "الميزانيات",
     "dataQuality": "جودة البيانات",
+    "enterpriseGovernance": "مركز الحوكمة",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",
       "finance": "المالية",
       "reports": "التقارير والتحليلات",
-      "management": "الإدارة"
+      "management": "الإدارة",
+      "enterprise": "🏛 المؤسسة"
     }
   },
   "landing": {
