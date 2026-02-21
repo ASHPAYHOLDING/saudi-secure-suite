@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
@@ -24,10 +24,9 @@ const DebugRlsCheck = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Get all public tables with RLS status
-      const { data: rlsData } = await supabase.rpc("get_rls_audit" as any);
-      if (rlsData) {
-        setTables(rlsData as unknown as TablePolicyInfo[]);
+      const { data } = await secureRpc<TablePolicyInfo[]>("get_rls_audit");
+      if (data) {
+        setTables(Array.isArray(data) ? data : []);
       }
     } catch {
       // Fallback: just show empty

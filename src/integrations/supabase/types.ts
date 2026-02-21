@@ -10824,6 +10824,7 @@ export type Database = {
         Returns: string[]
       }
       get_next_icv: { Args: { _tenant_id: string }; Returns: number }
+      get_rls_audit: { Args: never; Returns: Json }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {

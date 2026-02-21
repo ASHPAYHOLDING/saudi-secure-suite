@@ -33,6 +33,7 @@ const DebugWebhooks = lazy(() => import("./pages/DebugWebhooks"));
 const DebugWebhookTest = lazy(() => import("./pages/DebugWebhookTest"));
 const DebugWorkflows = lazy(() => import("./pages/DebugWorkflows"));
 const DebugAccessMap = lazy(() => import("./pages/DebugAccessMap"));
+const DebugRlsCheck = lazy(() => import("./pages/DebugRlsCheck"));
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="/debug/entitlements" element={<ProtectedRoute><DebugSuspense><DebugEntitlements /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/feature-gates" element={<ProtectedRoute><DebugSuspense><DebugFeatureGates /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/access-map" element={<ProtectedRoute><DebugSuspense><DebugAccessMap /></DebugSuspense></ProtectedRoute>} />
+                <Route path="/debug/rls-check" element={<ProtectedRoute><DebugSuspense><DebugRlsCheck /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/payment-providers" element={<ProtectedRoute><DebugSuspense><DebugPaymentProviders /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/webhooks" element={<ProtectedRoute><DebugSuspense><DebugWebhooks /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/webhook-test" element={<ProtectedRoute><DebugSuspense><DebugWebhookTest /></DebugSuspense></ProtectedRoute>} />
