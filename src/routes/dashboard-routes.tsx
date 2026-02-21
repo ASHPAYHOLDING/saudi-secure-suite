@@ -78,6 +78,7 @@ const EnterpriseSessionManagement = lazy(() => import("@/components/enterprise/E
 const EnterpriseIPRestrictions = lazy(() => import("@/components/enterprise/EnterpriseIPRestrictions"));
 const EnterpriseRoleTemplates = lazy(() => import("@/components/enterprise/EnterpriseRoleTemplates"));
 const EnterpriseAuditExport = lazy(() => import("@/components/enterprise/EnterpriseAuditExport"));
+const CorporateStructurePage = lazy(() => import("@/components/finance/CorporateStructurePage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -124,6 +125,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "data-quality", element: DataQualityCenterPage, gateSegment: "data-quality", module: "finance" },
   { path: "period-lock", element: PeriodLockManagement, gateSegment: "journal-entries", module: "journal-entries" },
   { path: "cost-profit-centers", element: CostProfitCenterManagement, module: "finance" },
+  { path: "finance/corporate-structure", element: CorporateStructurePage, gateSegment: "corporate-structure", module: "enterprise", permissionKey: "company.view" },
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
 
   // ── Reports & Analytics ──

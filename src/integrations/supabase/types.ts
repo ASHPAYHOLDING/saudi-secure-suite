@@ -1098,11 +1098,13 @@ export type Database = {
           address_zip: string | null
           branch_color: string | null
           code: string | null
+          cost_center_code: string | null
           created_at: string
           email: string | null
           id: string
           is_active: boolean
           is_main: boolean
+          legal_entity_id: string | null
           manager_id: string | null
           name: string
           name_en: string | null
@@ -1116,11 +1118,13 @@ export type Database = {
           address_zip?: string | null
           branch_color?: string | null
           code?: string | null
+          cost_center_code?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean
           is_main?: boolean
+          legal_entity_id?: string | null
           manager_id?: string | null
           name: string
           name_en?: string | null
@@ -1134,11 +1138,13 @@ export type Database = {
           address_zip?: string | null
           branch_color?: string | null
           code?: string | null
+          cost_center_code?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean
           is_main?: boolean
+          legal_entity_id?: string | null
           manager_id?: string | null
           name?: string
           name_en?: string | null
@@ -1147,6 +1153,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "branches_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "branches_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -1893,6 +1906,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          legal_entity_id: string | null
           name: string
           name_en: string | null
           parent_id: string | null
@@ -1904,6 +1918,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          legal_entity_id?: string | null
           name: string
           name_en?: string | null
           parent_id?: string | null
@@ -1915,6 +1930,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          legal_entity_id?: string | null
           name?: string
           name_en?: string | null
           parent_id?: string | null
@@ -1922,6 +1938,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cost_centers_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cost_centers_parent_id_fkey"
             columns: ["parent_id"]
@@ -4970,6 +4993,53 @@ export type Database = {
           },
           {
             foreignKeyName: "journal_entry_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_entities: {
+        Row: {
+          country_code: string
+          created_at: string
+          currency_code: string
+          id: string
+          is_default: boolean
+          name: string
+          name_en: string | null
+          tax_number: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string
+          currency_code?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          name_en?: string | null
+          tax_number?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          currency_code?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          name_en?: string | null
+          tax_number?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_entities_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
