@@ -74,7 +74,7 @@ const GoogleAdsPage = lazy(() => import("@/components/integrations/MarketingPage
 const MetaCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaCatalogPage })));
 const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
 const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityCenter"));
-const EnterpriseDashboard = lazy(() => import("@/components/enterprise/EnterpriseDashboard"));
+const EnterpriseDashboard = lazy(() => import("@/components/enterprise/GovernanceHub"));
 const EnterpriseSecurityPolicies = lazy(() => import("@/components/enterprise/EnterpriseSecurityPolicies"));
 const EnterpriseSessionManagement = lazy(() => import("@/components/enterprise/EnterpriseSessionManagement"));
 const EnterpriseIPRestrictions = lazy(() => import("@/components/enterprise/EnterpriseIPRestrictions"));
