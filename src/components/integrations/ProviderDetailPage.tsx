@@ -23,8 +23,9 @@ import {
   ArrowRight, CheckCircle2, XCircle, Loader2, Eye, EyeOff,
   Copy, ExternalLink, Wifi, WifiOff, BookOpen, Headphones,
   Settings2, Info, ChevronDown, ChevronUp, ClipboardCopy,
-  Send, AlertCircle, Zap, Wrench,
+  Send, AlertCircle, Zap, Wrench, Shield,
 } from "lucide-react";
+import SecretsVaultPanel from "./SecretsVaultPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -794,10 +795,14 @@ const ProviderDetailPage = () => {
 
       {/* ── 3 Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-        <TabsList className="w-full grid grid-cols-3 h-11">
+        <TabsList className="w-full grid grid-cols-4 h-11">
           <TabsTrigger value="setup" className="gap-1.5 text-xs sm:text-sm">
             <Settings2 size={14} className="hidden sm:block" />
             الإعداد
+          </TabsTrigger>
+          <TabsTrigger value="secrets" className="gap-1.5 text-xs sm:text-sm">
+            <Shield size={14} className="hidden sm:block" />
+            الأسرار
           </TabsTrigger>
           <TabsTrigger value="guide" className="gap-1.5 text-xs sm:text-sm">
             <BookOpen size={14} className="hidden sm:block" />
@@ -823,6 +828,22 @@ const ProviderDetailPage = () => {
                 tenantId={tenantId!}
                 providerId={manifest.providerId}
                 category={effectiveCategory}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </TabsContent>
+
+        <TabsContent value="secrets" className="mt-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`secrets-${manifest.providerId}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <SecretsVaultPanel
+                providerKey={manifest.providerId}
+                suggestedSecrets={(manifest as any).requiredFields?.map((f: any) => f.key) ?? ["api_key", "secret_key"]}
               />
             </motion.div>
           </AnimatePresence>
