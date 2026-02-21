@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -467,36 +467,39 @@ const AdminSecurityCenter = () => {
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="audit" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="audit">📋 سجل التدقيق</TabsTrigger>
-          <TabsTrigger value="events">🛡️ الأحداث الأمنية</TabsTrigger>
-          <TabsTrigger value="locks">🔒 الحسابات المقفلة</TabsTrigger>
-          <TabsTrigger value="actions">⚡ إجراءات سريعة</TabsTrigger>
+      <Tabs defaultValue="audit" className="w-full">
+        <TabsList className="w-full justify-start border-b rounded-none h-12 bg-transparent p-0">
+          <TabsTrigger value="audit" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">
+            سجل التدقيق
+          </TabsTrigger>
+          <TabsTrigger value="events" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">
+            الأحداث الأمنية
+            {unresolvedEvents > 0 && <Badge className="mr-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-[10px]">{unresolvedEvents}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="locks" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">
+            الحسابات المقفلة
+          </TabsTrigger>
         </TabsList>
 
-        {/* ─── Tab 1: Audit Logs ─── */}
-        <TabsContent value="audit" className="space-y-4">
-          <div className="flex gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input placeholder="بحث في السجلات..." value={auditSearch} onChange={(e) => setAuditSearch(e.target.value)} className="pr-9" />
+        {/* Audit Logs Tab */}
+        <TabsContent value="audit" className="space-y-4 pt-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث في السجلات..."
+                className="pr-9"
+                value={auditSearch}
+                onChange={(e) => setAuditSearch(e.target.value)}
+              />
             </div>
             <Select value={auditAction} onValueChange={setAuditAction}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="تصفية حسب الإجراء" />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الإجراءات</SelectItem>
+                <SelectItem value="all">جميع الإجراءات</SelectItem>
                 {Object.entries(ACTION_MAP).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={auditEntity} onValueChange={setAuditEntity}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الأنواع</SelectItem>
-                {Object.entries(ENTITY_MAP).map(([k, v]) => (
                   <SelectItem key={k} value={k}>{v}</SelectItem>
                 ))}
               </SelectContent>
@@ -506,323 +509,200 @@ const AdminSecurityCenter = () => {
             </Button>
           </div>
 
-          <Card>
-            <ScrollArea className="h-[500px]">
-              <Table>
-                <TableHeader>
+          <div className="rounded-md border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">التاريخ</TableHead>
+                  <TableHead className="text-right">المستخدم</TableHead>
+                  <TableHead className="text-right">الإجراء</TableHead>
+                  <TableHead className="text-right">الكيان</TableHead>
+                  <TableHead className="text-right">IP</TableHead>
+                  <TableHead className="text-right">التفاصيل</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAuditLogs.length === 0 ? (
                   <TableRow>
-                    <TableHead className="text-right">الوقت</TableHead>
-                    <TableHead className="text-right">المستخدم</TableHead>
-                    <TableHead className="text-right">المنشأة</TableHead>
-                    <TableHead className="text-center">الإجراء</TableHead>
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">الكيان</TableHead>
-                    <TableHead className="text-center">IP</TableHead>
-                    <TableHead className="text-center">تفاصيل</TableHead>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد نتائج</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAuditLogs.map(log => (
+                ) : (
+                  filteredAuditLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {formatTime(log.created_at)}
+                      <TableCell className="font-mono text-xs">{formatTime(log.created_at)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">{log.user_name}</span>
+                          <span className="text-[10px] text-muted-foreground">{log.tenant_name}</span>
+                        </div>
                       </TableCell>
-                      <TableCell className="font-medium text-sm">{log.user_name}</TableCell>
-                      <TableCell className="text-sm">{log.tenant_name}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="text-xs">
+                      <TableCell>
+                        <Badge variant="outline" className="font-normal">
                           {ACTION_MAP[log.action] || log.action}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm">{ENTITY_MAP[log.entity_type] || log.entity_type}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{log.entity_label || "—"}</TableCell>
-                      <TableCell className="text-center">
-                        {log.ip_address ? (
-                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{log.ip_address}</code>
-                        ) : "—"}
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{ENTITY_MAP[log.entity_type] || log.entity_type}</span>
+                          {log.entity_label && <span className="text-xs text-muted-foreground">({log.entity_label})</span>}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        {log.changes && Object.keys(log.changes).length > 0 && (
-                          <Button size="sm" variant="ghost" onClick={() => { setDetailLog(log); setDetailDialog(true); }}>
-                            <Eye size={14} />
+                      <TableCell className="font-mono text-xs text-muted-foreground">{log.ip_address || "—"}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" onClick={() => { setDetailLog(log); setDetailDialog(true); }}>
+                          <Eye size={14} />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        {/* Security Events Tab */}
+        <TabsContent value="events" className="space-y-4 pt-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث في الأحداث..."
+                className="pr-9"
+                value={eventSearch}
+                onChange={(e) => setEventSearch(e.target.value)}
+              />
+            </div>
+            <Select value={eventSeverity} onValueChange={setEventSeverity}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="تصفية حسب الشدة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                <SelectItem value="info">معلومات</SelectItem>
+                <SelectItem value="warning">تحذير</SelectItem>
+                <SelectItem value="critical">حرج</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-3">
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-12 border rounded-lg border-dashed text-muted-foreground">لا توجد أحداث أمنية تطابق البحث</div>
+            ) : (
+              filteredEvents.map((event) => {
+                const SeverityIcon = SEVERITY_MAP[event.severity]?.icon || Activity;
+                const severityClass = SEVERITY_MAP[event.severity]?.color || "bg-muted text-muted-foreground";
+                const typeMeta = EVENT_TYPE_MAP[event.event_type] || { label: event.event_type, icon: "🛡️" };
+
+                return (
+                  <div key={event.id} className={`flex items-start justify-between rounded-lg border p-4 transition-colors ${event.is_resolved ? "bg-card opacity-70" : "bg-card shadow-sm border-l-4 border-l-accent"}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`mt-1 flex h-9 w-9 items-center justify-center rounded-full ${severityClass}`}>
+                        <SeverityIcon size={18} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm">{typeMeta.label}</h4>
+                          <Badge variant="outline" className="text-[10px]">{event.user_name}</Badge>
+                          <span className="text-xs text-muted-foreground font-mono ml-2">{formatTime(event.created_at)}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                        <div className="flex items-center gap-3 pt-1">
+                          {event.ip_address && (
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                              <Globe size={10} /> {event.ip_address}
+                            </div>
+                          )}
+                          {event.user_agent && (
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded truncate max-w-[200px]" title={event.user_agent}>
+                              <Smartphone size={10} /> {event.user_agent}
+                            </div>
+                          )}
+                        </div>
+                        {event.is_resolved && (
+                          <div className="flex items-center gap-1 text-[11px] text-emerald-600 mt-1">
+                            <CheckCircle size={12} />
+                            تم الحل بواسطة المشرف في {new Date(event.resolved_at!).toLocaleDateString("ar-SA")}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {!event.is_resolved && (
+                      <Button size="sm" variant="outline" onClick={() => { setResolveEvent(event); setResolveDialog(true); }}>
+                        حل المشكلة
+                      </Button>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Locks Tab */}
+        <TabsContent value="locks" className="space-y-4 pt-4">
+          <div className="rounded-md border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">المستخدم</TableHead>
+                  <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                  <TableHead className="text-right">السبب</TableHead>
+                  <TableHead className="text-right">تاريخ القفل</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {accountLocks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد حسابات مقفلة</TableCell>
+                  </TableRow>
+                ) : (
+                  accountLocks.map((lock) => (
+                    <TableRow key={lock.id}>
+                      <TableCell className="font-medium">{lock.user_name}</TableCell>
+                      <TableCell className="font-mono text-xs">{lock.user_email}</TableCell>
+                      <TableCell className="max-w-[200px] truncate" title={lock.reason}>{lock.reason}</TableCell>
+                      <TableCell className="font-mono text-xs">{new Date(lock.locked_at).toLocaleString("ar-SA")}</TableCell>
+                      <TableCell>
+                        <Badge variant={lock.is_active ? "destructive" : "outline"}>
+                          {lock.is_active ? "مقفول" : "تم الفتح"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {lock.is_active && (
+                          <Button size="sm" variant="ghost" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => unlockAccount(lock)}>
+                            <Unlock size={14} className="ml-1" /> فتح الحساب
                           </Button>
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {filteredAuditLogs.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                        لا توجد سجلات
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </Card>
-        </TabsContent>
-
-        {/* ─── Tab 2: Security Events ─── */}
-        <TabsContent value="events" className="space-y-4">
-          <div className="flex gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input placeholder="بحث في الأحداث..." value={eventSearch} onChange={(e) => setEventSearch(e.target.value)} className="pr-9" />
-            </div>
-            <Select value={eventSeverity} onValueChange={setEventSeverity}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الخطورة</SelectItem>
-                {Object.entries(SEVERITY_MAP).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={eventType} onValueChange={setEventType}>
-              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الأنواع</SelectItem>
-                {Object.entries(EVENT_TYPE_MAP).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
-
-          <Card>
-            <ScrollArea className="h-[500px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">الوقت</TableHead>
-                    <TableHead className="text-center">الخطورة</TableHead>
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">المستخدم</TableHead>
-                    <TableHead className="text-right">الوصف</TableHead>
-                    <TableHead className="text-center">IP</TableHead>
-                    <TableHead className="text-center">الحالة</TableHead>
-                    <TableHead className="text-center">إجراء</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEvents.map(event => {
-                    const sev = SEVERITY_MAP[event.severity] || SEVERITY_MAP.info;
-                    const evType = EVENT_TYPE_MAP[event.event_type];
-
-                    return (
-                      <TableRow key={event.id} className={event.severity === "critical" && !event.is_resolved ? "bg-destructive/5" : ""}>
-                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {formatTime(event.created_at)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={`text-xs ${sev.color}`}>{sev.label}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <span className="flex items-center gap-1">
-                            <span>{evType?.icon || "📌"}</span>
-                            <span>{evType?.label || event.event_type}</span>
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm font-medium">{event.user_name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                          {event.description}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {event.ip_address ? (
-                            <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{event.ip_address}</code>
-                          ) : "—"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {event.is_resolved ? (
-                            <Badge variant="outline" className="gap-1 bg-emerald-50 text-emerald-700">
-                              <CheckCircle size={12} /> محلول
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="gap-1 bg-amber-50 text-amber-700">
-                              <Clock size={12} /> معلّق
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {!event.is_resolved && (
-                            <Button size="sm" variant="ghost" onClick={() => { setResolveEvent(event); setResolveNotes(""); setResolveDialog(true); }}>
-                              <CheckCircle size={14} className="text-emerald-600" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {filteredEvents.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                        لا توجد أحداث أمنية
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </Card>
-        </TabsContent>
-
-        {/* ─── Tab 3: Account Locks ─── */}
-        <TabsContent value="locks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">الحسابات المقفلة</CardTitle>
-              <CardDescription>حسابات المستخدمين المقفلة حالياً وسجل القفل السابق</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {accountLocks.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground">لا توجد حسابات مقفلة</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">المستخدم</TableHead>
-                      <TableHead className="text-right">البريد</TableHead>
-                      <TableHead className="text-right">السبب</TableHead>
-                      <TableHead className="text-center">تاريخ القفل</TableHead>
-                      <TableHead className="text-center">الحالة</TableHead>
-                      <TableHead className="text-center">إجراء</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {accountLocks.map(lock => (
-                      <TableRow key={lock.id}>
-                        <TableCell className="font-medium">{lock.user_name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground" dir="ltr">{lock.user_email}</TableCell>
-                        <TableCell className="text-sm max-w-[200px] truncate">{lock.reason}</TableCell>
-                        <TableCell className="text-center text-sm text-muted-foreground">
-                          {new Date(lock.locked_at).toLocaleDateString("ar-SA")}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {lock.is_active ? (
-                            <Badge variant="destructive" className="gap-1"><Lock size={12} /> مقفل</Badge>
-                          ) : (
-                            <Badge variant="outline" className="gap-1 bg-emerald-50 text-emerald-700">
-                              <Unlock size={12} /> مفتوح
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {lock.is_active && (
-                            <Button size="sm" variant="outline" onClick={() => unlockAccount(lock)} className="gap-1">
-                              <Unlock size={14} /> فتح
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ─── Tab 4: Quick Actions ─── */}
-        <TabsContent value="actions" className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Force Logout */}
-            <Card className="border-amber-200">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <UserX size={18} className="text-amber-600" />
-                  تسجيل خروج إجباري
-                </CardTitle>
-                <CardDescription>إنهاء جلسة مستخدم محدد</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Select onValueChange={(v) => logForceLogout(v)}>
-                  <SelectTrigger><SelectValue placeholder="اختر المستخدم" /></SelectTrigger>
-                  <SelectContent>
-                    {profiles.filter(p => p.is_active).map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.full_name} ({p.email})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
-            {/* Lock Account */}
-            <Card className="border-destructive/30">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Lock size={18} className="text-destructive" />
-                  قفل حساب
-                </CardTitle>
-                <CardDescription>منع مستخدم من الوصول للنظام</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="destructive" onClick={() => setLockDialog(true)} className="w-full gap-2">
-                  <Lock size={16} /> قفل حساب مستخدم
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Reset Tenant Security */}
-            <Card className="border-purple-200">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ShieldCheck size={18} className="text-purple-600" />
-                  إعادة تعيين أمان منشأة
-                </CardTitle>
-                <CardDescription>فتح جميع الحسابات المقفلة في منشأة</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Select onValueChange={(v) => resetTenantSecurity(v)}>
-                  <SelectTrigger><SelectValue placeholder="اختر المنشأة" /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(tenantMap).map(([id, name]) => (
-                      <SelectItem key={id} value={id}>{name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Summary stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">ملخص الأمان</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border p-4 text-center">
-                  <p className="text-3xl font-bold text-foreground">{unresolvedEvents}</p>
-                  <p className="text-sm text-muted-foreground mt-1">أحداث غير محلولة</p>
-                </div>
-                <div className="rounded-lg border p-4 text-center">
-                  <p className="text-3xl font-bold text-foreground">{activeLocks.length}</p>
-                  <p className="text-sm text-muted-foreground mt-1">حسابات مقفلة نشطة</p>
-                </div>
-                <div className="rounded-lg border p-4 text-center">
-                  <p className="text-3xl font-bold text-foreground">{securityEvents.filter(e => e.severity === "critical").length}</p>
-                  <p className="text-sm text-muted-foreground mt-1">أحداث حرجة (الكل)</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* ─── Lock Account Dialog ─── */}
+      {/* Lock Dialog */}
       <Dialog open={lockDialog} onOpenChange={setLockDialog}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock size={18} className="text-destructive" /> قفل حساب مستخدم
-            </DialogTitle>
+            <DialogTitle>قفل حساب مستخدم</DialogTitle>
+            <DialogDescription>
+              سيتم منع المستخدم من تسجيل الدخول فوراً وتسجيل خروجه من جميع الأجهزة.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>المستخدم</Label>
               <Select value={lockUserId} onValueChange={setLockUserId}>
-                <SelectTrigger><SelectValue placeholder="اختر المستخدم" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر مستخدم..." />
+                </SelectTrigger>
                 <SelectContent>
                   {profiles.filter(p => p.is_active).map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.full_name} ({p.email})</SelectItem>
@@ -832,69 +712,80 @@ const AdminSecurityCenter = () => {
             </div>
             <div className="space-y-2">
               <Label>سبب القفل</Label>
-              <Textarea value={lockReason} onChange={(e) => setLockReason(e.target.value)} placeholder="أدخل سبب قفل الحساب..." />
+              <Textarea
+                placeholder="مثال: نشاط مشبوه، طلب من الإدارة، استقالة..."
+                value={lockReason}
+                onChange={(e) => setLockReason(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setLockDialog(false)}>إلغاء</Button>
-            <Button variant="destructive" onClick={lockAccount} disabled={!lockUserId || !lockReason.trim()} className="gap-2">
-              <Lock size={16} /> قفل الحساب
-            </Button>
+            <Button variant="destructive" onClick={lockAccount}>تأكيد القفل</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ─── Resolve Event Dialog ─── */}
+      {/* Resolve Dialog */}
       <Dialog open={resolveDialog} onOpenChange={setResolveDialog}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>حل الحدث الأمني</DialogTitle>
+            <DialogTitle>حل حدث أمني</DialogTitle>
           </DialogHeader>
-          {resolveEvent && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-muted p-3 space-y-1">
-                <p className="text-sm font-medium">{EVENT_TYPE_MAP[resolveEvent.event_type]?.label || resolveEvent.event_type}</p>
-                <p className="text-xs text-muted-foreground">{resolveEvent.description}</p>
-              </div>
-              <div className="space-y-2">
-                <Label>ملاحظات الحل</Label>
-                <Textarea value={resolveNotes} onChange={(e) => setResolveNotes(e.target.value)} placeholder="وصف الإجراء المتخذ..." />
-              </div>
+          <div className="space-y-4 py-2">
+            <div className="p-3 bg-muted rounded-md text-sm">
+              <p className="font-semibold mb-1">الحدث:</p>
+              <p>{resolveEvent?.description}</p>
             </div>
-          )}
+            <div className="space-y-2">
+              <Label>ملاحظات الحل (اختياري)</Label>
+              <Textarea
+                placeholder="كيف تم التعامل مع هذا الحدث..."
+                value={resolveNotes}
+                onChange={(e) => setResolveNotes(e.target.value)}
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setResolveDialog(false)}>إلغاء</Button>
-            <Button onClick={resolveSecurityEvent} className="gap-2">
-              <CheckCircle size={16} /> تم الحل
-            </Button>
+            <Button onClick={resolveSecurityEvent}>تأكيد الحل</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ─── Detail Dialog ─── */}
+      {/* Audit Detail Dialog */}
       <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
-        <DialogContent className="sm:max-w-lg" dir="rtl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>تفاصيل التغييرات</DialogTitle>
+            <DialogTitle>تفاصيل السجل</DialogTitle>
           </DialogHeader>
           {detailLog && (
-            <div className="space-y-3">
-              <div className="flex gap-4 text-sm">
-                <span className="text-muted-foreground">المستخدم:</span>
-                <span className="font-medium">{detailLog.user_name}</span>
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">المستخدم</Label>
+                  <p className="font-medium">{detailLog.user_name}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">المنشأة</Label>
+                  <p className="font-medium">{detailLog.tenant_name}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">التوقيت</Label>
+                  <p className="font-mono">{new Date(detailLog.created_at).toLocaleString("ar-SA")}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">IP Address</Label>
+                  <p className="font-mono">{detailLog.ip_address || "—"}</p>
+                </div>
               </div>
-              <div className="flex gap-4 text-sm">
-                <span className="text-muted-foreground">الإجراء:</span>
-                <span>{ACTION_MAP[detailLog.action] || detailLog.action}</span>
-              </div>
-              <div className="flex gap-4 text-sm">
-                <span className="text-muted-foreground">التاريخ:</span>
-                <span>{new Date(detailLog.created_at).toLocaleString("ar-SA")}</span>
-              </div>
-              <div className="rounded-lg bg-muted p-3 overflow-auto max-h-[300px]">
-                <pre className="text-xs whitespace-pre-wrap" dir="ltr">
-                  {JSON.stringify(detailLog.changes, null, 2)}
-                </pre>
+              <div>
+                <Label className="text-muted-foreground mb-1 block">التغييرات (JSON)</Label>
+                <ScrollArea className="h-[200px] w-full rounded-md border bg-muted/50 p-4">
+                  <pre className="text-xs font-mono" dir="ltr">
+                    {JSON.stringify(detailLog.changes, null, 2)}
+                  </pre>
+                </ScrollArea>
               </div>
             </div>
           )}

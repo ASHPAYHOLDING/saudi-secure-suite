@@ -8,6 +8,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encryptSecret, decryptSecret } from "../_shared/aes-gcm.ts";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { withRequestTimeout } from "../_shared/timeout-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,7 +30,7 @@ function mask(val?: string) {
   return `****${val.slice(-4)}`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withRequestTimeout(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -38,6 +40,9 @@ Deno.serve(async (req) => {
   if (!masterKey) return json({ success: false, message: "INTEGRATION_SECRET_KEY غير مُعيَّن" }, 500);
 
   const adminClient = createClient(supabaseUrl, serviceKey);
+
+  const blocked = await checkRateLimit(req, adminClient, "payment_init", corsHeaders);
+  if (blocked) return blocked;
 
   // ── Auth ──────────────────────────────────────────────────────────────────────
   const authHeader = req.headers.get("authorization");
@@ -255,4 +260,4 @@ Deno.serve(async (req) => {
       error: errorHint,
     }, 200); // نُعيد 200 مع success:false حتى يعرضها الـ UI
   }
-});
+}, 30000, corsHeaders));
