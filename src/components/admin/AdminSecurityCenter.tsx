@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import {
   ShieldAlert, Search, AlertTriangle, Lock, Unlock, Eye,
   Activity, Globe, Smartphone, RefreshCw, Download, Filter,
@@ -115,7 +116,12 @@ const ENTITY_MAP: Record<string, string> = {
 };
 
 const AdminSecurityCenter = () => {
-  const { user } = useAuth();
+  const { user, tenantId } = useAuth();
+  const location = useLocation();
+
+  // Detect context: platform admin (/admin/*) vs tenant dashboard (/dashboard/*)
+  const isPlatformContext = location.pathname.startsWith("/admin");
+  const scopedTenantId = isPlatformContext ? null : tenantId;
 
   // ─── State ───
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -147,12 +153,23 @@ const AdminSecurityCenter = () => {
   // ─── Data Fetching ───
   const fetchData = useCallback(async () => {
     setLoading(true);
+
+    // Build scoped queries — tenant dashboard only sees own tenant data
+    let logsQuery = supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(500);
+    let eventsQuery = supabase.from("security_events").select("*").order("created_at", { ascending: false }).limit(500);
+    let locksQuery = supabase.from("account_locks").select("*").order("locked_at", { ascending: false });
+    let profilesQuery = supabase.from("profiles").select("id, full_name, email, tenant_id, is_active");
+    let tenantsQuery = supabase.from("tenants").select("id, name");
+
+    if (scopedTenantId) {
+      logsQuery = logsQuery.eq("tenant_id", scopedTenantId);
+      eventsQuery = eventsQuery.eq("tenant_id", scopedTenantId);
+      profilesQuery = profilesQuery.eq("tenant_id", scopedTenantId);
+      tenantsQuery = tenantsQuery.eq("id", scopedTenantId);
+    }
+
     const [logsRes, eventsRes, locksRes, profilesRes, tenantsRes] = await Promise.all([
-      supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("security_events").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("account_locks").select("*").order("locked_at", { ascending: false }),
-      supabase.from("profiles").select("id, full_name, email, tenant_id, is_active"),
-      supabase.from("tenants").select("id, name"),
+      logsQuery, eventsQuery, locksQuery, profilesQuery, tenantsQuery,
     ]);
 
     const tMap: Record<string, string> = {};
@@ -189,7 +206,7 @@ const AdminSecurityCenter = () => {
     }
 
     setLoading(false);
-  }, []);
+  }, [scopedTenantId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -404,15 +421,19 @@ const AdminSecurityCenter = () => {
             <ShieldAlert className="text-destructive" size={28} />
             مركز الأمان والتدقيق
           </h1>
-          <p className="text-sm text-muted-foreground">مراقبة النشاطات وإدارة أمان المنصة</p>
+          <p className="text-sm text-muted-foreground">
+            {isPlatformContext ? "مراقبة النشاطات وإدارة أمان المنصة" : "مراقبة النشاطات الأمنية لمنشأتك"}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={fetchData} className="gap-2">
             <RefreshCw size={16} /> تحديث
           </Button>
-          <Button variant="outline" onClick={() => setLockDialog(true)} className="gap-2 text-destructive hover:text-destructive">
-            <Lock size={16} /> قفل حساب
-          </Button>
+          {isPlatformContext && (
+            <Button variant="outline" onClick={() => setLockDialog(true)} className="gap-2 text-destructive hover:text-destructive">
+              <Lock size={16} /> قفل حساب
+            </Button>
+          )}
         </div>
       </div>
 
@@ -476,9 +497,11 @@ const AdminSecurityCenter = () => {
             الأحداث الأمنية
             {unresolvedEvents > 0 && <Badge className="mr-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-[10px]">{unresolvedEvents}</Badge>}
           </TabsTrigger>
-          <TabsTrigger value="locks" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">
-            الحسابات المقفلة
-          </TabsTrigger>
+          {isPlatformContext && (
+            <TabsTrigger value="locks" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-12 px-6">
+              الحسابات المقفلة
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Audit Logs Tab */}
@@ -533,7 +556,7 @@ const AdminSecurityCenter = () => {
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium text-sm">{log.user_name}</span>
-                          <span className="text-[10px] text-muted-foreground">{log.tenant_name}</span>
+                          {isPlatformContext && <span className="text-[10px] text-muted-foreground">{log.tenant_name}</span>}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -628,7 +651,7 @@ const AdminSecurityCenter = () => {
                         )}
                       </div>
                     </div>
-                    {!event.is_resolved && (
+                    {isPlatformContext && !event.is_resolved && (
                       <Button size="sm" variant="outline" onClick={() => { setResolveEvent(event); setResolveDialog(true); }}>
                         حل المشكلة
                       </Button>
