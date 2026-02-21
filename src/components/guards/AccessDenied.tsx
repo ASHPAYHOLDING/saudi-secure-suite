@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Lock, ArrowUpCircle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import UpgradeWallEnterprise from "@/components/guards/UpgradeWallEnterprise";
 
 export type AccessDeniedReason =
   | "feature_not_in_plan"
@@ -13,10 +14,17 @@ export type AccessDeniedReason =
 type Props = {
   reason: AccessDeniedReason;
   featureLabel?: string;
+  /** The feature key that was denied — used to show enterprise upgrade wall */
+  featureKey?: string;
 };
 
-export default function AccessDenied({ reason, featureLabel }: Props) {
+export default function AccessDenied({ reason, featureLabel, featureKey }: Props) {
   const navigate = useNavigate();
+
+  // Enterprise upgrade wall for enterprise_mode feature denial
+  if (reason === "feature_not_in_plan" && featureKey === "enterprise_mode") {
+    return <UpgradeWallEnterprise featureKey={featureKey} />;
+  }
 
   const isUpgrade = reason === "feature_not_in_plan";
   const isModuleBlock = reason === "module_not_allowed";
