@@ -1937,6 +1937,7 @@ export type Database = {
           from_currency: string
           id: string
           rate: number
+          source: string
           tenant_id: string
           to_currency: string
         }
@@ -1946,6 +1947,7 @@ export type Database = {
           from_currency?: string
           id?: string
           rate?: number
+          source?: string
           tenant_id: string
           to_currency: string
         }
@@ -1955,6 +1957,7 @@ export type Database = {
           from_currency?: string
           id?: string
           rate?: number
+          source?: string
           tenant_id?: string
           to_currency?: string
         }
@@ -3003,6 +3006,7 @@ export type Database = {
           amount: number
           approved_at: string | null
           approved_by: string | null
+          base_currency_total: number
           branch_id: string | null
           category_id: string | null
           created_at: string
@@ -3011,6 +3015,7 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
+          exchange_rate: number
           expense_date: string
           expense_number: string
           id: string
@@ -3031,6 +3036,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
           created_at?: string
@@ -3039,6 +3045,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          exchange_rate?: number
           expense_date?: string
           expense_number: string
           id?: string
@@ -3059,6 +3066,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
           created_at?: string
@@ -3067,6 +3075,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          exchange_rate?: number
           expense_date?: string
           expense_number?: string
           id?: string
@@ -4102,6 +4111,7 @@ export type Database = {
         Row: {
           amount_due: number
           amount_paid: number
+          base_currency_total: number
           branch_id: string | null
           created_at: string
           created_by: string
@@ -4111,6 +4121,7 @@ export type Database = {
           deleted_by: string | null
           discount_total: number
           due_date: string
+          exchange_rate: number
           grand_total: number
           id: string
           invoice_date: string
@@ -4139,6 +4150,7 @@ export type Database = {
         Insert: {
           amount_due?: number
           amount_paid?: number
+          base_currency_total?: number
           branch_id?: string | null
           created_at?: string
           created_by: string
@@ -4148,6 +4160,7 @@ export type Database = {
           deleted_by?: string | null
           discount_total?: number
           due_date?: string
+          exchange_rate?: number
           grand_total?: number
           id?: string
           invoice_date?: string
@@ -4176,6 +4189,7 @@ export type Database = {
         Update: {
           amount_due?: number
           amount_paid?: number
+          base_currency_total?: number
           branch_id?: string | null
           created_at?: string
           created_by?: string
@@ -4185,6 +4199,7 @@ export type Database = {
           deleted_by?: string | null
           discount_total?: number
           due_date?: string
+          exchange_rate?: number
           grand_total?: number
           id?: string
           invoice_date?: string
@@ -4236,14 +4251,18 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          base_total_credit: number
+          base_total_debit: number
           branch_id: string | null
           created_at: string
           created_by: string
+          currency: string
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
           entry_date: string
           entry_number: string
+          exchange_rate: number
           id: string
           posted_at: string | null
           posted_by: string | null
@@ -4256,14 +4275,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_total_credit?: number
+          base_total_debit?: number
           branch_id?: string | null
           created_at?: string
           created_by: string
+          currency?: string
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
           entry_date?: string
           entry_number: string
+          exchange_rate?: number
           id?: string
           posted_at?: string | null
           posted_by?: string | null
@@ -4276,14 +4299,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_total_credit?: number
+          base_total_debit?: number
           branch_id?: string | null
           created_at?: string
           created_by?: string
+          currency?: string
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
           entry_date?: string
           entry_number?: string
+          exchange_rate?: number
           id?: string
           posted_at?: string | null
           posted_by?: string | null
@@ -4319,8 +4346,11 @@ export type Database = {
           credit: number
           debit: number
           description: string | null
+          exchange_rate: number
           id: string
           journal_entry_id: string
+          original_credit: number
+          original_debit: number
           sort_order: number
           tenant_id: string
         }
@@ -4330,8 +4360,11 @@ export type Database = {
           credit?: number
           debit?: number
           description?: string | null
+          exchange_rate?: number
           id?: string
           journal_entry_id: string
+          original_credit?: number
+          original_debit?: number
           sort_order?: number
           tenant_id: string
         }
@@ -4341,8 +4374,11 @@ export type Database = {
           credit?: number
           debit?: number
           description?: string | null
+          exchange_rate?: number
           id?: string
           journal_entry_id?: string
+          original_credit?: number
+          original_debit?: number
           sort_order?: number
           tenant_id?: string
         }
