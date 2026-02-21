@@ -5118,6 +5118,64 @@ export type Database = {
           },
         ]
       }
+      journal_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number
+          currency_code: string
+          debit: number
+          description: string | null
+          entry_id: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number
+          currency_code?: string
+          debit?: number
+          description?: string | null
+          entry_id: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number
+          currency_code?: string
+          debit?: number
+          description?: string | null
+          entry_id?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "coa_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_lines_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_entities: {
         Row: {
           country_code: string
@@ -11249,6 +11307,7 @@ export type Database = {
         Args: { p_reason?: string; p_tenant_id: string }
         Returns: undefined
       }
+      post_journal_entry: { Args: { p_entry_id: string }; Returns: Json }
       process_affiliate_commission: {
         Args: {
           _paid_amount: number
