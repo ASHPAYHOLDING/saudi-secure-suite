@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Shield, Users, Activity, AlertTriangle, Settings, Lock, Clock, Globe } from "lucide-react";
+import { Shield, Users, Activity, AlertTriangle, Settings, Lock, Clock, Globe, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -27,8 +28,8 @@ interface EnterpriseSettingsData {
   allow_multiple_sessions: boolean;
 }
 
-const fadeUp = {
-  initial: { opacity: 0, y: 20 },
+const premiumFadeUp = {
+  initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
 };
 
@@ -163,31 +164,43 @@ const EnterpriseDashboard = () => {
   return (
     <div className="space-y-6 p-1">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-          <Shield className="h-5 w-5 text-primary" />
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 enterprise-shadow">
+            <Building2 className="h-5.5 w-5.5 text-accent" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {isRTL ? "مركز حوكمة المؤسسة" : "Enterprise Governance Center"}
+              </h1>
+              <Badge className="enterprise-indicator border-accent/25 text-accent text-[10px] px-1.5 py-0 font-bold">
+                Enterprise Edition
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {isRTL ? "إدارة السياسات الأمنية والجلسات والوصول" : "Manage security policies, sessions, and access controls"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isRTL ? "مركز حوكمة المؤسسة" : "Enterprise Governance Center"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isRTL ? "إدارة السياسات الأمنية والجلسات والوصول" : "Manage security policies, sessions, and access controls"}
-          </p>
-        </div>
-      </div>
+      </motion.div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi, i) => (
           <motion.div
             key={kpi.label}
-            variants={fadeUp}
+            variants={premiumFadeUp}
             initial="initial"
             animate="animate"
-            transition={{ delay: i * 0.08, duration: 0.4 }}
+            transition={{ delay: i * 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Card className="border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+            <Card className="enterprise-card">
               <CardContent className="flex items-center gap-4 p-5">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${kpi.bgColor}`}>
                   <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
