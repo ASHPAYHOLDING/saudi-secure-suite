@@ -3679,6 +3679,39 @@ export type Database = {
           },
         ]
       }
+      deprecated_routes: {
+        Row: {
+          created_by: string | null
+          deprecated_at: string
+          hard_delete_after: string | null
+          id: string
+          is_active: boolean
+          reason: string | null
+          redirect_to: string
+          route: string
+        }
+        Insert: {
+          created_by?: string | null
+          deprecated_at?: string
+          hard_delete_after?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          redirect_to: string
+          route: string
+        }
+        Update: {
+          created_by?: string | null
+          deprecated_at?: string
+          hard_delete_after?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          redirect_to?: string
+          route?: string
+        }
+        Relationships: []
+      }
       document_access_tokens: {
         Row: {
           access_count: number | null
@@ -13378,6 +13411,7 @@ export type Database = {
       }
       classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      cleanup_old_usage_events: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       clone_chart_of_accounts: {
         Args: { p_chart_id: string; p_new_name?: string }
@@ -13716,6 +13750,15 @@ export type Database = {
         }[]
       }
       get_rls_audit: { Args: never; Returns: Json }
+      get_route_usage_stats: {
+        Args: never
+        Returns: {
+          last_visited: string
+          route: string
+          unique_users: number
+          visit_count: number
+        }[]
+      }
       get_schema_checksum: {
         Args: never
         Returns: {
