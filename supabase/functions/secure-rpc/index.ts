@@ -127,6 +127,13 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   governance_log_violation: true,
   hr_invite_member: true,
   integrations_log_event: true,
+  // Event-Driven Engine
+  claim_pending_events: true,
+  resolve_event: true,
+  move_to_dead_letter: true,
+  get_event_subscribers: true,
+  get_dead_letter_events: true,
+  reprocess_dead_letter: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)
