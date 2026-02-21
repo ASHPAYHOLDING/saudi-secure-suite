@@ -220,19 +220,19 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "system/migrations", element: MigrationsDashboardPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "system/infrastructure", element: SystemInfrastructurePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "document-templates", element: DocumentTemplateEditor, gateSegment: "document-templates", module: "enterprise", permissionKey: "templates.manage" },
-  { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
+  { path: "settings", element: SettingsPage, gateSegment: "settings", permissionKey: "settings.view" },
 
   // ── Productivity ──
   { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard" },
   { path: "sheet-view", element: SheetViewPage, gateSegment: "sheet-view", module: "sheet-view" },
 
   // ── Support ──
-  { path: "support/new", element: CreateTicketPage, module: "help" },
-  { path: "support", element: SupportTicketsPage, module: "help" },
-  { path: "help", element: HelpPage },
+  { path: "support/new", element: CreateTicketPage, gateSegment: "support", module: "help" },
+  { path: "support", element: SupportTicketsPage, gateSegment: "support", module: "help" },
+  { path: "help", element: HelpPage, gateSegment: "help" },
 
   // ── Subscription & Misc ──
-  { path: "subscription", element: SubscriptionPage },
+  { path: "subscription", element: SubscriptionPage, gateSegment: "subscription" },
   { path: "affiliate", element: AffiliateDashboardPage, gateSegment: "affiliate-dashboard", module: "finance" },
 ];
 
