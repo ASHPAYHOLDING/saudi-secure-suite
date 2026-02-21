@@ -3678,6 +3678,56 @@ export type Database = {
           },
         ]
       }
+      domain_events: {
+        Row: {
+          correlation_id: string | null
+          created_at: string
+          domain: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          tenant_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string
+          domain: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          tenant_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string
+          domain?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dual_approval_actions: {
         Row: {
           acted_at: string
@@ -12842,6 +12892,14 @@ export type Database = {
       }
     }
     Functions: {
+      accounting_close_period: {
+        Args: { p_closed_by: string; p_period_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
+      accounting_post_journal: {
+        Args: { p_journal_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       activate_budget: { Args: { p_budget_id: string }; Returns: Json }
       admin_review_topup_request: {
         Args: {
@@ -12891,6 +12949,10 @@ export type Database = {
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
+      }
+      billing_create_invoice: {
+        Args: { p_invoice_data: Json; p_tenant_id: string }
+        Returns: string
       }
       budget_incremental_update: {
         Args: {
@@ -13020,6 +13082,28 @@ export type Database = {
         Args: { p_job_id: string; p_result?: Json }
         Returns: undefined
       }
+      consume_domain_events: {
+        Args: { p_domain: string; p_limit?: number }
+        Returns: {
+          correlation_id: string | null
+          created_at: string
+          domain: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          tenant_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "domain_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       create_document_access_token: {
         Args: {
           _document_id: string
@@ -13031,6 +13115,10 @@ export type Database = {
         Returns: string
       }
       create_next_month_partitions: { Args: never; Returns: undefined }
+      crm_create_customer: {
+        Args: { p_customer_data: Json; p_tenant_id: string }
+        Returns: string
+      }
       drop_old_partitions: {
         Args: { p_retention_months?: number }
         Returns: undefined
@@ -13173,6 +13261,28 @@ export type Database = {
           total_debit: number
         }[]
       }
+      get_domain_events: {
+        Args: { p_domain?: string; p_limit?: number; p_tenant_id: string }
+        Returns: {
+          correlation_id: string | null
+          created_at: string
+          domain: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          tenant_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "domain_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
       get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
       get_entitlements_cached: { Args: { p_tenant_id: string }; Returns: Json }
@@ -13261,12 +13371,44 @@ export type Database = {
         Args: { p_cert_id: string; p_master_key: string }
         Returns: string
       }
+      governance_log_violation: {
+        Args: { p_tenant_id: string; p_violation_data: Json }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      hr_invite_member: {
+        Args: {
+          p_email: string
+          p_invited_by?: string
+          p_role?: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      integrations_log_event: {
+        Args: {
+          p_event_type: string
+          p_payload?: Json
+          p_provider: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      inventory_adjust_stock: {
+        Args: {
+          p_adjusted_by?: string
+          p_product_id: string
+          p_quantity_change: number
+          p_reason?: string
+          p_tenant_id: string
+        }
+        Returns: undefined
       }
       is_authorized_contracts: {
         Args: { _tenant_id: string }
@@ -13353,6 +13495,18 @@ export type Database = {
           p_source: string
           p_type: string
           p_wallet_id: string
+        }
+        Returns: string
+      }
+      publish_domain_event: {
+        Args: {
+          p_correlation_id?: string
+          p_domain: string
+          p_event_type: string
+          p_payload?: Json
+          p_source_entity_id?: string
+          p_source_entity_type?: string
+          p_tenant_id: string
         }
         Returns: string
       }

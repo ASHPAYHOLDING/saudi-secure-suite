@@ -115,6 +115,18 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   get_schema_checksum: true,
   get_applied_migrations: true,
   request_background_reindex: true,
+  // Domain-Driven Architecture
+  publish_domain_event: true,
+  consume_domain_events: true,
+  get_domain_events: true,
+  accounting_post_journal: true,
+  accounting_close_period: true,
+  billing_create_invoice: true,
+  inventory_adjust_stock: true,
+  crm_create_customer: true,
+  governance_log_violation: true,
+  hr_invite_member: true,
+  integrations_log_event: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)
