@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Globe, Plus, Trash2, Loader2, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Building2, Globe, Plus, Trash2, Loader2, ShieldCheck, AlertTriangle, Users } from "lucide-react";
 
 export const SsoSettingsPage = () => {
   const { user, tenantId } = useAuth();
@@ -26,7 +26,11 @@ export const SsoSettingsPage = () => {
     cert: "",
     client_id: "",
     enabled: false,
+    default_role_id: "" as string,
+    auto_provisioning_enabled: true,
   });
+
+  const [roles, setRoles] = useState<Array<{ id: string; name_ar: string; name: string }>>([]);
 
   const [domains, setDomains] = useState<Array<{ id: string; domain: string; is_verified: boolean; verified_at: string | null }>>([]);
   const [newDomain, setNewDomain] = useState("");
@@ -53,8 +57,18 @@ export const SsoSettingsPage = () => {
           cert: ssoData.cert || "",
           client_id: ssoData.client_id || "",
           enabled: ssoData.enabled,
+          default_role_id: ssoData.default_role_id || "",
+          auto_provisioning_enabled: ssoData.auto_provisioning_enabled !== false,
         });
       }
+
+      // Load custom roles for dropdown
+      const { data: rolesData } = await supabase
+        .from("custom_roles")
+        .select("id, name_ar, name")
+        .eq("tenant_id", tenantId!)
+        .order("name_ar");
+      if (rolesData) setRoles(rolesData);
 
       const { data: domainData } = await supabase
         .from("sso_domains")
@@ -82,6 +96,8 @@ export const SsoSettingsPage = () => {
         cert: settings.cert || null,
         client_id: settings.client_id || null,
         enabled: settings.enabled,
+        default_role_id: settings.default_role_id || null,
+        auto_provisioning_enabled: settings.auto_provisioning_enabled,
         updated_at: new Date().toISOString(),
       };
 
@@ -247,6 +263,51 @@ export const SsoSettingsPage = () => {
           <Button onClick={saveSettings} disabled={saving} className="gap-2">
             {saving && <Loader2 size={16} className="animate-spin" />}
             حفظ الإعدادات
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Auto Provisioning */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Users size={18} />
+            إعداد المستخدمين الجدد تلقائياً
+          </CardTitle>
+          <CardDescription>عند دخول موظف جديد عبر SSO، يتم إضافته للفريق تلقائياً بالدور والفرع المحددين</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">الإنشاء التلقائي للمستخدمين</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">إضافة الموظفين الجدد تلقائياً عند أول تسجيل دخول SSO</p>
+            </div>
+            <Switch
+              checked={settings.auto_provisioning_enabled}
+              onCheckedChange={(v) => setSettings((s) => ({ ...s, auto_provisioning_enabled: v }))}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>الدور الافتراضي</Label>
+            <Select
+              value={settings.default_role_id || "none"}
+              onValueChange={(v) => setSettings((s) => ({ ...s, default_role_id: v === "none" ? "" : v }))}
+            >
+              <SelectTrigger><SelectValue placeholder="اختر دوراً افتراضياً" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون دور محدد</SelectItem>
+                {roles.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>{r.name_ar || r.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">سيتم تعيين هذا الدور تلقائياً للموظفين الجدد عند الدخول عبر SSO</p>
+          </div>
+
+          <Button onClick={saveSettings} disabled={saving} className="gap-2">
+            {saving && <Loader2 size={16} className="animate-spin" />}
+            حفظ إعدادات التزويد
           </Button>
         </CardContent>
       </Card>
