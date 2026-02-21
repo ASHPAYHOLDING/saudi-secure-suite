@@ -39,7 +39,7 @@ const FinalCTA = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-base sm:text-lg text-primary-foreground/70 mb-8 max-w-2xl mx-auto"
+              className="text-base sm:text-lg text-primary-foreground/85 mb-8 max-w-2xl mx-auto"
             >
               انضم لأكثر من 1,200 منشأة سعودية تدير أعمالها بذكاء عبر نيوماكسيو
             </motion.p>
@@ -56,7 +56,7 @@ const FinalCTA = () => {
                 { icon: Shield, text: "بياناتك مشفرة ومحمية" },
                 { icon: Zap, text: "إعداد في 5 دقائق" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/60">
+                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/80">
                   <item.icon size={16} className="text-accent" />
                   {item.text}
                 </div>
@@ -68,7 +68,7 @@ const FinalCTA = () => {
                 <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
                   <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-12 py-7 text-base font-bold">
                     ابدأ الآن
-                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
                   </Button>
                 </motion.div>
               </Link>

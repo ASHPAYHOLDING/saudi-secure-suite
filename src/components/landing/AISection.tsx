@@ -108,7 +108,7 @@ const AISection = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="inline-block">
                 <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6">
                   جرّب المساعد الذكي
-                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
                 </Button>
               </motion.div>
             </Link>

@@ -251,7 +251,7 @@ const Footer = () => {
           transition={{ delay: 0.4 }}
           className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-sidebar-foreground/5 pt-8 md:flex-row"
         >
-          <p className="text-xs text-sidebar-foreground/30">
+          <p className="text-xs text-sidebar-foreground/50">
             © {new Date().getFullYear()} نيوماكسيو. جميع الحقوق محفوظة. صنع بـ ❤️ في السعودية
           </p>
 
@@ -261,7 +261,7 @@ const Footer = () => {
                 <Link
                   key={item.label}
                   to={item.href}
-                  className="text-xs text-sidebar-foreground/30 hover:text-accent transition-colors duration-300"
+                  className="text-xs text-sidebar-foreground/50 hover:text-accent transition-colors duration-300"
                 >
                   {item.label}
                 </Link>

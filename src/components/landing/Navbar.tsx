@@ -32,7 +32,7 @@ const Navbar = () => {
           : "bg-transparent"
       }`}
     >
-      <div className="container mx-auto flex h-18 items-center justify-between px-4 py-3">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -71,14 +71,14 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="sm"
-              className={scrolled ? "text-foreground" : "text-primary-foreground hover:bg-primary-foreground/10"}
+              className={`min-h-[44px] ${scrolled ? "text-foreground" : "text-primary-foreground hover:bg-primary-foreground/10"}`}
             >
               تسجيل الدخول
             </Button>
           </Link>
           <Link to="/auth">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              <Button size="sm" className="gradient-accent text-accent-foreground shadow-accent-glow transition-shadow duration-300 hover:shadow-[0_6px_24px_-4px_hsl(172_66%_36%/0.5)]">
+              <Button size="sm" className="min-h-[44px] gradient-accent text-accent-foreground shadow-accent-glow rounded-xl">
                 ابدأ مجاناً
               </Button>
             </motion.div>
@@ -86,8 +86,9 @@ const Navbar = () => {
         </motion.div>
 
         <button
-          className={`lg:hidden ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
+          className={`lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center ${scrolled ? "text-foreground" : "text-primary-foreground"}`}
           onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="القائمة"
         >
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -101,20 +102,19 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="border-t border-border bg-background lg:hidden"
           >
-            <div className="container mx-auto flex flex-col gap-4 px-4 py-6">
-              
+            <div className="container mx-auto flex flex-col gap-2 px-4 py-6">
               {links.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-foreground py-2"
+                  className="text-sm font-medium text-foreground py-3 min-h-[44px] flex items-center"
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
                 </a>
               ))}
               <Link to="/auth" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full gradient-accent text-accent-foreground">
+                <Button className="w-full gradient-accent text-accent-foreground min-h-[48px] rounded-xl mt-2">
                   ابدأ مجاناً
                 </Button>
               </Link>

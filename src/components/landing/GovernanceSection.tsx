@@ -21,7 +21,7 @@ const GovernanceSection = () => {
   return (
     <section className="py-20 md:py-28 relative overflow-hidden" dir="rtl">
       {/* Dark premium background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,30%,8%)] via-[hsl(220,35%,12%)] to-[hsl(220,30%,8%)]" />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom right, hsl(220 30% 8%), hsl(220 35% 12%), hsl(220 30% 8%))" }} />
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.3'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }} />
@@ -106,7 +106,7 @@ const GovernanceSection = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Button size="lg" className="bg-gradient-to-r from-amber-500 to-amber-400 text-black font-bold px-10 py-7 text-base shadow-[0_8px_32px_-4px_hsl(45,90%,50%/0.3)]">
                 فعّل الوضع المؤسسي
-                <ArrowLeft className="mr-2 h-5 w-5" />
+                <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
               </Button>
             </motion.div>
           </Link>
