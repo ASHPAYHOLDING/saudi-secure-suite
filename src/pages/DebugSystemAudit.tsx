@@ -8,6 +8,7 @@ import { isModuleAllowed } from "@/lib/tenant-modules";
 import { supabase } from "@/integrations/supabase/client";
 
 const IntegrationsHealthAudit = lazy(() => import("@/components/debug/IntegrationsHealthAudit"));
+const RlsAuditTab = lazy(() => import("@/components/debug/RlsAuditTab"));
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
   Download,
   Crown,
   Plug,
+  Database,
 } from "lucide-react";
 
 // ── Types ──
@@ -372,6 +374,11 @@ const DebugSystemAudit = () => {
           <TabsTrigger value="integrations" className="gap-1.5">
             <Plug size={14} /> Integrations
           </TabsTrigger>
+          {isPlatformAdmin && (
+            <TabsTrigger value="rls" className="gap-1.5">
+              <Database size={14} /> RLS Audit
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Integrations tab */}
@@ -380,6 +387,15 @@ const DebugSystemAudit = () => {
             <IntegrationsHealthAudit />
           </Suspense>
         </TabsContent>
+
+        {/* RLS Audit tab — platform admin only */}
+        {isPlatformAdmin && (
+          <TabsContent value="rls" className="mt-4">
+            <Suspense fallback={<div className="flex justify-center py-12"><RefreshCw size={20} className="animate-spin text-muted-foreground" /></div>}>
+              <RlsAuditTab />
+            </Suspense>
+          </TabsContent>
+        )}
 
         {/* Route audit content — shared by dashboard & admin tabs */}
         {(activeTab === "dashboard" || activeTab === "admin") && (
