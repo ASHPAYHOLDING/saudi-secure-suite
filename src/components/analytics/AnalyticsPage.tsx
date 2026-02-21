@@ -1,11 +1,13 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Loader2, TrendingUp, TrendingDown, Users, PieChart as PieChartIcon,
   DollarSign, ArrowUpRight, ArrowDownRight, Wallet, Activity, Calendar,
   Filter, ShoppingBag, Receipt, CreditCard, Building2, RefreshCw, X,
-  ChevronDown, ExternalLink, Percent, Repeat, Clock, ArrowRight,
+  ChevronDown, ExternalLink, Percent, Repeat, Clock, ArrowRight, Sparkles,
 } from "lucide-react";
+
+const NaturalLanguageQuery = lazy(() => import("@/components/ai/NaturalLanguageQuery"));
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -497,6 +499,9 @@ const AnalyticsPage = () => {
             </TabsTrigger>
             <TabsTrigger value="wallet" className="text-xs gap-1.5 px-3">
               <Wallet size={13} />{isRTL ? "المحفظة" : "Wallet"}
+            </TabsTrigger>
+            <TabsTrigger value="smart-query" className="text-xs gap-1.5 px-3">
+              <Sparkles size={13} />{isRTL ? "استعلام ذكي" : "Smart Query"}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1092,6 +1097,13 @@ const AnalyticsPage = () => {
               </CardContent>
             </Card>
           </MotionCard>
+        </TabsContent>
+
+        {/* ═══════ TAB: SMART QUERY ═══════ */}
+        <TabsContent value="smart-query" className="mt-4">
+          <Suspense fallback={<div className="flex items-center justify-center p-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+            <NaturalLanguageQuery />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

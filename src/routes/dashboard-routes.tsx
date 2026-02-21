@@ -224,8 +224,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "settings", element: SettingsPage, gateSegment: "settings", permissionKey: "settings.view" },
 
   // ── Productivity ──
-  { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard" },
-  { path: "sheet-view", element: SheetViewPage, gateSegment: "sheet-view", module: "sheet-view" },
+  { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard", permissionKey: "finance.view_overview" },
+  { path: "sheet-view", element: SheetViewPage, gateSegment: "sheet-view", module: "sheet-view", permissionKey: "finance.view_reports" },
 
   // ── Support (intentionally open) ──
   { path: "support/new", element: CreateTicketPage, gateSegment: "support", module: "help", isOpenRoute: true },
