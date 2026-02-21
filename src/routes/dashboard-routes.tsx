@@ -121,7 +121,7 @@ export interface DashboardRouteConfig {
 export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   // ── Core ──
   { path: "billing", element: InvoicesPage, gateSegment: "billing", module: "billing" },
-  { path: "invoices", element: InvoicesPage, gateSegment: "invoices", module: "billing" },
+  // invoices → redirect to billing (Phase B consolidation, see App.tsx)
   { path: "contracts", element: ContractsPage, gateSegment: "contracts", module: "contracts" },
   { path: "quotations", element: QuotationsPage, gateSegment: "quotations", module: "quotations" },
   { path: "sales-orders", element: SalesOrdersPage, gateSegment: "sales-orders", module: "sales-orders" },
