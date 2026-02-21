@@ -11,6 +11,31 @@ const corsHeaders = {
 
 const RPC_TIMEOUT_MS = 5000;
 
+// ── Enterprise tenant cache (5-min TTL) ────────────────────────
+const enterpriseCache = new Map<string, { value: boolean; expiresAt: number }>();
+const ENTERPRISE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+async function isEnterpriseTenant(
+  serviceClient: ReturnType<typeof createClient>,
+  tenantId: string,
+): Promise<boolean> {
+  const cached = enterpriseCache.get(tenantId);
+  if (cached && Date.now() < cached.expiresAt) return cached.value;
+
+  const { data, error } = await serviceClient.rpc("is_enterprise_tenant", {
+    p_tenant_id: tenantId,
+  });
+  const result = error ? false : !!data;
+  enterpriseCache.set(tenantId, { value: result, expiresAt: Date.now() + ENTERPRISE_CACHE_TTL_MS });
+  return result;
+}
+
+// ── RPCs that require enterprise plan ──────────────────────────
+const ENTERPRISE_ONLY_RPCS = new Set([
+  "auto_activate_enterprise_integrations",
+  "get_rls_audit",
+]);
+
 // Whitelist of functions allowed through this proxy
 const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Inventory
@@ -131,7 +156,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 4. Rate limiting — financial RPCs use stricter "wallet" limit
+    // 4. Enterprise gate — block non-enterprise tenants from enterprise RPCs
+    if (ENTERPRISE_ONLY_RPCS.has(fn)) {
+      const tenantId = (params?.p_tenant_id || params?.tenant_id) as string | undefined;
+      if (!tenantId) {
+        await logger.flush(403, "Enterprise RPC requires tenant_id");
+        return new Response(
+          JSON.stringify({ error: "Enterprise feature requires tenant context", code: "ENTERPRISE_REQUIRED" }),
+          { status: 403, headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" } },
+        );
+      }
+      const isEnt = await isEnterpriseTenant(serviceClient, tenantId);
+      if (!isEnt) {
+        await logger.flush(403, `Enterprise gate: tenant ${tenantId} not enterprise`);
+        return new Response(
+          JSON.stringify({ error: "هذه الميزة متاحة فقط لباقة المؤسسات", code: "ENTERPRISE_REQUIRED" }),
+          { status: 403, headers: { ...logger.responseHeaders(corsHeaders), "Content-Type": "application/json" } },
+        );
+      }
+    }
+
+    // 5. Rate limiting — financial RPCs use stricter "wallet" limit
     const rlCategory = FINANCIAL_RPCS.has(fn) ? "wallet" : "general";
     const blocked = await checkRateLimit(req, serviceClient, rlCategory, corsHeaders, userId);
     if (blocked) {
@@ -139,16 +184,14 @@ Deno.serve(async (req) => {
       return blocked;
     }
 
-    // 5. Cast UUID-looking string params so Postgres doesn't choke on text→uuid
+    // 6. Cast UUID-looking string params so Postgres doesn't choke on text→uuid
     const castParams: Record<string, unknown> = {};
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     for (const [k, v] of Object.entries(params || {})) {
-      // Keep the value as-is; the real fix is we need to pass it through
-      // a typed RPC call. For now, explicitly cast by wrapping in SQL-safe format.
       castParams[k] = v;
     }
 
-    // 6. Execute with service_role + timeout guard
+    // 7. Execute with service_role + timeout guard
     try {
       const { data, error } = await withTimeout(
         () => serviceClient.rpc(fn, castParams),
