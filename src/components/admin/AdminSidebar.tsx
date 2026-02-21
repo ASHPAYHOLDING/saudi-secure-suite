@@ -25,6 +25,9 @@ import {
   ClipboardCheck,
   Copy,
   Zap,
+  HardDrive,
+  Database,
+  Server,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -57,6 +60,9 @@ const menuItems = [
   { icon: Copy, label: "كشف التكرارات", path: "/admin/system/duplicates" },
   { icon: Zap, label: "محرك التنظيف", path: "/admin/system/cleanup" },
   { icon: Shield, label: "تدقيق الهيكلة", path: "/admin/system/architecture-audit" },
+  { icon: HardDrive, label: "تقرير التخزين", path: "/admin/system/storage" },
+  { icon: Database, label: "لوحة الترحيلات", path: "/admin/system/migrations" },
+  { icon: Server, label: "البنية التحتية للنظام", path: "/admin/system/infrastructure" },
 ];
 
 interface AdminSidebarProps {
