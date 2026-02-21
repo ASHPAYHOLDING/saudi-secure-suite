@@ -68,6 +68,7 @@ const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoic
   const statusFilters = [
     { value: "all", label: "الكل" },
     { value: "draft", label: "مسودة" },
+    { value: "pending_approval", label: "قيد الموافقة" },
     { value: "issued", label: "صادرة" },
     { value: "paid", label: "مدفوعة" },
     { value: "partially_paid", label: "جزئية" },

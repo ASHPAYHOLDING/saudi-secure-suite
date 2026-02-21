@@ -4,6 +4,7 @@ import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { startWorkflow } from "@/lib/workflows/engine";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 
@@ -148,7 +149,20 @@ const PurchaseOrderCreate = ({ editId, onBack, onSaved }: PurchaseOrderCreatePro
     }));
 
     await supabase.from("purchase_order_items").insert(itemRows);
-    toast.success(t("purchaseOrders.savedSuccess"));
+
+    // Auto-start workflow if one exists for purchase orders
+    if (!editId) {
+      const wfResult = await startWorkflow(tenantId!, "purchase_order", poId!, user!.id);
+      if ("instanceId" in wfResult) {
+        await supabase.from("purchase_orders").update({ status: "pending_approval" }).eq("id", poId!);
+        toast.success("تم إرسال أمر الشراء للموافقة");
+      } else {
+        toast.success(t("purchaseOrders.savedSuccess"));
+      }
+    } else {
+      toast.success(t("purchaseOrders.savedSuccess"));
+    }
+
     setSaving(false);
     onSaved(poId!);
   };

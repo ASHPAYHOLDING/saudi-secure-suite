@@ -35,6 +35,7 @@ const AccountantDashboard = lazy(() => import("@/components/productivity/Account
 const SupplierInboxPage = lazy(() => import("@/components/supplier-inbox/SupplierInboxPage"));
 const PaymentRemindersPage = lazy(() => import("@/components/reminders/PaymentRemindersPage"));
 const ApprovalWorkflowsPage = lazy(() => import("@/components/approvals/ApprovalWorkflowsPage"));
+const MyApprovalsPage = lazy(() => import("@/components/approvals/MyApprovalsPage"));
 const CreditNotesPage = lazy(() => import("@/components/credit-notes/CreditNotesPage"));
 const NaturalLanguageQuery = lazy(() => import("@/components/ai/NaturalLanguageQuery"));
 const SupportTicketsPage = lazy(() => import("@/components/support/SupportTicketsPage"));
@@ -151,6 +152,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   // ── Operations ──
   { path: "supplier-inbox", element: SupplierInboxPage, gateSegment: "supplier-inbox", module: "supplier-inbox" },
   { path: "approvals", element: ApprovalWorkflowsPage, gateSegment: "approvals", module: "billing" },
+  { path: "my-approvals", element: MyApprovalsPage, module: "billing" },
 
   // ── Team & Organization ──
   { path: "team", element: TeamMembersPage, gateSegment: "team", module: "team" },

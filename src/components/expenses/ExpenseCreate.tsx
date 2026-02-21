@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCenters } from "@/hooks/useCenters";
+import { startWorkflow } from "@/lib/workflows/engine";
 import { motion } from "framer-motion";
 import { ArrowRight, Save, Loader2, Upload, X, Receipt, AlertCircle } from "lucide-react";
 import { FormLabel } from "@/components/ui/form-tooltip";
@@ -141,7 +142,16 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
         tenant_id: tenantId, created_by: user.id, expense_number: expenseNumber, ...expenseData,
       }).select("id").single();
       if (error || !data) { toast({ title: "خطأ", description: error?.message || "فشل الحفظ", variant: "destructive" }); setSaving(false); return; }
-      toast({ title: "تم حفظ المصروف" });
+
+      // Auto-start workflow if one exists for expenses
+      const wfResult = await startWorkflow(tenantId, "expense", data.id, user.id);
+      if ("instanceId" in wfResult) {
+        await supabase.from("expenses").update({ status: "pending_approval" } as any).eq("id", data.id);
+        toast({ title: "تم إرسال المصروف للموافقة" });
+      } else {
+        toast({ title: "تم حفظ المصروف" });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       setSaving(false);
       onSaved(data.id);

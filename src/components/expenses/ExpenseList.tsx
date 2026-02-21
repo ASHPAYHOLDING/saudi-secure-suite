@@ -14,10 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
 
 const statusLabels: Record<string, string> = {
-  draft: "مسودة", pending: "بانتظار الموافقة", approved: "معتمد", rejected: "مرفوض", paid: "مدفوع",
+  draft: "مسودة", pending: "بانتظار الموافقة", pending_approval: "قيد الموافقة", approved: "معتمد", rejected: "مرفوض", paid: "مدفوع",
 };
 const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground", pending: "bg-amber-100 text-amber-800",
+  draft: "bg-muted text-muted-foreground", pending: "bg-amber-100 text-amber-800", pending_approval: "bg-amber-100 text-amber-800",
   approved: "bg-green-100 text-green-800", rejected: "bg-red-100 text-red-800", paid: "bg-blue-100 text-blue-800",
 };
 const paymentLabels: Record<string, string> = {
