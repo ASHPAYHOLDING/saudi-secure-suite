@@ -13187,8 +13187,6 @@ export type Database = {
       audit_rls_status: {
         Args: never
         Returns: {
-          has_always_true_write_policy: boolean
-          has_policies: boolean
           is_partition: boolean
           is_rls_enabled: boolean
           policy_count: number
