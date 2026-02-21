@@ -14,8 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Trash2, GitBranch, CheckCircle2, XCircle, Clock, ArrowUpDown } from "lucide-react";
+import { Plus, Trash2, GitBranch, CheckCircle2, XCircle, Clock, ArrowUpDown, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RuleBuilder, type WorkflowRules, rulesToJson, jsonToRules } from "./RuleBuilder";
 
 const DOCUMENT_TYPES = [
   { value: "invoice", labelAr: "فاتورة", labelEn: "Invoice" },
@@ -51,9 +52,7 @@ const ApprovalWorkflowsPage = () => {
   const [name, setName] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [docType, setDocType] = useState("invoice");
-  const [conditionType, setConditionType] = useState("amount");
-  const [minAmount, setMinAmount] = useState("0");
-  const [maxAmount, setMaxAmount] = useState("");
+  const [rules, setRules] = useState<WorkflowRules>({ conditions: [], logic: "AND" });
   const [steps, setSteps] = useState<WorkflowStep[]>([
     { step_order: 1, approver_type: "role", approver_role: "manager", step_name: "موافقة المدير", step_name_en: "Manager Approval" },
   ]);
@@ -89,7 +88,21 @@ const ApprovalWorkflowsPage = () => {
 
   const createWorkflow = useMutation({
     mutationFn: async () => {
-      // Create workflow
+      const rulesJson = rulesToJson(rules);
+      // Derive legacy fields for backward compat
+      const amountConditions = rules.conditions.filter(c => c.field === "amount");
+      let minAmount = 0;
+      let maxAmount: number | null = null;
+      let conditionType = "always";
+      if (amountConditions.length > 0) {
+        conditionType = "amount";
+        for (const c of amountConditions) {
+          const val = parseFloat(c.value) || 0;
+          if (c.operator === ">" || c.operator === ">=") minAmount = val;
+          if (c.operator === "<" || c.operator === "<=") maxAmount = val;
+        }
+      }
+
       const { data: wf, error: wfErr } = await supabase
         .from("approval_workflows")
         .insert({
@@ -98,8 +111,9 @@ const ApprovalWorkflowsPage = () => {
           name_en: nameEn || null,
           document_type: docType,
           condition_type: conditionType,
-          min_amount: parseFloat(minAmount) || 0,
-          max_amount: maxAmount ? parseFloat(maxAmount) : null,
+          min_amount: minAmount,
+          max_amount: maxAmount,
+          rules_json: rulesJson as any,
           created_by: user!.id,
           priority: workflows.length,
         })
@@ -150,7 +164,6 @@ const ApprovalWorkflowsPage = () => {
 
   const processApproval = useMutation({
     mutationFn: async ({ actionId, requestId, decision, comment }: { actionId: string; requestId: string; decision: "approved" | "rejected"; comment?: string }) => {
-      // Use server-side secure RPC for RBAC + tenant + self-approval enforcement
       const { data, error } = await secureRpc("secure_approval_action", {
         p_action_id: actionId,
         p_request_id: requestId,
@@ -160,7 +173,6 @@ const ApprovalWorkflowsPage = () => {
 
       if (error) throw new Error(error.message);
 
-      // Create notification for the requester (read-only, safe client-side)
       const { data: request } = await supabase.from("approval_requests").select("*").eq("id", requestId).single();
       if (request) {
         const finalStatus = data?.status || decision;
@@ -190,9 +202,7 @@ const ApprovalWorkflowsPage = () => {
     setName("");
     setNameEn("");
     setDocType("invoice");
-    setConditionType("amount");
-    setMinAmount("0");
-    setMaxAmount("");
+    setRules({ conditions: [], logic: "AND" });
     setSteps([{ step_order: 1, approver_type: "role", approver_role: "manager", step_name: "موافقة المدير", step_name_en: "Manager Approval" }]);
   };
 
@@ -234,6 +244,27 @@ const ApprovalWorkflowsPage = () => {
     return d ? (isRTL ? d.labelAr : d.labelEn) : type;
   };
 
+  const renderRulesSummary = (wf: any) => {
+    const wfRules = jsonToRules(wf.rules_json);
+    if (wfRules.conditions.length === 0) {
+      // Legacy display
+      if (wf.condition_type === "amount") {
+        return (
+          <Badge variant="secondary" className="text-xs">
+            {wf.min_amount?.toLocaleString()} - {wf.max_amount ? wf.max_amount.toLocaleString() : "∞"} {isRTL ? "ر.س" : "SAR"}
+          </Badge>
+        );
+      }
+      return null;
+    }
+    return (
+      <Badge variant="secondary" className="text-xs gap-1">
+        <Filter className="w-3 h-3" />
+        {wfRules.conditions.length} {isRTL ? "شرط" : "rules"} ({wfRules.logic})
+      </Badge>
+    );
+  };
+
   const pendingRequests = approvalRequests.filter((r: any) => r.status === "pending");
 
   return (
@@ -268,42 +299,20 @@ const ApprovalWorkflowsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>{isRTL ? "نوع المستند" : "Document Type"}</Label>
-                  <Select value={docType} onValueChange={setDocType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {DOCUMENT_TYPES.map((dt) => (
-                        <SelectItem key={dt.value} value={dt.value}>{isRTL ? dt.labelAr : dt.labelEn}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{isRTL ? "شرط التطبيق" : "Condition"}</Label>
-                  <Select value={conditionType} onValueChange={setConditionType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="amount">{isRTL ? "حسب المبلغ" : "By Amount"}</SelectItem>
-                      <SelectItem value="always">{isRTL ? "دائماً" : "Always"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label>{isRTL ? "نوع المستند" : "Document Type"}</Label>
+                <Select value={docType} onValueChange={setDocType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_TYPES.map((dt) => (
+                      <SelectItem key={dt.value} value={dt.value}>{isRTL ? dt.labelAr : dt.labelEn}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {conditionType === "amount" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>{isRTL ? "الحد الأدنى (ر.س)" : "Min Amount (SAR)"}</Label>
-                    <Input type="number" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>{isRTL ? "الحد الأعلى (ر.س)" : "Max Amount (SAR)"}</Label>
-                    <Input type="number" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder={isRTL ? "بدون حد" : "No limit"} />
-                  </div>
-                </div>
-              )}
+              {/* Rule Builder */}
+              <RuleBuilder rules={rules} onChange={setRules} />
 
               {/* Steps */}
               <div>
@@ -434,14 +443,10 @@ const ApprovalWorkflowsPage = () => {
               <Card key={wf.id} className={cn(!wf.is_active && "opacity-60")}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <CardTitle className="text-base">{isRTL ? wf.name : (wf.name_en || wf.name)}</CardTitle>
                       <Badge variant="outline">{getDocLabel(wf.document_type)}</Badge>
-                      {wf.condition_type === "amount" && (
-                        <Badge variant="secondary" className="text-xs">
-                          {wf.min_amount?.toLocaleString()} - {wf.max_amount ? wf.max_amount.toLocaleString() : "∞"} {isRTL ? "ر.س" : "SAR"}
-                        </Badge>
-                      )}
+                      {renderRulesSummary(wf)}
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch checked={wf.is_active} onCheckedChange={(v) => toggleWorkflow.mutate({ id: wf.id, is_active: v })} />
@@ -452,6 +457,23 @@ const ApprovalWorkflowsPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Show rules detail if present */}
+                  {(() => {
+                    const wfRules = jsonToRules(wf.rules_json);
+                    if (wfRules.conditions.length === 0) return null;
+                    return (
+                      <div className="mb-3 flex items-center gap-2 flex-wrap">
+                        {wfRules.conditions.map((c, i) => (
+                          <Badge key={i} variant="outline" className="text-[10px] gap-1 font-mono">
+                            {c.field} {c.operator} {c.value}
+                            {i < wfRules.conditions.length - 1 && (
+                              <span className="text-primary font-bold ms-1">{wfRules.logic}</span>
+                            )}
+                          </Badge>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   <div className="flex items-center gap-2 flex-wrap">
                     {(wf.approval_workflow_steps || [])
                       .sort((a: any, b: any) => a.step_order - b.step_order)
