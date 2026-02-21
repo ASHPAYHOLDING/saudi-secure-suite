@@ -94,6 +94,7 @@ const navGroups: NavGroup[] = [
       { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
       { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
       { icon: CheckCircle2, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
+      { icon: GitBranch, key: "nav.workflowDesigner", path: "/dashboard/workflows/designer", module: "billing" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
