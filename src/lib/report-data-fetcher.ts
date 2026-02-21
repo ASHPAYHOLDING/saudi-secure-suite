@@ -5,6 +5,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInDays, startOfQuarter, endOfQuarter } from "date-fns";
 
+export type CurrencyDisplayMode = "original" | "base";
+
 export interface ReportFilters {
   dateFrom: string;
   dateTo: string;
@@ -12,6 +14,8 @@ export interface ReportFilters {
   customerId?: string;
   costCenterId?: string;
   profitCenterId?: string;
+  currencyCode?: string;
+  currencyDisplayMode?: CurrencyDisplayMode;
 }
 
 const cache = new Map<string, { data: any[]; ts: number }>();
@@ -87,7 +91,21 @@ export const fetchReportData = async (
   const hit = cached(ck);
   if (hit) return hit;
 
-  const { dateFrom, dateTo, branchId, customerId, costCenterId, profitCenterId } = filters;
+  const { dateFrom, dateTo, branchId, customerId, costCenterId, profitCenterId, currencyCode, currencyDisplayMode } = filters;
+  const useBase = currencyDisplayMode === "base";
+
+  // Helper: normalize currency amounts — if base mode, multiply by exchange_rate_at_creation
+  const normalizeCurrencyFields = (row: any, amountFields: string[]) => {
+    if (!useBase) return row;
+    const rate = Number(row.exchange_rate_at_creation) || 1;
+    const normalized = { ...row };
+    for (const field of amountFields) {
+      if (normalized[field] != null) {
+        normalized[field] = Math.round(Number(normalized[field]) * rate * 100) / 100;
+      }
+    }
+    return normalized;
+  };
 
   // ─── INVOICES base query ───
   const fetchInvoices = async () => {
@@ -101,12 +119,16 @@ export const fetchReportData = async (
     if (customerId) q = q.eq("customer_id", customerId);
     if (costCenterId) q = q.eq("cost_center_id", costCenterId);
     if (profitCenterId) q = q.eq("profit_center_id", profitCenterId);
+    if (currencyCode) q = (q as any).eq("currency_code", currencyCode);
     const { data } = await q.order("invoice_date", { ascending: true });
-    return (data || []).map((inv: any) => ({
-      ...inv,
-      customer_name: inv.customers?.name || "—",
-      vat_number: inv.customers?.vat_number || null,
-    }));
+    return (data || []).map((inv: any) => {
+      const row = normalizeCurrencyFields(inv, ["subtotal", "vat_total", "grand_total", "amount_paid", "amount_due", "base_currency_total"]);
+      return {
+        ...row,
+        customer_name: inv.customers?.name || "—",
+        vat_number: inv.customers?.vat_number || null,
+      };
+    });
   };
 
   // ─── EXPENSES base query ───
@@ -120,11 +142,15 @@ export const fetchReportData = async (
     if (branchId) q = q.eq("branch_id", branchId);
     if (costCenterId) q = q.eq("cost_center_id", costCenterId);
     if (profitCenterId) q = q.eq("profit_center_id", profitCenterId);
+    if (currencyCode) q = (q as any).eq("currency_code", currencyCode);
     const { data } = await q.order("expense_date", { ascending: true });
-    return (data || []).map((exp: any) => ({
-      ...exp,
-      category_name: exp.expense_categories?.name || "بدون فئة",
-    }));
+    return (data || []).map((exp: any) => {
+      const row = normalizeCurrencyFields(exp, ["amount", "vat_amount", "total_amount"]);
+      return {
+        ...row,
+        category_name: exp.expense_categories?.name || "بدون فئة",
+      };
+    });
   };
 
   switch (reportKey) {

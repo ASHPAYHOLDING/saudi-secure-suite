@@ -34,7 +34,7 @@ import {
   type ReportDefinition,
   type ReportColumn,
 } from "@/lib/report-definitions";
-import { fetchReportData, clearReportCache, type ReportFilters } from "@/lib/report-data-fetcher";
+import { fetchReportData, clearReportCache, type ReportFilters, type CurrencyDisplayMode } from "@/lib/report-data-fetcher";
 import { exportReportPDF, exportReportExcel } from "@/lib/report-export";
 
 // Icon map for dynamic rendering
@@ -65,6 +65,9 @@ const ReportsPage = () => {
   const [customerId, setCustomerId] = useState<string>("");
   const [costCenterFilter, setCostCenterFilter] = useState<string>("");
   const [profitCenterFilter, setProfitCenterFilter] = useState<string>("");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("");
+  const [currencyDisplayMode, setCurrencyDisplayMode] = useState<CurrencyDisplayMode>("base");
+  const [currencies, setCurrencies] = useState<{ code: string; name_ar: string; symbol: string }[]>([]);
   const { costCenters, profitCenters } = useCenters();
 
   // Branches + customers for filter dropdowns
@@ -95,16 +98,18 @@ const ReportsPage = () => {
   useEffect(() => {
     if (!tenantId || !user) return;
     const load = async () => {
-      const [branchRes, custRes, presetRes, tenantRes, profileRes] = await Promise.all([
+      const [branchRes, custRes, presetRes, tenantRes, profileRes, currRes] = await Promise.all([
         supabase.from("branches").select("id, name").eq("tenant_id", tenantId).eq("is_active", true),
         supabase.from("customers").select("id, name").eq("tenant_id", tenantId).eq("is_active", true).order("name").limit(500),
         supabase.from("report_presets").select("*").eq("tenant_id", tenantId).eq("user_id", user!.id).order("created_at", { ascending: false }),
         supabase.from("tenants").select("name, cr_number, vat_number, logo_url, stamp_enabled").eq("id", tenantId).maybeSingle(),
         supabase.from("profiles").select("full_name").eq("id", user!.id).maybeSingle(),
+        (supabase as any).from("currencies").select("code, name_ar, symbol").eq("is_active", true).order("is_base", { ascending: false }),
       ]);
       setBranches(branchRes.data || []);
       setCustomers(custRes.data || []);
       setPresets(presetRes.data || []);
+      setCurrencies(currRes.data || []);
 
       // Stamp
       const tenant = tenantRes.data;
@@ -174,6 +179,8 @@ const ReportsPage = () => {
         customerId: customerId || undefined,
         costCenterId: costCenterFilter || undefined,
         profitCenterId: profitCenterFilter || undefined,
+        currencyCode: currencyFilter || undefined,
+        currencyDisplayMode,
       };
       const result = await fetchReportData(rpt.key, tenantId, filters);
       setData(result);
@@ -199,7 +206,7 @@ const ReportsPage = () => {
       toast.error(err.message || "Error");
     }
     setLoading(false);
-  }, [selectedReport, tenantId, dateFrom, dateTo, branchId, customerId, user, userName, hasCriticalIssues]);
+  }, [selectedReport, tenantId, dateFrom, dateTo, branchId, customerId, user, userName, hasCriticalIssues, costCenterFilter, profitCenterFilter, currencyFilter, currencyDisplayMode]);
 
   // ─── Select Report ───
   const handleSelectReport = (report: ReportDefinition) => {
@@ -285,11 +292,14 @@ const ReportsPage = () => {
   };
 
   // ─── Format cell value ───
+  const currencySymbol = currencyDisplayMode === "base" ? "ر.س" :
+    (currencyFilter ? (currencies.find(c => c.code === currencyFilter)?.symbol || "ر.س") : "ر.س");
+
   const formatCell = (value: any, type: ReportColumn["type"]) => {
     if (value === null || value === undefined || value === "") return "—";
     switch (type) {
       case "currency":
-        return `${Number(value).toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س`;
+        return `${Number(value).toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ${currencySymbol}`;
       case "number":
         return Number(value).toLocaleString("ar-SA");
       case "percent":
@@ -410,6 +420,30 @@ const ReportsPage = () => {
                   </Select>
                 </div>
               )}
+              {/* Currency filter */}
+              {currencies.length > 1 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "العملة" : "Currency"}</Label>
+                  <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+                    <SelectTrigger className="w-[150px]"><SelectValue placeholder={isRTL ? "الكل" : "All"} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{isRTL ? "جميع العملات" : "All Currencies"}</SelectItem>
+                      {currencies.map((c) => <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.symbol})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {/* Display mode toggle */}
+              <div className="space-y-1">
+                <Label className="text-xs">{isRTL ? "وحدة العرض" : "Display"}</Label>
+                <Select value={currencyDisplayMode} onValueChange={(v) => setCurrencyDisplayMode(v as CurrencyDisplayMode)}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="base">{isRTL ? "العملة الأساسية (ر.س)" : "Base Currency (SAR)"}</SelectItem>
+                    <SelectItem value="original">{isRTL ? "القيمة الأصلية" : "Original Amount"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={() => runReport()} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />}
                 {isRTL ? "عرض التقرير" : "Run Report"}
