@@ -43,7 +43,7 @@ const RouteGuard = ({
 
   if (!allowed && reason) {
     if (fallback) return <>{fallback}</>;
-    return <AccessDenied reason={reason} featureLabel={featureLabel} />;
+    return <AccessDenied reason={reason} featureLabel={featureLabel} featureKey={featureKey} />;
   }
 
   return <>{children}</>;
