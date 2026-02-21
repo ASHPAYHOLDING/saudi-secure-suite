@@ -13184,6 +13184,17 @@ export type Database = {
             }
             Returns: Json
           }
+      audit_rls_status: {
+        Args: never
+        Returns: {
+          has_always_true_write_policy: boolean
+          has_policies: boolean
+          is_partition: boolean
+          is_rls_enabled: boolean
+          policy_count: number
+          table_name: string
+        }[]
+      }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
