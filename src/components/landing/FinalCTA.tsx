@@ -5,33 +5,24 @@ import { Button } from "@/components/ui/button";
 
 const FinalCTA = () => {
   return (
-    <section className="py-20 md:py-28 bg-background" dir="rtl">
-      <div className="container mx-auto px-4">
+    <section className="py-20 md:py-28 bg-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-3xl gradient-hero overflow-hidden"
+          className="relative rounded-3xl overflow-hidden"
+          style={{ background: "linear-gradient(135deg, hsl(220 30% 8%) 0%, hsl(220 35% 16%) 50%, hsl(172 40% 18%) 100%)" }}
         >
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.15, 0.1] }}
-              transition={{ duration: 8, repeat: Infinity }}
-              className="absolute top-0 right-1/4 w-96 h-96 rounded-full"
-              style={{ background: "radial-gradient(circle, hsl(172 66% 50% / 0.2) 0%, transparent 70%)" }}
-            />
-          </div>
-
           <div className="relative p-8 md:p-16 lg:p-20 text-center">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-bold text-primary-foreground mb-5 leading-tight"
+              className="font-bold text-white mb-5 leading-tight"
+              style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
-              ابدأ ERP سعودي حقيقي
-              <br />
-              <span className="text-gradient">اليوم</span>
+              جاهز للانتقال إلى ERP سعودي حقيقي؟
             </motion.h2>
 
             <motion.p
@@ -39,7 +30,8 @@ const FinalCTA = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-base sm:text-lg text-primary-foreground/85 mb-8 max-w-2xl mx-auto"
+              className="text-white/80 mb-8 max-w-2xl mx-auto"
+              style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
             >
               انضم لأكثر من 1,200 منشأة سعودية تدير أعمالها بذكاء عبر نيوماكسيو
             </motion.p>
@@ -56,7 +48,7 @@ const FinalCTA = () => {
                 { icon: Shield, text: "بياناتك مشفرة ومحمية" },
                 { icon: Zap, text: "إعداد في 5 دقائق" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/80">
+                <div key={item.text} className="flex items-center gap-2 text-sm text-white/80">
                   <item.icon size={16} className="text-accent" />
                   {item.text}
                 </div>
@@ -65,19 +57,15 @@ const FinalCTA = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/auth">
-                <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-12 py-7 text-base font-bold">
-                    ابدأ الآن
-                    <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
-                  </Button>
-                </motion.div>
+                <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-12 min-h-[48px] text-base font-bold rounded-xl">
+                  ابدأ الآن
+                  <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
+                </Button>
               </Link>
               <a href="#contact">
-                <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 py-7 text-base backdrop-blur-sm rounded-2xl">
-                    تحدث مع المبيعات
-                  </Button>
-                </motion.div>
+                <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm rounded-xl">
+                  تحدث مع المبيعات
+                </Button>
               </a>
             </div>
           </div>

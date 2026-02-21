@@ -1,34 +1,65 @@
 import { lazy, Suspense } from "react";
+import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import PowerStrip from "@/components/landing/PowerStrip";
 import Footer from "@/components/landing/Footer";
 
+const WhyNumaxioSection = lazy(() => import("@/components/landing/WhyNumaxioSection"));
+const ERPModulesSection = lazy(() => import("@/components/landing/ERPModulesSection"));
 const InvoiceDemo = lazy(() => import("@/components/landing/InvoiceDemo"));
-const ComplianceSection = lazy(() => import("@/components/landing/ComplianceSection"));
-const AISection = lazy(() => import("@/components/landing/AISection"));
-const GovernanceSection = lazy(() => import("@/components/landing/GovernanceSection"));
+const AIAccountantSection = lazy(() => import("@/components/landing/AIAccountantSection"));
+const ZATCAComplianceSection = lazy(() => import("@/components/landing/ZATCAComplianceSection"));
 const DynamicPricingSection = lazy(() => import("@/components/landing/DynamicPricingSection"));
-const TrustSection = lazy(() => import("@/components/landing/TrustSection"));
+const EnterpriseGovernanceSection = lazy(() => import("@/components/landing/EnterpriseGovernanceSection"));
 const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
+
+const softwareJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Numaxio ERP",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description: "نظام ERP سعودي مؤسسي متكامل — فواتير إلكترونية ZATCA، AI محاسبي، حوكمة مؤسسية",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "SAR",
+    description: "14 يوم تجربة مجانية",
+  },
+};
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden" dir="rtl">
-      <Navbar />
-      <HeroSection />
-      <PowerStrip />
-      <Suspense fallback={null}>
-        <InvoiceDemo />
-        <ComplianceSection />
-        <AISection />
-        <GovernanceSection />
-        <DynamicPricingSection />
-        <TrustSection />
-        <FinalCTA />
-      </Suspense>
-      <Footer />
-    </div>
+    <>
+      <Helmet>
+        <title>Numaxio ERP — نظام ERP سعودي مؤسسي متكامل | فواتير ZATCA + AI</title>
+        <meta
+          name="description"
+          content="نظام ERP سعودي مؤسسي: فواتير إلكترونية ZATCA Phase 2، AI محاسبي، حوكمة مؤسسية، تقارير مالية. ابدأ تجربتك المجانية 14 يوم."
+        />
+        <link rel="canonical" href="https://saudi-secure-suite.lovable.app/" />
+        <script type="application/ld+json">{JSON.stringify(softwareJsonLd)}</script>
+      </Helmet>
+      <div className="min-h-screen bg-background overflow-x-hidden" dir="rtl">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <PowerStrip />
+          <Suspense fallback={null}>
+            <WhyNumaxioSection />
+            <ERPModulesSection />
+            <InvoiceDemo />
+            <AIAccountantSection />
+            <ZATCAComplianceSection />
+            <DynamicPricingSection />
+            <EnterpriseGovernanceSection />
+            <FinalCTA />
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 
