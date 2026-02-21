@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import SheetTable, { type SheetColumn, type BulkAction } from "./SheetTable";
-import type { AppRole } from "@/lib/roles";
+import type { AppRole } from "@/lib/access/types";
 
 interface Props {
   userRole: AppRole;

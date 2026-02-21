@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ENTITLEMENTS_CACHE_KEY, fetchEntitlementsBulk } from "@/contexts/EntitlementsContext";
 import type { User, Session } from "@supabase/supabase-js";
 import type { TenantType } from "@/lib/tenant-modules";
-import type { AppRole } from "@/lib/roles";
+import type { AppRole } from "@/lib/access/types";
 
 export interface TenantInfo {
   id: string;

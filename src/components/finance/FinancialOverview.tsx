@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePermissions } from "@/lib/roles";
-import type { AppRole } from "@/lib/roles";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
+import type { AppRole } from "@/lib/access/types";
 
 interface FinanceStats {
   totalRevenue: number;
@@ -34,23 +34,8 @@ const FinancialOverview = () => {
   const { tenantId, user } = useAuth();
   const [stats, setStats] = useState<FinanceStats | null>(null);
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
-  const [role, setRole] = useState<AppRole>("member");
   const [loading, setLoading] = useState(true);
-  const perms = usePermissions(role);
-
-  // Fetch user role
-  useEffect(() => {
-    if (!tenantId || !user) return;
-    supabase
-      .from("tenant_members")
-      .select("role")
-      .eq("tenant_id", tenantId)
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.role) setRole(data.role as AppRole);
-      });
-  }, [tenantId, user]);
+  const perms = useGranularPermissions();
 
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
@@ -143,7 +128,7 @@ const FinancialOverview = () => {
     );
   }
 
-  if (!perms.isFinance) {
+  if (!perms.canAny("analytics.view", "invoices.create", "expenses.create")) {
     return (
       <div dir="rtl" className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
         <AlertTriangle size={40} />

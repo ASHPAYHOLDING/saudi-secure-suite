@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePermissions, ROLE_LABELS, ROLE_COLORS, type AppRole } from "@/lib/roles";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
+import { ROLE_LABELS, ROLE_COLORS, type AppRole } from "@/lib/access/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,7 +64,7 @@ const TeamMembersPage = () => {
   const [inviteRole, setInviteRole] = useState<AppRole>("member");
   const [inviting, setInviting] = useState(false);
   const [userRole, setUserRole] = useState<AppRole>("member");
-  const perms = usePermissions(userRole);
+  const perms = useGranularPermissions();
 
   const fetchMembers = async () => {
     if (!tenantId) return;
