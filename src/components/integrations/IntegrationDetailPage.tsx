@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { getManifest, type IntegrationManifest } from "@/integrations/manifests";
+import IntegrationDocs from "@/components/integrations/IntegrationDocs";
 
 // ─── Badge mapping ────────────────────────────────────────────────────────────
 const BADGE_CONFIG: Record<string, { label: string; icon: typeof Globe; color: string }> = {
@@ -512,53 +513,9 @@ const IntegrationDetailPage = () => {
           </Card>
         </TabsContent>
 
-        {/* ═══ TAB 4: دليل الاستخدام — من manifest.docsSections ═══ */}
+        {/* ═══ TAB 4: دليل الاستخدام — من integration_docs DB ═══ */}
         <TabsContent value="guide">
-          {manifest.docsSections.length === 0 ? (
-            <p className="text-center text-muted-foreground py-10">لا يوجد دليل متاح لهذا المزود بعد</p>
-          ) : (
-            <div className="space-y-6">
-              {manifest.docsSections.map((section, si) => (
-                <Card key={`${manifest.providerId}-guide-${si}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm flex items-center gap-2"><BookOpen size={14} className="text-accent" />{section.title}</CardTitle>
-                      {section.officialLink && (
-                        <a href={section.officialLink} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline flex items-center gap-1">
-                          {section.officialLinkLabel || "الوثائق الرسمية"}<ExternalLink size={11} />
-                        </a>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {section.steps.map((step, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-                        <div className="w-7 h-7 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{step.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{step.desc}</p>
-                          {step.tip && <p className="text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded px-2 py-1 mt-1.5">💡 {step.tip}</p>}
-                        </div>
-                      </div>
-                    ))}
-                    {section.faq.length > 0 && (
-                      <div className="pt-3 border-t border-border/50 space-y-2">
-                        <h4 className="text-xs font-semibold text-muted-foreground">الأسئلة الشائعة</h4>
-                        {section.faq.map((item, i) => (
-                          <div key={i} className="space-y-1">
-                            <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="flex w-full items-center justify-between text-xs text-start font-medium hover:text-accent">
-                              <span>{item.q}</span>{openFaq === i ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            </button>
-                            {openFaq === i && <p className="text-xs text-muted-foreground ps-2">{item.a}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <IntegrationDocs providerKey={manifest.providerId} />
         </TabsContent>
 
         {/* ═══ TAB 5: FAQ عامة ═══ */}
