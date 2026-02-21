@@ -220,6 +220,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "النظرة المالية",
     description: "لوحة ملخصة للوضع المالي والتدفقات النقدية.",
   },
+  "collections-intelligence": {
+    featureKey: FEATURE_KEYS.ADVANCED_REPORTS,
+    permissionKeys: ["finance.view_reports"],
+    label: "ذكاء التحصيل",
+    description: "تحليل مخاطر العملاء وإدارة التحصيل الذكي.",
+  },
   "api-keys": {
     featureKey: FEATURE_KEYS.API_ACCESS,
     permissionKeys: ["settings.integrations"],
@@ -417,4 +423,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/finance-repair": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/governance-center": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/compliance-score": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/collections-intelligence": FEATURE_KEYS.ADVANCED_REPORTS,
 };

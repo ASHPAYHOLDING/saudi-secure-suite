@@ -9349,6 +9349,128 @@ export type Database = {
           },
         ]
       }
+      reminder_logs: {
+        Row: {
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          policy_id: string | null
+          sent_at: string
+          sent_by: string | null
+          status: string
+          tenant_id: string
+          tone: string
+        }
+        Insert: {
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          policy_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          tenant_id: string
+          tone: string
+        }
+        Update: {
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          policy_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          tenant_id?: string
+          tone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ar_aging_view"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "reminder_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reminder_policies: {
+        Row: {
+          created_at: string
+          days_overdue: number
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          template_ar: string
+          template_en: string | null
+          tenant_id: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_overdue: number
+          id?: string
+          is_active?: boolean
+          name: string
+          name_en?: string | null
+          template_ar: string
+          template_en?: string | null
+          tenant_id: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_overdue?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          template_ar?: string
+          template_en?: string | null
+          tenant_id?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_presets: {
         Row: {
           created_at: string
@@ -10799,6 +10921,72 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tenant_compliance_scores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_customer_risk: {
+        Row: {
+          avg_payment_delay_days: number | null
+          breakdown_json: Json
+          created_at: string
+          customer_id: string
+          dispute_frequency: number | null
+          id: string
+          invoice_size_volatility: number | null
+          last_calculated_at: string
+          overdue_ratio: number | null
+          recommended_action: string | null
+          risk_level: string
+          risk_score: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          avg_payment_delay_days?: number | null
+          breakdown_json?: Json
+          created_at?: string
+          customer_id: string
+          dispute_frequency?: number | null
+          id?: string
+          invoice_size_volatility?: number | null
+          last_calculated_at?: string
+          overdue_ratio?: number | null
+          recommended_action?: string | null
+          risk_level?: string
+          risk_score?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          avg_payment_delay_days?: number | null
+          breakdown_json?: Json
+          created_at?: string
+          customer_id?: string
+          dispute_frequency?: number | null
+          id?: string
+          invoice_size_volatility?: number | null
+          last_calculated_at?: string
+          overdue_ratio?: number | null
+          recommended_action?: string | null
+          risk_level?: string
+          risk_score?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_customer_risk_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_customer_risk_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
