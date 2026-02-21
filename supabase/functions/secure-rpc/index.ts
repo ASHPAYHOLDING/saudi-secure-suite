@@ -106,6 +106,11 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Partition maintenance
   maintain_partitions: true,
   get_storage_report: true,
+  // Audit Intelligence
+  get_audit_risk_scores: true,
+  get_audit_heatmap: true,
+  get_audit_timeline: true,
+  get_rapid_approval_chains: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

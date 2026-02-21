@@ -6,7 +6,7 @@ import {
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock, Target,
-  TrendingUp, Key, CheckCircle2, CalendarClock, Globe, Wrench, HardDrive,
+  TrendingUp, Key, CheckCircle2, CalendarClock, Globe, Wrench, HardDrive, ShieldAlert,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -136,6 +136,7 @@ const settingsMenuKeys: NavItemDef[] = [
   { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
   { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
       { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
+      { icon: ShieldAlert, key: "nav.auditIntelligence", path: "/dashboard/audit/intelligence", module: "audit" },
       { icon: Building2, key: "nav.ssoSettings", path: "/dashboard/sso-settings", module: "company" },
   { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
   { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },

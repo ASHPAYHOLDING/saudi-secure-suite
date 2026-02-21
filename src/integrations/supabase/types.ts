@@ -13004,6 +13004,36 @@ export type Database = {
         }
         Returns: Json
       }
+      get_audit_heatmap: {
+        Args: { p_days?: number; p_tenant_id: string }
+        Returns: {
+          action_count: number
+          day_of_week: number
+          hour_of_day: number
+          user_id: string
+        }[]
+      }
+      get_audit_risk_scores: {
+        Args: { p_days?: number; p_tenant_id: string }
+        Returns: {
+          after_hours_actions: number
+          high_value_approvals: number
+          policy_violations: number
+          risk_score: number
+          spike_detected: boolean
+          total_actions: number
+          user_id: string
+        }[]
+      }
+      get_audit_timeline: {
+        Args: { p_days?: number; p_tenant_id: string }
+        Returns: {
+          action_date: string
+          high_risk_actions: number
+          total_actions: number
+          unique_users: number
+        }[]
+      }
       get_balance_sheet: {
         Args: {
           p_as_of: string
@@ -13108,6 +13138,18 @@ export type Database = {
           p_to: string
         }
         Returns: Json
+      }
+      get_rapid_approval_chains: {
+        Args: { p_days?: number; p_tenant_id: string }
+        Returns: {
+          acted_at: string
+          acted_by: string
+          approval_seconds: number
+          document_amount: number
+          document_number: string
+          document_type: string
+          request_id: string
+        }[]
       }
       get_rls_audit: { Args: never; Returns: Json }
       get_storage_report: { Args: never; Returns: Json }
