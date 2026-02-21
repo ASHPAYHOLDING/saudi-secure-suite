@@ -135,7 +135,8 @@
       "purchasing": "Purchasing",
       "finance": "Finance",
       "reports": "Reports",
-      "management": "Management"
+      "management": "Management",
+      "enterprise_finance": "Enterprise Accounting"
     }
   },
   "landing": {
