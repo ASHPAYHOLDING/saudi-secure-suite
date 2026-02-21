@@ -4,9 +4,9 @@ import {
   LayoutDashboard, Users, UsersRound, FileText, Settings, BarChart3,
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
-  ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
-  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock, Target,
-  TrendingUp, Key, CheckCircle2, CalendarClock, Globe, Wrench, HardDrive, ShieldAlert, Database,
+  ShoppingCart, Receipt, Plug, Wallet, KeyRound, MessageCircle,
+  Truck, BookOpen, Zap, Inbox, Bell, GitBranch, ChevronDown, Headphones, Lock, Target,
+  TrendingUp, CalendarClock, Wrench,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,12 @@ interface NavItemDef {
 interface NavGroup {
   labelKey: string;
   items: NavItemDef[];
+  /** Nested sub-group (e.g. Enterprise) — collapsible within parent */
+  subGroup?: {
+    labelKey: string;
+    badge?: string;
+    items: NavItemDef[];
+  };
 }
 
 const topItems: NavItemDef[] = [
@@ -39,6 +45,7 @@ const topItems: NavItemDef[] = [
 ];
 
 const navGroups: NavGroup[] = [
+  // ── المبيعات (6) ──
   {
     labelKey: "nav.group.sales",
     items: [
@@ -50,6 +57,7 @@ const navGroups: NavGroup[] = [
       { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
     ],
   },
+  // ── المشتريات (4) ──
   {
     labelKey: "nav.group.purchasing",
     items: [
@@ -59,6 +67,7 @@ const navGroups: NavGroup[] = [
       { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
     ],
   },
+  // ── المالية (8 core + 6 enterprise sub-group) ──
   {
     labelKey: "nav.group.finance",
     items: [
@@ -69,17 +78,22 @@ const navGroups: NavGroup[] = [
       { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
       { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
-      { icon: Receipt, key: "nav.wallet", path: "/dashboard/wallet", module: "finance" },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
-      // Enterprise finance sub-section
-      { icon: Building2, key: "nav.corporateStructure", path: "/dashboard/finance/corporate-structure", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: BookOpen, key: "nav.chartOfAccounts", path: "/dashboard/finance/coa", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: BookOpen, key: "nav.generalJournal", path: "/dashboard/finance/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: CalendarClock, key: "nav.periodClose", path: "/dashboard/finance/period-close", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: BarChart3, key: "nav.financialStatements", path: "/dashboard/finance/statements", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: Shield, key: "nav.journalApprovals", path: "/dashboard/enterprise/approvals/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
     ],
+    subGroup: {
+      labelKey: "nav.group.enterprise_finance",
+      badge: "Enterprise",
+      items: [
+        { icon: Building2, key: "nav.corporateStructure", path: "/dashboard/finance/corporate-structure", module: "enterprise", featureKey: "enterprise_mode" as any },
+        { icon: BookOpen, key: "nav.chartOfAccounts", path: "/dashboard/finance/coa", module: "enterprise", featureKey: "enterprise_mode" as any },
+        { icon: BookOpen, key: "nav.generalJournal", path: "/dashboard/finance/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
+        { icon: CalendarClock, key: "nav.periodClose", path: "/dashboard/finance/period-close", module: "enterprise", featureKey: "enterprise_mode" as any },
+        { icon: BarChart3, key: "nav.financialStatements", path: "/dashboard/finance/statements", module: "enterprise", featureKey: "enterprise_mode" as any },
+        { icon: Shield, key: "nav.journalApprovals", path: "/dashboard/enterprise/approvals/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
+      ],
+    },
   },
+  // ── التقارير (3) ──
   {
     labelKey: "nav.group.reports",
     items: [
@@ -88,18 +102,17 @@ const navGroups: NavGroup[] = [
       { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
     ],
   },
+  // ── الإدارة (4) — workflow designer merged into approvals, integrations+subscription moved to settings ──
   {
     labelKey: "nav.group.management",
     items: [
       { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
-      { icon: CheckCircle2, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
-      { icon: GitBranch, key: "nav.workflowDesigner", path: "/dashboard/workflows/designer", module: "billing" },
-      { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
+      { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
-      { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
-      { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
+      { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
     ],
   },
+  // ── الإعدادات (10) — includes integrations + subscription now ──
   {
     labelKey: "nav.settingsSection",
     items: [
@@ -111,9 +124,9 @@ const navGroups: NavGroup[] = [
       { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
       { icon: Shield, key: "nav.enterpriseGovernance", path: "/dashboard/enterprise", module: "enterprise" },
       { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
+      { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
+      { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
       { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
-      { icon: Headphones, key: "nav.support", path: "/dashboard/support", module: "help" },
-      { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
     ],
   },
 ];
@@ -134,11 +147,10 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const { seasonalTheme } = useTheme();
   const isRamadan = seasonalTheme === "ramadan";
 
-
   // Check if a feature is entitled (backend-driven) using NAV_PATH_TO_FEATURE map
   const isPathLocked = (path: string): boolean => {
     const featureKey = NAV_PATH_TO_FEATURE[path];
-    if (!featureKey) return false; // No feature key = always accessible
+    if (!featureKey) return false;
     const ent = entitlements[featureKey];
     return !(ent?.allowed ?? false);
   };
@@ -147,8 +159,13 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const getInitialOpenGroups = () => {
     const open = new Set<string>();
     for (const group of navGroups) {
-      if (group.items.some((item) => location.pathname === item.path)) {
+      const allItems = [...group.items, ...(group.subGroup?.items || [])];
+      if (allItems.some((item) => location.pathname === item.path)) {
         open.add(group.labelKey);
+      }
+      // Auto-open enterprise sub-group if active
+      if (group.subGroup?.items.some((item) => location.pathname === item.path)) {
+        open.add(group.subGroup.labelKey);
       }
     }
     return open;
@@ -222,20 +239,87 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
     );
   };
 
-
-  const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
-    const filteredItems = group.items.filter((item) => isModuleAllowed(tenantType, item.module));
+  /** Enterprise sub-group — collapsible nested section with gold badge */
+  const EnterpriseSubGroup = ({ subGroup }: { subGroup: NonNullable<NavGroup["subGroup"]> }) => {
+    const filteredItems = subGroup.items.filter((item) => isModuleAllowed(tenantType, item.module));
     if (filteredItems.length === 0) return null;
 
-    const isOpen = openGroups.has(group.labelKey);
+    const isOpen = openGroups.has(subGroup.labelKey);
     const hasActiveItem = filteredItems.some((item) => location.pathname === item.path);
 
     if (collapsed) {
       return (
         <div className="space-y-0.5">
           {filteredItems.map((item) => (
-            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} badge={item.path === "/dashboard/numaxio-pay" ? "جديد" : undefined} />
+            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
           ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-1">
+        <button
+          onClick={() => toggleGroup(subGroup.labelKey)}
+      className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-[10px] font-semibold transition-colors",
+            hasActiveItem
+              ? "text-warning"
+              : "text-sidebar-foreground/60 hover:text-sidebar-foreground/80"
+          )}
+        >
+          <Building2 size={12} className="shrink-0" />
+          <span className="flex-1 text-start">{t(subGroup.labelKey)}</span>
+          {subGroup.badge && (
+            <span className="rounded-full bg-warning/15 px-1.5 py-0.5 text-[8px] font-bold text-warning leading-none">
+              {subGroup.badge}
+            </span>
+          )}
+          <ChevronDown
+            size={12}
+            className={cn(
+              "transition-transform duration-200",
+              isOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
+            )}
+          />
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-0.5 pb-1 ps-2 border-s border-warning/20 ms-4">
+                {filteredItems.map((item) => (
+                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
+  const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
+    const filteredItems = group.items.filter((item) => isModuleAllowed(tenantType, item.module));
+    const hasSubGroup = group.subGroup && group.subGroup.items.some((item) => isModuleAllowed(tenantType, item.module));
+    if (filteredItems.length === 0 && !hasSubGroup) return null;
+
+    const allItems = [...group.items, ...(group.subGroup?.items || [])];
+    const isOpen = openGroups.has(group.labelKey);
+    const hasActiveItem = allItems.some((item) => location.pathname === item.path);
+
+    if (collapsed) {
+      return (
+        <div className="space-y-0.5">
+          {filteredItems.map((item) => (
+            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+          ))}
+          {group.subGroup && <EnterpriseSubGroup subGroup={group.subGroup} />}
         </div>
       );
     }
@@ -271,9 +355,11 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
             >
               <div className="space-y-0.5 pb-1">
                 {filteredItems.map((item) => (
-                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} badge={item.path === "/dashboard/numaxio-pay" ? "جديد" : undefined} />
+                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
                 ))}
               </div>
+              {/* Enterprise sub-group nested inside parent */}
+              {group.subGroup && <EnterpriseSubGroup subGroup={group.subGroup} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -290,7 +376,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         "fixed top-0 z-40 flex h-screen flex-col border-sidebar-border bg-sidebar transition-all duration-300",
         "inset-inline-start-0 border-e",
         collapsed ? "w-[68px]" : "w-64",
-        // Mobile: hidden by default, shown via mobileOpen
         "max-md:hidden",
         mobileOpen && "max-md:!flex"
       )}
@@ -313,10 +398,9 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         </button>
       </div>
 
-
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-3">
-        {/* Top-level items (Home, Productivity) */}
+        {/* Top-level items (Home) */}
         <div className="space-y-0.5 mb-3">
           {topItems.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
             <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
@@ -329,11 +413,30 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
             <CollapsibleGroup key={group.labelKey} group={group} />
           ))}
         </div>
-
       </div>
 
-      {/* Admin + Logout */}
+      {/* Footer: Support + Admin + Logout */}
       <div className="border-t border-sidebar-border p-3 space-y-1">
+        {/* Support & Help quick icons */}
+        <div className="flex items-center gap-1 mb-1">
+          <Link
+            to="/dashboard/support"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            title={t("nav.support")}
+          >
+            <Headphones size={16} className="shrink-0" />
+            {!collapsed && <span>{t("nav.support")}</span>}
+          </Link>
+          <Link
+            to="/dashboard/help"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            title={t("nav.help")}
+          >
+            <HelpCircle size={16} className="shrink-0" />
+            {!collapsed && <span>{t("nav.help")}</span>}
+          </Link>
+        </div>
+
         {isPlatformAdmin && (
           <Link
             to="/admin"
