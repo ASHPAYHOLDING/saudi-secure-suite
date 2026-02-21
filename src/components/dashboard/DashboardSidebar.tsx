@@ -111,6 +111,7 @@ const navGroups: NavGroup[] = [
       { icon: Lock, key: "nav.enterpriseSecurityPolicies", path: "/dashboard/enterprise/security-policies", module: "enterprise" },
       { icon: Users, key: "nav.enterpriseSessions", path: "/dashboard/enterprise/sessions", module: "enterprise" },
       { icon: Globe, key: "nav.enterpriseIPRestrictions", path: "/dashboard/enterprise/ip-restrictions", module: "enterprise" },
+      { icon: Crown, key: "nav.enterpriseRoleTemplates", path: "/dashboard/enterprise/role-templates", module: "enterprise" },
     ],
   },
 ];

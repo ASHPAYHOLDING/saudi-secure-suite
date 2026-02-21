@@ -284,4 +284,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/security-policies": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/sessions": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/ip-restrictions": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/enterprise/role-templates": FEATURE_KEYS.ENTERPRISE_MODE,
 };

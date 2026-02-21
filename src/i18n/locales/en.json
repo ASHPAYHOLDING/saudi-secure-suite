@@ -115,6 +115,7 @@
     "enterpriseSecurityPolicies": "Security Policies",
     "enterpriseSessions": "Session Management",
     "enterpriseIPRestrictions": "IP Restrictions",
+    "enterpriseRoleTemplates": "Role Templates",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
