@@ -15,11 +15,64 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+/* ─── Available Scopes ─── */
+const SCOPE_CATEGORIES = [
+  {
+    label: "الفواتير",
+    labelEn: "Invoices",
+    scopes: [
+      { key: "invoices:read", label: "قراءة الفواتير", labelEn: "Read invoices" },
+      { key: "invoices:write", label: "إنشاء/تعديل الفواتير", labelEn: "Create/update invoices" },
+    ],
+  },
+  {
+    label: "العملاء",
+    labelEn: "Customers",
+    scopes: [
+      { key: "customers:read", label: "قراءة العملاء", labelEn: "Read customers" },
+      { key: "customers:write", label: "إنشاء/تعديل العملاء", labelEn: "Create/update customers" },
+    ],
+  },
+  {
+    label: "المدفوعات",
+    labelEn: "Payments",
+    scopes: [
+      { key: "payments:read", label: "قراءة المدفوعات", labelEn: "Read payments" },
+    ],
+  },
+  {
+    label: "القيود المحاسبية",
+    labelEn: "Journal",
+    scopes: [
+      { key: "journal:read", label: "قراءة القيود", labelEn: "Read journal entries" },
+      { key: "journal:write", label: "إنشاء قيود", labelEn: "Create journal entries" },
+    ],
+  },
+  {
+    label: "المنتجات",
+    labelEn: "Products",
+    scopes: [
+      { key: "products:read", label: "قراءة المنتجات", labelEn: "Read products" },
+    ],
+  },
+];
+
+// Map legacy scope names
+function normalizeScopeDisplay(scope: string): string {
+  const map: Record<string, string> = {
+    "read:invoices": "invoices:read",
+    "read:customers": "customers:read",
+  };
+  return map[scope] || scope;
+}
 
 const ApiKeysManagement = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const { isRTL } = useLanguage();
   const { toast } = useToast();
 
@@ -28,8 +81,10 @@ const ApiKeysManagement = () => {
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newKeyName, setNewKeyName] = useState("Default Key");
+  const [selectedScopes, setSelectedScopes] = useState<string[]>(["invoices:read", "customers:read"]);
   const [newKeyResult, setNewKeyResult] = useState<{ key: string; id: string } | null>(null);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [revokeConfirm, setRevokeConfirm] = useState<string | null>(null);
 
   const fetchKeys = async () => {
     if (!tenantId) return;
@@ -56,13 +111,19 @@ const ApiKeysManagement = () => {
 
   useEffect(() => { fetchKeys(); fetchLogs(); }, [tenantId]);
 
+  const toggleScope = (scope: string) => {
+    setSelectedScopes(prev =>
+      prev.includes(scope) ? prev.filter(s => s !== scope) : [...prev, scope]
+    );
+  };
+
   const handleCreate = async () => {
-    if (!tenantId) return;
+    if (!tenantId || selectedScopes.length === 0) return;
     setCreating(true);
     const { data, error } = await secureRpc("generate_api_key", {
       _tenant_id: tenantId,
       _name: newKeyName,
-      _scopes: ["read:invoices", "read:customers"],
+      _scopes: selectedScopes,
     });
 
     if (error) {
@@ -70,19 +131,38 @@ const ApiKeysManagement = () => {
     } else {
       setNewKeyResult({ key: data.key, id: data.id });
       toast({ title: "تم إنشاء المفتاح بنجاح" });
+      // Audit log
+      await supabase.from("audit_logs").insert({
+        tenant_id: tenantId,
+        user_id: user?.id,
+        action: "create_api_key",
+        entity_type: "api_key",
+        entity_id: data.id,
+        entity_label: newKeyName,
+        after_value: { scopes: selectedScopes },
+      }).then(() => {});
       fetchKeys();
     }
     setCreating(false);
   };
 
-  const handleToggle = async (id: string, isActive: boolean) => {
-    await supabase.from("api_keys").update({ is_active: !isActive }).eq("id", id);
+  const handleRevoke = async (id: string) => {
+    await supabase.from("api_keys").update({ is_active: false, updated_at: new Date().toISOString() }).eq("id", id);
+    // Audit
+    await supabase.from("audit_logs").insert({
+      tenant_id: tenantId!,
+      user_id: user?.id ?? "",
+      action: "revoke_api_key",
+      entity_type: "api_key",
+      entity_id: id,
+    }).then(() => {});
+    toast({ title: "تم إلغاء المفتاح" });
+    setRevokeConfirm(null);
     fetchKeys();
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from("api_keys").delete().eq("id", id);
-    toast({ title: "تم حذف المفتاح" });
+  const handleToggle = async (id: string, isActive: boolean) => {
+    await supabase.from("api_keys").update({ is_active: !isActive }).eq("id", id);
     fetchKeys();
   };
 
@@ -104,10 +184,10 @@ const ApiKeysManagement = () => {
             واجهة برمجة التطبيقات (API)
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            إدارة مفاتيح الوصول والاستخدام — Enterprise
+            إدارة مفاتيح الوصول والصلاحيات — Enterprise
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={() => { setShowCreate(true); setNewKeyResult(null); setNewKeyName("Default Key"); setSelectedScopes(["invoices:read", "customers:read"]); }} className="gap-2">
           <Plus className="h-4 w-4" />
           مفتاح جديد
         </Button>
@@ -131,7 +211,7 @@ const ApiKeysManagement = () => {
               <p className="text-xs text-muted-foreground">
                 أرسل المفتاح في header: <code className="font-mono bg-background px-1 rounded" dir="ltr">x-api-key: nmx_live_...</code>
               </p>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 flex-wrap">
                 <Badge variant="outline" className="text-[10px]">GET /invoices</Badge>
                 <Badge variant="outline" className="text-[10px]">GET /invoices/:id</Badge>
                 <Badge variant="outline" className="text-[10px]">GET /customers</Badge>
@@ -174,7 +254,7 @@ const ApiKeysManagement = () => {
               </TableHeader>
               <TableBody>
                 {keys.map((key) => (
-                  <TableRow key={key.id}>
+                  <TableRow key={key.id} className={cn(!key.is_active && "opacity-50")}>
                     <TableCell className="font-medium text-sm">{key.name}</TableCell>
                     <TableCell>
                       <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded" dir="ltr">
@@ -182,17 +262,19 @@ const ApiKeysManagement = () => {
                       </code>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex gap-1 flex-wrap max-w-[200px]">
                         {(key.scopes || []).map((s: string) => (
-                          <Badge key={s} variant="outline" className="text-[9px]">{s}</Badge>
+                          <Badge key={s} variant="outline" className="text-[9px]">{normalizeScopeDisplay(s)}</Badge>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Switch
-                        checked={key.is_active}
-                        onCheckedChange={() => handleToggle(key.id, key.is_active)}
-                      />
+                      <Badge
+                        variant={key.is_active ? "default" : "secondary"}
+                        className={cn("text-[10px]", key.is_active ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20")}
+                      >
+                        {key.is_active ? "نشط" : "ملغي"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground font-mono" dir="ltr">
                       {key.last_used_at
@@ -200,14 +282,19 @@ const ApiKeysManagement = () => {
                         : "لم يُستخدم"}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => handleDelete(key.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {key.is_active && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-destructive hover:text-destructive gap-1"
+                            onClick={() => setRevokeConfirm(key.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            إلغاء
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -250,11 +337,12 @@ const ApiKeysManagement = () => {
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`text-[10px] ${
-                          log.status_code < 300 ? "text-emerald-600 border-emerald-200" :
-                          log.status_code < 500 ? "text-amber-600 border-amber-200" :
+                        className={cn(
+                          "text-[10px]",
+                          log.status_code < 300 ? "text-success border-success/20" :
+                          log.status_code < 500 ? "text-warning border-warning/20" :
                           "text-destructive border-destructive/20"
-                        }`}
+                        )}
                       >
                         {log.status_code}
                       </Badge>
@@ -268,9 +356,9 @@ const ApiKeysManagement = () => {
         </Card>
       )}
 
-      {/* Create Dialog */}
+      {/* Create Dialog with Scope Matrix */}
       <Dialog open={showCreate} onOpenChange={(v) => { setShowCreate(v); if (!v) setNewKeyResult(null); }}>
-        <DialogContent dir="rtl" className="max-w-md">
+        <DialogContent dir="rtl" className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="h-4 w-4 text-primary" />
@@ -280,12 +368,12 @@ const ApiKeysManagement = () => {
 
           {newKeyResult ? (
             <div className="space-y-4">
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+              <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                  <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold text-amber-700">مهم — انسخ المفتاح الآن</p>
-                    <p className="text-xs text-amber-600 mt-1">لن يتم عرض هذا المفتاح مرة أخرى</p>
+                    <p className="text-sm font-semibold text-foreground">مهم — انسخ المفتاح الآن</p>
+                    <p className="text-xs text-muted-foreground mt-1">لن يتم عرض هذا المفتاح مرة أخرى</p>
                   </div>
                 </div>
               </div>
@@ -304,27 +392,85 @@ const ApiKeysManagement = () => {
             </div>
           ) : (
             <>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label>اسم المفتاح</Label>
                   <Input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder="مثال: تكامل ERP" />
                 </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                  <p className="font-semibold mb-1">الصلاحيات الافتراضية:</p>
-                  <div className="flex gap-1">
-                    <Badge variant="outline" className="text-[9px]">read:invoices</Badge>
-                    <Badge variant="outline" className="text-[9px]">read:customers</Badge>
+
+                {/* Scope Checkbox Matrix */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <Shield className="h-3.5 w-3.5 text-primary" />
+                    الصلاحيات (Scopes)
+                  </Label>
+                  <div className="border border-border rounded-lg divide-y divide-border">
+                    {SCOPE_CATEGORIES.map((cat) => (
+                      <div key={cat.labelEn} className="p-3 space-y-2">
+                        <p className="text-xs font-semibold text-foreground">{cat.label}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {cat.scopes.map((scope) => (
+                            <label
+                              key={scope.key}
+                              className={cn(
+                                "flex items-center gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors",
+                                selectedScopes.includes(scope.key)
+                                  ? "border-primary/40 bg-primary/5"
+                                  : "border-border/50 hover:border-border"
+                              )}
+                            >
+                              <Checkbox
+                                checked={selectedScopes.includes(scope.key)}
+                                onCheckedChange={() => toggleScope(scope.key)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-foreground">{scope.label}</p>
+                                <p className="text-[10px] text-muted-foreground font-mono" dir="ltr">{scope.key}</p>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                  {selectedScopes.length === 0 && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      يجب اختيار صلاحية واحدة على الأقل
+                    </p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleCreate} disabled={creating || !newKeyName.trim()}>
+                <Button onClick={handleCreate} disabled={creating || !newKeyName.trim() || selectedScopes.length === 0}>
                   {creating ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Key className="h-4 w-4 me-2" />}
                   إنشاء المفتاح
                 </Button>
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Revoke Confirmation */}
+      <Dialog open={!!revokeConfirm} onOpenChange={() => setRevokeConfirm(null)}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              تأكيد إلغاء المفتاح
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            سيتم إلغاء هذا المفتاح نهائياً ولن يمكن استخدامه مجدداً. هل أنت متأكد؟
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setRevokeConfirm(null)}>إلغاء</Button>
+            <Button variant="destructive" onClick={() => revokeConfirm && handleRevoke(revokeConfirm)} className="gap-1.5">
+              <Trash2 className="h-3.5 w-3.5" />
+              إلغاء المفتاح
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
