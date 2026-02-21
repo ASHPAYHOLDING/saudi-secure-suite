@@ -9489,6 +9489,75 @@ export type Database = {
           },
         ]
       }
+      role_template_permissions: {
+        Row: {
+          id: string
+          permission_key: string
+          template_id: string
+        }
+        Insert: {
+          id?: string
+          permission_key: string
+          template_id: string
+        }
+        Update: {
+          id?: string
+          permission_key?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_template_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "role_template_permissions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "role_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_templates: {
+        Row: {
+          created_at: string | null
+          description_ar: string | null
+          description_en: string | null
+          icon: string | null
+          id: string
+          is_enterprise_only: boolean | null
+          key: string
+          name_ar: string
+          name_en: string
+        }
+        Insert: {
+          created_at?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          icon?: string | null
+          id?: string
+          is_enterprise_only?: boolean | null
+          key: string
+          name_ar: string
+          name_en: string
+        }
+        Update: {
+          created_at?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          icon?: string | null
+          id?: string
+          is_enterprise_only?: boolean | null
+          key?: string
+          name_ar?: string
+          name_en?: string
+        }
+        Relationships: []
+      }
       sales_order_items: {
         Row: {
           created_at: string
