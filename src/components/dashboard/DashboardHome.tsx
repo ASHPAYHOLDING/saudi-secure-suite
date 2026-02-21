@@ -22,10 +22,10 @@ import { useQuery } from "@tanstack/react-query";
 import { RamadanGlow, RamadanDivider, RamadanBadge } from "@/components/ramadan";
 import { useTheme } from "@/theme/ThemeProvider";
 
-
-// Lazy-load heavy chart components
+// Lazy-load heavy components
 import { lazy, Suspense } from "react";
 const ChartsSection = lazy(() => import("./DashboardCharts"));
+const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
 
 interface DashboardStats {
   totalInvoices: number;
@@ -396,7 +396,7 @@ const DashboardHome = () => {
   const navigate = useNavigate();
   const { seasonalTheme } = useTheme();
   const isRamadan = seasonalTheme === "ramadan";
-
+  const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard-stats", tenantId],
@@ -557,6 +557,7 @@ const DashboardHome = () => {
 
   const isAr = currentLang === "ar";
   const quickActions = [
+    { label: isAr ? "⚡ فاتورة سريعة" : "Quick Invoice", icon: Zap, path: "", color: "bg-accent/10 text-accent hover:bg-accent/20", isQuickInvoice: true },
     { label: isAr ? "فاتورة جديدة" : "New Invoice", icon: CreditCard, path: "/dashboard/billing", color: "bg-accent/10 text-accent hover:bg-accent/20" },
     { label: isAr ? "قيد يومي" : "Journal Entry", icon: FileText, path: "/dashboard/journal-entries", color: "bg-info/10 text-info hover:bg-info/20" },
     { label: isAr ? "مصروف جديد" : "New Expense", icon: Receipt, path: "/dashboard/expenses", color: "bg-warning/10 text-warning hover:bg-warning/20" },
@@ -680,7 +681,7 @@ const DashboardHome = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 + i * 0.05 }}
-                  onClick={() => navigate(action.path)}
+                  onClick={() => (action as any).isQuickInvoice ? setQuickInvoiceOpen(true) : navigate(action.path)}
                   className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl transition-all ${action.color}`}
                 >
                   <action.icon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -909,6 +910,10 @@ const DashboardHome = () => {
           </motion.div>
         </div>
       )}
+      {/* Quick Invoice Dialog */}
+      <Suspense fallback={null}>
+        <QuickInvoiceDialog open={quickInvoiceOpen} onOpenChange={setQuickInvoiceOpen} />
+      </Suspense>
     </div>
   );
 };

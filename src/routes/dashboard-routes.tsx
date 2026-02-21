@@ -14,7 +14,7 @@ const DeliveryNotesPage = lazy(() => import("@/components/delivery-notes/Deliver
 const ExpensesPage = lazy(() => import("@/components/expenses/ExpensesPage"));
 const AuditLogViewer = lazy(() => import("@/components/audit/AuditLogViewer"));
 const BrandingSettings = lazy(() => import("@/components/branding/BrandingSettings"));
-const ComplianceSettings = lazy(() => import("@/components/compliance/ComplianceSettings"));
+const ComplianceSettings = lazy(() => import("@/components/compliance/ComplianceHubDashboard"));
 const CustomersPage = lazy(() => import("@/components/customers/CustomersPage"));
 const CompanySettings = lazy(() => import("@/components/company/CompanySettings"));
 const TeamMembersPage = lazy(() => import("@/components/team/TeamMembersPage"));
