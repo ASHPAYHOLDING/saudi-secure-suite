@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -7,7 +7,10 @@ export type JobType =
   | "report:generate"
   | "email:bulk"
   | "inventory:recalculate"
-  | "pdf:generate";
+  | "pdf:generate"
+  | "export:excel"
+  | "integration:sync"
+  | "webhook:process";
 
 export interface JobStatus {
   id: string;
@@ -19,6 +22,7 @@ export interface JobStatus {
 export const useJobQueue = () => {
   const { tenantId, user } = useAuth();
   const [dispatching, setDispatching] = useState(false);
+  const pollTimers = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   const dispatch = useCallback(
     async (
@@ -46,6 +50,10 @@ export const useJobQueue = () => {
           .single();
 
         if (error) throw error;
+
+        // Trigger the worker immediately (fire-and-forget)
+        supabase.functions.invoke("job-worker").catch(() => {});
+
         toast.success("تم إرسال المهمة للمعالجة في الخلفية");
         return (data as any)?.id || null;
       } catch (err: any) {
@@ -70,6 +78,47 @@ export const useJobQueue = () => {
     []
   );
 
+  /**
+   * Poll a job until it reaches a terminal state (completed/failed).
+   * Returns a promise that resolves with the final job status.
+   */
+  const pollUntilDone = useCallback(
+    (jobId: string, intervalMs = 2000, maxPolls = 60): Promise<JobStatus> => {
+      return new Promise((resolve, reject) => {
+        let polls = 0;
+        const timer = setInterval(async () => {
+          polls++;
+          try {
+            const status = await getJobStatus(jobId);
+            if (!status) {
+              clearInterval(timer);
+              pollTimers.current.delete(jobId);
+              reject(new Error("Job not found"));
+              return;
+            }
+            if (status.status === "completed" || status.status === "failed") {
+              clearInterval(timer);
+              pollTimers.current.delete(jobId);
+              resolve(status);
+              return;
+            }
+            if (polls >= maxPolls) {
+              clearInterval(timer);
+              pollTimers.current.delete(jobId);
+              reject(new Error("Polling timeout"));
+            }
+          } catch (err) {
+            clearInterval(timer);
+            pollTimers.current.delete(jobId);
+            reject(err);
+          }
+        }, intervalMs);
+        pollTimers.current.set(jobId, timer);
+      });
+    },
+    [getJobStatus]
+  );
+
   const listJobs = useCallback(
     async (limit = 20) => {
       if (!tenantId) return [];
@@ -84,5 +133,5 @@ export const useJobQueue = () => {
     [tenantId]
   );
 
-  return { dispatch, getJobStatus, listJobs, dispatching };
+  return { dispatch, getJobStatus, pollUntilDone, listJobs, dispatching };
 };
