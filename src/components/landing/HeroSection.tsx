@@ -1,19 +1,18 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, CheckCircle2, TrendingUp, Shield, Zap, BarChart3 } from "lucide-react";
+import { ArrowLeft, Play, Shield, Zap, CheckCircle2, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RamadanGlow, RamadanPattern, RamadanBadge } from "@/components/ramadan";
-import { useTheme } from "@/theme/ThemeProvider";
+
+const trustItems = [
+  { icon: Shield, label: "ZATCA Phase 2 معتمد" },
+  { icon: CheckCircle2, label: "VAT تلقائي" },
+  { icon: Zap, label: "تشفير 256-bit" },
+  { icon: BarChart3, label: "1,200+ منشأة سعودية" },
+];
 
 const HeroSection = () => {
-  const { seasonalTheme } = useTheme();
-  const isRamadan = seasonalTheme === "ramadan";
-
   return (
-    <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl" style={{ overflowX: 'clip' }}>
-      <RamadanPattern />
-      <RamadanGlow variant="hero" />
-
+    <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl" style={{ overflowX: "clip" }}>
       {/* Subtle grid */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
@@ -25,10 +24,7 @@ const HeroSection = () => {
           animate={{ scale: [1, 1.2, 1], opacity: [0.06, 0.1, 0.06] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{ background: isRamadan
-            ? "radial-gradient(circle, hsl(var(--ramadan-gold) / 0.12) 0%, transparent 70%)"
-            : "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)"
-          }}
+          style={{ background: "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)" }}
         />
         <motion.div
           animate={{ scale: [1.2, 1, 1.2], opacity: [0.04, 0.08, 0.04] }}
@@ -42,28 +38,24 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
           {/* Left: Content */}
           <div className="space-y-6 md:space-y-8 min-w-0">
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col items-start gap-3"
             >
-              <RamadanBadge size="md" />
-              <div className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 backdrop-blur-sm ${
-                isRamadan
-                  ? "border-[hsl(var(--ramadan-gold)/0.3)] bg-[hsl(var(--ramadan-gold)/0.1)]"
-                  : "border-accent/30 bg-accent/10"
-              }`}>
+              <div className="inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 backdrop-blur-sm">
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isRamadan ? "bg-[hsl(var(--ramadan-gold))]" : "bg-accent"}`} />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
                 </span>
-                <span className={`text-xs font-semibold ${isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-accent"}`}>
+                <span className="text-xs font-semibold text-accent">
                   جاهز لمرحلة الفوترة الإلكترونية Phase 2
                 </span>
               </div>
             </motion.div>
 
+            {/* Headline */}
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -72,15 +64,14 @@ const HeroSection = () => {
             >
               ERP سعودي مؤسسي.
               <br />
-              <span className={isRamadan ? "text-[hsl(var(--ramadan-gold))]" : "text-gradient"}>
-                أسرع. أذكى.
-              </span>
+              <span className="text-gradient">أسرع. أذكى.</span>
               <br />
               <span className="text-primary-foreground/90">
                 متوافق بالكامل مع هيئة الزكاة.
               </span>
             </motion.h1>
 
+            {/* Subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -90,6 +81,7 @@ const HeroSection = () => {
               فواتير في 10 ثوانٍ. امتثال ZATCA تلقائي. AI محاسبي يحلل أعمالك ويوصيك بخطوتك التالية.
             </motion.p>
 
+            {/* CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -108,31 +100,29 @@ const HeroSection = () => {
                 <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
                   <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 py-7 text-base backdrop-blur-sm gap-2 rounded-2xl">
                     <Play size={16} className="fill-current" />
-                    احجز عرض مباشر
+                    شاهد الديمو
                   </Button>
                 </motion.div>
               </a>
             </motion.div>
 
-            {/* Trust signals */}
+            {/* Trust strip */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-x-5 gap-y-2"
+              className="flex flex-wrap gap-x-5 gap-y-3 pt-2"
             >
-              {[
-                "✅ متوافق ZATCA Phase 2",
-                "🔒 تشفير 256-bit",
-                "☁️ سحابي",
-                "🇸🇦 دعم عربي كامل",
-              ].map((item) => (
-                <span key={item} className="text-xs text-primary-foreground/60">{item}</span>
+              {trustItems.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <item.icon size={14} className="text-accent/70" />
+                  <span className="text-xs text-primary-foreground/60">{item.label}</span>
+                </div>
               ))}
             </motion.div>
           </div>
 
-          {/* Right: Dashboard Preview — visible on lg+, simplified on md */}
+          {/* Right: Dashboard Preview */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
