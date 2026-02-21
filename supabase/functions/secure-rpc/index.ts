@@ -34,6 +34,7 @@ async function isEnterpriseTenant(
 const ENTERPRISE_ONLY_RPCS = new Set([
   "auto_activate_enterprise_integrations",
   "get_rls_audit",
+  "clone_chart_of_accounts",
 ]);
 
 // Whitelist of functions allowed through this proxy
@@ -75,6 +76,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   atomic_start_workflow: true,
   // RLS Audit
   get_rls_audit: true,
+  // COA
+  clone_chart_of_accounts: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

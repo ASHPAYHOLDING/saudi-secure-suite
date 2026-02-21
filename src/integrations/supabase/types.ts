@@ -1459,6 +1459,57 @@ export type Database = {
           },
         ]
       }
+      chart_of_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          legal_entity_id: string | null
+          name: string
+          name_en: string | null
+          tenant_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          legal_entity_id?: string | null
+          name: string
+          name_en?: string | null
+          tenant_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          legal_entity_id?: string | null
+          name?: string
+          name_en?: string | null
+          tenant_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chart_of_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_channels: {
         Row: {
           created_at: string
@@ -1604,6 +1655,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_errors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coa_accounts: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          chart_id: string
+          code: string
+          created_at: string
+          id: string
+          is_postable: boolean
+          name: string
+          name_en: string | null
+          parent_id: string | null
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          chart_id: string
+          code: string
+          created_at?: string
+          id?: string
+          is_postable?: boolean
+          name: string
+          name_en?: string | null
+          parent_id?: string | null
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          chart_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          is_postable?: boolean
+          name?: string
+          name_en?: string | null
+          parent_id?: string | null
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coa_accounts_chart_id_fkey"
+            columns: ["chart_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coa_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "coa_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coa_accounts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -10961,6 +11079,10 @@ export type Database = {
       classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      clone_chart_of_accounts: {
+        Args: { p_chart_id: string; p_new_name?: string }
+        Returns: string
+      }
       complete_job: {
         Args: { p_job_id: string; p_result?: Json }
         Returns: undefined
@@ -11346,6 +11468,7 @@ export type Database = {
       }
     }
     Enums: {
+      account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
       budget_alert_event_status: "triggered" | "acknowledged" | "resolved"
       budget_alert_scope: "budget_total" | "line" | "cost_center" | "department"
@@ -11493,6 +11616,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_type: ["asset", "liability", "equity", "revenue", "expense"],
       app_role: ["owner", "admin", "manager", "hr", "accountant", "member"],
       budget_alert_event_status: ["triggered", "acknowledged", "resolved"],
       budget_alert_scope: ["budget_total", "line", "cost_center", "department"],
