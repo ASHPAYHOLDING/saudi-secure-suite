@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.ai-accountant]
 verify_jwt = false
+
+[functions.executive-intelligence]
+verify_jwt = false
