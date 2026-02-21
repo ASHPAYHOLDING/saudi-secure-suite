@@ -60,6 +60,7 @@ const PaymentProvidersPage = lazy(() => import("@/components/integrations/Paymen
 const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
 const LegacyIntegrationRedirect = lazy(() => import("@/components/integrations/LegacyIntegrationRedirect"));
 const GatewaySetupPage = lazy(() => import("@/components/integrations/GatewaySetupPage"));
+const IntegrationsMarketplace = lazy(() => import("@/components/integrations/IntegrationsMarketplace"));
 const IntegrationFlowPage = lazy(() => import("@/components/integrations/IntegrationFlowPage"));
 const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
 const TikTokDetailPage = lazy(() => import("@/components/integrations/TikTokDetailPage"));
@@ -150,6 +151,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
 
   // ── Integrations (specific sub-paths first, then unified :key) ──
+  { path: "integrations/marketplace", element: IntegrationsMarketplace, module: "integrations", permissionKey: "integrations.view" },
   { path: "integrations/payments", element: PaymentProvidersPage, module: "integrations" },
   { path: "integrations/gateway/*", element: GatewaySetupPage, module: "integrations" },
   { path: "integrations/setup/*", element: IntegrationFlowPage, module: "integrations" },
