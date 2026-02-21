@@ -23,6 +23,7 @@ import {
   Crown,
   MonitorDot,
   ClipboardCheck,
+  Copy,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ const menuItems = [
   { icon: LayoutTemplate, label: "توثيق التكاملات", path: "/admin/integrations/docs" },
   { icon: ClipboardCheck, label: "تدقيق النظام", path: "/admin/system/full-audit" },
   { icon: BarChart3, label: "تحليلات الاستخدام", path: "/admin/system/usage" },
+  { icon: Copy, label: "كشف التكرارات", path: "/admin/system/duplicates" },
 ];
 
 interface AdminSidebarProps {
