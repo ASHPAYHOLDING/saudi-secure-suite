@@ -11026,6 +11026,7 @@ export type Database = {
       is_authorized_finance: { Args: { _tenant_id: string }; Returns: boolean }
       is_authorized_hr: { Args: { _tenant_id: string }; Returns: boolean }
       is_branch_member: { Args: { _branch_id: string }; Returns: boolean }
+      is_enterprise_tenant: { Args: { p_tenant_id: string }; Returns: boolean }
       is_group_admin: {
         Args: { _parent_tenant_id: string; _user_id: string }
         Returns: boolean
