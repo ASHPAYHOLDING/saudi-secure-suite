@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, FileText, Eye, Filter, Loader2, ScanLine, Palette } from "lucide-react";
+import { Plus, Search, FileText, Eye, Filter, ScanLine, Palette } from "lucide-react";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateShort, getStatusLabel, getStatusColor } from "@/lib/invoice-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import ResponsiveTable, { type TableColumn, type MobileCardConfig, type TableAction } from "@/components/dashboard/ResponsiveTable";
+import PageHeader from "@/components/dashboard/PageHeader";
+import { PageLoading } from "@/components/dashboard/PageStates";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface InvoiceRow {
   id: string;
@@ -28,6 +32,8 @@ interface InvoiceListProps {
 
 const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoice }: InvoiceListProps) => {
   const { tenantId } = useAuth();
+  const { currentLang } = useLanguage();
+  const isAr = currentLang === "ar";
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,84 +53,154 @@ const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoic
 
   useEffect(() => {
     fetchInvoices();
-
     const channel = supabase
       .channel('invoice-list-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => fetchInvoices())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [fetchInvoices]);
 
   const filteredInvoices = invoices.filter((inv) => {
     const customerName = inv.customers?.name || "";
-    const matchesSearch =
-      inv.invoice_number.includes(searchTerm) ||
-      customerName.includes(searchTerm);
+    const matchesSearch = inv.invoice_number.includes(searchTerm) || customerName.includes(searchTerm);
     const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const statusFilters = [
-    { value: "all", label: "الكل" },
-    { value: "draft", label: "مسودة" },
-    { value: "pending_approval", label: "قيد الموافقة" },
-    { value: "issued", label: "صادرة" },
-    { value: "paid", label: "مدفوعة" },
-    { value: "partially_paid", label: "جزئية" },
-    { value: "overdue", label: "متأخرة" },
+    { value: "all", label: isAr ? "الكل" : "All" },
+    { value: "draft", label: isAr ? "مسودة" : "Draft" },
+    { value: "pending_approval", label: isAr ? "قيد الموافقة" : "Pending" },
+    { value: "issued", label: isAr ? "صادرة" : "Issued" },
+    { value: "paid", label: isAr ? "مدفوعة" : "Paid" },
+    { value: "partially_paid", label: isAr ? "جزئية" : "Partial" },
+    { value: "overdue", label: isAr ? "متأخرة" : "Overdue" },
   ];
 
   const totalIssued = invoices.filter(i => ['issued', 'sent', 'partially_paid', 'overdue'].includes(i.status)).reduce((s, i) => s + i.grand_total, 0);
   const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.grand_total, 0);
   const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + i.amount_due, 0);
 
-  return (
-    <div dir="rtl" className="space-y-6 p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">الفواتير</h1>
-          <p className="text-sm text-muted-foreground mt-1">إدارة وتتبع فواتيرك الضريبية</p>
-        </div>
+  const columns: TableColumn<InvoiceRow>[] = [
+    {
+      key: "number",
+      header: isAr ? "رقم الفاتورة" : "Invoice #",
+      render: (row) => (
         <div className="flex items-center gap-2">
-          {onManageTemplates && (
-            <Button variant="outline" onClick={onManageTemplates} className="gap-2">
-              <Palette size={18} />
-              القوالب
-            </Button>
-          )}
-          {onOcrImport && (
-            <Button variant="outline" onClick={onOcrImport} className="gap-2">
-              <ScanLine size={18} />
-              استيراد OCR
-            </Button>
-          )}
-          <Button onClick={onCreateNew} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-            <Plus size={18} />
-            إنشاء فاتورة
-          </Button>
+          <FileText size={14} className="text-accent shrink-0" />
+          <span className="font-medium font-english text-foreground">{row.invoice_number}</span>
         </div>
+      ),
+    },
+    {
+      key: "customer",
+      header: isAr ? "العميل" : "Customer",
+      render: (row) => <span className="text-foreground">{row.customers?.name || "—"}</span>,
+    },
+    {
+      key: "date",
+      header: isAr ? "تاريخ الإصدار" : "Issue Date",
+      render: (row) => <span className="text-muted-foreground text-xs">{formatDateShort(row.invoice_date)}</span>,
+    },
+    {
+      key: "due",
+      header: isAr ? "الاستحقاق" : "Due Date",
+      render: (row) => <span className="text-muted-foreground text-xs">{formatDateShort(row.due_date)}</span>,
+    },
+    {
+      key: "total",
+      header: isAr ? "المبلغ" : "Amount",
+      render: (row) => (
+        <span className="font-english font-medium text-foreground" dir="ltr">
+          {formatCurrency(row.grand_total)} <span className="text-[10px] text-muted-foreground">{isAr ? "ر.س" : "SAR"}</span>
+        </span>
+      ),
+    },
+    {
+      key: "remaining",
+      header: isAr ? "المتبقي" : "Remaining",
+      render: (row) => (
+        <span className="font-english font-medium text-foreground" dir="ltr">
+          {formatCurrency(row.amount_due)} <span className="text-[10px] text-muted-foreground">{isAr ? "ر.س" : "SAR"}</span>
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: isAr ? "الحالة" : "Status",
+      render: (row) => (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(row.status)}`}>
+          {getStatusLabel(row.status)}
+        </span>
+      ),
+    },
+  ];
+
+  const actions: TableAction<InvoiceRow>[] = [
+    {
+      label: isAr ? "عرض" : "View",
+      icon: <Eye size={14} />,
+      onClick: (row) => onViewInvoice(row.id),
+    },
+  ];
+
+  const mobileCard: MobileCardConfig<InvoiceRow> = {
+    title: (row) => (
+      <div className="flex items-center gap-2">
+        <FileText size={14} className="text-accent shrink-0" />
+        <span className="font-english">{row.invoice_number}</span>
       </div>
+    ),
+    subtitle: (row) => row.customers?.name || "—",
+    badge: (row) => (
+      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(row.status)}`}>
+        {getStatusLabel(row.status)}
+      </span>
+    ),
+    meta: (row) => formatDateShort(row.invoice_date),
+    value: (row) => (
+      <span className="font-english" dir="ltr">
+        {formatCurrency(row.grand_total)} {isAr ? "ر.س" : "SAR"}
+      </span>
+    ),
+    onClick: (row) => onViewInvoice(row.id),
+  };
+
+  return (
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* Header with Quick Actions */}
+      <PageHeader
+        title={isAr ? "الفواتير" : "Invoices"}
+        description={isAr ? "إدارة وتتبع فواتيرك الضريبية" : "Manage and track your tax invoices"}
+        actions={[
+          ...(onManageTemplates ? [{ label: isAr ? "القوالب" : "Templates", icon: <Palette size={16} />, onClick: onManageTemplates, variant: "outline" as const }] : []),
+          ...(onOcrImport ? [{ label: isAr ? "استيراد OCR" : "OCR Import", icon: <ScanLine size={16} />, onClick: onOcrImport, variant: "outline" as const }] : []),
+        ]}
+      >
+        <Button onClick={onCreateNew} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 h-9">
+          <Plus size={16} />
+          {isAr ? "إنشاء فاتورة" : "New Invoice"}
+        </Button>
+      </PageHeader>
 
       {/* Summary Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {[
-          { label: "إجمالي المستحق", value: totalIssued, color: "text-info" },
-          { label: "المدفوع", value: totalPaid, color: "text-success" },
-          { label: "المتأخر", value: totalOverdue, color: "text-destructive" },
+          { label: isAr ? "إجمالي المستحق" : "Total Due", value: totalIssued, color: "text-info" },
+          { label: isAr ? "المدفوع" : "Paid", value: totalPaid, color: "text-success" },
+          { label: isAr ? "المتأخر" : "Overdue", value: totalOverdue, color: "text-destructive" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            className="rounded-xl border border-border bg-card p-5 shadow-card"
+            className="rounded-xl border border-border bg-card p-5 shadow-sm"
           >
             <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
             <p className={`text-xl font-bold font-english ${stat.color}`} dir="ltr">
               {formatCurrency(stat.value)}
-              <span className="text-xs font-normal text-muted-foreground mr-1"> ر.س</span>
+              <span className="text-xs font-normal text-muted-foreground ms-1">{isAr ? "ر.س" : "SAR"}</span>
             </p>
           </motion.div>
         ))}
@@ -133,22 +209,22 @@ const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoic
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="relative flex-1 max-w-md w-full">
-          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="ابحث برقم الفاتورة أو اسم العميل..."
+            placeholder={isAr ? "ابحث برقم الفاتورة أو اسم العميل..." : "Search by invoice # or customer..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 w-full rounded-lg border border-input bg-background pr-10 pl-4 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+            className="h-10 w-full rounded-lg border border-input bg-background ps-10 pe-4 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
           />
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Filter size={14} className="text-muted-foreground ml-1" />
+          <Filter size={14} className="text-muted-foreground me-1" />
           {statusFilters.map((f) => (
             <button
               key={f.value}
               onClick={() => setStatusFilter(f.value)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors min-h-[32px] ${
                 statusFilter === f.value
                   ? "bg-accent text-accent-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -161,121 +237,38 @@ const InvoiceList = ({ onCreateNew, onOcrImport, onManageTemplates, onViewInvoic
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-accent" /></div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="rounded-xl border border-border bg-card shadow-card overflow-hidden"
-        >
-          {/* Mobile Cards */}
-          <div className="sm:hidden divide-y divide-border">
-            {filteredInvoices.map((inv) => (
-              <div key={inv.id} className="p-4 hover:bg-secondary/10 transition-colors" onClick={() => onViewInvoice(inv.id)}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <FileText size={14} className="text-accent shrink-0" />
-                    <span className="font-medium font-english text-foreground text-sm">{inv.invoice_number}</span>
-                  </div>
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(inv.status)}`}>
-                    {getStatusLabel(inv.status)}
-                  </span>
-                </div>
-                <p className="text-sm text-foreground mb-1">{inv.customers?.name || "—"}</p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{formatDateShort(inv.invoice_date)}</span>
-                  <span className="font-english font-semibold text-foreground" dir="ltr">{formatCurrency(inv.grand_total)} ر.س</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop Table */}
-          <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full text-sm" dir="rtl">
-              <thead>
-                <tr className="border-b border-border bg-secondary/30">
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">رقم الفاتورة</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">العميل</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">تاريخ الإصدار</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">الاستحقاق</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المبلغ</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">المتبقي</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">الحالة</th>
-                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground text-xs">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.map((inv, i) => (
-                  <motion.tr
-                    key={inv.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.03 * i }}
-                    className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <FileText size={14} className="text-accent shrink-0" />
-                        <span className="font-medium font-english text-foreground">{inv.invoice_number}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-foreground">{inv.customers?.name || "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{formatDateShort(inv.invoice_date)}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{formatDateShort(inv.due_date)}</td>
-                    <td className="px-4 py-3 font-english font-medium text-foreground" dir="ltr">
-                      {formatCurrency(inv.grand_total)} <span className="text-[10px] text-muted-foreground">ر.س</span>
-                    </td>
-                    <td className="px-4 py-3 font-english font-medium text-foreground" dir="ltr">
-                      {formatCurrency(inv.amount_due)} <span className="text-[10px] text-muted-foreground">ر.س</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(inv.status)}`}>
-                        {getStatusLabel(inv.status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewInvoice(inv.id)}
-                        className="gap-1 text-muted-foreground hover:text-foreground"
-                      >
-                        <Eye size={14} />
-                        عرض
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))}
-                {filteredInvoices.length === 0 && (
-                  <tr>
-                    <td colSpan={8}>
-                      {invoices.length === 0 ? (
-                        <SmartEmptyState
-                          icon={FileText}
-                          title="لا توجد فواتير بعد"
-                          description="أنشئ أول فاتورة ضريبية متوافقة مع هيئة الزكاة والدخل"
-                          tips={[
-                            "أضف عميلاً أولاً من صفحة العملاء",
-                            "أنشئ فاتورة وأضف البنود والكميات",
-                            "يتم احتساب الضريبة ١٥٪ ورمز QR تلقائياً",
-                          ]}
-                          actionLabel="إنشاء أول فاتورة"
-                          onAction={onCreateNew}
-                        />
-                      ) : (
-                        <p className="py-12 text-center text-muted-foreground">لا توجد فواتير مطابقة للبحث</p>
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-      )}
+      <ResponsiveTable
+        data={filteredInvoices}
+        columns={columns}
+        actions={actions}
+        mobileCard={mobileCard}
+        loading={loading}
+        keyExtractor={(row) => row.id}
+        emptyState={
+          invoices.length === 0 ? (
+            <SmartEmptyState
+              icon={FileText}
+              title={isAr ? "لا توجد فواتير بعد" : "No invoices yet"}
+              description={isAr ? "أنشئ أول فاتورة ضريبية متوافقة مع هيئة الزكاة والدخل" : "Create your first ZATCA-compliant tax invoice"}
+              tips={isAr ? [
+                "أضف عميلاً أولاً من صفحة العملاء",
+                "أنشئ فاتورة وأضف البنود والكميات",
+                "يتم احتساب الضريبة ١٥٪ ورمز QR تلقائياً",
+              ] : [
+                "Add a customer first from the Customers page",
+                "Create an invoice and add items",
+                "VAT 15% and QR code are calculated automatically",
+              ]}
+              actionLabel={isAr ? "إنشاء أول فاتورة" : "Create First Invoice"}
+              onAction={onCreateNew}
+            />
+          ) : (
+            <div className="py-12 text-center text-muted-foreground">
+              {isAr ? "لا توجد فواتير مطابقة للبحث" : "No matching invoices found"}
+            </div>
+          )
+        }
+      />
     </div>
   );
 };
