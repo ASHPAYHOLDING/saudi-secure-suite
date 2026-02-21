@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   BookOpen, Plus, Send, Loader2, Trash2, AlertTriangle, CheckCircle2,
-  Calendar, Building2, FileText, Search,
+  Calendar, Building2, FileText, Search, Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,8 @@ interface JournalEntry {
   posted_at: string | null;
   created_by: string;
   created_at: string;
+  requires_approval: boolean;
+  approval_status: string;
 }
 
 interface JournalLine {
@@ -209,16 +211,30 @@ const JournalPage = () => {
                     <TableCell className="text-sm">{format(new Date(e.entry_date), "yyyy-MM-dd")}</TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{e.memo || "—"}</TableCell>
                     <TableCell>
-                      {e.status === "draft" && <Badge variant="outline" className="text-[10px] text-amber-600">Draft</Badge>}
+                      {e.status === "draft" && !e.requires_approval && <Badge variant="outline" className="text-[10px] text-amber-600">Draft</Badge>}
+                      {e.status === "draft" && e.requires_approval && e.approval_status === "pending" && (
+                        <Badge variant="outline" className="text-[10px] text-orange-600 border-orange-300 gap-1"><Clock size={10} />{isRTL ? "بانتظار الموافقة" : "Pending Approval"}</Badge>
+                      )}
+                      {e.status === "draft" && e.requires_approval && e.approval_status === "approved" && (
+                        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] gap-1"><CheckCircle2 size={10} />{isRTL ? "معتمد" : "Approved"}</Badge>
+                      )}
+                      {e.status === "draft" && e.requires_approval && e.approval_status === "rejected" && (
+                        <Badge variant="destructive" className="text-[10px] gap-1">{isRTL ? "مرفوض" : "Rejected"}</Badge>
+                      )}
                       {e.status === "posted" && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px]">Posted</Badge>}
                       {e.status === "reversed" && <Badge variant="destructive" className="text-[10px]">Reversed</Badge>}
                     </TableCell>
                     <TableCell>
                       {e.status === "draft" && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600" onClick={() => handlePost(e.id)} title={isRTL ? "ترحيل" : "Post"}>
-                            <Send size={13} />
-                          </Button>
+                          {(!e.requires_approval || e.approval_status === "approved") && (
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600" onClick={() => handlePost(e.id)} title={isRTL ? "ترحيل" : "Post"}>
+                              <Send size={13} />
+                            </Button>
+                          )}
+                          {e.requires_approval && e.approval_status === "pending" && (
+                            <span className="text-[10px] text-orange-600 self-center px-1">{isRTL ? "بانتظار الموافقة" : "Awaiting approval"}</span>
+                          )}
                           <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleDelete(e.id)} title={isRTL ? "حذف" : "Delete"}>
                             <Trash2 size={13} />
                           </Button>

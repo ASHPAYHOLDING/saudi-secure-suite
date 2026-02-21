@@ -268,6 +268,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "القوائم المالية",
     description: "قائمة الدخل والميزانية العمومية والتدفقات النقدية.",
   },
+  "enterprise-journal-approvals": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "موافقات القيود",
+    description: "مراجعة واعتماد أو رفض القيود اليومية.",
+  },
 };
 
 /**
@@ -315,4 +321,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/finance/journal": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/period-close": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/statements": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/enterprise/approvals/journal": FEATURE_KEYS.ENTERPRISE_MODE,
 };

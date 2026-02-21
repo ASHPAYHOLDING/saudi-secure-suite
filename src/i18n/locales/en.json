@@ -122,6 +122,7 @@
     "generalJournal": "General Journal",
     "periodClose": "Period Close",
     "financialStatements": "Financial Statements",
+    "journalApprovals": "Journal Approvals",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
