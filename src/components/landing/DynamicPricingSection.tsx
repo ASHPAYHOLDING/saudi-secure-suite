@@ -32,13 +32,15 @@ const CYCLE_LABELS: Record<BillingCycle, string> = {
 
 const PLAN_ICONS: Record<string, React.ElementType> = {
   starter: User,
-  professional: Briefcase,
+  business: Briefcase,
+  professional: Briefcase, // backward compat
   enterprise: Building2,
 };
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
   starter: "للمنشآت الناشئة والمتاجر الصغيرة",
-  professional: "الأنسب للشركات المتوسطة والنامية",
+  business: "الأنسب للشركات المتوسطة والنامية",
+  professional: "الأنسب للشركات المتوسطة والنامية", // backward compat
   enterprise: "للمنشآت الكبرى والجهات الحكومية",
 };
 
@@ -60,9 +62,9 @@ const getAllFeatures = (plans: Plan[]): string[] => {
 const planHasFeature = (plan: Plan, feature: string, allPlans: Plan[]): boolean => {
   const features = Array.isArray(plan.features) ? (plan.features as string[]) : [];
   if (features.includes(feature)) return true;
-  // Enterprise inherits professional features
+  // Enterprise inherits business features
   if (plan.slug === "enterprise") {
-    const proPlan = allPlans.find((p) => p.slug === "professional");
+    const proPlan = allPlans.find((p) => p.slug === "business" || p.slug === "professional");
     if (proPlan) {
       const proFeatures = Array.isArray(proPlan.features) ? (proPlan.features as string[]) : [];
       return proFeatures.includes(feature);
@@ -202,7 +204,7 @@ const DynamicPricingSection = () => {
         {/* Plan Cards */}
         <div className="space-y-5 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
           {plans.map((plan, i) => {
-            const isPopular = plan.slug === "professional";
+            const isPopular = plan.slug === "business" || plan.slug === "professional";
             const price = getPrice(plan);
             const monthlyEq = getMonthlyEquivalent(plan);
             const savingsPct = getSavingsPercent(plan);

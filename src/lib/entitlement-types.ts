@@ -6,6 +6,7 @@ export const FEATURE_KEYS = {
   INVOICES_BASIC: "invoices_basic",
   CUSTOMERS: "customers",
   ZATCA_PHASE1: "zatca_phase1",
+  ZATCA_PHASE2: "zatca_phase2",
   LIMITED_REPORTS: "limited_reports",
   EXPENSES: "expenses",
   QUOTATIONS: "quotations",
@@ -38,9 +39,18 @@ export const FEATURE_KEYS = {
   BUDGETS_ALERTS: "budgets_alerts",
   BUDGETS_ADVANCED: "budgets_advanced",
   ENTERPRISE_MODE: "enterprise_mode",
+  // ─── New pricing keys ───
+  AI_ACCOUNTING: "ai_accounting",
+  APPROVALS_ENABLED: "approvals_enabled",
+  CUSTOM_WORKFLOWS: "custom_workflows",
+  INTERNAL_FINANCING: "internal_financing",
+  VAT_AUTO_RETURN: "vat_auto_return",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
+
+/** Plan slug type — matches database subscription_plans.slug */
+export type PlanSlug = "starter" | "business" | "enterprise";
 
 export interface EntitlementResult {
   allowed: boolean;

@@ -10165,6 +10165,7 @@ export type Database = {
       subscription_plans: {
         Row: {
           created_at: string
+          entitlements_json: Json | null
           features: Json
           grace_period_days: number
           id: string
@@ -10183,6 +10184,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entitlements_json?: Json | null
           features?: Json
           grace_period_days?: number
           id?: string
@@ -10201,6 +10203,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entitlements_json?: Json | null
           features?: Json
           grace_period_days?: number
           id?: string
@@ -11148,6 +11151,47 @@ export type Database = {
             foreignKeyName: "tenant_sso_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_usage_tracking: {
+        Row: {
+          current_value: number
+          last_checked_at: string
+          limit_value: number | null
+          metric_key: string
+          period_end: string | null
+          period_start: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          current_value?: number
+          last_checked_at?: string
+          limit_value?: number | null
+          metric_key: string
+          period_end?: string | null
+          period_start?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          current_value?: number
+          last_checked_at?: string
+          limit_value?: number | null
+          metric_key?: string
+          period_end?: string | null
+          period_start?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_usage_tracking_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -13304,6 +13348,16 @@ export type Database = {
           fee_type: string
           net_amount: number
         }[]
+      }
+      can_add_user: { Args: { p_tenant_id: string }; Returns: boolean }
+      can_create_invoice: { Args: { p_tenant_id: string }; Returns: boolean }
+      can_use_ai: {
+        Args: { p_required_level?: number; p_tenant_id: string }
+        Returns: boolean
+      }
+      can_use_feature: {
+        Args: { p_feature_key: string; p_tenant_id: string }
+        Returns: boolean
       }
       cancel_affiliate_commissions: {
         Args: { _reason?: string; _subscription_id: string }
