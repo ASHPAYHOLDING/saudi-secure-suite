@@ -250,6 +250,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "مركز الحوكمة",
     description: "نظرة شاملة على الأمان والصلاحيات والامتثال المؤسسي.",
   },
+  "compliance-score": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "نقاط الامتثال",
+    description: "تقييم شامل لمدى التزام المنشأة بمعايير الحوكمة والامتثال.",
+  },
   "corporate-structure": {
     featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
     permissionKeys: ["company.view"],
@@ -404,4 +410,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/approvals/journal": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/finance-repair": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/governance-center": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/enterprise/compliance-score": FEATURE_KEYS.ENTERPRISE_MODE,
 };

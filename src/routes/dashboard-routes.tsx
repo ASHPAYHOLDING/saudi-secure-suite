@@ -76,6 +76,7 @@ const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
 const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityCenter"));
 const EnterpriseDashboard = lazy(() => import("@/components/enterprise/GovernanceHub"));
 const GovernanceCenterPage = lazy(() => import("@/components/enterprise/GovernanceCenterPage"));
+const ComplianceScorePage = lazy(() => import("@/components/enterprise/ComplianceScorePage"));
 const EnterpriseSecurityPolicies = lazy(() => import("@/components/enterprise/EnterpriseSecurityPolicies"));
 const EnterpriseSessionManagement = lazy(() => import("@/components/enterprise/EnterpriseSessionManagement"));
 const EnterpriseIPRestrictions = lazy(() => import("@/components/enterprise/EnterpriseIPRestrictions"));
@@ -214,6 +215,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "security", element: AdminSecurityCenter, gateSegment: "audit", module: "audit" },
   { path: "enterprise", element: EnterpriseDashboard, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "governance-center", element: GovernanceCenterPage, gateSegment: "governance-center", module: "enterprise", permissionKey: "company.view" },
+  { path: "enterprise/compliance-score", element: ComplianceScorePage, gateSegment: "compliance-score", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/security-policies", element: EnterpriseSecurityPolicies, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/sessions", element: EnterpriseSessionManagement, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/ip-restrictions", element: EnterpriseIPRestrictions, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
