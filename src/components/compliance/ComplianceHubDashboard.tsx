@@ -8,13 +8,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import {
-  ShieldCheck, FileCheck, AlertTriangle, CheckCircle2,
-  XCircle, Clock, ArrowUpRight, RefreshCw, Settings, Eye, FileText,
+  ShieldCheck, FileCheck, CheckCircle2,
+  XCircle, Clock, RefreshCw, FileText,
   Award, TrendingUp, Shield
 } from "lucide-react";
 import ZatcaCertificateManagement from "./ZatcaCertificateManagement";
 import ZatcaOnboardingWizard from "./ZatcaOnboardingWizard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/hooks/useLanguage";
+import PageHeader from "@/components/dashboard/PageHeader";
 
 interface ComplianceData {
   zatcaPhase1: boolean;
@@ -32,8 +34,30 @@ interface ComplianceData {
   invoicesWithZatca: number;
 }
 
+/** Respect prefers-reduced-motion */
+const useReducedMotion = () => {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+};
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay, duration: 0.35, ease: "easeOut" },
+});
+
 const ComplianceHubDashboard = () => {
   const { tenantId } = useAuth();
+  const { currentLang } = useLanguage();
+  const isAr = currentLang === "ar";
+  const reduced = useReducedMotion();
   const [data, setData] = useState<ComplianceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -83,7 +107,6 @@ const ComplianceHubDashboard = () => {
     setLoading(false);
   };
 
-  // Compliance score
   const getComplianceScore = () => {
     if (!data) return 0;
     let score = 0;
@@ -102,19 +125,23 @@ const ComplianceHubDashboard = () => {
   const scoreBg = score >= 80 ? "bg-success/10" : score >= 50 ? "bg-warning/10" : "bg-destructive/10";
 
   const statusBadge = (status: string) => {
-    switch (status) {
-      case "success": case "reported": case "cleared":
-        return <Badge className="bg-success/10 text-success border-success/30 text-[10px]">✅ ناجح</Badge>;
-      case "error": case "rejected":
-        return <Badge className="bg-destructive/10 text-destructive border-destructive/30 text-[10px]">❌ مرفوض</Badge>;
-      default:
-        return <Badge className="bg-warning/10 text-warning border-warning/30 text-[10px]">⏳ معلق</Badge>;
-    }
+    const configs: Record<string, { cls: string; label: string }> = {
+      success: { cls: "bg-success/10 text-success border-success/30", label: isAr ? "ناجح" : "Success" },
+      reported: { cls: "bg-success/10 text-success border-success/30", label: isAr ? "مبلّغ" : "Reported" },
+      cleared: { cls: "bg-success/10 text-success border-success/30", label: isAr ? "مقبول" : "Cleared" },
+      error: { cls: "bg-destructive/10 text-destructive border-destructive/30", label: isAr ? "مرفوض" : "Rejected" },
+      rejected: { cls: "bg-destructive/10 text-destructive border-destructive/30", label: isAr ? "مرفوض" : "Rejected" },
+    };
+    const config = configs[status] || { cls: "bg-warning/10 text-warning border-warning/30", label: isAr ? "معلق" : "Pending" };
+    return <Badge className={`${config.cls} text-[10px]`}>{config.label}</Badge>;
   };
+
+  const Wrapper = reduced ? "div" as any : motion.div;
+  const motionProps = (delay = 0) => reduced ? {} : fadeUp(delay);
 
   if (loading) {
     return (
-      <div className="space-y-4 p-4 sm:p-6" dir="rtl">
+      <div className="space-y-4 p-4 sm:p-6">
         <Skeleton className="h-8 w-48" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
@@ -123,27 +150,43 @@ const ComplianceHubDashboard = () => {
     );
   }
 
-  return (
-    <div className="space-y-6 p-4 sm:p-6" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-accent" />
-            مركز الامتثال
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">حالة امتثال ZATCA والضريبة والتنظيمات السعودية</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={loadData} className="gap-1.5">
-          <RefreshCw className="w-4 h-4" />
-          تحديث
-        </Button>
-      </div>
+  const checklistItems = [
+    { label: isAr ? "التسجيل في ضريبة القيمة المضافة" : "VAT Registration", done: data?.vatRegistered },
+    { label: isAr ? "إدخال الرقم الضريبي" : "Tax Number Entered", done: !!data?.vatNumber },
+    { label: isAr ? "إدخال السجل التجاري" : "CR Number Entered", done: !!data?.crNumber },
+    { label: isAr ? "تفعيل ZATCA المرحلة الأولى (QR)" : "ZATCA Phase 1 (QR) Active", done: data?.zatcaPhase1 },
+    { label: isAr ? "تفعيل ZATCA المرحلة الثانية (XML + توقيع)" : "ZATCA Phase 2 (XML + Signing)", done: data?.zatcaPhase2Ready },
+    { label: isAr ? "شهادة ZATCA فعّالة" : "Active ZATCA Certificate", done: (data?.activeCertificates || 0) > 0 },
+    { label: isAr ? "إرسال فاتورة ناجحة واحدة على الأقل" : "At Least 1 Successful Submission", done: (data?.successfulSubmissions || 0) > 0 },
+  ];
 
-      {/* Compliance Score + KPIs */}
+  return (
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* Header */}
+      <PageHeader
+        title={isAr ? "مركز الامتثال" : "Compliance Hub"}
+        description={isAr ? "حالة امتثال ZATCA والضريبة والتنظيمات السعودية" : "ZATCA, VAT, and Saudi regulatory compliance status"}
+        actions={[{
+          label: isAr ? "تحديث" : "Refresh",
+          icon: <RefreshCw className="w-4 h-4" />,
+          onClick: loadData,
+          variant: "outline",
+        }]}
+      >
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-accent" />
+          {score >= 80 && (
+            <Badge className="bg-success/10 text-success border-success/30 text-xs">
+              {isAr ? "جاهز للتدقيق" : "Audit Ready"}
+            </Badge>
+          )}
+        </div>
+      </PageHeader>
+
+      {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Score Card */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        {/* Score */}
+        <Wrapper {...motionProps(0)}>
           <Card className="border-border/60 h-full">
             <CardContent className="p-5">
               <div className="flex items-center gap-3 mb-3">
@@ -152,20 +195,23 @@ const ComplianceHubDashboard = () => {
                 </div>
                 <div>
                   <p className={`text-2xl font-bold font-english ${scoreColor}`}>{score}%</p>
-                  <p className="text-[10px] text-muted-foreground">نقاط الامتثال</p>
+                  <p className="text-[10px] text-muted-foreground">{isAr ? "نقاط الامتثال" : "Compliance Score"}</p>
                 </div>
               </div>
               <Progress value={score} className="h-2" />
               <p className="text-[10px] text-muted-foreground mt-2">
-                {score >= 80 ? "ممتاز — مؤهل للفوترة الإلكترونية" :
-                 score >= 50 ? "جيد — يحتاج تحسينات" : "ضعيف — إجراءات مطلوبة"}
+                {score >= 80
+                  ? (isAr ? "ممتاز — مؤهل للفوترة الإلكترونية" : "Excellent — E-invoicing ready")
+                  : score >= 50
+                    ? (isAr ? "جيد — يحتاج تحسينات" : "Good — Needs improvements")
+                    : (isAr ? "ضعيف — إجراءات مطلوبة" : "Low — Action required")}
               </p>
             </CardContent>
           </Card>
-        </motion.div>
+        </Wrapper>
 
-        {/* ZATCA Phase Status */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+        {/* ZATCA Phase */}
+        <Wrapper {...motionProps(0.05)}>
           <Card className="border-border/60 h-full">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
@@ -174,44 +220,36 @@ const ComplianceHubDashboard = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">المرحلة الأولى</span>
-                  {data?.zatcaPhase1 ? (
-                    <CheckCircle2 className="w-4 h-4 text-success" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-destructive" />
-                  )}
+                  <span className="text-xs text-muted-foreground">{isAr ? "المرحلة الأولى" : "Phase 1"}</span>
+                  {data?.zatcaPhase1 ? <CheckCircle2 className="w-4 h-4 text-success" /> : <XCircle className="w-4 h-4 text-destructive" />}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">المرحلة الثانية</span>
-                  {data?.zatcaPhase2Ready ? (
-                    <CheckCircle2 className="w-4 h-4 text-success" />
-                  ) : (
-                    <Clock className="w-4 h-4 text-warning" />
-                  )}
+                  <span className="text-xs text-muted-foreground">{isAr ? "المرحلة الثانية" : "Phase 2"}</span>
+                  {data?.zatcaPhase2Ready ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Clock className="w-4 h-4 text-warning" />}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">الشهادات الفعالة</span>
+                  <span className="text-xs text-muted-foreground">{isAr ? "الشهادات الفعالة" : "Active Certs"}</span>
                   <span className="text-xs font-english font-semibold text-foreground">{data?.activeCertificates || 0}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </Wrapper>
 
         {/* Submissions */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Wrapper {...motionProps(0.1)}>
           <Card className="border-border/60 h-full">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <TrendingUp className="w-5 h-5 text-accent" />
-                <Badge variant="outline" className="text-[10px]">آخر 30 يوم</Badge>
+                <Badge variant="outline" className="text-[10px]">{isAr ? "آخر 30 يوم" : "Last 30 days"}</Badge>
               </div>
               <p className="text-2xl font-bold font-english text-foreground">{data?.invoicesSinceLastMonth || 0}</p>
-              <p className="text-[10px] text-muted-foreground">فواتير صادرة</p>
+              <p className="text-[10px] text-muted-foreground">{isAr ? "فواتير صادرة" : "Invoices issued"}</p>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex-1">
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">مقدمة لـ ZATCA</span>
+                    <span className="text-muted-foreground">{isAr ? "مقدمة لـ ZATCA" : "Submitted to ZATCA"}</span>
                     <span className="font-english text-success">{data?.invoicesWithZatca || 0}</span>
                   </div>
                   <Progress value={data && data.invoicesSinceLastMonth > 0 ? (data.invoicesWithZatca / data.invoicesSinceLastMonth) * 100 : 0} className="h-1.5 mt-1" />
@@ -219,45 +257,41 @@ const ComplianceHubDashboard = () => {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </Wrapper>
 
         {/* VAT Registration */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <Wrapper {...motionProps(0.15)}>
           <Card className="border-border/60 h-full">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <Shield className="w-5 h-5 text-accent" />
-                <Badge variant="outline" className="text-[10px]">السجلات</Badge>
+                <Badge variant="outline" className="text-[10px]">{isAr ? "السجلات" : "Records"}</Badge>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">مسجل بالضريبة</span>
-                  {data?.vatRegistered ? (
-                    <CheckCircle2 className="w-4 h-4 text-success" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-destructive" />
-                  )}
+                  <span className="text-xs text-muted-foreground">{isAr ? "مسجل بالضريبة" : "VAT Registered"}</span>
+                  {data?.vatRegistered ? <CheckCircle2 className="w-4 h-4 text-success" /> : <XCircle className="w-4 h-4 text-destructive" />}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">الرقم الضريبي</span>
+                  <span className="text-xs text-muted-foreground">{isAr ? "الرقم الضريبي" : "VAT Number"}</span>
                   <span className="text-[10px] font-english text-foreground">{data?.vatNumber || "—"}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">السجل التجاري</span>
+                  <span className="text-xs text-muted-foreground">{isAr ? "السجل التجاري" : "CR Number"}</span>
                   <span className="text-[10px] font-english text-foreground">{data?.crNumber || "—"}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </Wrapper>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-secondary/50">
-          <TabsTrigger value="overview">سجل الإرسال</TabsTrigger>
-          <TabsTrigger value="certificates">الشهادات</TabsTrigger>
-          <TabsTrigger value="onboarding">إعداد ZATCA</TabsTrigger>
+          <TabsTrigger value="overview">{isAr ? "سجل الإرسال" : "Submissions"}</TabsTrigger>
+          <TabsTrigger value="certificates">{isAr ? "الشهادات" : "Certificates"}</TabsTrigger>
+          <TabsTrigger value="onboarding">{isAr ? "إعداد ZATCA" : "ZATCA Setup"}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -265,15 +299,17 @@ const ComplianceHubDashboard = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <FileText className="w-4 h-4 text-accent" />
-                آخر عمليات الإرسال لـ ZATCA
+                {isAr ? "آخر عمليات الإرسال لـ ZATCA" : "Recent ZATCA Submissions"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {data?.recentSubmissions.length === 0 ? (
                 <div className="text-center py-8">
                   <FileCheck className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">لم تتم أي عمليات إرسال بعد</p>
-                  <p className="text-xs text-muted-foreground mt-1">ستظهر هنا سجلات الفواتير المقدمة لهيئة الزكاة</p>
+                  <p className="text-sm text-muted-foreground">{isAr ? "لم تتم أي عمليات إرسال بعد" : "No submissions yet"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isAr ? "ستظهر هنا سجلات الفواتير المقدمة لهيئة الزكاة" : "ZATCA submission records will appear here"}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -286,7 +322,7 @@ const ComplianceHubDashboard = () => {
                         <div>
                           <p className="text-xs font-medium text-foreground font-english">{sub.invoice_id?.slice(0, 8)}...</p>
                           <p className="text-[10px] text-muted-foreground">
-                            {new Date(sub.created_at).toLocaleDateString("ar-SA")}
+                            {new Date(sub.created_at).toLocaleDateString(isAr ? "ar-SA" : "en-SA")}
                           </p>
                         </div>
                       </div>
@@ -313,25 +349,17 @@ const ComplianceHubDashboard = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-accent" />
-            قائمة فحص الامتثال
+            {isAr ? "قائمة فحص الامتثال" : "Compliance Checklist"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {[
-              { label: "التسجيل في ضريبة القيمة المضافة", done: data?.vatRegistered },
-              { label: "إدخال الرقم الضريبي", done: !!data?.vatNumber },
-              { label: "إدخال السجل التجاري", done: !!data?.crNumber },
-              { label: "تفعيل ZATCA المرحلة الأولى (QR)", done: data?.zatcaPhase1 },
-              { label: "تفعيل ZATCA المرحلة الثانية (XML + توقيع)", done: data?.zatcaPhase2Ready },
-              { label: "شهادة ZATCA فعّالة", done: (data?.activeCertificates || 0) > 0 },
-              { label: "إرسال فاتورة ناجحة واحدة على الأقل", done: (data?.successfulSubmissions || 0) > 0 },
-            ].map((item, i) => (
+            {checklistItems.map((item, i) => (
               <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/30 transition-colors">
                 {item.done ? (
-                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
                 ) : (
-                  <XCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <XCircle className="w-4 h-4 text-muted-foreground shrink-0" />
                 )}
                 <span className={`text-xs ${item.done ? "text-foreground" : "text-muted-foreground"}`}>{item.label}</span>
               </div>
