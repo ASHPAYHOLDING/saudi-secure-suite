@@ -9,6 +9,8 @@ interface RouteGuardProps {
   featureKey?: string;
   /** Label shown in AccessDenied when feature is gated */
   featureLabel?: string;
+  /** Override the denied reason shown in AccessDenied */
+  deniedReason?: import("@/components/guards/AccessDenied").AccessDeniedReason;
   /** Custom fallback instead of default AccessDenied */
   fallback?: React.ReactNode;
   children: React.ReactNode;
@@ -23,6 +25,7 @@ const RouteGuard = ({
   permissionKey,
   featureKey,
   featureLabel,
+  deniedReason,
   fallback,
   children,
 }: RouteGuardProps) => {
@@ -43,7 +46,7 @@ const RouteGuard = ({
 
   if (!allowed && reason) {
     if (fallback) return <>{fallback}</>;
-    return <AccessDenied reason={reason} featureLabel={featureLabel} featureKey={featureKey} />;
+    return <AccessDenied reason={deniedReason || reason} featureLabel={featureLabel} featureKey={featureKey} />;
   }
 
   return <>{children}</>;

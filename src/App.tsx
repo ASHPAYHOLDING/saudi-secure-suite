@@ -114,6 +114,7 @@ const App = () => (
                           segment={route.gateSegment ?? route.path.split("/")[0]}
                           module={route.module}
                           permissionKey={route.permissionKey}
+                          deniedReason={route.deniedReason as any}
                           isOpenRoute={route.isOpenRoute}
                         >
                           {route.keyOnPath || route.embedded ? (

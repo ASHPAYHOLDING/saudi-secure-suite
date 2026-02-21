@@ -26,12 +26,28 @@ serve(async (req) => {
     // Get tenant
     const { data: membership } = await supabase
       .from("tenant_members")
-      .select("tenant_id")
+      .select("tenant_id, role")
       .eq("user_id", user.id)
       .limit(1)
       .maybeSingle();
     if (!membership) throw new Error("No tenant");
     const tenantId = membership.tenant_id;
+    const userRole = membership.role;
+
+    // Permission check: only owner or users with finance.view_executive_board
+    if (userRole !== "owner") {
+      const { data: perms } = await supabase.rpc("get_my_permissions", {
+        p_user_id: user.id,
+        p_tenant_id: tenantId,
+      });
+      const permList: string[] = perms || [];
+      if (!permList.includes("finance.view_executive_board")) {
+        return new Response(JSON.stringify({ error: "ليس لديك صلاحية الوصول إلى لوحة الإدارة العليا" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     const now = new Date();
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];

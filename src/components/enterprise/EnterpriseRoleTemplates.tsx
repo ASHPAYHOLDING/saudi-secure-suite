@@ -43,6 +43,7 @@ const ROLE_TEMPLATES: RoleTemplate[] = [
       "approvals.view", "approvals.approve",
       "credit_notes.view", "credit_notes.create",
       "wallet.view",
+      "finance.view_executive_board",
     ],
   },
   {
