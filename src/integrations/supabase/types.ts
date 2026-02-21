@@ -4155,6 +4155,54 @@ export type Database = {
           },
         ]
       }
+      integration_docs: {
+        Row: {
+          created_at: string
+          faq: Json
+          id: string
+          provider_key: string
+          screenshots: Json
+          security_notes: Json
+          setup_steps: Json
+          short_description: string
+          short_description_en: string | null
+          title: string
+          title_en: string | null
+          troubleshooting: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          faq?: Json
+          id?: string
+          provider_key: string
+          screenshots?: Json
+          security_notes?: Json
+          setup_steps?: Json
+          short_description?: string
+          short_description_en?: string | null
+          title?: string
+          title_en?: string | null
+          troubleshooting?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          faq?: Json
+          id?: string
+          provider_key?: string
+          screenshots?: Json
+          security_notes?: Json
+          setup_steps?: Json
+          short_description?: string
+          short_description_en?: string | null
+          title?: string
+          title_en?: string | null
+          troubleshooting?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       integration_support_tickets: {
         Row: {
           category: string
