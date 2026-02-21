@@ -7529,6 +7529,41 @@ export type Database = {
           },
         ]
       }
+      sso_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          is_verified: boolean
+          tenant_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          is_verified?: boolean
+          tenant_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          is_verified?: boolean
+          tenant_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sso_domains_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -8774,6 +8809,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tenant_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_sso_settings: {
+        Row: {
+          cert: string | null
+          client_id: string | null
+          client_secret_encrypted: string | null
+          created_at: string
+          enabled: boolean
+          entry_point: string | null
+          id: string
+          issuer: string | null
+          provider_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cert?: string | null
+          client_id?: string | null
+          client_secret_encrypted?: string | null
+          created_at?: string
+          enabled?: boolean
+          entry_point?: string | null
+          id?: string
+          issuer?: string | null
+          provider_type: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cert?: string | null
+          client_id?: string | null
+          client_secret_encrypted?: string | null
+          created_at?: string
+          enabled?: boolean
+          entry_point?: string | null
+          id?: string
+          issuer?: string | null
+          provider_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_sso_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
             referencedRelation: "tenants"
@@ -10538,6 +10623,16 @@ export type Database = {
       lock_affiliate_commission: {
         Args: { _cooling_days?: number; _subscription_id: string }
         Returns: Json
+      }
+      lookup_sso_by_domain: {
+        Args: { p_domain: string }
+        Returns: {
+          client_id: string
+          entry_point: string
+          issuer: string
+          provider_type: string
+          tenant_id: string
+        }[]
       }
       mark_entitlements_dirty: {
         Args: { p_reason?: string; p_tenant_id: string }

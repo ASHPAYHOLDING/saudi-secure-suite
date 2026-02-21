@@ -89,6 +89,7 @@
     "compliance": "Compliance",
     "stamp": "Digital Stamp",
     "auditLog": "Audit Log",
+    "ssoSettings": "Enterprise SSO",
     "permissions": "Permissions",
     "settings": "Settings",
     "help": "Help",
