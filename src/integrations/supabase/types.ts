@@ -3735,6 +3735,128 @@ export type Database = {
           },
         ]
       }
+      document_render_logs: {
+        Row: {
+          document_id: string | null
+          document_number: string | null
+          document_type: Database["public"]["Enums"]["document_template_type"]
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string
+          metadata: Json | null
+          render_duration_ms: number | null
+          render_format: string
+          rendered_at: string
+          rendered_by: string
+          status: string
+          template_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          document_id?: string | null
+          document_number?: string | null
+          document_type: Database["public"]["Enums"]["document_template_type"]
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          metadata?: Json | null
+          render_duration_ms?: number | null
+          render_format?: string
+          rendered_at?: string
+          rendered_by: string
+          status?: string
+          template_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          document_id?: string | null
+          document_number?: string | null
+          document_type?: Database["public"]["Enums"]["document_template_type"]
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          metadata?: Json | null
+          render_duration_ms?: number | null
+          render_format?: string
+          rendered_at?: string
+          rendered_by?: string
+          status?: string
+          template_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_render_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_render_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          css: string
+          document_type: Database["public"]["Enums"]["document_template_type"]
+          html_template: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          name_en: string | null
+          tenant_id: string
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          css?: string
+          document_type: Database["public"]["Enums"]["document_template_type"]
+          html_template?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          name_en?: string | null
+          tenant_id: string
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          css?: string
+          document_type?: Database["public"]["Enums"]["document_template_type"]
+          html_template?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          name_en?: string | null
+          tenant_id?: string
+          updated_at?: string
+          variables?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_events: {
         Row: {
           correlation_id: string | null
@@ -13928,6 +14050,16 @@ export type Database = {
       budget_line_type: "revenue" | "expense" | "capex"
       budget_period_type: "monthly" | "quarterly" | "yearly"
       budget_status: "draft" | "active" | "locked" | "archived"
+      document_template_type:
+        | "invoice"
+        | "credit_note"
+        | "quotation"
+        | "purchase_order"
+        | "delivery_note"
+        | "sales_order"
+        | "journal_entry"
+        | "contract"
+        | "receipt"
       governance_policy_type:
         | "approval_limit"
         | "segregation_of_duties"
@@ -14086,6 +14218,17 @@ export const Constants = {
       budget_line_type: ["revenue", "expense", "capex"],
       budget_period_type: ["monthly", "quarterly", "yearly"],
       budget_status: ["draft", "active", "locked", "archived"],
+      document_template_type: [
+        "invoice",
+        "credit_note",
+        "quotation",
+        "purchase_order",
+        "delivery_note",
+        "sales_order",
+        "journal_entry",
+        "contract",
+        "receipt",
+      ],
       governance_policy_type: [
         "approval_limit",
         "segregation_of_duties",
