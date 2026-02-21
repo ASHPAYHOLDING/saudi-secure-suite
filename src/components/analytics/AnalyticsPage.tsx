@@ -20,8 +20,8 @@ import {
   PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area, ComposedChart,
   Treemap,
 } from "recharts";
-import { usePermissions } from "@/lib/roles";
-import type { AppRole } from "@/lib/roles";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
+import type { AppRole } from "@/lib/access/types";
 import { format, subMonths, startOfMonth, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -103,8 +103,7 @@ const AnalyticsPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [filters, setFilters] = useState<Filters>({ period: "12", branchId: "all", customerId: "all" });
   const [showFilters, setShowFilters] = useState(false);
-  const [role, setRole] = useState<AppRole>("member");
-  const perms = usePermissions(role);
+  const perms = useGranularPermissions();
   const dateFnsLocale = currentLang === "ar" ? ar : enUS;
 
   // Data state
@@ -128,12 +127,7 @@ const AnalyticsPage = () => {
     vatCollected: 0, vatPaid: 0, vatNet: 0,
   });
 
-  useEffect(() => {
-    if (!tenantId || !user) return;
-    supabase.from("tenant_members").select("role")
-      .eq("tenant_id", tenantId).eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => { if (data?.role) setRole(data.role as AppRole); });
-  }, [tenantId, user]);
+
 
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
@@ -379,7 +373,7 @@ const AnalyticsPage = () => {
     return Math.round(((cur - prev) / prev) * 100);
   };
 
-  if (!perms.isFinance) {
+  if (!perms.canAny("analytics.view", "invoices.create", "expenses.create")) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
         <BarChart3 size={40} />

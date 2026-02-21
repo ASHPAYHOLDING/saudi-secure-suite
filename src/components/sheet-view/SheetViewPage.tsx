@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { AppRole } from "@/lib/roles";
+import type { AppRole } from "@/lib/access/types";
 import InvoicesSheet from "./InvoicesSheet";
 import ExpensesSheet from "./ExpensesSheet";
 import CustomersSheet from "./CustomersSheet";
