@@ -262,6 +262,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "دفتر اليومية",
     description: "إنشاء وترحيل القيود اليومية المؤسسية.",
   },
+  "enterprise-statements": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "القوائم المالية",
+    description: "قائمة الدخل والميزانية العمومية والتدفقات النقدية.",
+  },
 };
 
 /**
@@ -308,4 +314,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/finance/coa": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/journal": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/period-close": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/statements": FEATURE_KEYS.ENTERPRISE_MODE,
 };

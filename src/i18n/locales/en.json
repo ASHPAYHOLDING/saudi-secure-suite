@@ -121,6 +121,7 @@
     "enterpriseAuditExport": "Audit Export",
     "generalJournal": "General Journal",
     "periodClose": "Period Close",
+    "financialStatements": "Financial Statements",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
