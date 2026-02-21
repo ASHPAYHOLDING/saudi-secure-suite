@@ -42,6 +42,7 @@ const ENTERPRISE_ONLY_RPCS = new Set([
   "get_account_drilldown",
   "approve_journal_entry",
   "reject_journal_entry",
+  "scan_finance_integrity",
 ]);
 
 // Whitelist of functions allowed through this proxy
@@ -98,6 +99,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Journal Approvals
   approve_journal_entry: true,
   reject_journal_entry: true,
+  // Finance Integrity
+  scan_finance_integrity: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

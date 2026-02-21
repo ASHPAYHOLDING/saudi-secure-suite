@@ -11588,6 +11588,7 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: number
       }
+      scan_finance_integrity: { Args: { p_tenant_id: string }; Returns: Json }
       secure_approval_action: {
         Args: {
           p_action_id: string

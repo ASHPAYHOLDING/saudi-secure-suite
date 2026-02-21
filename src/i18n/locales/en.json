@@ -123,6 +123,7 @@
     "periodClose": "Period Close",
     "financialStatements": "Financial Statements",
     "journalApprovals": "Journal Approvals",
+    "financeRepair": "Finance Data Repair",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",

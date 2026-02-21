@@ -274,6 +274,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "موافقات القيود",
     description: "مراجعة واعتماد أو رفض القيود اليومية.",
   },
+  "enterprise-finance-repair": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "إصلاح البيانات المالية",
+    description: "فحص وإصلاح مشاكل البيانات المالية.",
+  },
 };
 
 /**
@@ -322,4 +328,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/finance/period-close": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/statements": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/approvals/journal": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/enterprise/finance-repair": FEATURE_KEYS.ENTERPRISE_MODE,
 };
