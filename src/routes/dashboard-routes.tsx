@@ -53,7 +53,7 @@ const CostProfitCenterManagement = lazy(() => import("@/components/centers/CostP
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
 const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
-const IntegrationDetailPage = lazy(() => import("@/components/integrations/IntegrationDetailPage"));
+const LegacyIntegrationRedirect = lazy(() => import("@/components/integrations/LegacyIntegrationRedirect"));
 const GatewaySetupPage = lazy(() => import("@/components/integrations/GatewaySetupPage"));
 const IntegrationFlowPage = lazy(() => import("@/components/integrations/IntegrationFlowPage"));
 const ProviderDetailPage = lazy(() => import("@/components/integrations/ProviderDetailPage"));
@@ -123,9 +123,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
 
-  // ── Integrations (specific paths first) ──
+  // ── Integrations (specific sub-paths first, then unified :key) ──
   { path: "integrations/payments", element: PaymentProvidersPage, module: "integrations" },
-  { path: "integrations/provider/*", element: IntegrationDetailPage, module: "integrations" },
   { path: "integrations/gateway/*", element: GatewaySetupPage, module: "integrations" },
   { path: "integrations/setup/*", element: IntegrationFlowPage, module: "integrations" },
   { path: "integrations/marketing/tiktok", element: TikTokDetailPage, keyOnPath: true, module: "integrations" },
@@ -137,7 +136,11 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "integrations/marketing/gtm", element: GTMPage, keyOnPath: true, module: "integrations" },
   { path: "integrations/marketing/google-ads", element: GoogleAdsPage, keyOnPath: true, module: "integrations" },
   { path: "integrations/marketing/meta-catalog", element: MetaCatalogPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/:category/:provider", element: ProviderDetailPage, keyOnPath: true, module: "integrations" },
+  // ✅ مسار موحّد: /dashboard/integrations/:key — يستبدل provider/* و :category/:provider
+  { path: "integrations/:key", element: ProviderDetailPage, keyOnPath: true, module: "integrations" },
+  // ✅ Redirects للمسارات القديمة: /integrations/payment/tap → /integrations/tap
+  { path: "integrations/provider/*", element: LegacyIntegrationRedirect, module: "integrations" },
+  { path: "integrations/:category/:provider", element: LegacyIntegrationRedirect, module: "integrations" },
   { path: "integrations", element: IntegrationsPage, gateSegment: "integrations", module: "integrations", permissionKey: "integrations.view" },
 
   // ── Payment ──

@@ -700,8 +700,8 @@ const SupportTab = ({
 
 // ── الصفحة الرئيسية ───────────────────────────────────────────────────────────
 /**
- * ✅ هذا المكون يُعاد mount بالكامل عند كل تغيير route بفضل key={location.pathname} في Dashboard.tsx
- *    لا يوجد أي state خارجي يؤثر على محتوى هذه الصفحة.
+ * ✅ مسار موحّد: /dashboard/integrations/:key
+ *    يُعاد mount بالكامل عند كل تغيير route بفضل key={location.pathname}
  */
 const ProviderDetailPage = () => {
   const location = useLocation();
@@ -709,14 +709,11 @@ const ProviderDetailPage = () => {
   const { tenantId } = useAuth();
   const [activeTab, setActiveTab] = useState("setup");
 
-  // ✅ المصدر الوحيد: URL pathname
-  // pathname مثال: /dashboard/integrations/payment/tap  أو  /dashboard/integrations/tap
+  // ✅ المصدر الوحيد: آخر segment من URL = providerId
+  // /dashboard/integrations/tap → "tap"
+  // /dashboard/integrations/payment/tap → "tap" (legacy redirect compat)
   const pathSegments = location.pathname.split("/").filter(Boolean);
-  
-  // دعم المسار المبسّط /dashboard/integrations/:key (بدون category)
-  const hasCategory = pathSegments.length >= 4;
-  const category = hasCategory ? pathSegments[2] : "";
-  const providerParam = hasCategory ? pathSegments[3] : pathSegments[2] ?? "";
+  const providerParam = pathSegments[pathSegments.length - 1] ?? "";
 
   // ✅ تحميل manifest بدون أي fallback — null = NotFound
   const manifest: IntegrationManifest | null = useMemo(
@@ -724,14 +721,11 @@ const ProviderDetailPage = () => {
     [providerParam]
   );
   
-  // إذا كان المسار مبسّط، نستخدم category من manifest
-  const effectiveCategory = category || manifest?.category || "";
-
-  // لا يوجد useEffect لإعادة reset activeTab هنا لأن الـ component يُعاد mount من الأب
-  // (بسبب key={location.pathname} في Dashboard.tsx)
+  // category من manifest دائماً
+  const effectiveCategory = manifest?.category || "";
 
   // ── صفحة NotFound واضحة ─────────────────────────────────────────────────────
-  if (!manifest || !providerParam || !category) {
+  if (!manifest || !providerParam) {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center" dir="rtl">
         <AlertCircle size={48} className="text-muted-foreground/30" />
@@ -783,7 +777,7 @@ const ProviderDetailPage = () => {
               </code>
             </div>
           </div>
-          <Badge variant="outline" className="ms-auto capitalize shrink-0">{category}</Badge>
+          <Badge variant="outline" className="ms-auto capitalize shrink-0">{effectiveCategory}</Badge>
         </div>
       </motion.div>
 
@@ -835,7 +829,7 @@ const ProviderDetailPage = () => {
       {/* ✅ Debug bar — وضع التطوير فقط (مخفي للمستخدم العادي) */}
       {import.meta.env.DEV && (
         <div className="text-[10px] text-muted-foreground/50 font-mono bg-muted/30 px-2 py-1 rounded border border-dashed border-border/30 select-none">
-          DEV ▸ provider=<strong>{manifest.providerId}</strong> | category={category} | fields={manifest.fields.length} | guide={manifest.docsSections.length} | support={manifest.supportIssueTypes.length} | tenant={tenantId?.slice(0, 8)}
+          DEV ▸ provider=<strong>{manifest.providerId}</strong> | category={effectiveCategory} | fields={manifest.fields.length} | guide={manifest.docsSections.length} | support={manifest.supportIssueTypes.length} | tenant={tenantId?.slice(0, 8)}
         </div>
       )}
 
@@ -874,7 +868,7 @@ const ProviderDetailPage = () => {
                 manifest={manifest}
                 tenantId={tenantId!}
                 providerId={manifest.providerId}
-                category={category}
+                category={effectiveCategory}
               />
             </motion.div>
           </AnimatePresence>
@@ -919,7 +913,7 @@ const ProviderDetailPage = () => {
                 manifest={manifest}
                 tenantId={tenantId!}
                 providerId={manifest.providerId}
-                category={category}
+                category={effectiveCategory}
               />
             </motion.div>
           </AnimatePresence>
