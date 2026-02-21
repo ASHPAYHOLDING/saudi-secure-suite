@@ -90,6 +90,7 @@ const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
 const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
 const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
+const AuditIntelligencePage = lazy(() => import("@/components/audit/AuditIntelligencePage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -200,6 +201,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "branding", element: BrandingSettings, gateSegment: "branding", module: "branding" },
   { path: "compliance", element: ComplianceSettings, gateSegment: "compliance", module: "compliance" },
   { path: "stamp", element: StampManagement, gateSegment: "stamp", module: "stamp" },
+  { path: "audit/intelligence", element: AuditIntelligencePage, gateSegment: "audit", module: "audit", permissionKey: "company.view" },
   { path: "audit", element: AuditLogViewer, gateSegment: "audit", module: "audit" },
   { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations", permissionKey: "api_keys.view" },
   { path: "sso-settings", element: SsoSettingsPage, module: "company", permissionKey: "company.view" },
