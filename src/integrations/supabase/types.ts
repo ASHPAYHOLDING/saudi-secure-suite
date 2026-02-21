@@ -943,6 +943,68 @@ export type Database = {
         }
         Relationships: []
       }
+      background_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          max_attempts: number
+          payload: Json
+          result: Json | null
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          tenant_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number
+          payload?: Json
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number
+          payload?: Json
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "background_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_members: {
         Row: {
           assigned_at: string
@@ -9902,9 +9964,39 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: Json
       }
+      claim_next_job: {
+        Args: { p_job_types?: string[] }
+        Returns: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          max_attempts: number
+          payload: Json
+          result: Json | null
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          tenant_id: string
+          type: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "background_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      complete_job: {
+        Args: { p_job_id: string; p_result?: Json }
+        Returns: undefined
+      }
       create_document_access_token: {
         Args: {
           _document_id: string
@@ -9922,6 +10014,10 @@ export type Database = {
       enforce_feature_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: boolean
+      }
+      fail_job: {
+        Args: { p_error?: string; p_job_id: string }
+        Returns: undefined
       }
       generate_api_key: {
         Args: { _name?: string; _scopes?: string[]; _tenant_id: string }
@@ -10156,6 +10252,7 @@ export type Database = {
         }
         Returns: Json
       }
+      requeue_stale_jobs: { Args: never; Returns: number }
       reserve_stock_for_order: {
         Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
