@@ -10,6 +10,8 @@ export interface ReportFilters {
   dateTo: string;
   branchId?: string;
   customerId?: string;
+  costCenterId?: string;
+  profitCenterId?: string;
 }
 
 const cache = new Map<string, { data: any[]; ts: number }>();
@@ -85,7 +87,7 @@ export const fetchReportData = async (
   const hit = cached(ck);
   if (hit) return hit;
 
-  const { dateFrom, dateTo, branchId, customerId } = filters;
+  const { dateFrom, dateTo, branchId, customerId, costCenterId, profitCenterId } = filters;
 
   // ─── INVOICES base query ───
   const fetchInvoices = async () => {
@@ -97,6 +99,8 @@ export const fetchReportData = async (
       .lte("invoice_date", dateTo);
     if (branchId) q = q.eq("branch_id", branchId);
     if (customerId) q = q.eq("customer_id", customerId);
+    if (costCenterId) q = q.eq("cost_center_id", costCenterId);
+    if (profitCenterId) q = q.eq("profit_center_id", profitCenterId);
     const { data } = await q.order("invoice_date", { ascending: true });
     return (data || []).map((inv: any) => ({
       ...inv,
@@ -114,6 +118,8 @@ export const fetchReportData = async (
       .gte("expense_date", dateFrom)
       .lte("expense_date", dateTo);
     if (branchId) q = q.eq("branch_id", branchId);
+    if (costCenterId) q = q.eq("cost_center_id", costCenterId);
+    if (profitCenterId) q = q.eq("profit_center_id", profitCenterId);
     const { data } = await q.order("expense_date", { ascending: true });
     return (data || []).map((exp: any) => ({
       ...exp,

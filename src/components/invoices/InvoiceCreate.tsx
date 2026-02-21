@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useCenters } from "@/hooks/useCenters";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, Trash2, Save, Loader2, AlertCircle } from "lucide-react";
 import { FormLabel } from "@/components/ui/form-tooltip";
@@ -52,6 +53,9 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [currencies, setCurrencies] = useState<{ code: string; name_ar: string; symbol: string }[]>([]);
   const [baseCurrency, setBaseCurrency] = useState("SAR");
+  const [costCenterId, setCostCenterId] = useState("");
+  const [profitCenterId, setProfitCenterId] = useState("");
+  const { costCenters, profitCenters } = useCenters();
 
   useEffect(() => {
     if (!tenantId) return;
@@ -144,6 +148,8 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
       exchange_rate: exchangeRate,
       base_currency_total: baseCurrencyTotal,
       notes: notes || null,
+      cost_center_id: costCenterId || null,
+      profit_center_id: profitCenterId || null,
       status: "draft",
     } as any).select("id").single();
 
@@ -308,6 +314,33 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
               )}
             </div>
           </motion.div>
+
+          {/* Center Selectors */}
+          {(costCenters.length > 0 || profitCenters.length > 0) && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
+              <h3 className="text-sm font-semibold text-foreground mb-4">التصنيف المالي</h3>
+              <div className="space-y-4">
+                {costCenters.length > 0 && (
+                  <div>
+                    <FormLabel label="مركز التكلفة" tooltip="حدد مركز التكلفة لتتبع المصاريف حسب القسم أو المشروع" />
+                    <select value={costCenterId} onChange={e => setCostCenterId(e.target.value)} className={inputClass}>
+                      <option value="">— بدون —</option>
+                      {costCenters.map(c => <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {profitCenters.length > 0 && (
+                  <div>
+                    <FormLabel label="مركز الربح" tooltip="حدد مركز الربح لتتبع الإيرادات حسب وحدة الأعمال" />
+                    <select value={profitCenterId} onChange={e => setProfitCenterId(e.target.value)} className={inputClass}>
+                      <option value="">— بدون —</option>
+                      {profitCenters.map(c => <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card sticky top-24">
             <h3 className="text-sm font-semibold text-foreground mb-4">ملخص الفاتورة</h3>

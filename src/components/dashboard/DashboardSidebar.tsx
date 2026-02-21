@@ -66,6 +66,7 @@ const navGroups: NavGroup[] = [
       { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
       { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
       { icon: Lock, key: "nav.periodLock", path: "/dashboard/period-lock", module: "journal-entries" },
+      { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
       { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: ShieldCheck, key: "nav.dataQuality", path: "/dashboard/data-quality", module: "finance" },
