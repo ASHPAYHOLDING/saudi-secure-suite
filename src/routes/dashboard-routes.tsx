@@ -89,6 +89,7 @@ const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepa
 const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
 const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
+const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -210,6 +211,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "enterprise/role-templates", element: EnterpriseRoleTemplates, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/audit-export", element: EnterpriseAuditExport, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "governance", element: GovernancePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "system/storage", element: StorageReportPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──
