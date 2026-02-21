@@ -93,6 +93,7 @@ const StorageReportPage = lazy(() => import("@/components/system/StorageReportPa
 const MigrationsDashboardPage = lazy(() => import("@/components/system/MigrationsDashboardPage"));
 const AuditIntelligencePage = lazy(() => import("@/components/audit/AuditIntelligencePage"));
 const SystemInfrastructurePage = lazy(() => import("@/components/system/SystemInfrastructurePage"));
+const DocumentTemplateEditor = lazy(() => import("@/components/documents/DocumentTemplateEditor"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -218,6 +219,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "system/storage", element: StorageReportPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "system/migrations", element: MigrationsDashboardPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "system/infrastructure", element: SystemInfrastructurePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "document-templates", element: DocumentTemplateEditor, gateSegment: "document-templates", module: "enterprise", permissionKey: "templates.manage" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

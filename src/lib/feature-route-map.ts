@@ -280,6 +280,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "إصلاح البيانات المالية",
     description: "فحص وإصلاح مشاكل البيانات المالية.",
   },
+  "document-templates": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["templates.manage"],
+    label: "محرك المستندات",
+    description: "تصميم وإدارة قوالب المستندات (فواتير، أوامر شراء، قيود).",
+  },
 };
 
 /**
