@@ -139,7 +139,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "budgets", element: BudgetListPage, gateSegment: "budgets", module: "budgets" },
   { path: "data-quality", element: DataQualityCenterPage, gateSegment: "data-quality", module: "finance" },
   { path: "period-lock", element: PeriodLockManagement, gateSegment: "journal-entries", module: "journal-entries" },
-  { path: "cost-profit-centers", element: CostProfitCenterManagement, module: "finance" },
+  { path: "cost-profit-centers", element: CostProfitCenterManagement, gateSegment: "cost-profit-centers", module: "finance" },
   { path: "finance/corporate-structure", element: CorporateStructurePage, gateSegment: "corporate-structure", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/coa", element: ChartOfAccountsPage, gateSegment: "coa", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/journal", element: JournalPage, gateSegment: "enterprise-journal", module: "enterprise", permissionKey: "company.view" },
@@ -160,37 +160,37 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
 
   // ── Integrations (specific sub-paths first, then unified :key) ──
-  { path: "integrations/health", element: IntegrationHealthDashboard, module: "integrations", permissionKey: "integrations.view" },
-  { path: "integrations/marketplace", element: IntegrationsMarketplace, module: "integrations", permissionKey: "integrations.view" },
-  { path: "integrations/payments", element: PaymentProvidersPage, module: "integrations" },
-  { path: "integrations/gateway/*", element: GatewaySetupPage, module: "integrations" },
-  { path: "integrations/setup/*", element: IntegrationFlowPage, module: "integrations" },
-  { path: "integrations/marketing/tiktok", element: TikTokDetailPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/meta", element: MetaDetailPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/meta-pixel-capi", element: MetaPixelCapiPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/facebook-capi", element: FacebookCapiPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/x", element: XPixelPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/x-catalog", element: XCatalogPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/gtm", element: GTMPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/google-ads", element: GoogleAdsPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations/marketing/meta-catalog", element: MetaCatalogPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/health", element: IntegrationHealthDashboard, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/marketplace", element: IntegrationsMarketplace, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/payments", element: PaymentProvidersPage, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/gateway/*", element: GatewaySetupPage, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/setup/*", element: IntegrationFlowPage, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/marketing/tiktok", element: TikTokDetailPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta", element: MetaDetailPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta-pixel-capi", element: MetaPixelCapiPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/facebook-capi", element: FacebookCapiPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/x", element: XPixelPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/x-catalog", element: XCatalogPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/gtm", element: GTMPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/google-ads", element: GoogleAdsPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
+  { path: "integrations/marketing/meta-catalog", element: MetaCatalogPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
   // ✅ مسار موحّد: /dashboard/integrations/:key — يستبدل provider/* و :category/:provider
-  { path: "integrations/:key", element: ProviderDetailPage, keyOnPath: true, module: "integrations" },
+  { path: "integrations/:key", element: ProviderDetailPage, gateSegment: "integrations", keyOnPath: true, module: "integrations" },
   // ✅ Redirects للمسارات القديمة: /integrations/payment/tap → /integrations/tap
-  { path: "integrations/provider/*", element: LegacyIntegrationRedirect, module: "integrations" },
-  { path: "integrations/:category/:provider", element: LegacyIntegrationRedirect, module: "integrations" },
+  { path: "integrations/provider/*", element: LegacyIntegrationRedirect, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations/:category/:provider", element: LegacyIntegrationRedirect, gateSegment: "integrations", module: "integrations" },
   { path: "integrations", element: IntegrationsPage, gateSegment: "integrations", module: "integrations", permissionKey: "integrations.view" },
 
   // ── Payment ──
-  { path: "payment-marketplace", element: PaymentMarketplace, module: "integrations", permissionKey: "integrations.view" },
+  { path: "payment-marketplace", element: PaymentMarketplace, gateSegment: "payment-marketplace", module: "integrations" },
   { path: "payment-reminders", element: PaymentRemindersPage, gateSegment: "payment-reminders", module: "payment-reminders" },
   { path: "numaxio-pay", element: NumaxioPay, gateSegment: "numaxio-pay", embedded: true },
 
   // ── Operations ──
   { path: "supplier-inbox", element: SupplierInboxPage, gateSegment: "supplier-inbox", module: "supplier-inbox" },
   { path: "approvals", element: ApprovalWorkflowsPage, gateSegment: "approvals", module: "billing" },
-  { path: "my-approvals", element: MyApprovalsPage, module: "billing" },
-  { path: "workflows/designer", element: WorkflowDesignerPage, module: "billing" },
+  { path: "my-approvals", element: MyApprovalsPage, gateSegment: "my-approvals", module: "billing" },
+  { path: "workflows/designer", element: WorkflowDesignerPage, gateSegment: "workflows-designer", module: "billing" },
 
   // ── Team & Organization ──
   { path: "team", element: TeamMembersPage, gateSegment: "team", module: "team" },
@@ -200,14 +200,14 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "group", element: GroupDashboardPage, gateSegment: "group", module: "company" },
 
   // ── Settings & Admin ──
-  { path: "company", element: CompanySettings, module: "company", permissionKey: "company.view" },
+  { path: "company", element: CompanySettings, gateSegment: "company", module: "company" },
   { path: "branding", element: BrandingSettings, gateSegment: "branding", module: "branding" },
   { path: "compliance", element: ComplianceSettings, gateSegment: "compliance", module: "compliance" },
   { path: "stamp", element: StampManagement, gateSegment: "stamp", module: "stamp" },
   { path: "audit/intelligence", element: AuditIntelligencePage, gateSegment: "audit", module: "audit", permissionKey: "company.view" },
   { path: "audit", element: AuditLogViewer, gateSegment: "audit", module: "audit" },
   { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations", permissionKey: "api_keys.view" },
-  { path: "sso-settings", element: SsoSettingsPage, module: "company", permissionKey: "company.view" },
+  { path: "sso-settings", element: SsoSettingsPage, gateSegment: "sso-settings", module: "company" },
   { path: "security", element: AdminSecurityCenter, gateSegment: "audit", module: "audit" },
   { path: "enterprise", element: EnterpriseDashboard, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/security-policies", element: EnterpriseSecurityPolicies, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
@@ -223,8 +223,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──
-  { path: "productivity", element: AccountantDashboard, module: "dashboard" },
-  { path: "sheet-view", element: SheetViewPage, module: "sheet-view" },
+  { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard" },
+  { path: "sheet-view", element: SheetViewPage, gateSegment: "sheet-view", module: "sheet-view" },
 
   // ── Support ──
   { path: "support/new", element: CreateTicketPage, module: "help" },
@@ -233,7 +233,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
 
   // ── Subscription & Misc ──
   { path: "subscription", element: SubscriptionPage },
-  { path: "affiliate", element: AffiliateDashboardPage, module: "finance" },
+  { path: "affiliate", element: AffiliateDashboardPage, gateSegment: "affiliate-dashboard", module: "finance" },
 ];
 
 /** Index (home) route — rendered when path is exactly /dashboard */
