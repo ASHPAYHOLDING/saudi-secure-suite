@@ -48,6 +48,7 @@ const BudgetDetailPage = lazy(() => import("@/components/budgets/BudgetDetailPag
 const DataQualityCenterPage = lazy(() => import("@/components/reconciliation/DataQualityCenterPage"));
 const GroupDashboardPage = lazy(() => import("@/components/group/GroupDashboardPage"));
 const CustomReportBuilder = lazy(() => import("@/components/reports/CustomReportBuilder"));
+const ScheduledReportsPage = lazy(() => import("@/components/reports/ScheduledReportsPage"));
 const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingPage"));
 const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
 const CostProfitCenterManagement = lazy(() => import("@/components/centers/CostProfitCenterManagement"));
@@ -120,6 +121,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "reports", element: ReportsPage, gateSegment: "reports", module: "reports" },
   { path: "vat-return", element: VatReturnGenerator, gateSegment: "vat-return", module: "reports" },
   { path: "report-builder", element: CustomReportBuilder, gateSegment: "reports", module: "reports" },
+  { path: "scheduled-reports", element: ScheduledReportsPage, gateSegment: "reports", module: "reports" },
   { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
   { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },

@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.login-guard]
 verify_jwt = false
+
+[functions.process-scheduled-reports]
+verify_jwt = false
