@@ -93,6 +93,7 @@ const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/Ex
 const FinancialHealthPage = lazy(() => import("@/components/analytics/FinancialHealthPage"));
 const CollectionsIntelligencePage = lazy(() => import("@/components/finance/CollectionsIntelligencePage"));
 const CashflowRadarPage = lazy(() => import("@/components/finance/CashflowRadarPage"));
+const ExecutiveIntelligencePage = lazy(() => import("@/components/executive/ExecutiveIntelligencePage"));
 const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
 const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
 const MigrationsDashboardPage = lazy(() => import("@/components/system/MigrationsDashboardPage"));
@@ -157,6 +158,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
   { path: "finance/collections-intelligence", element: CollectionsIntelligencePage, gateSegment: "collections-intelligence", module: "finance", permissionKey: "finance.view_reports" },
   { path: "finance/cashflow-radar", element: CashflowRadarPage, gateSegment: "cashflow-radar", module: "finance", permissionKey: "finance.view_reports" },
+  { path: "executive", element: ExecutiveIntelligencePage, gateSegment: "executive-intelligence", module: "finance", permissionKey: "finance.view_reports" },
 
   // ── Reports & Analytics ──
   { path: "reports", element: ReportsPage, gateSegment: "reports", module: "reports" },

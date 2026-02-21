@@ -80,6 +80,7 @@ const navGroups: NavGroup[] = [
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: Shield, key: "nav.collectionsIntelligence", path: "/dashboard/finance/collections-intelligence", module: "finance" },
       { icon: Activity, key: "nav.cashflowRadar", path: "/dashboard/finance/cashflow-radar", module: "finance" },
+      { icon: BarChart3, key: "nav.executiveBoard", path: "/dashboard/executive", module: "finance" },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
     ],
     subGroup: {
