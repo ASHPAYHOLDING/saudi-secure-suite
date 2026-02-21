@@ -244,6 +244,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "حوكمة المؤسسة",
     description: "مركز الحوكمة والسياسات الأمنية وإدارة الجلسات.",
   },
+  "corporate-structure": {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "الهيكل المؤسسي",
+    description: "إدارة الكيانات القانونية والفروع ومراكز التكلفة.",
+  },
 };
 
 /**
@@ -286,4 +292,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/ip-restrictions": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/role-templates": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/audit-export": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/corporate-structure": FEATURE_KEYS.ENTERPRISE_MODE,
 };
