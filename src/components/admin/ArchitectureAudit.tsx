@@ -71,7 +71,10 @@ const ADMIN_ROUTES = [
   { path: "/admin/system/full-audit", label: "تدقيق النظام" },
   { path: "/admin/system/usage", label: "تحليلات الاستخدام" },
   { path: "/admin/system/duplicates", label: "كشف التكرارات" },
-  { path: "/admin/system/cleanup", label: "محرك التنظيف" },
+  { path: "/admin/system/architecture-audit", label: "تدقيق الهيكلة" },
+  { path: "/admin/system/storage", label: "تقرير التخزين (Phase A)" },
+  { path: "/admin/system/migrations", label: "لوحة الترحيلات (Phase A)" },
+  { path: "/admin/system/infrastructure", label: "البنية التحتية للنظام (Phase A)" },
 ];
 
 const DEBUG_ROUTES = [
@@ -392,8 +395,44 @@ const ArchitectureAudit = () => {
     return <Badge variant={m.variant}>{m.label}</Badge>;
   };
 
+  const PHASE_A_MIGRATIONS = [
+    { from: "/dashboard/system/storage", to: "/admin/system/storage", label: "تقرير التخزين" },
+    { from: "/dashboard/system/migrations", to: "/admin/system/migrations", label: "لوحة الترحيلات" },
+    { from: "/dashboard/system/infrastructure", to: "/admin/system/infrastructure", label: "البنية التحتية للنظام" },
+  ];
+
   return (
     <div className="p-4 md:p-6 space-y-6" dir="rtl">
+      {/* Phase A Applied Banner */}
+      <Card className="border-emerald-300 bg-emerald-500/10">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            <h3 className="text-lg font-bold text-emerald-700">Phase A Applied ✅</h3>
+            <Badge variant="outline" className="border-emerald-400 text-emerald-700">مُطبّقة</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">
+            تم نقل {PHASE_A_MIGRATIONS.length} صفحات تشغيلية من لوحة العميل إلى لوحة الأدمن مع حماية PlatformAdminRoute وإعادة توجيه مؤقتة.
+          </p>
+          <div className="space-y-2">
+            {PHASE_A_MIGRATIONS.map((m) => (
+              <div key={m.from} className="flex items-center gap-2 text-sm font-mono bg-card/50 rounded-md px-3 py-2">
+                <span className="text-muted-foreground line-through">{m.from}</span>
+                <ArrowRight className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span className="text-emerald-700 font-semibold">{m.to}</span>
+                <span className="text-xs text-muted-foreground mr-auto">({m.label})</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary">✓ أُزيلت من Sidebar العميل</Badge>
+            <Badge variant="secondary">✓ أُضيفت لـ Admin Sidebar</Badge>
+            <Badge variant="secondary">✓ Deprecation redirects فعّالة</Badge>
+            <Badge variant="secondary">✓ PlatformAdminRoute محمية</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

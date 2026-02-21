@@ -218,9 +218,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "enterprise/role-templates", element: EnterpriseRoleTemplates, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/audit-export", element: EnterpriseAuditExport, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "governance", element: GovernancePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
-  { path: "system/storage", element: StorageReportPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
-  { path: "system/migrations", element: MigrationsDashboardPage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
-  { path: "system/infrastructure", element: SystemInfrastructurePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  // ── Phase A: system/storage, system/migrations, system/infrastructure moved to /admin/system/* ──
+  // Deprecation redirects are in App.tsx
   { path: "document-templates", element: DocumentTemplateEditor, gateSegment: "document-templates", module: "enterprise", permissionKey: "templates.manage" },
   { path: "settings", element: SettingsPage, gateSegment: "settings", permissionKey: "settings.view" },
 

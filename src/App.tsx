@@ -83,6 +83,11 @@ const App = () => (
                 <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
                 <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
 
+                {/* ── Phase A deprecation redirects: operational routes moved to admin ── */}
+                <Route path="/dashboard/system/storage" element={<Navigate to="/admin/system/storage" replace />} />
+                <Route path="/dashboard/system/migrations" element={<Navigate to="/admin/system/migrations" replace />} />
+                <Route path="/dashboard/system/infrastructure" element={<Navigate to="/admin/system/infrastructure" replace />} />
+
                 {/* ── Dashboard with nested routes ── */}
                 <Route
                   path="/dashboard"

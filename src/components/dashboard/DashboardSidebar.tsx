@@ -123,8 +123,6 @@ const navGroups: NavGroup[] = [
       { icon: Crown, key: "nav.enterpriseRoleTemplates", path: "/dashboard/enterprise/role-templates", module: "enterprise" },
       { icon: Shield, key: "nav.enterpriseAuditExport", path: "/dashboard/enterprise/audit-export", module: "enterprise" },
       { icon: Shield, key: "nav.governance", path: "/dashboard/governance", module: "enterprise" },
-      { icon: HardDrive, key: "nav.storageReport", path: "/dashboard/system/storage", module: "enterprise" },
-      { icon: Database, key: "nav.migrations", path: "/dashboard/system/migrations", module: "enterprise" },
     ],
   },
 ];

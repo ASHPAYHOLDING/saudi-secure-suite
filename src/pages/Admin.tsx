@@ -35,6 +35,9 @@ const UsageAnalytics = lazy(() => import("@/components/admin/UsageAnalytics"));
 const DuplicateDetection = lazy(() => import("@/components/admin/DuplicateDetection"));
 const CleanupEngine = lazy(() => import("@/components/admin/CleanupEngine"));
 const ArchitectureAudit = lazy(() => import("@/components/admin/ArchitectureAudit"));
+const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
+const MigrationsDashboardPage = lazy(() => import("@/components/system/MigrationsDashboardPage"));
+const SystemInfrastructurePage = lazy(() => import("@/components/system/SystemInfrastructurePage"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -104,6 +107,9 @@ const Admin = () => {
     if (path === "/admin/system/duplicates") return <DuplicateDetection />;
     if (path === "/admin/system/cleanup") return <CleanupEngine />;
     if (path === "/admin/system/architecture-audit") return <ArchitectureAudit />;
+    if (path === "/admin/system/storage") return <StorageReportPage />;
+    if (path === "/admin/system/migrations") return <MigrationsDashboardPage />;
+    if (path === "/admin/system/infrastructure") return <SystemInfrastructurePage />;
     return <AdminDashboard />;
   };
 
