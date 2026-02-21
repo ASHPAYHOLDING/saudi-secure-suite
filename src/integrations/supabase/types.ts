@@ -1765,6 +1765,57 @@ export type Database = {
           },
         ]
       }
+      cost_centers: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          parent_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_centers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_note_items: {
         Row: {
           created_at: string
@@ -3009,6 +3060,7 @@ export type Database = {
           base_currency_total: number
           branch_id: string | null
           category_id: string | null
+          cost_center_id: string | null
           created_at: string
           created_by: string
           currency: string
@@ -3021,6 +3073,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_method: string
+          profit_center_id: string | null
           receipt_filename: string | null
           receipt_url: string | null
           rejection_reason: string | null
@@ -3039,6 +3092,7 @@ export type Database = {
           base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by: string
           currency?: string
@@ -3051,6 +3105,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string
+          profit_center_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           rejection_reason?: string | null
@@ -3069,6 +3124,7 @@ export type Database = {
           base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -3081,6 +3137,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string
+          profit_center_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           rejection_reason?: string | null
@@ -3105,6 +3162,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_profit_center_id_fkey"
+            columns: ["profit_center_id"]
+            isOneToOne: false
+            referencedRelation: "profit_centers"
             referencedColumns: ["id"]
           },
           {
@@ -4113,6 +4184,7 @@ export type Database = {
           amount_paid: number
           base_currency_total: number
           branch_id: string | null
+          cost_center_id: string | null
           created_at: string
           created_by: string
           currency: string
@@ -4131,6 +4203,7 @@ export type Database = {
           invoice_uuid: string | null
           notes: string | null
           previous_invoice_hash: string | null
+          profit_center_id: string | null
           status: string
           subtotal: number
           supply_date: string
@@ -4152,6 +4225,7 @@ export type Database = {
           amount_paid?: number
           base_currency_total?: number
           branch_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by: string
           currency?: string
@@ -4170,6 +4244,7 @@ export type Database = {
           invoice_uuid?: string | null
           notes?: string | null
           previous_invoice_hash?: string | null
+          profit_center_id?: string | null
           status?: string
           subtotal?: number
           supply_date?: string
@@ -4191,6 +4266,7 @@ export type Database = {
           amount_paid?: number
           base_currency_total?: number
           branch_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -4209,6 +4285,7 @@ export type Database = {
           invoice_uuid?: string | null
           notes?: string | null
           previous_invoice_hash?: string | null
+          profit_center_id?: string | null
           status?: string
           subtotal?: number
           supply_date?: string
@@ -4234,10 +4311,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_profit_center_id_fkey"
+            columns: ["profit_center_id"]
+            isOneToOne: false
+            referencedRelation: "profit_centers"
             referencedColumns: ["id"]
           },
           {
@@ -4254,6 +4345,7 @@ export type Database = {
           base_total_credit: number
           base_total_debit: number
           branch_id: string | null
+          cost_center_id: string | null
           created_at: string
           created_by: string
           currency: string
@@ -4266,6 +4358,7 @@ export type Database = {
           id: string
           posted_at: string | null
           posted_by: string | null
+          profit_center_id: string | null
           source_id: string | null
           source_type: string | null
           status: string
@@ -4278,6 +4371,7 @@ export type Database = {
           base_total_credit?: number
           base_total_debit?: number
           branch_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by: string
           currency?: string
@@ -4290,6 +4384,7 @@ export type Database = {
           id?: string
           posted_at?: string | null
           posted_by?: string | null
+          profit_center_id?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -4302,6 +4397,7 @@ export type Database = {
           base_total_credit?: number
           base_total_debit?: number
           branch_id?: string | null
+          cost_center_id?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -4314,6 +4410,7 @@ export type Database = {
           id?: string
           posted_at?: string | null
           posted_by?: string | null
+          profit_center_id?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -4328,6 +4425,20 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_profit_center_id_fkey"
+            columns: ["profit_center_id"]
+            isOneToOne: false
+            referencedRelation: "profit_centers"
             referencedColumns: ["id"]
           },
           {
@@ -6200,6 +6311,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profit_centers: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          parent_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profit_centers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profit_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profit_centers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

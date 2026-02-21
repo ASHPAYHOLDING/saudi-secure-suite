@@ -8,6 +8,7 @@ import {
   User, Stamp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCenters } from "@/hooks/useCenters";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,9 @@ const ReportsPage = () => {
   const [dateTo, setDateTo] = useState(() => new Date().toISOString().slice(0, 10));
   const [branchId, setBranchId] = useState<string>("");
   const [customerId, setCustomerId] = useState<string>("");
+  const [costCenterFilter, setCostCenterFilter] = useState<string>("");
+  const [profitCenterFilter, setProfitCenterFilter] = useState<string>("");
+  const { costCenters, profitCenters } = useCenters();
 
   // Branches + customers for filter dropdowns
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
@@ -168,6 +172,8 @@ const ReportsPage = () => {
         dateTo,
         branchId: branchId || undefined,
         customerId: customerId || undefined,
+        costCenterId: costCenterFilter || undefined,
+        profitCenterId: profitCenterFilter || undefined,
       };
       const result = await fetchReportData(rpt.key, tenantId, filters);
       setData(result);
@@ -376,6 +382,30 @@ const ReportsPage = () => {
                     <SelectContent>
                       <SelectItem value="all">{isRTL ? "جميع العملاء" : "All Customers"}</SelectItem>
                       {customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {costCenters.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "مركز التكلفة" : "Cost Center"}</Label>
+                  <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+                    <SelectTrigger className="w-[160px]"><SelectValue placeholder={isRTL ? "الكل" : "All"} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{isRTL ? "جميع المراكز" : "All Centers"}</SelectItem>
+                      {costCenters.map((c) => <SelectItem key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {profitCenters.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "مركز الربح" : "Profit Center"}</Label>
+                  <Select value={profitCenterFilter} onValueChange={setProfitCenterFilter}>
+                    <SelectTrigger className="w-[160px]"><SelectValue placeholder={isRTL ? "الكل" : "All"} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{isRTL ? "جميع المراكز" : "All Centers"}</SelectItem>
+                      {profitCenters.map((c) => <SelectItem key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

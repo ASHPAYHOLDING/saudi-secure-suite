@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCenters } from "@/hooks/useCenters";
 import { motion } from "framer-motion";
 import { ArrowRight, Save, Loader2, Upload, X, Receipt, AlertCircle } from "lucide-react";
 import { FormLabel } from "@/components/ui/form-tooltip";
@@ -48,6 +49,9 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
   const [receiptFilename, setReceiptFilename] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [costCenterId, setCostCenterId] = useState("");
+  const [profitCenterId, setProfitCenterId] = useState("");
+  const { costCenters, profitCenters } = useCenters();
 
   // Computed
   const vatAmount = Math.round(amount * (vatRate / 100) * 100) / 100;
@@ -116,11 +120,13 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
     if (amount <= 0) { toast({ title: "خطأ", description: "يرجى إدخال مبلغ صحيح", variant: "destructive" }); return; }
 
     setSaving(true);
-    const expenseData = {
+    const expenseData: any = {
       title, description: description || null, category_id: categoryId || null,
       amount, vat_rate: vatRate, vat_amount: vatAmount, total_amount: totalAmount,
       expense_date: expenseDate, payment_method: paymentMethod,
       receipt_url: receiptUrl, receipt_filename: receiptFilename, notes: notes || null,
+      cost_center_id: costCenterId || null,
+      profit_center_id: profitCenterId || null,
     };
 
     if (editId) {
@@ -254,6 +260,33 @@ const ExpenseCreate = ({ editId, onBack, onSaved }: ExpenseCreateProps) => {
             <label className="text-sm font-semibold text-foreground mb-2 block">ملاحظات</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="ملاحظات إضافية (اختياري)" className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none transition-colors" />
           </motion.div>
+
+          {/* Centers */}
+          {(costCenters.length > 0 || profitCenters.length > 0) && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
+              <h3 className="text-sm font-semibold text-foreground mb-4">التصنيف المالي</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {costCenters.length > 0 && (
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">مركز التكلفة</label>
+                    <select value={costCenterId} onChange={e => setCostCenterId(e.target.value)} className={inputClass}>
+                      <option value="">— بدون —</option>
+                      {costCenters.map(c => <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {profitCenters.length > 0 && (
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1.5 block">مركز الربح</label>
+                    <select value={profitCenterId} onChange={e => setProfitCenterId(e.target.value)} className={inputClass}>
+                      <option value="">— بدون —</option>
+                      {profitCenters.map(c => <option key={c.id} value={c.id}>{c.code ? `${c.code} — ` : ""}{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Sidebar */}

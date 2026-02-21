@@ -49,6 +49,7 @@ const GroupDashboardPage = lazy(() => import("@/components/group/GroupDashboardP
 const CustomReportBuilder = lazy(() => import("@/components/reports/CustomReportBuilder"));
 const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingPage"));
 const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
+const CostProfitCenterManagement = lazy(() => import("@/components/centers/CostProfitCenterManagement"));
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
 const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
@@ -109,6 +110,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "budgets", element: BudgetListPage, gateSegment: "budgets", module: "budgets" },
   { path: "data-quality", element: DataQualityCenterPage, gateSegment: "data-quality", module: "finance" },
   { path: "period-lock", element: PeriodLockManagement, gateSegment: "journal-entries", module: "journal-entries" },
+  { path: "cost-profit-centers", element: CostProfitCenterManagement, module: "finance" },
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
 
   // ── Reports & Analytics ──
