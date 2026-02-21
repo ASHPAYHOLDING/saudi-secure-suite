@@ -283,16 +283,8 @@ Deno.serve(withRequestTimeout(async (req) => {
     return json({ error: "Cannot determine tenant_id" }, 400);
   }
 
-  // ── 4. Idempotency insert ──────────────────────────────────────────────────
-  const { isDuplicate } = await insertWebhookEvent(
-    db, provider, providerEventId, tenantId, payloadHash, rawHeaders
-  );
-
-  if (isDuplicate) {
-    return json({ ok: true, status: "duplicate" }, 200);
-  }
-
-  // ── 5. Load + decrypt tenant webhook secret ────────────────────────────────
+  // ── 4. STRICT: Signature verification BEFORE idempotency ────────────────
+  // Load + decrypt tenant webhook secret
   const { data: providerRecord } = await db
     .from("tenant_payment_providers")
     .select("webhook_secret_encrypted, credentials_encrypted, status")
@@ -301,13 +293,9 @@ Deno.serve(withRequestTimeout(async (req) => {
     .maybeSingle();
 
   if (!providerRecord) {
-    await updateWebhookEvent(db, provider, providerEventId, {
-      status: "rejected", signature_valid: false,
-      processing_error: "Provider not configured for tenant",
-    });
     await writeAudit(db, tenantId, "webhook_rejected", provider, providerEventId,
       { reason: "provider_not_configured" });
-    return json({ error: "Provider not configured for this tenant" }, 400);
+    return json({ error: "Missing required signature" }, 401);
   }
 
   // Extract webhook secret: prefer webhook_secret_encrypted, fallback to credentials
@@ -317,10 +305,6 @@ Deno.serve(withRequestTimeout(async (req) => {
     try {
       webhookSecret = await decryptSecret(providerRecord.webhook_secret_encrypted, masterKey);
     } catch (e: any) {
-      await updateWebhookEvent(db, provider, providerEventId, {
-        status: "rejected", signature_valid: false,
-        processing_error: "Webhook secret decryption failed: " + e.message,
-      });
       await writeAudit(db, tenantId, "webhook_rejected", provider, providerEventId,
         { reason: "decryption_failed" });
       return json({ error: "Internal error: cannot decrypt webhook secret" }, 500);
@@ -334,29 +318,40 @@ Deno.serve(withRequestTimeout(async (req) => {
   }
 
   if (!webhookSecret) {
-    await updateWebhookEvent(db, provider, providerEventId, {
-      status: "rejected", signature_valid: false,
-      processing_error: "Webhook secret not configured",
-    });
     await writeAudit(db, tenantId, "webhook_rejected", provider, providerEventId,
       { reason: "webhook_secret_not_configured" });
-    return json({ error: "Webhook secret not configured. Cannot verify request." }, 401);
+    return json({ error: "Missing required signature" }, 401);
   }
 
-  // ── 6. Strict signature verification ──────────────────────────────────────
+  // ── 5. Strict signature verification ──────────────────────────────────────
   const sigResult = await verifySignature(req, rawBody, provider, webhookSecret);
 
   if (!sigResult.valid) {
-    await updateWebhookEvent(db, provider, providerEventId, {
-      status: "rejected", signature_valid: false,
-      processing_error: sigResult.reason,
-    });
+    // Log rejected event (with suffix to avoid blocking real event ID)
+    try {
+      await db.from("webhook_events").insert({
+        provider, provider_event_id: `${providerEventId}_badsig_${Date.now()}`,
+        event_id: providerEventId, tenant_id: tenantId,
+        payload_hash: payloadHash, raw_headers: rawHeaders,
+        status: "rejected", signature_valid: false,
+        processing_error: sigResult.reason, received_at: new Date().toISOString(),
+      });
+    } catch { /* non-critical */ }
     await writeAudit(db, tenantId, "webhook_signature_invalid", provider, providerEventId,
       { reason: sigResult.reason });
     return json({ error: "Webhook signature verification failed: " + sigResult.reason }, 401);
   }
 
-  // Signature valid — update record
+  // ── 6. Idempotency insert — ONLY after signature verified ─────────────────
+  const { isDuplicate } = await insertWebhookEvent(
+    db, provider, providerEventId, tenantId, payloadHash, rawHeaders
+  );
+
+  if (isDuplicate) {
+    return json({ ok: true, status: "duplicate" }, 200);
+  }
+
+  // Signature valid — update record to processing
   await db.from("webhook_events")
     .update({ signature_valid: true, status: "processing" })
     .eq("provider", provider)
