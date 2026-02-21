@@ -1,9 +1,25 @@
 // Arabic number formatting utilities
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ar-SA', {
+
+/** Currency symbol map for common currencies */
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  SAR: 'ر.س', USD: '$', EUR: '€', GBP: '£', AED: 'د.إ',
+  KWD: 'د.ك', BHD: 'د.ب', QAR: 'ر.ق', OMR: 'ر.ع',
+  EGP: 'ج.م', JOD: 'د.أ', TRY: '₺', INR: '₹', CNY: '¥',
+};
+
+export const getCurrencySymbol = (code: string): string =>
+  CURRENCY_SYMBOLS[code] || code;
+
+export const formatCurrency = (amount: number, currencyCode?: string): string => {
+  const formatted = new Intl.NumberFormat('ar-SA', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+  return formatted;
+};
+
+export const formatCurrencyWithSymbol = (amount: number, currencyCode: string = 'SAR'): string => {
+  return `${formatCurrency(amount)} ${getCurrencySymbol(currencyCode)}`;
 };
 
 export const formatNumber = (num: number, decimals = 0): string => {
