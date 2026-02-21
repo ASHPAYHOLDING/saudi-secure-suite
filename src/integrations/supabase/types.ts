@@ -1731,6 +1731,7 @@ export type Database = {
       }
       contracts: {
         Row: {
+          base_amount: number
           body_html: string
           branch_id: string | null
           contract_number: string
@@ -1738,8 +1739,10 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          currency_code: string
           customer_id: string | null
           end_date: string | null
+          exchange_rate_at_creation: number
           id: string
           notes: string | null
           signed_at: string | null
@@ -1753,6 +1756,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_amount?: number
           body_html?: string
           branch_id?: string | null
           contract_number: string
@@ -1760,8 +1764,10 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          currency_code?: string
           customer_id?: string | null
           end_date?: string | null
+          exchange_rate_at_creation?: number
           id?: string
           notes?: string | null
           signed_at?: string | null
@@ -1775,6 +1781,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_amount?: number
           body_html?: string
           branch_id?: string | null
           contract_number?: string
@@ -1782,8 +1789,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          currency_code?: string
           customer_id?: string | null
           end_date?: string | null
+          exchange_rate_at_creation?: number
           id?: string
           notes?: string | null
           signed_at?: string | null
@@ -1803,6 +1812,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "contracts_customer_id_fkey"
@@ -2042,6 +2058,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          decimal_places: number
+          is_active: boolean
+          is_base: boolean
+          name_ar: string
+          name_en: string | null
+          symbol: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          decimal_places?: number
+          is_active?: boolean
+          is_base?: boolean
+          name_ar: string
+          name_en?: string | null
+          symbol: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          decimal_places?: number
+          is_active?: boolean
+          is_base?: boolean
+          name_ar?: string
+          name_en?: string | null
+          symbol?: string
+        }
+        Relationships: []
       }
       currency_rates: {
         Row: {
@@ -3119,6 +3168,7 @@ export type Database = {
           amount: number
           approved_at: string | null
           approved_by: string | null
+          base_amount: number
           base_currency_total: number
           branch_id: string | null
           category_id: string | null
@@ -3126,10 +3176,12 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          currency_code: string
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
           exchange_rate: number
+          exchange_rate_at_creation: number
           expense_date: string
           expense_number: string
           id: string
@@ -3151,6 +3203,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          base_amount?: number
           base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
@@ -3158,10 +3211,12 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          currency_code?: string
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
           exchange_rate?: number
+          exchange_rate_at_creation?: number
           expense_date?: string
           expense_number: string
           id?: string
@@ -3183,6 +3238,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          base_amount?: number
           base_currency_total?: number
           branch_id?: string | null
           category_id?: string | null
@@ -3190,10 +3246,12 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          currency_code?: string
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
           exchange_rate?: number
+          exchange_rate_at_creation?: number
           expense_date?: string
           expense_number?: string
           id?: string
@@ -3232,6 +3290,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cost_centers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "expenses_profit_center_id_fkey"
@@ -4244,18 +4309,21 @@ export type Database = {
         Row: {
           amount_due: number
           amount_paid: number
+          base_amount: number
           base_currency_total: number
           branch_id: string | null
           cost_center_id: string | null
           created_at: string
           created_by: string
           currency: string
+          currency_code: string
           customer_id: string
           deleted_at: string | null
           deleted_by: string | null
           discount_total: number
           due_date: string
           exchange_rate: number
+          exchange_rate_at_creation: number
           grand_total: number
           id: string
           invoice_date: string
@@ -4285,18 +4353,21 @@ export type Database = {
         Insert: {
           amount_due?: number
           amount_paid?: number
+          base_amount?: number
           base_currency_total?: number
           branch_id?: string | null
           cost_center_id?: string | null
           created_at?: string
           created_by: string
           currency?: string
+          currency_code?: string
           customer_id: string
           deleted_at?: string | null
           deleted_by?: string | null
           discount_total?: number
           due_date?: string
           exchange_rate?: number
+          exchange_rate_at_creation?: number
           grand_total?: number
           id?: string
           invoice_date?: string
@@ -4326,18 +4397,21 @@ export type Database = {
         Update: {
           amount_due?: number
           amount_paid?: number
+          base_amount?: number
           base_currency_total?: number
           branch_id?: string | null
           cost_center_id?: string | null
           created_at?: string
           created_by?: string
           currency?: string
+          currency_code?: string
           customer_id?: string
           deleted_at?: string | null
           deleted_by?: string | null
           discount_total?: number
           due_date?: string
           exchange_rate?: number
+          exchange_rate_at_creation?: number
           grand_total?: number
           id?: string
           invoice_date?: string
@@ -4378,6 +4452,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cost_centers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "invoices_customer_id_fkey"
@@ -10318,6 +10399,10 @@ export type Database = {
       get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
       get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
       get_entitlements_cached: { Args: { p_tenant_id: string }; Returns: Json }
+      get_exchange_rate: {
+        Args: { p_from: string; p_tenant_id: string; p_to: string }
+        Returns: number
+      }
       get_group_subsidiaries: {
         Args: { _parent_tenant_id: string }
         Returns: {
