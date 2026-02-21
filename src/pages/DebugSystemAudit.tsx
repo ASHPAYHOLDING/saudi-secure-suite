@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import { DASHBOARD_ROUTES } from "@/routes/dashboard-routes";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
@@ -6,6 +6,8 @@ import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed } from "@/lib/tenant-modules";
 import { supabase } from "@/integrations/supabase/client";
+
+const IntegrationsHealthAudit = lazy(() => import("@/components/debug/IntegrationsHealthAudit"));
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ import {
   Lock,
   Download,
   Crown,
+  Plug,
 } from "lucide-react";
 
 // ── Types ──
@@ -366,150 +369,163 @@ const DebugSystemAudit = () => {
           <TabsTrigger value="admin" className="gap-1.5">
             <Crown size={14} /> Admin & Debug ({adminRows.length})
           </TabsTrigger>
+          <TabsTrigger value="integrations" className="gap-1.5">
+            <Plug size={14} /> Integrations
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="mt-4 space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {[
-              { label: "Total", value: stats.total, color: "text-foreground" },
-              { label: "Allowed", value: stats.allowed, color: "text-green-500" },
-              { label: "Open", value: stats.open, color: "text-blue-400" },
-              { label: "Denied", value: stats.denied, color: "text-destructive" },
-              { label: "Warnings", value: stats.warnings, color: "text-yellow-500" },
-            ].map((s) => (
-              <Card key={s.label}>
-                <CardContent className="p-3 text-center">
-                  <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</div>
+        {/* Integrations tab */}
+        <TabsContent value="integrations" className="mt-4">
+          <Suspense fallback={<div className="flex justify-center py-12"><RefreshCw size={20} className="animate-spin text-muted-foreground" /></div>}>
+            <IntegrationsHealthAudit />
+          </Suspense>
+        </TabsContent>
+
+        {/* Route audit content — shared by dashboard & admin tabs */}
+        {(activeTab === "dashboard" || activeTab === "admin") && (
+          <TabsContent value={activeTab} className="mt-4 space-y-4" forceMount={undefined}>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {[
+                { label: "Total", value: stats.total, color: "text-foreground" },
+                { label: "Allowed", value: stats.allowed, color: "text-green-500" },
+                { label: "Open", value: stats.open, color: "text-blue-400" },
+                { label: "Denied", value: stats.denied, color: "text-destructive" },
+                { label: "Warnings", value: stats.warnings, color: "text-yellow-500" },
+              ].map((s) => (
+                <Card key={s.label}>
+                  <CardContent className="p-3 text-center">
+                    <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Global Warnings */}
+            {globalWarnings.length > 0 && (
+              <Card className="border-yellow-500/40 bg-yellow-500/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2 text-yellow-500">
+                    <AlertTriangle size={16} /> Global Warnings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  {globalWarnings.map((w, i) => (
+                    <p key={i} className="text-xs text-yellow-600 font-mono">{w}</p>
+                  ))}
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            )}
 
-          {/* Global Warnings */}
-          {globalWarnings.length > 0 && (
-            <Card className="border-yellow-500/40 bg-yellow-500/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2 text-yellow-500">
-                  <AlertTriangle size={16} /> Global Warnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {globalWarnings.map((w, i) => (
-                  <p key={i} className="text-xs text-yellow-600 font-mono">{w}</p>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input
-              placeholder="Filter by path, segment, guard type, status..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 font-mono text-sm"
-            />
-          </div>
-
-          {/* Route Table */}
-          <div className="rounded-lg border overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-xs font-medium">Path</TableHead>
-                    <TableHead className="text-xs font-medium">Segment</TableHead>
-                    <TableHead className="text-xs font-medium">Guard Type</TableHead>
-                    <TableHead className="text-xs font-medium">Feature Key</TableHead>
-                    <TableHead className="text-xs font-medium">Permission Key</TableHead>
-                    <TableHead className="text-xs font-medium">Module</TableHead>
-                    <TableHead className="text-xs font-medium text-center">Open?</TableHead>
-                    <TableHead className="text-xs font-medium text-center">Status</TableHead>
-                    <TableHead className="text-xs font-medium">Warnings</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((row) => {
-                    const sc = statusConfig[row.status];
-                    const StatusIcon = sc.icon;
-                    const hasWarnings = row.warnings.length > 0;
-                    return (
-                      <TableRow
-                        key={row.path}
-                        className={`${hasWarnings ? "bg-yellow-500/5" : ""} ${
-                          row.status === "denied:route_not_gated" ? "bg-destructive/5" : ""
-                        }`}
-                      >
-                        <TableCell className="font-mono text-xs text-primary whitespace-nowrap">
-                          {row.path}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs whitespace-nowrap">
-                          {row.gateSegment === "__empty__" ? (
-                            <span className="text-destructive font-bold">⛔ EMPTY</span>
-                          ) : (
-                            row.gateSegment
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`text-[9px] font-mono ${guardColors[row.guardType]}`}
-                          >
-                            {row.guardType}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {row.derivedFeatureKey || <span className="text-yellow-500 italic">none</span>}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {row.derivedPermissionKey || <span className="text-yellow-500 italic">none</span>}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {row.module || "—"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {row.isOpenRoute ? (
-                            <Unlock size={14} className="inline text-blue-400" />
-                          ) : (
-                            <Lock size={14} className="inline text-muted-foreground/40" />
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={sc.variant} className="text-[9px] gap-1 whitespace-nowrap">
-                            <StatusIcon size={10} />
-                            {sc.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {hasWarnings ? (
-                            <div className="space-y-0.5">
-                              {row.warnings.map((w, i) => (
-                                <div key={i} className="text-[10px] text-yellow-600 leading-tight">{w}</div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-green-500 text-[10px]">✓</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <Input
+                placeholder="Filter by path, segment, guard type, status..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-10 font-mono text-sm"
+              />
             </div>
-          </div>
 
-          {filtered.length === 0 && (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground text-sm">
-                No routes match "{query}"
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+            {/* Route Table */}
+            <div className="rounded-lg border overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-xs font-medium">Path</TableHead>
+                      <TableHead className="text-xs font-medium">Segment</TableHead>
+                      <TableHead className="text-xs font-medium">Guard Type</TableHead>
+                      <TableHead className="text-xs font-medium">Feature Key</TableHead>
+                      <TableHead className="text-xs font-medium">Permission Key</TableHead>
+                      <TableHead className="text-xs font-medium">Module</TableHead>
+                      <TableHead className="text-xs font-medium text-center">Open?</TableHead>
+                      <TableHead className="text-xs font-medium text-center">Status</TableHead>
+                      <TableHead className="text-xs font-medium">Warnings</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((row) => {
+                      const sc = statusConfig[row.status];
+                      const StatusIcon = sc.icon;
+                      const hasWarnings = row.warnings.length > 0;
+                      return (
+                        <TableRow
+                          key={row.path}
+                          className={`${hasWarnings ? "bg-yellow-500/5" : ""} ${
+                            row.status === "denied:route_not_gated" ? "bg-destructive/5" : ""
+                          }`}
+                        >
+                          <TableCell className="font-mono text-xs text-primary whitespace-nowrap">
+                            {row.path}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs whitespace-nowrap">
+                            {row.gateSegment === "__empty__" ? (
+                              <span className="text-destructive font-bold">⛔ EMPTY</span>
+                            ) : (
+                              row.gateSegment
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={`text-[9px] font-mono ${guardColors[row.guardType]}`}
+                            >
+                              {row.guardType}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                            {row.derivedFeatureKey || <span className="text-yellow-500 italic">none</span>}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                            {row.derivedPermissionKey || <span className="text-yellow-500 italic">none</span>}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                            {row.module || "—"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {row.isOpenRoute ? (
+                              <Unlock size={14} className="inline text-blue-400" />
+                            ) : (
+                              <Lock size={14} className="inline text-muted-foreground/40" />
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant={sc.variant} className="text-[9px] gap-1 whitespace-nowrap">
+                              <StatusIcon size={10} />
+                              {sc.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {hasWarnings ? (
+                              <div className="space-y-0.5">
+                                {row.warnings.map((w, i) => (
+                                  <div key={i} className="text-[10px] text-yellow-600 leading-tight">{w}</div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-green-500 text-[10px]">✓</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            {filtered.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground text-sm">
+                  No routes match "{query}"
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
