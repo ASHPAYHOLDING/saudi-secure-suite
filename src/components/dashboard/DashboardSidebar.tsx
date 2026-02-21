@@ -78,6 +78,7 @@ const navGroups: NavGroup[] = [
       { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
       { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
+      { icon: Shield, key: "nav.collectionsIntelligence", path: "/dashboard/finance/collections-intelligence", module: "finance" },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
     ],
     subGroup: {
