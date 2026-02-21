@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, Clock, FileText, Receipt, Package, Loader2, MessageSquare } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, FileText, Receipt, Package, Loader2, MessageSquare, AlertTriangle, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,8 @@ interface PendingItem {
   started_at: string;
   entity_label: string;
   entity_amount: number;
+  due_at: string | null;
+  sla_status: 'on_time' | 'warning' | 'late';
 }
 
 const entityTypeLabels: Record<string, { label: string; icon: any }> = {
@@ -57,16 +59,25 @@ const MyApprovalsPage = () => {
     const enriched: PendingItem[] = [];
 
     for (const inst of instances) {
-      // Get current step name
+      // Get current step name and SLA info
       const { data: stepData } = await (supabase as any)
         .from("workflow_instance_steps")
-        .select("step_id")
+        .select("step_id, due_at, sla_status")
         .eq("instance_id", inst.id)
         .eq("step_order", inst.current_step_order)
         .eq("status", "pending")
         .maybeSingle();
 
       if (!stepData) continue;
+
+      // Recompute sla_status on the fly for accuracy
+      let slaStatus: 'on_time' | 'warning' | 'late' = stepData.sla_status || 'on_time';
+      if (stepData.due_at) {
+        const dueAt = new Date(stepData.due_at);
+        const now = new Date();
+        if (dueAt < now) slaStatus = 'late';
+        else if (dueAt.getTime() - now.getTime() < 24 * 60 * 60 * 1000) slaStatus = 'warning';
+      }
 
       const { data: stepDef } = await (supabase as any)
         .from("workflow_steps")
@@ -96,6 +107,8 @@ const MyApprovalsPage = () => {
         started_at: inst.started_at,
         entity_label: entityLabel,
         entity_amount: entityAmount,
+        due_at: stepData.due_at,
+        sla_status: slaStatus,
       });
     }
 
@@ -146,8 +159,8 @@ const MyApprovalsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "بانتظار الموافقة", value: items.length, icon: Clock, color: "text-amber-600" },
-          { label: "فواتير معلقة", value: items.filter(i => i.entity_type === "invoice").length, icon: FileText, color: "text-info" },
-          { label: "مصروفات معلقة", value: items.filter(i => i.entity_type === "expense").length, icon: Receipt, color: "text-accent" },
+          { label: "متأخرة", value: items.filter(i => i.sla_status === "late").length, icon: AlertTriangle, color: "text-destructive" },
+          { label: "تنتهي قريباً", value: items.filter(i => i.sla_status === "warning").length, icon: Timer, color: "text-amber-500" },
         ].map((stat) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 shadow-card">
             <div className="flex items-center gap-3">
@@ -187,25 +200,51 @@ const MyApprovalsPage = () => {
                 className="rounded-xl border border-border bg-card p-5 shadow-card"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 shrink-0">
-                      <Icon size={22} className="text-amber-600" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
-                          {entityDef.label}
-                        </Badge>
-                        <span className="font-english font-semibold text-foreground">{item.entity_label}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        الخطوة: <span className="text-foreground font-medium">{item.step_name}</span>
-                      </p>
-                      <p className="text-lg font-bold font-english text-foreground mt-1" dir="ltr">
-                        {formatCurrency(item.entity_amount)} <span className="text-xs font-normal text-muted-foreground">ر.س</span>
-                      </p>
-                    </div>
-                  </div>
+                     <div className="flex items-center gap-4">
+                     <div className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${
+                       item.sla_status === 'late' ? 'bg-destructive/10' : item.sla_status === 'warning' ? 'bg-amber-50' : 'bg-amber-50'
+                     }`}>
+                       <Icon size={22} className={
+                         item.sla_status === 'late' ? 'text-destructive' : 'text-amber-600'
+                       } />
+                     </div>
+                     <div>
+                       <div className="flex items-center gap-2 mb-1">
+                         <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
+                           {entityDef.label}
+                         </Badge>
+                         {item.sla_status === 'late' && (
+                           <Badge variant="destructive" className="text-[10px] gap-0.5">
+                             <AlertTriangle size={10} />
+                             متأخر
+                           </Badge>
+                         )}
+                         {item.sla_status === 'warning' && (
+                           <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] gap-0.5">
+                             <Timer size={10} />
+                             ينتهي قريباً
+                           </Badge>
+                         )}
+                         <span className="font-english font-semibold text-foreground">{item.entity_label}</span>
+                       </div>
+                       <p className="text-xs text-muted-foreground">
+                         الخطوة: <span className="text-foreground font-medium">{item.step_name}</span>
+                       </p>
+                       <div className="flex items-center gap-3 mt-1">
+                         <p className="text-lg font-bold font-english text-foreground" dir="ltr">
+                           {formatCurrency(item.entity_amount)} <span className="text-xs font-normal text-muted-foreground">ر.س</span>
+                         </p>
+                         {item.due_at && (
+                           <p className={`text-[11px] flex items-center gap-1 ${
+                             item.sla_status === 'late' ? 'text-destructive font-medium' : 'text-muted-foreground'
+                           }`}>
+                             <Clock size={11} />
+                             {new Date(item.due_at).toLocaleDateString("ar-SA", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                           </p>
+                         )}
+                       </div>
+                     </div>
+                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
                     <Button

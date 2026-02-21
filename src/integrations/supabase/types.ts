@@ -9593,8 +9593,10 @@ export type Database = {
           acted_by: string | null
           comment: string | null
           created_at: string
+          due_at: string | null
           id: string
           instance_id: string
+          sla_status: string
           status: Database["public"]["Enums"]["wf_step_status"]
           step_id: string
           step_order: number
@@ -9605,8 +9607,10 @@ export type Database = {
           acted_by?: string | null
           comment?: string | null
           created_at?: string
+          due_at?: string | null
           id?: string
           instance_id: string
+          sla_status?: string
           status?: Database["public"]["Enums"]["wf_step_status"]
           step_id: string
           step_order: number
@@ -9617,8 +9621,10 @@ export type Database = {
           acted_by?: string | null
           comment?: string | null
           created_at?: string
+          due_at?: string | null
           id?: string
           instance_id?: string
+          sla_status?: string
           status?: Database["public"]["Enums"]["wf_step_status"]
           step_id?: string
           step_order?: number
@@ -10507,6 +10513,7 @@ export type Database = {
         }
         Returns: Json
       }
+      check_sla_deadlines: { Args: never; Returns: undefined }
       check_storage_limit: {
         Args: { _file_size_bytes?: number; _tenant_id: string }
         Returns: Json
