@@ -52,6 +52,7 @@ const CustomReportBuilder = lazy(() => import("@/components/reports/CustomReport
 const ScheduledReportsPage = lazy(() => import("@/components/reports/ScheduledReportsPage"));
 const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingPage"));
 const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
+const PeriodClosePage = lazy(() => import("@/components/accounting/PeriodClosePage"));
 const CostProfitCenterManagement = lazy(() => import("@/components/centers/CostProfitCenterManagement"));
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
 const SsoSettingsPage = lazy(() => import("@/components/sso/SsoSettingsPage").then(m => ({ default: m.SsoSettingsPage })));
@@ -130,6 +131,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "finance/corporate-structure", element: CorporateStructurePage, gateSegment: "corporate-structure", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/coa", element: ChartOfAccountsPage, gateSegment: "coa", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/journal", element: JournalPage, gateSegment: "enterprise-journal", module: "enterprise", permissionKey: "company.view" },
+  { path: "finance/period-close", element: PeriodClosePage, gateSegment: "enterprise-journal", module: "enterprise", permissionKey: "company.view" },
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
 
   // ── Reports & Analytics ──

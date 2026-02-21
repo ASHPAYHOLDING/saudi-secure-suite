@@ -47,6 +47,60 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          id: string
+          legal_entity_id: string | null
+          period_month: number
+          period_year: number
+          status: Database["public"]["Enums"]["accounting_period_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          legal_entity_id?: string | null
+          period_month: number
+          period_year: number
+          status?: Database["public"]["Enums"]["accounting_period_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          legal_entity_id?: string | null
+          period_month?: number
+          period_year?: number
+          status?: Database["public"]["Enums"]["accounting_period_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_periods_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_periods_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       active_sessions: {
         Row: {
           created_at: string
@@ -11141,6 +11195,16 @@ export type Database = {
         Args: { p_chart_id: string; p_new_name?: string }
         Returns: string
       }
+      close_accounting_period: {
+        Args: {
+          p_legal_entity_id?: string
+          p_month?: number
+          p_tenant_id: string
+          p_user_id?: string
+          p_year?: number
+        }
+        Returns: Json
+      }
       complete_job: {
         Args: { p_job_id: string; p_result?: Json }
         Returns: undefined
@@ -11413,6 +11477,16 @@ export type Database = {
         Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
       }
+      reopen_accounting_period: {
+        Args: {
+          p_legal_entity_id?: string
+          p_month?: number
+          p_tenant_id: string
+          p_user_id?: string
+          p_year?: number
+        }
+        Returns: Json
+      }
       request_affiliate_payout: {
         Args: {
           _affiliate_id: string
@@ -11528,6 +11602,7 @@ export type Database = {
     }
     Enums: {
       account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
+      accounting_period_status: "open" | "closed"
       app_role: "owner" | "admin" | "manager" | "hr" | "accountant" | "member"
       budget_alert_event_status: "triggered" | "acknowledged" | "resolved"
       budget_alert_scope: "budget_total" | "line" | "cost_center" | "department"
@@ -11676,6 +11751,7 @@ export const Constants = {
   public: {
     Enums: {
       account_type: ["asset", "liability", "equity", "revenue", "expense"],
+      accounting_period_status: ["open", "closed"],
       app_role: ["owner", "admin", "manager", "hr", "accountant", "member"],
       budget_alert_event_status: ["triggered", "acknowledged", "resolved"],
       budget_alert_scope: ["budget_total", "line", "cost_center", "department"],

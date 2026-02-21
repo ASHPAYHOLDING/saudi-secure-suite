@@ -81,6 +81,9 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   clone_chart_of_accounts: true,
   // Journal
   post_journal_entry: true,
+  // Accounting Periods
+  close_accounting_period: true,
+  reopen_accounting_period: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

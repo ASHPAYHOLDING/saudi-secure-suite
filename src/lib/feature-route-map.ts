@@ -307,4 +307,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/finance/corporate-structure": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/coa": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/journal": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/period-close": FEATURE_KEYS.ENTERPRISE_MODE,
 };
