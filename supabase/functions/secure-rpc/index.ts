@@ -36,6 +36,10 @@ const ENTERPRISE_ONLY_RPCS = new Set([
   "get_rls_audit",
   "clone_chart_of_accounts",
   "post_journal_entry",
+  "get_profit_loss",
+  "get_balance_sheet",
+  "get_cash_flow",
+  "get_account_drilldown",
 ]);
 
 // Whitelist of functions allowed through this proxy
@@ -84,6 +88,11 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Accounting Periods
   close_accounting_period: true,
   reopen_accounting_period: true,
+  // Financial Statements
+  get_profit_loss: true,
+  get_balance_sheet: true,
+  get_cash_flow: true,
+  get_account_drilldown: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

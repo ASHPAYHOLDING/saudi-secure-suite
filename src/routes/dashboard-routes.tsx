@@ -82,6 +82,7 @@ const EnterpriseAuditExport = lazy(() => import("@/components/enterprise/Enterpr
 const CorporateStructurePage = lazy(() => import("@/components/finance/CorporateStructurePage"));
 const ChartOfAccountsPage = lazy(() => import("@/components/finance/ChartOfAccountsPage"));
 const JournalPage = lazy(() => import("@/components/journal/JournalPage"));
+const FinancialStatementsPage = lazy(() => import("@/components/finance/FinancialStatementsPage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -132,6 +133,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "finance/coa", element: ChartOfAccountsPage, gateSegment: "coa", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/journal", element: JournalPage, gateSegment: "enterprise-journal", module: "enterprise", permissionKey: "company.view" },
   { path: "finance/period-close", element: PeriodClosePage, gateSegment: "enterprise-journal", module: "enterprise", permissionKey: "company.view" },
+  { path: "finance/statements", element: FinancialStatementsPage, gateSegment: "enterprise-statements", module: "enterprise", permissionKey: "company.view" },
   { path: "wallet", element: WalletPage, gateSegment: "wallet", module: "finance" },
 
   // ── Reports & Analytics ──

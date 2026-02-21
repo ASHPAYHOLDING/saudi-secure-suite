@@ -121,6 +121,7 @@
     "enterpriseAuditExport": "تصدير التدقيق",
     "generalJournal": "دفتر اليومية",
     "periodClose": "إغلاق الفترات",
+    "financialStatements": "القوائم المالية",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",

@@ -11241,6 +11241,39 @@ export type Database = {
       }
       generate_recurring_commissions: { Args: never; Returns: Json }
       generate_smart_notifications: { Args: never; Returns: undefined }
+      get_account_drilldown: {
+        Args: {
+          p_account_id: string
+          p_branch_id?: string
+          p_cost_center_id?: string
+          p_from: string
+          p_legal_entity_id?: string
+          p_tenant_id: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      get_balance_sheet: {
+        Args: {
+          p_as_of: string
+          p_branch_id?: string
+          p_cost_center_id?: string
+          p_legal_entity_id?: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      get_cash_flow: {
+        Args: {
+          p_branch_id?: string
+          p_cost_center_id?: string
+          p_from: string
+          p_legal_entity_id?: string
+          p_tenant_id: string
+          p_to: string
+        }
+        Returns: Json
+      }
       get_consolidated_balance_sheet: {
         Args: { _as_of_date?: string; _parent_tenant_id: string }
         Returns: {
@@ -11314,6 +11347,17 @@ export type Database = {
         Returns: string[]
       }
       get_next_icv: { Args: { _tenant_id: string }; Returns: number }
+      get_profit_loss: {
+        Args: {
+          p_branch_id?: string
+          p_cost_center_id?: string
+          p_from: string
+          p_legal_entity_id?: string
+          p_tenant_id: string
+          p_to: string
+        }
+        Returns: Json
+      }
       get_rls_audit: { Args: never; Returns: Json }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
