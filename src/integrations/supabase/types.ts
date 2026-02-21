@@ -598,6 +598,186 @@ export type Database = {
           },
         ]
       }
+      analytics_daily_cashflow: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          id: string
+          inflow: number
+          legal_entity_id: string | null
+          net_flow: number
+          outflow: number
+          payment_count: number
+          report_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          inflow?: number
+          legal_entity_id?: string | null
+          net_flow?: number
+          outflow?: number
+          payment_count?: number
+          report_date: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          inflow?: number
+          legal_entity_id?: string | null
+          net_flow?: number
+          outflow?: number
+          payment_count?: number
+          report_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_cashflow_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_cashflow_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_cashflow_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_expenses: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          expense_count: number
+          id: string
+          legal_entity_id: string | null
+          report_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          expense_count?: number
+          id?: string
+          legal_entity_id?: string | null
+          report_date: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          expense_count?: number
+          id?: string
+          legal_entity_id?: string | null
+          report_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_expenses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_expenses_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_expenses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_revenue: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          id: string
+          invoice_count: number
+          legal_entity_id: string | null
+          report_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_count?: number
+          legal_entity_id?: string | null
+          report_date: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_count?: number
+          legal_entity_id?: string | null
+          report_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_revenue_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_revenue_legal_entity_id_fkey"
+            columns: ["legal_entity_id"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_revenue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_definitions: {
         Row: {
           category: string
