@@ -7,6 +7,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptSecret } from "../_shared/aes-gcm.ts";
+import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { withRequestTimeout } from "../_shared/timeout-guard.ts";
 
 const PROVIDER = "telr";
 
@@ -65,7 +67,7 @@ async function updateWebhookEvent(db: any, providerEventId: string, patch: Recor
     .eq("provider", PROVIDER).eq("provider_event_id", providerEventId);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withRequestTimeout(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
@@ -75,6 +77,9 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const masterKey = Deno.env.get("INTEGRATION_SECRET_KEY") ?? "";
   const db = createClient(supabaseUrl, serviceKey);
+
+  const blocked = await checkRateLimit(req, db, "webhook", corsHeaders);
+  if (blocked) return blocked;
 
   // 1. Read raw body ONCE
   const rawBody = await req.text();
@@ -220,4 +225,4 @@ Deno.serve(async (req) => {
   }
 
   return json({ ok: true, status: isPaid ? "processed" : "received" }, 200);
-});
+}, 30000, corsHeaders));

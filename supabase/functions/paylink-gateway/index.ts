@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limiter.ts";
+import { withRequestTimeout } from "../_shared/timeout-guard.ts";
 import { verifyWebhookSignature, checkIdempotency, markWebhookCompleted, logWebhookAudit } from "../_shared/webhook-verify.ts";
 
 const corsHeaders = {
@@ -39,7 +40,7 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 // ─── main handler ───────────────────────────────────────────────────
-Deno.serve(async (req) => {
+Deno.serve(withRequestTimeout(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -369,4 +370,4 @@ async function handleCallback(req: Request) {
   });
 
   return jsonResponse({ success: true });
-}
+}, 30000, corsHeaders));
