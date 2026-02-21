@@ -142,6 +142,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "التحليلات",
     description: "لوحات تحليلية متقدمة وإحصائيات الأداء.",
   },
+  "financial-health": {
+    featureKey: FEATURE_KEYS.ANALYTICS,
+    permissionKeys: ["finance.view_analytics"],
+    label: "الصحة المالية",
+    description: "تقييم شامل للوضع المالي مع ملخص تنفيذي ذكي.",
+  },
   "smart-query": {
     featureKey: FEATURE_KEYS.ANALYTICS,
     permissionKeys: ["finance.view_analytics"],

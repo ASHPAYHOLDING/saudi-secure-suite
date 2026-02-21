@@ -10943,6 +10943,47 @@ export type Database = {
           },
         ]
       }
+      tenant_financial_health: {
+        Row: {
+          breakdown_json: Json
+          created_at: string
+          executive_summary: string | null
+          id: string
+          last_calculated_at: string
+          score: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          breakdown_json?: Json
+          created_at?: string
+          executive_summary?: string | null
+          id?: string
+          last_calculated_at?: string
+          score?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          breakdown_json?: Json
+          created_at?: string
+          executive_summary?: string | null
+          id?: string
+          last_calculated_at?: string
+          score?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_financial_health_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_integration_secrets: {
         Row: {
           created_at: string

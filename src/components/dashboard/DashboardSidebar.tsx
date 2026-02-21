@@ -6,7 +6,7 @@ import {
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, ChevronDown, Headphones, Lock, Target,
-  TrendingUp, CalendarClock, Wrench,
+  TrendingUp, CalendarClock, Wrench, PieChart,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -100,6 +100,7 @@ const navGroups: NavGroup[] = [
       { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
       { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
       { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
+      { icon: PieChart, key: "nav.financialHealth", path: "/dashboard/analytics/financial-health", module: "analytics" },
     ],
   },
   // ── الإدارة (4) — workflow designer merged into approvals, integrations+subscription moved to settings ──
