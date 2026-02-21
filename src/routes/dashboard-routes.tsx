@@ -86,6 +86,7 @@ const JournalPage = lazy(() => import("@/components/journal/JournalPage"));
 const FinancialStatementsPage = lazy(() => import("@/components/finance/FinancialStatementsPage"));
 const JournalApprovalsPage = lazy(() => import("@/components/journal/JournalApprovalsPage"));
 const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepairPage"));
+const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -151,6 +152,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
 
   // ── Integrations (specific sub-paths first, then unified :key) ──
+  { path: "integrations/health", element: IntegrationHealthDashboard, module: "integrations", permissionKey: "integrations.view" },
   { path: "integrations/marketplace", element: IntegrationsMarketplace, module: "integrations", permissionKey: "integrations.view" },
   { path: "integrations/payments", element: PaymentProvidersPage, module: "integrations" },
   { path: "integrations/gateway/*", element: GatewaySetupPage, module: "integrations" },
