@@ -116,6 +116,7 @@
     "enterpriseSessions": "إدارة الجلسات",
     "enterpriseIPRestrictions": "تقييد عناوين IP",
     "enterpriseRoleTemplates": "قوالب الأدوار",
+    "enterpriseAuditExport": "تصدير التدقيق",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",

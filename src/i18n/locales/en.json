@@ -116,6 +116,7 @@
     "enterpriseSessions": "Session Management",
     "enterpriseIPRestrictions": "IP Restrictions",
     "enterpriseRoleTemplates": "Role Templates",
+    "enterpriseAuditExport": "Audit Export",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
