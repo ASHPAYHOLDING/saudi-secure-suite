@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.mispay-webhook]
 verify_jwt = false
+
+[functions.job-worker]
+verify_jwt = false
