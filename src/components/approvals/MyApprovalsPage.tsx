@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { processStep, type WfInstanceStatus } from "@/lib/workflows/engine";
 import { formatCurrency } from "@/lib/invoice-utils";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
+import DualApprovalQueue from "@/components/approvals/DualApprovalQueue";
 
 interface PendingItem {
   instance_id: string;
@@ -154,6 +155,9 @@ const MyApprovalsPage = () => {
         <h1 className="text-2xl font-bold text-foreground">موافقاتي</h1>
         <p className="text-sm text-muted-foreground mt-1">المستندات التي تحتاج موافقتك</p>
       </div>
+
+      {/* Dual Approval Queue */}
+      <DualApprovalQueue />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
