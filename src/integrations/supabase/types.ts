@@ -3389,6 +3389,63 @@ export type Database = {
           },
         ]
       }
+      dead_letter_queue: {
+        Row: {
+          domain: string
+          error_message: string | null
+          event_type: string
+          failed_at: string
+          id: string
+          original_event_id: string
+          payload: Json
+          reprocessed: boolean
+          reprocessed_at: string | null
+          retry_count: number
+          tenant_id: string
+        }
+        Insert: {
+          domain: string
+          error_message?: string | null
+          event_type: string
+          failed_at?: string
+          id?: string
+          original_event_id: string
+          payload?: Json
+          reprocessed?: boolean
+          reprocessed_at?: string | null
+          retry_count?: number
+          tenant_id: string
+        }
+        Update: {
+          domain?: string
+          error_message?: string | null
+          event_type?: string
+          failed_at?: string
+          id?: string
+          original_event_id?: string
+          payload?: Json
+          reprocessed?: boolean
+          reprocessed_at?: string | null
+          retry_count?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dead_letter_queue_original_event_id_fkey"
+            columns: ["original_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dead_letter_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_note_items: {
         Row: {
           created_at: string
@@ -3685,9 +3742,14 @@ export type Database = {
           domain: string
           event_type: string
           id: string
+          idempotency_key: string | null
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string | null
           payload: Json
           processed: boolean
           processed_at: string | null
+          retry_count: number
           source_entity_id: string | null
           source_entity_type: string | null
           tenant_id: string
@@ -3698,9 +3760,14 @@ export type Database = {
           domain: string
           event_type: string
           id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string | null
           payload?: Json
           processed?: boolean
           processed_at?: string | null
+          retry_count?: number
           source_entity_id?: string | null
           source_entity_type?: string | null
           tenant_id: string
@@ -3711,9 +3778,14 @@ export type Database = {
           domain?: string
           event_type?: string
           id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          max_retries?: number
+          next_retry_at?: string | null
           payload?: Json
           processed?: boolean
           processed_at?: string | null
+          retry_count?: number
           source_entity_id?: string | null
           source_entity_type?: string | null
           tenant_id?: string
@@ -4294,6 +4366,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      event_subscribers: {
+        Row: {
+          created_at: string
+          domain: string
+          event_type: string
+          handler_config: Json
+          handler_name: string
+          id: string
+          is_active: boolean
+          priority: number
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          event_type: string
+          handler_config?: Json
+          handler_name: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          event_type?: string
+          handler_config?: Json
+          handler_name?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+        }
+        Relationships: []
       }
       expense_categories: {
         Row: {
@@ -13061,6 +13166,33 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_pending_events: {
+        Args: { p_batch_size?: number }
+        Returns: {
+          correlation_id: string | null
+          created_at: string
+          domain: string
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string | null
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          retry_count: number
+          source_entity_id: string | null
+          source_entity_type: string | null
+          tenant_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "domain_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       classify_account: { Args: { p_account_name: string }; Returns: string }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
@@ -13090,9 +13222,14 @@ export type Database = {
           domain: string
           event_type: string
           id: string
+          idempotency_key: string | null
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string | null
           payload: Json
           processed: boolean
           processed_at: string | null
+          retry_count: number
           source_entity_id: string | null
           source_entity_type: string | null
           tenant_id: string
@@ -13261,6 +13398,28 @@ export type Database = {
           total_debit: number
         }[]
       }
+      get_dead_letter_events: {
+        Args: { p_limit?: number; p_tenant_id?: string }
+        Returns: {
+          domain: string
+          error_message: string | null
+          event_type: string
+          failed_at: string
+          id: string
+          original_event_id: string
+          payload: Json
+          reprocessed: boolean
+          reprocessed_at: string | null
+          retry_count: number
+          tenant_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dead_letter_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_domain_events: {
         Args: { p_domain?: string; p_limit?: number; p_tenant_id: string }
         Returns: {
@@ -13269,9 +13428,14 @@ export type Database = {
           domain: string
           event_type: string
           id: string
+          idempotency_key: string | null
+          last_error: string | null
+          max_retries: number
+          next_retry_at: string | null
           payload: Json
           processed: boolean
           processed_at: string | null
+          retry_count: number
           source_entity_id: string | null
           source_entity_type: string | null
           tenant_id: string
@@ -13286,6 +13450,25 @@ export type Database = {
       get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
       get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
       get_entitlements_cached: { Args: { p_tenant_id: string }; Returns: Json }
+      get_event_subscribers: {
+        Args: { p_domain: string; p_event_type: string }
+        Returns: {
+          created_at: string
+          domain: string
+          event_type: string
+          handler_config: Json
+          handler_name: string
+          id: string
+          is_active: boolean
+          priority: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "event_subscribers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_exchange_rate: {
         Args: { p_from: string; p_tenant_id: string; p_to: string }
         Returns: number
@@ -13452,6 +13635,10 @@ export type Database = {
         Args: { p_reason?: string; p_tenant_id: string }
         Returns: undefined
       }
+      move_to_dead_letter: {
+        Args: { p_error: string; p_event_id: string }
+        Returns: undefined
+      }
       post_journal_entry: { Args: { p_entry_id: string }; Returns: Json }
       process_affiliate_commission: {
         Args: {
@@ -13584,6 +13771,7 @@ export type Database = {
         }
         Returns: Json
       }
+      reprocess_dead_letter: { Args: { p_dlq_id: string }; Returns: string }
       request_affiliate_payout: {
         Args: {
           _affiliate_id: string
@@ -13610,6 +13798,10 @@ export type Database = {
           subject_template: string
           variables: Json
         }[]
+      }
+      resolve_event: {
+        Args: { p_error?: string; p_event_id: string; p_success: boolean }
+        Returns: undefined
       }
       reverse_payment: {
         Args: { p_payment_id: string; p_reason: string; p_user_id?: string }
