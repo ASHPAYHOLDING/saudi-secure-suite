@@ -311,17 +311,7 @@
   /* إزالة background-image على body — يسبب تكراراً مع RamadanPattern component */
   /* بدلاً منه نستخدم المكوّن RamadanPattern المستقل */
 
-  /* بطاقات رمضانية: حد ذهبي خفيف */
-  [data-theme="ramadan"] .card,
-  [data-theme="ramadan"] [class*="CardContent"],
-  [data-theme="ramadan"] [class*="card"] {
-    border-color: hsl(var(--ramadan-gold) / 0.15);
-  }
-
-  /* تمييز رمضاني: لون الـ ring ذهبي */
-  [data-theme="ramadan"] *:focus-visible {
-    outline-color: hsl(var(--ramadan-gold));
-  }
+  /* Reserved for future seasonal themes */
 }
 
 @layer components {
