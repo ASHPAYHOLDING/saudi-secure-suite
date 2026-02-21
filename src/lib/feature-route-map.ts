@@ -250,6 +250,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "الهيكل المؤسسي",
     description: "إدارة الكيانات القانونية والفروع ومراكز التكلفة.",
   },
+  coa: {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "شجرة الحسابات",
+    description: "إدارة شجرة الحسابات المؤسسية مع الإصدارات.",
+  },
 };
 
 /**
@@ -293,4 +299,5 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/role-templates": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/enterprise/audit-export": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/corporate-structure": FEATURE_KEYS.ENTERPRISE_MODE,
+  "/dashboard/finance/coa": FEATURE_KEYS.ENTERPRISE_MODE,
 };
