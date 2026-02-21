@@ -4572,6 +4572,33 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          attempted_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       maintenance_windows: {
         Row: {
           affected_services: string[] | null
@@ -9939,6 +9966,7 @@ export type Database = {
         Args: { _reason?: string; _subscription_id: string }
         Returns: Json
       }
+      check_account_locked: { Args: { p_email: string }; Returns: boolean }
       check_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
         Returns: Json

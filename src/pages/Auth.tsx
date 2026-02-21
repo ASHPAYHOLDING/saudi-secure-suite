@@ -49,16 +49,17 @@ const Auth = () => {
 
   const passwordStrength = (pwd: string) => {
     let score = 0;
-    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
     if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
     if (/[0-9]/.test(pwd)) score++;
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
     return score;
   };
 
   const strength = passwordStrength(password);
-  const strengthLabel = ["", "ضعيفة", "متوسطة", "جيدة", "قوية"][strength] || "";
-  const strengthColor = ["", "bg-destructive", "bg-warning", "bg-accent/70", "bg-accent"][strength] || "";
+  const strengthLabel = ["", "ضعيفة جداً", "ضعيفة", "متوسطة", "جيدة", "قوية"][strength] || "";
+  const strengthColor = ["", "bg-destructive", "bg-destructive", "bg-warning", "bg-accent/70", "bg-accent"][strength] || "";
 
   const validateForm = (): boolean => {
     if (!email.trim()) {
@@ -66,11 +67,31 @@ const Auth = () => {
       return false;
     }
     if (mode === "forgot") return true;
-    if (password.length < 6) {
-      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+    if (mode === "login" && password.length < 1) {
+      toast({ title: "خطأ", description: "يرجى إدخال كلمة المرور", variant: "destructive" });
       return false;
     }
     if (mode === "signup") {
+      if (password.length < 12) {
+        toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 12 حرفاً على الأقل", variant: "destructive" });
+        return false;
+      }
+      if (!/[A-Z]/.test(password)) {
+        toast({ title: "خطأ", description: "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل", variant: "destructive" });
+        return false;
+      }
+      if (!/[a-z]/.test(password)) {
+        toast({ title: "خطأ", description: "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل", variant: "destructive" });
+        return false;
+      }
+      if (!/[0-9]/.test(password)) {
+        toast({ title: "خطأ", description: "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل", variant: "destructive" });
+        return false;
+      }
+      if (!/[^A-Za-z0-9]/.test(password)) {
+        toast({ title: "خطأ", description: "يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل (!@#$...)", variant: "destructive" });
+        return false;
+      }
       if (!fullName.trim()) {
         toast({ title: "خطأ", description: "يرجى إدخال الاسم الكامل", variant: "destructive" });
         return false;
@@ -168,8 +189,20 @@ const Auth = () => {
         setMode("otp");
         startResendTimer();
       } else {
+        // Check login guard BEFORE attempting login
+        const guardCheck = await supabase.functions.invoke("login-guard", {
+          body: { email, success: false, ip_address: null, user_agent: navigator.userAgent },
+        });
+        if (guardCheck.data?.locked) {
+          throw new Error(guardCheck.data.message || "تم قفل الحساب مؤقتاً. يرجى المحاولة لاحقاً.");
+        }
+
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
+          // Record failed attempt
+          await supabase.functions.invoke("login-guard", {
+            body: { email, success: false, ip_address: null, user_agent: navigator.userAgent },
+          });
           if (error.message.includes("Invalid login credentials")) throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
           if (error.message.includes("Email not confirmed")) {
             try {
@@ -183,6 +216,10 @@ const Auth = () => {
           }
           throw error;
         }
+        // Record successful login
+        await supabase.functions.invoke("login-guard", {
+          body: { email, success: true, ip_address: null, user_agent: navigator.userAgent },
+        });
         navigate("/dashboard");
       }
     } catch (err: any) {
