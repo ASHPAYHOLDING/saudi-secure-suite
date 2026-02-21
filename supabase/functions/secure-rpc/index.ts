@@ -46,6 +46,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   // Workflow approvals
   secure_workflow_action: true,
   secure_approval_action: true,
+  // RLS Audit
+  get_rls_audit: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)
