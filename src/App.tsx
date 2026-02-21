@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -61,6 +62,7 @@ const KeyedElement = ({ Component, embedded }: { Component: React.LazyExoticComp
 };
 
 const App = () => (
+  <HelmetProvider>
   <GlobalErrorBoundary>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -158,6 +160,7 @@ const App = () => (
       </QueryClientProvider>
     </ThemeProvider>
   </GlobalErrorBoundary>
+  </HelmetProvider>
 );
 
 export default App;

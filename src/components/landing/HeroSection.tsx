@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, Shield, Zap, CheckCircle2, BarChart3 } from "lucide-react";
+import { ArrowLeft, Play, Shield, Zap, Bot, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const trustItems = [
-  { icon: Shield, label: "ZATCA Phase 2 معتمد" },
-  { icon: CheckCircle2, label: "VAT تلقائي" },
-  { icon: Zap, label: "تشفير 256-bit" },
-  { icon: BarChart3, label: "1,200+ منشأة سعودية" },
+const trustBadges = [
+  { icon: Shield, label: "ZATCA Ready" },
+  { icon: Bot, label: "AI Powered" },
+  { icon: Zap, label: "Enterprise Security" },
 ];
 
 const kpis = [
@@ -19,27 +18,24 @@ const kpis = [
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[70vh] md:min-h-[80vh] lg:min-h-screen gradient-hero" dir="rtl">
+    <section className="relative gradient-hero overflow-hidden" style={{ minHeight: "clamp(520px, 80vh, 900px)" }}>
       {/* Subtle grid */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }} />
 
-      {/* Background orbs */}
+      {/* Orb */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.06, 0.1, 0.06] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, hsl(172 66% 50% / 0.15), transparent 70%)" }}
+        <div
+          className="absolute top-[10%] end-[10%] w-[400px] h-[400px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, hsl(172 66% 50% / 0.12), transparent 70%)" }}
         />
       </div>
 
-      <div className="container relative mx-auto flex min-h-[70vh] md:min-h-[80vh] lg:min-h-screen items-center px-4 pt-24 pb-16 z-20">
+      <div className="max-w-6xl relative mx-auto flex items-center px-4 sm:px-6 pt-24 pb-16 z-20" style={{ minHeight: "inherit" }}>
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
           {/* Content */}
           <div className="space-y-6 md:space-y-8 min-w-0">
-            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -56,39 +52,32 @@ const HeroSection = () => {
               </div>
             </motion.div>
 
-            {/* Headline — clamp prevents clipping on all breakpoints */}
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
               className="font-bold text-primary-foreground"
               style={{
-                fontSize: "clamp(1.75rem, 4.5vw, 3.75rem)",
-                lineHeight: 1.35,
+                fontSize: "clamp(28px, 4vw, 56px)",
+                lineHeight: 1.3,
                 overflowWrap: "anywhere",
-                wordBreak: "keep-all",
               }}
             >
-              ERP سعودي مؤسسي.
+              ERP سعودي مؤسسي متكامل
               <br />
-              <span className="text-gradient">أسرع. أذكى.</span>
-              <br />
-              <span className="text-primary-foreground/90">
-                متوافق بالكامل مع هيئة الزكاة.
-              </span>
+              <span className="text-gradient">يهيمن على السوق المحلي</span>
             </motion.h1>
 
-            {/* Subheadline — improved contrast */}
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="max-w-lg text-base sm:text-lg leading-relaxed text-primary-foreground/90"
+              className="max-w-lg text-primary-foreground/90"
+              style={{ fontSize: "clamp(14px, 1.5vw, 18px)", lineHeight: 1.7 }}
             >
               فواتير في 10 ثوانٍ. امتثال ZATCA تلقائي. AI محاسبي يحلل أعمالك ويوصيك بخطوتك التالية.
             </motion.p>
 
-            {/* CTAs — min touch target 44px */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -96,34 +85,30 @@ const HeroSection = () => {
               className="flex flex-col gap-4 sm:flex-row"
             >
               <Link to="/auth">
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-8 sm:px-10 min-h-[48px] text-base font-bold rounded-xl">
-                    ابدأ مجاناً — 14 يوم
-                    <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
-                  </Button>
-                </motion.div>
+                <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-8 sm:px-10 min-h-[48px] text-base font-bold rounded-xl w-full sm:w-auto">
+                  ابدأ تجربتك المجانية
+                  <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
+                </Button>
               </Link>
               <a href="#demo">
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}>
-                  <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm gap-2 rounded-xl">
-                    <Play size={16} className="fill-current" />
-                    شاهد الديمو
-                  </Button>
-                </motion.div>
+                <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm gap-2 rounded-xl w-full sm:w-auto">
+                  <Play size={16} className="fill-current" />
+                  احجز عرض مباشر
+                </Button>
               </a>
             </motion.div>
 
-            {/* Trust strip — improved contrast */}
+            {/* Trust badges */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-x-5 gap-y-3 pt-2"
+              className="flex flex-wrap gap-3 pt-2"
             >
-              {trustItems.map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
+              {trustBadges.map((item) => (
+                <div key={item.label} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5">
                   <item.icon size={14} className="text-accent" />
-                  <span className="text-xs text-primary-foreground/70 font-medium">{item.label}</span>
+                  <span className="text-xs text-primary-foreground/80 font-medium">{item.label}</span>
                 </div>
               ))}
             </motion.div>
@@ -137,7 +122,6 @@ const HeroSection = () => {
             className="hidden md:block"
           >
             <div className="relative rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-sm p-4 lg:p-5 shadow-2xl">
-              {/* Browser chrome */}
               <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/10">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
@@ -151,7 +135,6 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              {/* KPI Cards */}
               <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
                 {kpis.map((kpi, i) => (
                   <motion.div
@@ -170,37 +153,25 @@ const HeroSection = () => {
                 ))}
               </div>
 
-              {/* ZATCA Status */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.0 }}
-                className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 mb-3"
-              >
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 mb-3">
                 <Shield size={14} className="text-emerald-400" />
                 <span className="text-[11px] text-emerald-300 font-medium">ZATCA Phase 2 — متوافق ✓</span>
                 <span className="ms-auto text-[10px] text-emerald-400/60">آخر مزامنة: الآن</span>
-              </motion.div>
+              </div>
 
-              {/* AI Popup */}
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 1.3, type: "spring" }}
-                className="rounded-xl bg-white/[0.08] border border-accent/20 p-3"
-              >
+              <div className="rounded-xl bg-white/[0.08] border border-accent/20 p-3">
                 <div className="flex items-start gap-2">
                   <div className="w-6 h-6 rounded-lg bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
                     <Zap size={12} className="text-accent" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] text-accent font-semibold mb-0.5">توصية AI</p>
-                    <p className="text-[11px] text-white/60 leading-relaxed">
+                    <p className="text-[11px] text-white/70 leading-relaxed">
                       لاحظت ارتفاع DSO بمقدار 3 أيام. يُوصى بتفعيل التحصيل الذكي لـ 4 عملاء متأخرين.
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -209,10 +180,7 @@ const HeroSection = () => {
       {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 80" className="w-full h-auto block" preserveAspectRatio="none">
-          <path
-            fill="hsl(var(--background))"
-            d="M0,50 C360,80 720,30 1080,50 C1260,65 1380,40 1440,50 L1440,80 L0,80 Z"
-          />
+          <path fill="hsl(var(--background))" d="M0,50 C360,80 720,30 1080,50 C1260,65 1380,40 1440,50 L1440,80 L0,80 Z" />
         </svg>
       </div>
     </section>
