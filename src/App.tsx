@@ -31,6 +31,7 @@ const DebugFeatureGates = lazy(() => import("./pages/DebugFeatureGates"));
 const DebugPaymentProviders = lazy(() => import("./pages/DebugPaymentProviders"));
 const DebugWebhooks = lazy(() => import("./pages/DebugWebhooks"));
 const DebugWebhookTest = lazy(() => import("./pages/DebugWebhookTest"));
+const DebugWorkflows = lazy(() => import("./pages/DebugWorkflows"));
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="/debug/payment-providers" element={<ProtectedRoute><DebugSuspense><DebugPaymentProviders /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/webhooks" element={<ProtectedRoute><DebugSuspense><DebugWebhooks /></DebugSuspense></ProtectedRoute>} />
                 <Route path="/debug/webhook-test" element={<ProtectedRoute><DebugSuspense><DebugWebhookTest /></DebugSuspense></ProtectedRoute>} />
+                <Route path="/debug/workflows" element={<ProtectedRoute><DebugSuspense><DebugWorkflows /></DebugSuspense></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

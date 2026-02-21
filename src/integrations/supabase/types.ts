@@ -11011,6 +11011,19 @@ export type Database = {
         Args: { p_payment_id: string; p_reason: string; p_user_id?: string }
         Returns: string
       }
+      secure_approval_action: {
+        Args: {
+          p_action_id: string
+          p_comment?: string
+          p_decision: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
+      secure_workflow_action: {
+        Args: { p_action: string; p_comment?: string; p_instance_id: string }
+        Returns: Json
+      }
       set_integration_secrets: {
         Args: {
           p_actor_id: string
