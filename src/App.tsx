@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ScrollToTop from "./components/ScrollToTop";
+import { usePageTracking } from "./hooks/usePageTracking";
 import TermsConditions from "./pages/TermsConditions";
 import SLA from "./pages/SLA";
 import StatusPage from "./pages/StatusPage";
@@ -52,6 +53,8 @@ const DebugSuspense = ({ children }: { children: React.ReactNode }) => (
 );
 
 /** Wrapper that passes key={pathname} for routes that need remount on path change */
+const PageTracker = () => { usePageTracking(); return null; };
+
 const KeyedElement = ({ Component, embedded }: { Component: React.LazyExoticComponent<any>; embedded?: boolean }) => {
   const location = useLocation();
   return createElement(Component, { key: location.pathname, ...(embedded ? { embedded: true } : {}) });
@@ -68,6 +71,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ScrollToTop />
+              <PageTracker />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />

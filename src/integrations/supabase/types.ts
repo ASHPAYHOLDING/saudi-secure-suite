@@ -930,6 +930,47 @@ export type Database = {
           },
         ]
       }
+      app_usage_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          route: string
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          route: string
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          route?: string
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_usage_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_actions: {
         Row: {
           acted_at: string | null
@@ -13686,6 +13727,17 @@ export type Database = {
       }
       get_storage_report: { Args: never; Returns: Json }
       get_tenant_usage_summary: { Args: { _tenant_id: string }; Returns: Json }
+      get_usage_summary: {
+        Args: { p_days?: number }
+        Returns: {
+          category: string
+          last_used: string
+          route: string
+          unique_tenants: number
+          unique_users: number
+          view_count: number
+        }[]
+      }
       get_user_branch_ids: { Args: { _tenant_id: string }; Returns: string[] }
       get_user_role: {
         Args: { _tenant_id: string }
@@ -14013,6 +14065,17 @@ export type Database = {
       sync_budget_actuals_for_tenant: {
         Args: { p_tenant_id: string }
         Returns: Json
+      }
+      track_usage_event: {
+        Args: {
+          p_category?: string
+          p_event_type?: string
+          p_metadata?: Json
+          p_route?: string
+          p_tenant_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       update_tenant_settings_cas: {
         Args: {

@@ -31,6 +31,7 @@ const AdminDiscountCodes = lazy(() => import("@/components/admin/AdminDiscountCo
 const AdminAffiliateManagement = lazy(() => import("@/components/admin/AdminAffiliateManagement"));
 const AdminIntegrationDocs = lazy(() => import("@/components/admin/AdminIntegrationDocs"));
 const FullSystemAudit = lazy(() => import("@/components/admin/FullSystemAudit"));
+const UsageAnalytics = lazy(() => import("@/components/admin/UsageAnalytics"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -96,6 +97,7 @@ const Admin = () => {
     if (path === "/admin/affiliates") return <AdminAffiliateManagement />;
     if (path === "/admin/integrations/docs") return <AdminIntegrationDocs />;
     if (path === "/admin/system/full-audit") return <FullSystemAudit />;
+    if (path === "/admin/system/usage") return <UsageAnalytics />;
     return <AdminDashboard />;
   };
 
