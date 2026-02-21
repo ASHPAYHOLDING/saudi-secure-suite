@@ -74,6 +74,7 @@ const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
 const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityCenter"));
 const EnterpriseDashboard = lazy(() => import("@/components/enterprise/EnterpriseDashboard"));
 const EnterpriseSecurityPolicies = lazy(() => import("@/components/enterprise/EnterpriseSecurityPolicies"));
+const EnterpriseSessionManagement = lazy(() => import("@/components/enterprise/EnterpriseSessionManagement"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -180,6 +181,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "security", element: AdminSecurityCenter, gateSegment: "audit", module: "audit" },
   { path: "enterprise", element: EnterpriseDashboard, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/security-policies", element: EnterpriseSecurityPolicies, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "enterprise/sessions", element: EnterpriseSessionManagement, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

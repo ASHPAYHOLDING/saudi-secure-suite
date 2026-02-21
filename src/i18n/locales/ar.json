@@ -113,6 +113,7 @@
     "dataQuality": "جودة البيانات",
     "enterpriseGovernance": "مركز الحوكمة",
     "enterpriseSecurityPolicies": "السياسات الأمنية",
+    "enterpriseSessions": "إدارة الجلسات",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",

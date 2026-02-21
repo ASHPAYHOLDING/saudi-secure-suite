@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      active_sessions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          id: string
+          ip_address: string | null
+          last_activity_at: string
+          revoked: boolean
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          last_activity_at?: string
+          revoked?: boolean
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          last_activity_at?: string
+          revoked?: boolean
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_commissions: {
         Row: {
           affiliate_id: string
@@ -11110,6 +11151,10 @@ export type Database = {
       reverse_payment: {
         Args: { p_payment_id: string; p_reason: string; p_user_id?: string }
         Returns: string
+      }
+      revoke_expired_sessions: {
+        Args: { p_tenant_id: string }
+        Returns: number
       }
       secure_approval_action: {
         Args: {
