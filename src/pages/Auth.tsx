@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { isPasswordLeaked } from "@/lib/check-leaked-password";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -183,6 +184,17 @@ const Auth = () => {
         if (fnError) throw fnError;
         setResetSent(true);
       } else if (mode === "signup") {
+        // Check for leaked password before signup
+        const leaked = await isPasswordLeaked(password);
+        if (leaked) {
+          toast({
+            title: "كلمة مرور مسرّبة",
+            description: "كلمة المرور هذه ظهرت في تسريبات بيانات سابقة. يرجى اختيار كلمة مرور مختلفة وأكثر أماناً.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, tenant_type: tenantType }, emailRedirectTo: window.location.origin } });
         if (error) throw error;
         try { await supabase.functions.invoke("send-auth-email", { body: { email, type: "signup", redirectTo: window.location.origin } }); } catch (emailErr) { console.error("Failed to send OTP email:", emailErr); }

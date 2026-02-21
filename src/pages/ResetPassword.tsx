@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { isPasswordLeaked } from "@/lib/check-leaked-password";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,8 +38,9 @@ const ResetPassword = () => {
 
   const passwordStrength = (pwd: string) => {
     let score = 0;
-    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
     if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
     if (/[0-9]/.test(pwd)) score++;
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
     return score;
@@ -51,8 +53,12 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 6) {
-      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+    if (password.length < 12) {
+      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 12 حرفاً على الأقل", variant: "destructive" });
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      toast({ title: "خطأ", description: "يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص", variant: "destructive" });
       return;
     }
     if (password !== confirmPassword) {
@@ -62,6 +68,18 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
+      // Check for leaked password
+      const leaked = await isPasswordLeaked(password);
+      if (leaked) {
+        toast({
+          title: "كلمة مرور مسرّبة",
+          description: "كلمة المرور هذه ظهرت في تسريبات بيانات سابقة. يرجى اختيار كلمة مرور مختلفة وأكثر أماناً.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setSuccess(true);
