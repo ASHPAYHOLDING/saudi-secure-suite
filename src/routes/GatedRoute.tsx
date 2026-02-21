@@ -1,7 +1,7 @@
-import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import RouteGuard from "@/components/guards/RouteGuard";
+import AccessDenied from "@/components/guards/AccessDenied";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 
 /** Routes that are intentionally open (no entitlement/RBAC gate). */
@@ -10,7 +10,6 @@ const INTENTIONALLY_OPEN_SEGMENTS = new Set([
   "subscription",
   "support",
   "support/new",
-  "settings",
 ]);
 
 interface GatedRouteProps {
@@ -22,21 +21,20 @@ interface GatedRouteProps {
 
 /**
  * Wraps a dashboard route with:
- * 1. Tenant-type module check (individual / freelancer / company)
- * 2. RouteGuard (entitlements + RBAC) — blocks direct URL access with AccessDenied
+ * 1. Tenant-type module check — fail closed with AccessDenied
+ * 2. RouteGuard (entitlements + RBAC) — blocks direct URL access
  *
- * Automatically derives featureKey & permissionKey from ROUTE_FEATURE_MAP
- * when gateSegment is provided. Warns in dev if a route has no gate.
+ * Automatically derives featureKey & permissionKey from ROUTE_FEATURE_MAP.
+ * Unknown/ungated segments are **blocked** in production (fail-closed).
  */
 const GatedRoute = ({ segment, module, permissionKey, children }: GatedRouteProps) => {
   const { tenantType } = useAuth();
 
-  // Tenant-type module guard
+  // 1) Module guard — fail closed
   if (module && !isModuleAllowed(tenantType, module)) {
-    return <Navigate to="/dashboard" replace />;
+    return <AccessDenied reason="module_not_allowed" />;
   }
 
-  // Feature entitlement + RBAC gate via RouteGuard
   const mapping = ROUTE_FEATURE_MAP[segment];
   const featureKey = mapping?.featureKey;
   const featureLabel = mapping?.label;
@@ -45,28 +43,32 @@ const GatedRoute = ({ segment, module, permissionKey, children }: GatedRouteProp
   const resolvedPermissionKey =
     permissionKey ?? (mapping?.permissionKeys?.[0] || undefined);
 
-  // Dev warning: route has no gate and is not intentionally open
-  if (import.meta.env.DEV && !featureKey && !resolvedPermissionKey && !INTENTIONALLY_OPEN_SEGMENTS.has(segment)) {
+  const isIntentionallyOpen = INTENTIONALLY_OPEN_SEGMENTS.has(segment);
+
+  // 2) Dev warning for missing mapping
+  if (import.meta.env.DEV && !mapping && !isIntentionallyOpen) {
     console.warn(
-      `[GatedRoute] ⚠️ Route segment "${segment}" has no featureKey or permissionKey. ` +
+      `[GatedRoute] ⚠️ Route segment "${segment}" has no ROUTE_FEATURE_MAP entry. ` +
       `Add it to ROUTE_FEATURE_MAP or INTENTIONALLY_OPEN_SEGMENTS.`
     );
   }
 
-  // If we have either a featureKey or permissionKey, wrap in RouteGuard
-  if (featureKey || resolvedPermissionKey) {
-    return (
-      <RouteGuard
-        featureKey={featureKey}
-        permissionKey={resolvedPermissionKey}
-        featureLabel={featureLabel}
-      >
-        {children}
-      </RouteGuard>
-    );
+  // 3) Fail-closed: unknown/ungated segments blocked unless intentionally open
+  if (!featureKey && !resolvedPermissionKey) {
+    if (isIntentionallyOpen) return <>{children}</>;
+    return <AccessDenied reason="route_not_gated" />;
   }
 
-  return <>{children}</>;
+  // 4) Normal: guard by feature + permission
+  return (
+    <RouteGuard
+      featureKey={featureKey}
+      permissionKey={resolvedPermissionKey}
+      featureLabel={featureLabel}
+    >
+      {children}
+    </RouteGuard>
+  );
 };
 
 export default GatedRoute;
