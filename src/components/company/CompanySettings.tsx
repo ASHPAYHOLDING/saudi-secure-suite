@@ -33,6 +33,7 @@ interface CompanyData {
   cr_number: string; vat_number: string; address_street: string;
   address_city: string; address_zip: string; building_number: string;
   address_district: string; additional_number: string; logo_url: string; industry: string;
+  base_currency: string;
 }
 
 type ZatcaStatus = "connected" | "pending" | "expired" | "error" | "disconnected";
@@ -78,7 +79,7 @@ const CompanySettings = () => {
     name: "", name_en: "", email: "", phone: "", cr_number: "",
     vat_number: "", address_street: "", address_city: "", address_zip: "",
     building_number: "", address_district: "", additional_number: "",
-    logo_url: "", industry: "",
+    logo_url: "", industry: "", base_currency: "SAR",
   });
   const [originalVatNumber, setOriginalVatNumber] = useState("");
 
@@ -112,7 +113,7 @@ const CompanySettings = () => {
     const [tenantRes, settingsRes, zatcaRes] = await Promise.all([
       supabase
         .from("tenants")
-        .select("name, name_en, email, phone, cr_number, vat_number, address_street, address_city, address_zip, logo_url, industry, building_number, address_district, additional_number")
+        .select("name, name_en, email, phone, cr_number, vat_number, address_street, address_city, address_zip, logo_url, industry, building_number, address_district, additional_number, base_currency")
         .eq("id", tenantId)
         .single(),
       (supabase.from("tenant_settings" as any)
@@ -135,6 +136,7 @@ const CompanySettings = () => {
         address_zip: t.address_zip || "", building_number: t.building_number || "",
         address_district: t.address_district || "", additional_number: t.additional_number || "",
         logo_url: t.logo_url || "", industry: t.industry || "",
+        base_currency: t.base_currency || "SAR",
       };
       setCompanyData(d);
       setOriginalVatNumber(t.vat_number || "");
@@ -202,7 +204,8 @@ const CompanySettings = () => {
       address_zip: companyData.address_zip || null, building_number: companyData.building_number || null,
       address_district: companyData.address_district || null, additional_number: companyData.additional_number || null,
       industry: companyData.industry || null,
-    }).eq("id", tenantId);
+      base_currency: companyData.base_currency || "SAR",
+    } as any).eq("id", tenantId);
 
     if (error) toast.error("فشل حفظ البيانات: " + error.message);
     else {
@@ -517,6 +520,26 @@ const CompanySettings = () => {
           <div className="space-y-2">
             <Label>القطاع</Label>
             <Input value={companyData.industry} onChange={e => updateCompany("industry", e.target.value)} placeholder="مثال: تقنية المعلومات" />
+          </div>
+          <div className="space-y-2">
+            <Label>العملة الأساسية</Label>
+            <Select value={companyData.base_currency} onValueChange={v => updateCompany("base_currency" as any, v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SAR">ريال سعودي (ر.س)</SelectItem>
+                <SelectItem value="USD">دولار أمريكي ($)</SelectItem>
+                <SelectItem value="EUR">يورو (€)</SelectItem>
+                <SelectItem value="GBP">جنيه إسترليني (£)</SelectItem>
+                <SelectItem value="AED">درهم إماراتي (د.إ)</SelectItem>
+                <SelectItem value="KWD">دينار كويتي (د.ك)</SelectItem>
+                <SelectItem value="BHD">دينار بحريني (د.ب)</SelectItem>
+                <SelectItem value="QAR">ريال قطري (ر.ق)</SelectItem>
+                <SelectItem value="OMR">ريال عُماني (ر.ع)</SelectItem>
+                <SelectItem value="EGP">جنيه مصري (ج.م)</SelectItem>
+                <SelectItem value="JOD">دينار أردني (د.أ)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">العملة المستخدمة في التقارير المالية والقيود المحاسبية</p>
           </div>
         </CardContent>
       </Card>

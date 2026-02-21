@@ -5,6 +5,8 @@ import { FormLabel } from "@/components/ui/form-tooltip";
 import { Button } from "@/components/ui/button";
 import {
   formatCurrency,
+  formatCurrencyWithSymbol,
+  getCurrencySymbol,
   generateInvoiceNumber,
   calculateItemTotals,
   calculateInvoiceTotals,
@@ -46,11 +48,25 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [saving, setSaving] = useState(false);
+  const [currency, setCurrency] = useState("SAR");
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [currencies, setCurrencies] = useState<{ code: string; name_ar: string; symbol: string }[]>([]);
+  const [baseCurrency, setBaseCurrency] = useState("SAR");
 
   useEffect(() => {
     if (!tenantId) return;
-    supabase.from("customers").select("id, name").eq("tenant_id", tenantId).eq("is_active", true).then(({ data }) => {
-      if (data) setCustomers(data);
+    Promise.all([
+      supabase.from("customers").select("id, name").eq("tenant_id", tenantId).eq("is_active", true),
+      supabase.from("currencies" as any).select("code, name_ar, symbol").eq("is_active", true),
+      supabase.from("tenants").select("base_currency").eq("id", tenantId).single(),
+    ]).then(([custRes, currRes, tenantRes]) => {
+      if (custRes.data) setCustomers(custRes.data);
+      if (currRes.data) setCurrencies(currRes.data as any[]);
+      if (tenantRes.data) {
+        const bc = (tenantRes.data as any).base_currency || "SAR";
+        setBaseCurrency(bc);
+        setCurrency(bc);
+      }
     });
   }, [tenantId]);
 
@@ -68,6 +84,27 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
   const addItem = () => setItems((prev) => [...prev, emptyItem()]);
   const removeItem = (id: string) => { if (items.length > 1) setItems((prev) => prev.filter((i) => i.id !== id)); };
   const totals = calculateInvoiceTotals(items);
+  const baseCurrencyTotal = totals.grand_total * exchangeRate;
+
+  // Fetch exchange rate when currency changes
+  const handleCurrencyChange = async (newCurrency: string) => {
+    setCurrency(newCurrency);
+    if (newCurrency === baseCurrency) {
+      setExchangeRate(1);
+      return;
+    }
+    if (!tenantId) return;
+    const { data } = await supabase
+      .from("currency_rates")
+      .select("rate")
+      .eq("tenant_id", tenantId)
+      .eq("from_currency", newCurrency)
+      .eq("to_currency", baseCurrency)
+      .order("effective_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setExchangeRate(data?.rate || 1);
+  };
 
   // Validation state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,9 +140,12 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
       vat_total: totals.vat_total,
       grand_total: totals.grand_total,
       amount_due: totals.grand_total,
+      currency,
+      exchange_rate: exchangeRate,
+      base_currency_total: baseCurrencyTotal,
       notes: notes || null,
       status: "draft",
-    }).select("id").single();
+    } as any).select("id").single();
 
     if (error || !invoice) {
       toast({ title: "خطأ", description: error?.message || "فشل حفظ الفاتورة", variant: "destructive" });
@@ -233,7 +273,7 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
         {/* Sidebar */}
         <div className="space-y-6">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">التواريخ</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">التواريخ والعملة</h3>
             <div className="space-y-4">
               <div>
                 <FormLabel label="تاريخ الإصدار" tooltip="تاريخ إصدار الفاتورة، يُستخدم في رمز ZATCA QR" />
@@ -244,6 +284,28 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={`${inputClass} font-english ${errors.dueDate ? "border-destructive" : ""}`} />
                 {errors.dueDate && <p className="text-[10px] text-destructive mt-1">{errors.dueDate}</p>}
               </div>
+              <div>
+                <FormLabel label="العملة" tooltip="اختر عملة الفاتورة. سيتم تحويل المبلغ للعملة الأساسية تلقائياً" />
+                <select value={currency} onChange={(e) => handleCurrencyChange(e.target.value)} className={inputClass}>
+                  {currencies.length > 0 ? currencies.map(c => (
+                    <option key={c.code} value={c.code}>{c.name_ar} ({c.symbol})</option>
+                  )) : (
+                    <option value="SAR">ريال سعودي (ر.س)</option>
+                  )}
+                </select>
+              </div>
+              {currency !== baseCurrency && (
+                <div className="rounded-lg bg-accent/5 border border-accent/20 p-3 space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">سعر الصرف</span>
+                    <span className="font-english font-medium text-foreground" dir="ltr">1 {getCurrencySymbol(currency)} = {exchangeRate} {getCurrencySymbol(baseCurrency)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">المبلغ بالعملة الأساسية</span>
+                    <span className="font-english font-semibold text-accent" dir="ltr">{formatCurrency(baseCurrencyTotal)} {getCurrencySymbol(baseCurrency)}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -252,23 +314,29 @@ const InvoiceCreate = ({ onBack, onSaved }: InvoiceCreateProps) => {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">المجموع الفرعي</span>
-                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.subtotal)} ر.س</span>
+                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.subtotal)} {getCurrencySymbol(currency)}</span>
               </div>
               {totals.discount_total > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">الخصم</span>
-                  <span className="font-english font-medium text-destructive" dir="ltr">- {formatCurrency(totals.discount_total)} ر.س</span>
+                  <span className="font-english font-medium text-destructive" dir="ltr">- {formatCurrency(totals.discount_total)} {getCurrencySymbol(currency)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">ضريبة القيمة المضافة (١٥٪)</span>
-                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.vat_total)} ر.س</span>
+                <span className="font-english font-medium text-foreground" dir="ltr">{formatCurrency(totals.vat_total)} {getCurrencySymbol(currency)}</span>
               </div>
               <div className="border-t border-border pt-3 mt-3">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-foreground">الإجمالي المستحق</span>
-                  <span className="text-xl font-bold font-english text-accent" dir="ltr">{formatCurrency(totals.grand_total)} ر.س</span>
+                  <span className="text-xl font-bold font-english text-accent" dir="ltr">{formatCurrency(totals.grand_total)} {getCurrencySymbol(currency)}</span>
                 </div>
+                {currency !== baseCurrency && (
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-muted-foreground">بالعملة الأساسية</span>
+                    <span className="text-sm font-semibold font-english text-muted-foreground" dir="ltr">{formatCurrency(baseCurrencyTotal)} {getCurrencySymbol(baseCurrency)}</span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
