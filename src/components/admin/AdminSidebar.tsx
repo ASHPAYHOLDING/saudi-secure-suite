@@ -47,6 +47,7 @@ const menuItems = [
   { icon: Wallet, label: "طلبات شحن المحفظة", path: "/admin/wallet-requests" },
   { icon: Tag, label: "أكواد الخصم", path: "/admin/discount-codes" },
   { icon: Crown, label: "إدارة الشركاء", path: "/admin/affiliates" },
+  { icon: LayoutTemplate, label: "توثيق التكاملات", path: "/admin/integrations/docs" },
 ];
 
 interface AdminSidebarProps {

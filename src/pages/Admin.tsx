@@ -29,6 +29,7 @@ const AdminSupportTickets = lazy(() => import("@/components/admin/AdminSupportTi
 const AdminWalletRequests = lazy(() => import("@/components/admin/AdminWalletRequests"));
 const AdminDiscountCodes = lazy(() => import("@/components/admin/AdminDiscountCodes"));
 const AdminAffiliateManagement = lazy(() => import("@/components/admin/AdminAffiliateManagement"));
+const AdminIntegrationDocs = lazy(() => import("@/components/admin/AdminIntegrationDocs"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -92,6 +93,7 @@ const Admin = () => {
     if (path === "/admin/wallet-requests") return <AdminWalletRequests />;
     if (path === "/admin/discount-codes") return <AdminDiscountCodes />;
     if (path === "/admin/affiliates") return <AdminAffiliateManagement />;
+    if (path === "/admin/integrations/docs") return <AdminIntegrationDocs />;
     return <AdminDashboard />;
   };
 
