@@ -4230,10 +4230,13 @@ export type Database = {
           created_by: string
           id: string
           invoice_id: string
+          is_reversed: boolean
           notes: string | null
           payment_date: string
           payment_method: string
           reference_number: string
+          reversal_reason: string | null
+          reversed_at: string | null
           tenant_id: string
         }
         Insert: {
@@ -4242,10 +4245,13 @@ export type Database = {
           created_by: string
           id?: string
           invoice_id: string
+          is_reversed?: boolean
           notes?: string | null
           payment_date?: string
           payment_method?: string
           reference_number: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
           tenant_id: string
         }
         Update: {
@@ -4254,10 +4260,13 @@ export type Database = {
           created_by?: string
           id?: string
           invoice_id?: string
+          is_reversed?: boolean
           notes?: string | null
           payment_date?: string
           payment_method?: string
           reference_number?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
           tenant_id?: string
         }
         Relationships: [
@@ -10889,6 +10898,10 @@ export type Database = {
           subject_template: string
           variables: Json
         }[]
+      }
+      reverse_payment: {
+        Args: { p_payment_id: string; p_reason: string; p_user_id?: string }
+        Returns: string
       }
       set_integration_secrets: {
         Args: {
