@@ -75,6 +75,7 @@ const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityC
 const EnterpriseDashboard = lazy(() => import("@/components/enterprise/EnterpriseDashboard"));
 const EnterpriseSecurityPolicies = lazy(() => import("@/components/enterprise/EnterpriseSecurityPolicies"));
 const EnterpriseSessionManagement = lazy(() => import("@/components/enterprise/EnterpriseSessionManagement"));
+const EnterpriseIPRestrictions = lazy(() => import("@/components/enterprise/EnterpriseIPRestrictions"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -182,6 +183,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "enterprise", element: EnterpriseDashboard, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/security-policies", element: EnterpriseSecurityPolicies, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/sessions", element: EnterpriseSessionManagement, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "enterprise/ip-restrictions", element: EnterpriseIPRestrictions, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

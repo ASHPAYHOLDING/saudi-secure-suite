@@ -114,6 +114,7 @@
     "enterpriseGovernance": "مركز الحوكمة",
     "enterpriseSecurityPolicies": "السياسات الأمنية",
     "enterpriseSessions": "إدارة الجلسات",
+    "enterpriseIPRestrictions": "تقييد عناوين IP",
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",

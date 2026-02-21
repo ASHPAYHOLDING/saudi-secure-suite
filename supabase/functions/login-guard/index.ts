@@ -54,6 +54,30 @@ Deno.serve(async (req) => {
       }
     }
 
+    // IP restriction check on successful login
+    if (success && tenant_id && ip_address) {
+      const { data: ipAllowed } = await supabase.rpc("check_ip_allowed", {
+        p_tenant_id: tenant_id,
+        p_ip: ip_address,
+      });
+      if (ipAllowed === false) {
+        // Log blocked attempt
+        await supabase.from("audit_logs").insert({
+          tenant_id,
+          user_id: user_id || "00000000-0000-0000-0000-000000000000",
+          entity_type: "enterprise_allowed_ips",
+          action: "enterprise_ip_block",
+          entity_label: "محاولة دخول من عنوان IP محظور",
+          ip_address,
+          changes: { email, ip_address, blocked: true },
+        });
+        return new Response(
+          JSON.stringify({ blocked: true, message: "عنوان IP غير مسموح به. تواصل مع مدير النظام." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Record the attempt
     await supabase.from("login_attempts").insert({
       email,
