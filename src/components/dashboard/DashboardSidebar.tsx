@@ -90,7 +90,6 @@ const navGroups: NavGroup[] = [
       { icon: BarChart3, key: "nav.reportBuilder", path: "/dashboard/report-builder", module: "reports" },
       { icon: CalendarClock, key: "nav.scheduledReports", path: "/dashboard/scheduled-reports", module: "reports" },
       { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
-      { icon: BarChart3, key: "nav.executiveAnalytics", path: "/dashboard/analytics/executive", module: "analytics" },
       { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
       { icon: Sparkles, key: "nav.smartQuery", path: "/dashboard/smart-query", module: "analytics" },
       { icon: Table2, key: "nav.sheetView", path: "/dashboard/sheet-view", module: "sheet-view" },
@@ -106,41 +105,29 @@ const navGroups: NavGroup[] = [
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
-      { icon: Sparkles, key: "nav.integrationsMarketplace", path: "/dashboard/integrations/marketplace", module: "integrations" },
       
-      { icon: CreditCard, key: "nav.paymentProviders", path: "/dashboard/integrations/payments", module: "integrations" },
       { icon: Key, key: "nav.apiKeys", path: "/dashboard/api-keys", module: "integrations" },
       { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
     ],
   },
   {
-    labelKey: "nav.group.enterprise",
+    labelKey: "nav.settingsSection",
     items: [
+      { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
+      { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
+      { icon: Building2, key: "nav.groupCompany", path: "/dashboard/group", module: "company" },
+      { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
+      { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
+      { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
+      { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
       { icon: Shield, key: "nav.enterpriseGovernance", path: "/dashboard/enterprise", module: "enterprise" },
-      { icon: Lock, key: "nav.enterpriseSecurityPolicies", path: "/dashboard/enterprise/security-policies", module: "enterprise" },
-      { icon: Users, key: "nav.enterpriseSessions", path: "/dashboard/enterprise/sessions", module: "enterprise" },
-      { icon: Globe, key: "nav.enterpriseIPRestrictions", path: "/dashboard/enterprise/ip-restrictions", module: "enterprise" },
-      { icon: Crown, key: "nav.enterpriseRoleTemplates", path: "/dashboard/enterprise/role-templates", module: "enterprise" },
-      { icon: Shield, key: "nav.enterpriseAuditExport", path: "/dashboard/enterprise/audit-export", module: "enterprise" },
-      { icon: Shield, key: "nav.governance", path: "/dashboard/governance", module: "enterprise" },
+      { icon: Building2, key: "nav.ssoSettings", path: "/dashboard/sso-settings", module: "company" },
+      { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
+      { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
+      { icon: Headphones, key: "nav.support", path: "/dashboard/support", module: "help" },
+      { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
     ],
   },
-];
-
-const settingsMenuKeys: NavItemDef[] = [
-  { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
-  { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
-  { icon: Building2, key: "nav.groupCompany", path: "/dashboard/group", module: "company" },
-  { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
-  { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
-  { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
-      { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
-      { icon: ShieldAlert, key: "nav.auditIntelligence", path: "/dashboard/audit/intelligence", module: "audit" },
-      { icon: Building2, key: "nav.ssoSettings", path: "/dashboard/sso-settings", module: "company" },
-  { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
-  { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
-  { icon: Headphones, key: "nav.support", path: "/dashboard/support", module: "help" },
-  { icon: HelpCircle, key: "nav.help", path: "/dashboard/help", module: "help" },
 ];
 
 interface DashboardSidebarProps {
@@ -175,10 +162,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       if (group.items.some((item) => location.pathname === item.path)) {
         open.add(group.labelKey);
       }
-    }
-    // Also check settings
-    if (settingsMenuKeys.some((item) => location.pathname === item.path)) {
-      open.add("nav.settingsSection");
     }
     return open;
   };
@@ -310,9 +293,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
     );
   };
 
-  const filteredSettings = settingsMenuKeys.filter((item) => isModuleAllowed(tenantType, item.module));
-  const isSettingsOpen = openGroups.has("nav.settingsSection");
-  const hasActiveSettings = filteredSettings.some((item) => location.pathname === item.path);
 
   return (
     <>
@@ -362,57 +342,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
           ))}
         </div>
 
-        {/* Settings group */}
-        {filteredSettings.length > 0 && (
-          <>
-            {!collapsed && <div className="my-3 border-t border-sidebar-border" />}
-            {collapsed ? (
-              <div className="space-y-0.5 mt-2">
-                {filteredSettings.map((item) => (
-                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
-                ))}
-              </div>
-            ) : (
-              <div>
-                <button
-                  onClick={() => toggleGroup("nav.settingsSection")}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
-                    hasActiveSettings
-                       ? "text-sidebar-primary"
-                       : "text-sidebar-foreground/70 hover:text-sidebar-foreground"
-                  )}
-                >
-                  <span>{t("nav.settingsSection")}</span>
-                  <ChevronDown
-                    size={14}
-                    className={cn(
-                      "transition-transform duration-200",
-                      isSettingsOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
-                    )}
-                  />
-                </button>
-                <AnimatePresence initial={false}>
-                  {isSettingsOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-0.5 pb-1">
-                        {filteredSettings.map((item) => (
-                          <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-          </>
-        )}
       </div>
 
       {/* Admin + Logout */}

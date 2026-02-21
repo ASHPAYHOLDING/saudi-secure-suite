@@ -395,6 +395,46 @@ const ArchitectureAudit = () => {
     return <Badge variant={m.variant}>{m.label}</Badge>;
   };
 
+  const PHASE_B_CONSOLIDATIONS = [
+    {
+      group: "الفواتير",
+      canonical: "/dashboard/billing",
+      hidden: ["/dashboard/invoices"],
+      reason: "نفس المكوّن (InvoicesPage) — redirect مُفعّل",
+    },
+    {
+      group: "المؤسسات والحوكمة",
+      canonical: "/dashboard/enterprise",
+      hidden: [
+        "/dashboard/enterprise/security-policies",
+        "/dashboard/enterprise/sessions",
+        "/dashboard/enterprise/ip-restrictions",
+        "/dashboard/enterprise/role-templates",
+        "/dashboard/enterprise/audit-export",
+        "/dashboard/governance",
+      ],
+      reason: "صفحات فرعية — الوصول من داخل لوحة المؤسسات",
+    },
+    {
+      group: "التكاملات",
+      canonical: "/dashboard/integrations",
+      hidden: ["/dashboard/integrations/marketplace", "/dashboard/integrations/payments"],
+      reason: "صفحات فرعية — الوصول من صفحة التكاملات الرئيسية",
+    },
+    {
+      group: "التحليلات",
+      canonical: "/dashboard/analytics",
+      hidden: ["/dashboard/analytics/executive"],
+      reason: "صفحة فرعية — الوصول من لوحة التحليلات",
+    },
+    {
+      group: "سجل التدقيق",
+      canonical: "/dashboard/audit",
+      hidden: ["/dashboard/audit/intelligence"],
+      reason: "صفحة فرعية — الوصول من سجل التدقيق",
+    },
+  ];
+
   const PHASE_A_MIGRATIONS = [
     { from: "/dashboard/system/storage", to: "/admin/system/storage", label: "تقرير التخزين" },
     { from: "/dashboard/system/migrations", to: "/admin/system/migrations", label: "لوحة الترحيلات" },
@@ -429,6 +469,45 @@ const ArchitectureAudit = () => {
             <Badge variant="secondary">✓ أُضيفت لـ Admin Sidebar</Badge>
             <Badge variant="secondary">✓ Deprecation redirects فعّالة</Badge>
             <Badge variant="secondary">✓ PlatformAdminRoute محمية</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Phase B Applied Banner */}
+      <Card className="border-blue-300 bg-blue-500/10">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <CheckCircle2 className="h-6 w-6 text-blue-600" />
+            <h3 className="text-lg font-bold text-blue-700">Phase B Applied ✅</h3>
+            <Badge variant="outline" className="border-blue-400 text-blue-700">مُطبّقة</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-3">
+            تم توحيد Sidebar العميل إلى 7 أقسام، وإخفاء {PHASE_B_CONSOLIDATIONS.reduce((sum, g) => sum + g.hidden.length, 0)} مسار مكرر/فرعي مع إعادة التوجيه.
+          </p>
+          <div className="space-y-3">
+            {PHASE_B_CONSOLIDATIONS.map((c) => (
+              <div key={c.group} className="bg-card/50 rounded-md px-3 py-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Merge className="h-4 w-4 text-blue-600 shrink-0" />
+                  <span className="font-semibold text-sm">{c.group}</span>
+                  <Badge variant="secondary" className="text-xs">{c.reason}</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <span className="text-blue-700 font-semibold">canonical: {c.canonical}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {c.hidden.map(h => (
+                    <Badge key={h} variant="outline" className="text-xs font-mono line-through text-muted-foreground">{h}</Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary">✓ Sidebar → 7 أقسام فقط</Badge>
+            <Badge variant="secondary">✓ المؤسسات → دُمجت في الإعدادات</Badge>
+            <Badge variant="secondary">✓ الفرعيات أُخفيت من القائمة</Badge>
+            <Badge variant="secondary">✓ Redirects للمكررات</Badge>
           </div>
         </CardContent>
       </Card>
