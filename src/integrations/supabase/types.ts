@@ -4212,6 +4212,56 @@ export type Database = {
           },
         ]
       }
+      governance_policies: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_en: string | null
+          policy_type: Database["public"]["Enums"]["governance_policy_type"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          policy_type: Database["public"]["Enums"]["governance_policy_type"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_en?: string | null
+          policy_type?: Database["public"]["Enums"]["governance_policy_type"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "governance_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_admins: {
         Row: {
           can_access_subsidiaries: boolean | null
@@ -7132,6 +7182,69 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      policy_violations: {
+        Row: {
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          policy_id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          tenant_id: string
+          user_id: string
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          policy_id: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id: string
+          user_id: string
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          policy_id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          tenant_id?: string
+          user_id?: string
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_violations_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "governance_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_violations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_batches: {
         Row: {
@@ -11525,6 +11638,18 @@ export type Database = {
         Args: { _feature_keys: string[]; _tenant_id: string }
         Returns: Json
       }
+      check_governance_policy: {
+        Args: {
+          p_action: string
+          p_amount?: number
+          p_entity_id: string
+          p_entity_type: string
+          p_metadata?: Json
+          p_tenant_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       check_ip_allowed: {
         Args: { p_ip: string; p_tenant_id: string }
         Returns: boolean
@@ -12043,6 +12168,11 @@ export type Database = {
       budget_line_type: "revenue" | "expense" | "capex"
       budget_period_type: "monthly" | "quarterly" | "yearly"
       budget_status: "draft" | "active" | "locked" | "archived"
+      governance_policy_type:
+        | "approval_limit"
+        | "segregation_of_duties"
+        | "transaction_limit"
+        | "restricted_access"
       integration_alert_severity: "info" | "warn" | "critical"
       integration_health_status: "healthy" | "degraded" | "down"
       journal_approval_status: "none" | "pending" | "approved" | "rejected"
@@ -12195,6 +12325,12 @@ export const Constants = {
       budget_line_type: ["revenue", "expense", "capex"],
       budget_period_type: ["monthly", "quarterly", "yearly"],
       budget_status: ["draft", "active", "locked", "archived"],
+      governance_policy_type: [
+        "approval_limit",
+        "segregation_of_duties",
+        "transaction_limit",
+        "restricted_access",
+      ],
       integration_alert_severity: ["info", "warn", "critical"],
       integration_health_status: ["healthy", "degraded", "down"],
       journal_approval_status: ["none", "pending", "approved", "rejected"],

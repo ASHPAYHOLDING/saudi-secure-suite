@@ -88,6 +88,7 @@ const JournalApprovalsPage = lazy(() => import("@/components/journal/JournalAppr
 const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepairPage"));
 const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
+const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -208,6 +209,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "enterprise/ip-restrictions", element: EnterpriseIPRestrictions, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/role-templates", element: EnterpriseRoleTemplates, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "enterprise/audit-export", element: EnterpriseAuditExport, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
+  { path: "governance", element: GovernancePage, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

@@ -101,6 +101,8 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   reject_journal_entry: true,
   // Finance Integrity
   scan_finance_integrity: true,
+  // Governance
+  check_governance_policy: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)
