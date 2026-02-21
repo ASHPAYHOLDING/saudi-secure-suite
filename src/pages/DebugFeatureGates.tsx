@@ -1,5 +1,5 @@
 import { FEATURE_KEYS, type FeatureKey } from "@/lib/entitlement-types";
-import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
+import { ROUTE_FEATURE_MAP, FEATURE_RBAC_MAP } from "@/lib/feature-route-map";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
 import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,78 +10,17 @@ import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, Route, ShieldAlert } f
 import { Link } from "react-router-dom";
 
 /**
- * Single source of truth for RBAC mapping.
- * MUST mirror FeatureGate.tsx FEATURE_RBAC_MAP exactly.
- */
-const FEATURE_RBAC_MAP: Partial<Record<string, string[]>> = {
-  [FEATURE_KEYS.INVOICES_BASIC]: ["invoices.view"],
-  [FEATURE_KEYS.EXPENSES]: ["expenses.view"],
-  [FEATURE_KEYS.JOURNAL_ENTRIES]: ["finance.view_overview"],
-  [FEATURE_KEYS.ACCOUNTING_ADVANCED]: ["finance.view_reports"],
-  [FEATURE_KEYS.ADVANCED_REPORTS]: ["finance.view_reports"],
-  [FEATURE_KEYS.CONTRACTS]: ["contracts.view"],
-  [FEATURE_KEYS.BRANCHES]: ["branches.view"],
-  [FEATURE_KEYS.QUOTATIONS]: ["quotations.view"],
-  [FEATURE_KEYS.SALES_ORDERS]: ["sales_orders.view"],
-  [FEATURE_KEYS.PURCHASE_ORDERS]: ["purchase_orders.view"],
-  [FEATURE_KEYS.DELIVERY_NOTES]: ["purchase_orders.view"],
-  [FEATURE_KEYS.INVENTORY]: ["inventory.view"],
-  [FEATURE_KEYS.WALLET]: ["subscription.view"],
-  [FEATURE_KEYS.AUDIT_LOG]: ["audit.view"],
-  [FEATURE_KEYS.TEAM_MANAGEMENT]: ["team.view"],
-  [FEATURE_KEYS.CUSTOMERS]: ["customers.view"],
-  [FEATURE_KEYS.ANALYTICS]: ["finance.view_analytics"],
-  [FEATURE_KEYS.BRANDING]: ["settings.branding"],
-  [FEATURE_KEYS.STAMP]: ["settings.stamp"],
-  [FEATURE_KEYS.PAID_INTEGRATIONS]: ["settings.integrations"],
-  [FEATURE_KEYS.PAYMENT_REMINDERS]: ["invoices.view"],
-  [FEATURE_KEYS.ZATCA_PHASE1]: ["settings.compliance"],
-  [FEATURE_KEYS.NUMAXIO_PAY]: ["subscription.manage"],
-  [FEATURE_KEYS.BUDGETS_BASIC]: ["finance.view_overview"],
-  [FEATURE_KEYS.API_ACCESS]: ["settings.integrations"],
-  [FEATURE_KEYS.UNLIMITED_EVERYTHING]: ["settings.integrations"],
-};
-
-/**
  * All dashboard routes — generated from Dashboard.tsx renderContent().
  * Routes marked "intentionally_open" have no FeatureGate by design.
  */
 const ALL_DASHBOARD_ROUTES: { segment: string; path: string; label: string; intentionallyOpen?: boolean }[] = [
-  // Gated routes
-  { segment: "billing", path: "/dashboard/billing", label: "الفواتير" },
-  { segment: "customers", path: "/dashboard/customers", label: "العملاء" },
-  { segment: "quotations", path: "/dashboard/quotations", label: "عروض الأسعار" },
-  { segment: "sales-orders", path: "/dashboard/sales-orders", label: "أوامر البيع" },
-  { segment: "purchase-orders", path: "/dashboard/purchase-orders", label: "أوامر الشراء" },
-  { segment: "delivery-notes", path: "/dashboard/delivery-notes", label: "سندات التسليم" },
-  { segment: "supplier-inbox", path: "/dashboard/supplier-inbox", label: "صندوق الموردين" },
-  { segment: "expenses", path: "/dashboard/expenses", label: "المصروفات" },
-  { segment: "credit-notes", path: "/dashboard/credit-notes", label: "إشعارات الائتمان" },
-  { segment: "inventory", path: "/dashboard/inventory", label: "المخزون" },
-  { segment: "contracts", path: "/dashboard/contracts", label: "العقود" },
-  { segment: "journal-entries", path: "/dashboard/journal-entries", label: "القيود اليومية" },
-  { segment: "vat-return", path: "/dashboard/vat-return", label: "إقرار الضريبة" },
-  { segment: "reports", path: "/dashboard/reports", label: "التقارير" },
-  { segment: "analytics", path: "/dashboard/analytics", label: "التحليلات" },
-  { segment: "smart-query", path: "/dashboard/smart-query", label: "الاستعلام الذكي" },
-  { segment: "wallet", path: "/dashboard/wallet", label: "المحفظة" },
-  { segment: "numaxio-pay", path: "/dashboard/numaxio-pay", label: "نيوماكسيو باي" },
-  { segment: "payment-reminders", path: "/dashboard/payment-reminders", label: "تذكيرات الدفع" },
-  { segment: "stamp", path: "/dashboard/stamp", label: "الختم الرقمي" },
-  { segment: "branding", path: "/dashboard/branding", label: "الهوية البصرية" },
-  { segment: "compliance", path: "/dashboard/compliance", label: "الامتثال الضريبي" },
-  { segment: "branches", path: "/dashboard/branches", label: "الفروع" },
-  { segment: "team", path: "/dashboard/team", label: "الفريق" },
-  { segment: "permissions", path: "/dashboard/permissions", label: "الصلاحيات" },
-  { segment: "audit", path: "/dashboard/audit", label: "سجل المراجعة" },
-  { segment: "budgets", path: "/dashboard/budgets", label: "الميزانيات" },
-  { segment: "data-quality", path: "/dashboard/data-quality", label: "جودة البيانات" },
-  { segment: "approvals", path: "/dashboard/approvals", label: "سلاسل الموافقة" },
-  { segment: "finance", path: "/dashboard/finance", label: "النظرة المالية" },
-  { segment: "api-keys", path: "/dashboard/api-keys", label: "مفاتيح API" },
-  { segment: "integrations", path: "/dashboard/integrations", label: "التكاملات" },
-  { segment: "chat", path: "/dashboard/chat", label: "المحادثات" },
-  { segment: "group", path: "/dashboard/group", label: "المجموعة المؤسسية" },
+  // Gated routes (auto-derived labels from ROUTE_FEATURE_MAP where available)
+  ...Object.entries(ROUTE_FEATURE_MAP).map(([segment, entry]) => ({
+    segment,
+    path: `/dashboard/${segment}`,
+    label: entry.label,
+  })),
+  // Additional gated routes not in the map
   { segment: "forecasting", path: "/dashboard/forecasting", label: "التنبؤ المالي" },
 
   // Intentionally open (no gate needed)
@@ -113,7 +52,6 @@ const DebugFeatureGates = () => {
     const rbacAllowed = !rbacPerms || isOwner || canAny(...(rbacPerms as string[]));
 
     const overallAllowed = entAllowed && rbacAllowed;
-    // Single clear reason
     const blockedBy = !entAllowed ? "entitlement" : !rbacAllowed ? "rbac" : null;
 
     return { route, featureKey, mapping, entAllowed, entReason, rbacPerms, rbacAllowed, overallAllowed, blockedBy };
@@ -123,7 +61,6 @@ const DebugFeatureGates = () => {
   const unGatedRoutes = routeRows.filter((r) => !r.featureKey);
   const gatedRoutes = routeRows.filter((r) => r.featureKey);
 
-  // Feature keys defined in code but with no route mapping
   const mappedFeatureKeys = new Set(Object.values(ROUTE_FEATURE_MAP).map((m) => m.featureKey));
   const unmappedKeys = Object.values(FEATURE_KEYS).filter((k) => !mappedFeatureKeys.has(k as FeatureKey));
 
@@ -133,7 +70,7 @@ const DebugFeatureGates = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground">🗺️ Feature Gates Audit</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            All dashboard routes · entitlement + RBAC status · single source of truth
+            All dashboard routes · entitlement + RBAC status · unified ACCESS_MAP
           </p>
         </div>
         <div className="flex gap-2">
@@ -141,6 +78,9 @@ const DebugFeatureGates = () => {
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
           </Button>
+          <Link to="/debug/access-map">
+            <Button size="sm" variant="outline">→ Access Map</Button>
+          </Link>
           <Link to="/debug/entitlements">
             <Button size="sm" variant="outline">→ Entitlements</Button>
           </Link>
