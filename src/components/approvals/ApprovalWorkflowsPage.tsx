@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,52 +150,35 @@ const ApprovalWorkflowsPage = () => {
 
   const processApproval = useMutation({
     mutationFn: async ({ actionId, requestId, decision, comment }: { actionId: string; requestId: string; decision: "approved" | "rejected"; comment?: string }) => {
-      // Update the action
-      const { error: actErr } = await supabase
-        .from("approval_actions")
-        .update({ action: decision, acted_by: user!.id, acted_at: new Date().toISOString(), comment: comment || null })
-        .eq("id", actionId);
-      if (actErr) throw actErr;
+      // Use server-side secure RPC for RBAC + tenant + self-approval enforcement
+      const { data, error } = await secureRpc("secure_approval_action", {
+        p_action_id: actionId,
+        p_request_id: requestId,
+        p_decision: decision,
+        p_comment: comment || null,
+      });
 
-      // Get the request to determine next step
+      if (error) throw new Error(error.message);
+
+      // Create notification for the requester (read-only, safe client-side)
       const { data: request } = await supabase.from("approval_requests").select("*").eq("id", requestId).single();
-      if (!request) return;
+      if (request) {
+        const finalStatus = data?.status || decision;
+        const docLabel = DOCUMENT_TYPES.find(d => d.value === request.document_type);
+        const notifMessage = decision === "approved"
+          ? `تمت الموافقة على ${docLabel?.labelAr || request.document_type} ${request.document_number || ""} - المستوى ${request.current_step}`
+          : `تم رفض ${docLabel?.labelAr || request.document_type} ${request.document_number || ""}`;
 
-      if (decision === "rejected") {
-        await supabase.from("approval_requests").update({ status: "rejected", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", requestId);
-      } else if (request.current_step >= request.total_steps) {
-        await supabase.from("approval_requests").update({ status: "approved", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", requestId);
-      } else {
-        await supabase.from("approval_requests").update({ current_step: request.current_step + 1, updated_at: new Date().toISOString() }).eq("id", requestId);
+        await supabase.from("collaboration_notifications").insert({
+          tenant_id: tenantId!,
+          user_id: request.requested_by,
+          actor_id: user!.id,
+          type: "approval_decision",
+          entity_type: "approval_request",
+          entity_id: requestId,
+          message: notifMessage,
+        });
       }
-
-      // Create notification for the requester
-      const finalStatus = decision === "rejected" ? "rejected" : (request.current_step >= request.total_steps ? "approved" : "pending");
-      const docLabel = DOCUMENT_TYPES.find(d => d.value === request.document_type);
-      const notifMessage = decision === "approved"
-        ? `تمت الموافقة على ${docLabel?.labelAr || request.document_type} ${request.document_number || ""} - المستوى ${request.current_step}`
-        : `تم رفض ${docLabel?.labelAr || request.document_type} ${request.document_number || ""}`;
-
-      await supabase.from("collaboration_notifications").insert({
-        tenant_id: tenantId!,
-        user_id: request.requested_by,
-        actor_id: user!.id,
-        type: "approval_decision",
-        entity_type: "approval_request",
-        entity_id: requestId,
-        message: notifMessage,
-      });
-
-      // Log to audit
-      await supabase.from("audit_logs").insert({
-        tenant_id: tenantId!,
-        user_id: user!.id,
-        entity_type: "approval_request",
-        action: decision,
-        entity_id: requestId,
-        entity_label: `${request.document_type} ${request.document_number || ""}`,
-        after_value: { decision, step: request.current_step, final_status: finalStatus },
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["approval-requests"] });

@@ -43,6 +43,9 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   reconcile_unbalanced_journals: true,
   reconcile_vat_totals: true,
   reconcile_wallet_vs_journal: true,
+  // Workflow approvals
+  secure_workflow_action: true,
+  secure_approval_action: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

@@ -11,6 +11,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { secureRpc } from "@/lib/secure-rpc";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,11 +71,6 @@ export interface WorkflowInstanceStep {
 
 /**
  * startWorkflow — يبدأ سير عمل لكيان محدد
- *
- * 1. يبحث عن workflow مفعّل لنوع الكيان في المنشأة
- * 2. ينشئ instance جديد
- * 3. ينشئ instance_steps لكل خطوة بالترتيب
- * 4. يعالج الخطوات التلقائية الأولى إن وجدت
  */
 export async function startWorkflow(
   tenantId: string,
@@ -145,95 +141,57 @@ export async function startWorkflow(
 }
 
 /**
- * processStep — معالجة خطوة (موافقة/رفض)
+ * processStep — معالجة خطوة (موافقة/رفض) عبر secure-rpc
  *
- * يُستخدم فقط لخطوات من نوع approval
+ * ✅ Server-side enforcement:
+ * - Tenant membership check
+ * - RBAC (role_required / permission_required)
+ * - Self-approval prevention
+ * - Full audit logging
  */
 export async function processStep(
   instanceId: string,
-  userId: string,
+  _userId: string, // kept for API compat, server uses auth.uid()
   action: "approved" | "rejected",
   comment?: string
 ): Promise<{ status: WfInstanceStatus } | { error: string }> {
-  // 1) جلب الـ instance الحالي
-  const { data: instance, error: instErr } = await (supabase as any)
-    .from("workflow_instances")
-    .select("id, tenant_id, workflow_id, current_step_order, status")
-    .eq("id", instanceId)
-    .single();
+  const { data, error } = await secureRpc<{ status: WfInstanceStatus; step_order: number }>(
+    "secure_workflow_action",
+    {
+      p_instance_id: instanceId,
+      p_action: action,
+      p_comment: comment || null,
+    }
+  );
 
-  if (instErr || !instance) return { error: instErr?.message || "المثيل غير موجود" };
-  if (instance.status !== "in_progress") return { error: `المثيل بحالة "${instance.status}" ولا يمكن التعديل عليه` };
-
-  // 2) جلب خطوة الـ instance الحالية
-  const { data: currentStep, error: csErr } = await (supabase as any)
-    .from("workflow_instance_steps")
-    .select("id, step_id, step_order, status")
-    .eq("instance_id", instanceId)
-    .eq("step_order", instance.current_step_order)
-    .single();
-
-  if (csErr || !currentStep) return { error: "لم يتم العثور على الخطوة الحالية" };
-  if (currentStep.status !== "pending") return { error: "الخطوة ليست في حالة انتظار" };
-
-  // 3) تحديث الخطوة
-  const { error: updateErr } = await (supabase as any)
-    .from("workflow_instance_steps")
-    .update({
-      status: action,
-      acted_by: userId,
-      acted_at: new Date().toISOString(),
-      comment: comment || null,
-    })
-    .eq("id", currentStep.id);
-
-  if (updateErr) return { error: updateErr.message };
-
-  // 4) إذا رُفضت → إنهاء المثيل
-  if (action === "rejected") {
-    await (supabase as any)
-      .from("workflow_instances")
-      .update({
-        status: "rejected",
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", instanceId);
-
-    return { status: "rejected" };
+  if (error) {
+    return { error: error.message };
   }
 
-  // 5) إذا وُوفق عليها → التقدم للخطوة التالية
-  const { data: allSteps } = await (supabase as any)
-    .from("workflow_steps")
-    .select("id, step_order, type, auto_condition, is_required")
-    .eq("workflow_id", instance.workflow_id)
-    .order("step_order", { ascending: true });
-
-  const nextOrder = instance.current_step_order + 1;
-  const hasMore = allSteps?.some((s: WorkflowStep) => s.step_order >= nextOrder);
-
-  if (!hasMore) {
-    // آخر خطوة — إتمام المثيل
-    await (supabase as any)
+  // After approval, advance auto steps if needed
+  if (data?.status === "in_progress") {
+    // Fetch all steps to advance auto ones
+    const { data: inst } = await (supabase as any)
       .from("workflow_instances")
-      .update({
-        status: "approved",
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", instanceId);
+      .select("workflow_id, tenant_id")
+      .eq("id", instanceId)
+      .single();
 
-    return { status: "approved" };
+    if (inst) {
+      const { data: allSteps } = await (supabase as any)
+        .from("workflow_steps")
+        .select("id, step_order, type, auto_condition, is_required")
+        .eq("workflow_id", inst.workflow_id)
+        .order("step_order", { ascending: true });
+
+      if (allSteps?.length) {
+        const result = await advanceAutoSteps(instanceId, inst.tenant_id, allSteps);
+        return { status: result.status };
+      }
+    }
   }
 
-  // تقديم للخطوة التالية
-  await (supabase as any)
-    .from("workflow_instances")
-    .update({ current_step_order: nextOrder })
-    .eq("id", instanceId);
-
-  // معالجة الخطوات التلقائية المتتالية
-  const result = await advanceAutoSteps(instanceId, instance.tenant_id, allSteps || []);
-  return { status: result.status };
+  return { status: data?.status || "in_progress" };
 }
 
 /**
@@ -243,7 +201,6 @@ export async function getPendingApprovals(
   tenantId: string,
   _userId: string
 ): Promise<{ data: Array<WorkflowInstance & { step_name: string; entity_type: string }> } | { error: string }> {
-  // جلب المثيلات النشطة مع الخطوة الحالية
   const { data: instances, error } = await (supabase as any)
     .from("workflow_instances")
     .select(`
@@ -259,7 +216,6 @@ export async function getPendingApprovals(
 
   if (error) return { error: error.message };
 
-  // تحويل لشكل مبسّط
   const result = (instances || []).map((inst: any) => {
     const currentStepData = inst.workflow_instance_steps?.[0];
     const stepDef = currentStepData?.workflow_steps;
@@ -314,7 +270,6 @@ async function advanceAutoSteps(
   tenantId: string,
   allSteps: WorkflowStep[]
 ): Promise<{ status: WfInstanceStatus }> {
-  // جلب الـ instance الحالي
   const { data: inst } = await (supabase as any)
     .from("workflow_instances")
     .select("current_step_order")
@@ -328,7 +283,6 @@ async function advanceAutoSteps(
   while (true) {
     const step = allSteps.find((s) => s.step_order === currentOrder);
     if (!step) {
-      // لا يوجد خطوات أخرى — إتمام
       await (supabase as any)
         .from("workflow_instances")
         .update({ status: "approved", completed_at: new Date().toISOString() })
@@ -337,11 +291,9 @@ async function advanceAutoSteps(
     }
 
     if (step.type === "approval") {
-      // خطوة تتطلب تدخل بشري — توقف
       return { status: "in_progress" };
     }
 
-    // auto أو condition → تمرير تلقائي
     const stepStatus: WfStepStatus = step.type === "condition"
       ? evaluateCondition(step.auto_condition) ? "auto_passed" : "skipped"
       : "auto_passed";
@@ -355,7 +307,6 @@ async function advanceAutoSteps(
       .eq("instance_id", instanceId)
       .eq("step_order", currentOrder);
 
-    // إذا الشرط فشل والخطوة إلزامية → رفض
     if (stepStatus === "skipped" && step.is_required) {
       await (supabase as any)
         .from("workflow_instances")
@@ -374,10 +325,8 @@ async function advanceAutoSteps(
 
 /**
  * evaluateCondition — تقييم شرط JSONB بسيط
- * TODO: توسيع لدعم مقارنات أعقد (amount > X, etc.)
  */
 function evaluateCondition(condition?: Record<string, unknown> | null): boolean {
   if (!condition) return true;
-  // حالياً: إذا وُجد شرط بقيمة pass=true يمرر
   return condition.pass === true;
 }
