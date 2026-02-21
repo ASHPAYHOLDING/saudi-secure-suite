@@ -18,8 +18,6 @@ import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntit
 import { NAV_PATH_TO_FEATURE } from "@/lib/feature-route-map";
 import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { motion, AnimatePresence } from "framer-motion";
-import { RamadanBadge } from "@/components/ramadan";
-import { useTheme } from "@/theme/ThemeProvider";
 
 
 interface NavItemDef {
@@ -154,8 +152,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const { entitlements, loading: loadingEntitlements } = useEntitlements();
   const { canAny } = useGranularPermissions();
   const isOwner = userRole === "owner";
-  const { seasonalTheme } = useTheme();
-  const isRamadan = seasonalTheme === "ramadan";
 
   // Check if a feature is entitled (backend-driven) using NAV_PATH_TO_FEATURE map
   const isPathLocked = (path: string): boolean => {
@@ -215,17 +211,11 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         className={cn(
           "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           isActive
-            ? isRamadan
-              ? "bg-sidebar-accent font-semibold"
-              : "bg-sidebar-accent text-sidebar-primary font-semibold"
+            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
             : isLocked
               ? "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
               : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
         )}
-        style={isActive && isRamadan ? {
-          color: "hsl(var(--ramadan-emerald))",
-          borderInlineStart: "2px solid hsl(var(--ramadan-gold)/0.5)",
-        } : undefined}
       >
         <Icon size={18} className="shrink-0" />
         {!collapsed && (
@@ -394,12 +384,11 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         mobileOpen && "max-md:!flex"
       )}
     >
-      {/* Logo + Ramadan badge */}
+      {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <NumaxioLogo variant="dark" size="sm" />
-            <RamadanBadge size="sm" text="🌙" className="hidden sm:inline-flex" />
           </div>
         ) : (
           <NumaxioLogo variant="dark" size="sm" showText={false} />

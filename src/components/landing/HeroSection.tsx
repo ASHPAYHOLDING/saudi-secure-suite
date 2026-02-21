@@ -12,7 +12,7 @@ const trustItems = [
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen overflow-hidden gradient-hero" dir="rtl" style={{ overflowX: "clip" }}>
+    <section className="relative min-h-[70vh] md:min-h-[75vh] lg:min-h-screen overflow-hidden gradient-hero" dir="rtl" style={{ overflowX: "clip" }}>
       {/* Subtle grid */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
@@ -34,7 +34,7 @@ const HeroSection = () => {
         />
       </div>
 
-      <div className="container relative mx-auto flex min-h-screen items-center px-4 pt-24 pb-16 z-20">
+      <div className="container relative mx-auto flex min-h-[70vh] md:min-h-[75vh] lg:min-h-screen items-center px-4 pt-24 pb-16 z-20">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
           {/* Left: Content */}
           <div className="space-y-6 md:space-y-8 min-w-0">
@@ -60,7 +60,8 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.2] text-primary-foreground"
+              className="font-bold leading-[1.3] text-primary-foreground"
+              style={{ fontSize: "clamp(1.75rem, 5vw, 3.75rem)", overflowWrap: "anywhere" }}
             >
               ERP سعودي مؤسسي.
               <br />
@@ -122,12 +123,12 @@ const HeroSection = () => {
             </motion.div>
           </div>
 
-          {/* Right: Dashboard Preview */}
+          {/* Right: Dashboard Preview — Tablet simplified version */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="hidden lg:block"
+            className="hidden md:block"
           >
             <div className="relative rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-sm p-5 shadow-2xl">
               {/* Browser chrome */}
