@@ -111,12 +111,14 @@
     "workflowDesigner": "Workflow Designer",
     "budgets": "Budgets",
     "dataQuality": "Data Quality",
+    "enterpriseGovernance": "Governance Center",
     "group": {
       "sales": "Sales",
       "purchasing": "Purchasing",
       "finance": "Finance",
       "reports": "Reports & Analytics",
-      "management": "Management"
+      "management": "Management",
+      "enterprise": "🏛 Enterprise"
     }
   },
   "landing": {

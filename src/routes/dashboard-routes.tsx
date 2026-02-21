@@ -72,6 +72,7 @@ const GoogleAdsPage = lazy(() => import("@/components/integrations/MarketingPage
 const MetaCatalogPage = lazy(() => import("@/components/integrations/MarketingPages").then(m => ({ default: m.MetaCatalogPage })));
 const DebugMarketing = lazy(() => import("@/pages/DebugMarketing"));
 const AdminSecurityCenter = lazy(() => import("@/components/admin/AdminSecurityCenter"));
+const EnterpriseDashboard = lazy(() => import("@/components/enterprise/EnterpriseDashboard"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -176,6 +177,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations", permissionKey: "api_keys.view" },
   { path: "sso-settings", element: SsoSettingsPage, module: "company", permissionKey: "company.view" },
   { path: "security", element: AdminSecurityCenter, gateSegment: "audit", module: "audit" },
+  { path: "enterprise", element: EnterpriseDashboard, gateSegment: "enterprise", module: "enterprise", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

@@ -238,6 +238,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "المجموعة المؤسسية",
     description: "لوحة تحكم المجموعة والشركات التابعة (باقة المؤسسات).",
   },
+  enterprise: {
+    featureKey: FEATURE_KEYS.ENTERPRISE_MODE,
+    permissionKeys: ["company.view"],
+    label: "حوكمة المؤسسة",
+    description: "مركز الحوكمة والسياسات الأمنية وإدارة الجلسات.",
+  },
 };
 
 /**

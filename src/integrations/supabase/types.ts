@@ -3137,6 +3137,47 @@ export type Database = {
           },
         ]
       }
+      enterprise_settings: {
+        Row: {
+          allow_multiple_sessions: boolean
+          created_at: string
+          enforce_ip_restrictions: boolean
+          id: string
+          password_rotation_days: number
+          session_timeout_minutes: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          allow_multiple_sessions?: boolean
+          created_at?: string
+          enforce_ip_restrictions?: boolean
+          id?: string
+          password_rotation_days?: number
+          session_timeout_minutes?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          allow_multiple_sessions?: boolean
+          created_at?: string
+          enforce_ip_restrictions?: boolean
+          id?: string
+          password_rotation_days?: number
+          session_timeout_minutes?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entitlements_rebuild_queue: {
         Row: {
           created_at: string
