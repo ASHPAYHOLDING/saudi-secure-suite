@@ -77,6 +77,8 @@ export interface DashboardRouteConfig {
   gateSegment?: string;
   /** Module key for tenant-type guard. undefined = no module check. */
   module?: Module;
+  /** RBAC permission key for RouteGuard. undefined = no RBAC check. */
+  permissionKey?: string;
   /** If true, component receives `embedded` prop */
   embedded?: boolean;
   /** Force remount on path change via key={location.pathname} */
@@ -136,10 +138,10 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "integrations/marketing/google-ads", element: GoogleAdsPage, keyOnPath: true, module: "integrations" },
   { path: "integrations/marketing/meta-catalog", element: MetaCatalogPage, keyOnPath: true, module: "integrations" },
   { path: "integrations/:category/:provider", element: ProviderDetailPage, keyOnPath: true, module: "integrations" },
-  { path: "integrations", element: IntegrationsPage, gateSegment: "integrations", module: "integrations" },
+  { path: "integrations", element: IntegrationsPage, gateSegment: "integrations", module: "integrations", permissionKey: "integrations.view" },
 
   // ── Payment ──
-  { path: "payment-marketplace", element: PaymentMarketplace, module: "integrations" },
+  { path: "payment-marketplace", element: PaymentMarketplace, module: "integrations", permissionKey: "integrations.view" },
   { path: "payment-reminders", element: PaymentRemindersPage, gateSegment: "payment-reminders", module: "payment-reminders" },
   { path: "numaxio-pay", element: NumaxioPay, gateSegment: "numaxio-pay", embedded: true },
 
@@ -151,17 +153,17 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "team", element: TeamMembersPage, gateSegment: "team", module: "team" },
   { path: "branches", element: BranchManagement, gateSegment: "branches", module: "branches" },
   { path: "permissions", element: PermissionsManagement, gateSegment: "permissions" },
-  { path: "chat", element: ChatPage, gateSegment: "chat", module: "chat" },
+  { path: "chat", element: ChatPage, gateSegment: "chat", module: "chat", permissionKey: "chat.view" },
   { path: "group", element: GroupDashboardPage, gateSegment: "group", module: "company" },
 
   // ── Settings & Admin ──
-  { path: "company", element: CompanySettings, module: "company" },
+  { path: "company", element: CompanySettings, module: "company", permissionKey: "company.view" },
   { path: "branding", element: BrandingSettings, gateSegment: "branding", module: "branding" },
   { path: "compliance", element: ComplianceSettings, gateSegment: "compliance", module: "compliance" },
   { path: "stamp", element: StampManagement, gateSegment: "stamp", module: "stamp" },
   { path: "audit", element: AuditLogViewer, gateSegment: "audit", module: "audit" },
-  { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations" },
-  { path: "settings", element: SettingsPage },
+  { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations", permissionKey: "api_keys.view" },
+  { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──
   { path: "productivity", element: AccountantDashboard, module: "dashboard" },
