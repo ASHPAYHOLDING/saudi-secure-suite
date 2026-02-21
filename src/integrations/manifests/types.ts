@@ -28,6 +28,8 @@ export interface SupportIssueType {
   label: string;
 }
 
+export type BadgeType = "local" | "global" | "bnpl" | "wallet" | "pos" | "ecommerce" | "marketing";
+
 export interface IntegrationManifest {
   providerId: string;
   name: string;
@@ -41,10 +43,41 @@ export interface IntegrationManifest {
   benefits?: string[];
   /** المتطلبات اللازمة قبل التفعيل */
   requirements?: string[];
+  /** شارات التصنيف (محلي/عالمي/BNPL/Wallet/POS/Ecommerce) */
+  badges?: BadgeType[];
+  /** طرق الدفع المدعومة */
+  supportedMethods?: string[];
+  /** روابط مختصرة لحالات الاستخدام */
+  useCases?: string[];
+  /** أخطاء شائعة مع حلولها */
+  commonErrors?: { code: string; fix: string }[];
+  /** رابط التوثيق الرسمي للمزود */
+  docsUrl?: string;
+  /** Header للتحقق من توقيع Webhook */
+  webhookSignatureHeader?: string;
+  /** تسمية حقل سر Webhook */
+  webhookSecretLabel?: string;
+  /** تلميح حقل سر Webhook */
+  webhookSecretHint?: string;
+  /** integrationKey — مفتاح قاعدة البيانات (مثل pay_tap) */
+  integrationKey?: string;
+
   fields: ManifestField[];
   webhookPath?: string;
   docsSections: DocSection[];
   troubleshootingItems?: TroubleshootingItem[];
   supportIssueTypes: SupportIssueType[];
   supportsConnectionTest?: boolean;
+
+  /** معلومات الدعم */
+  support?: {
+    email?: string;
+    url?: string;
+  };
+
+  /** معلومات العلامة التجارية */
+  branding?: {
+    logoPath?: string;
+    colorHint?: string;
+  };
 }

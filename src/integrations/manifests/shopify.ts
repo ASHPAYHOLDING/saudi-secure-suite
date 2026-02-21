@@ -7,6 +7,9 @@ export const shopifyManifest: IntegrationManifest = {
   category: "ecommerce",
   logoPath: undefined,
   color: "from-green-500/10 to-emerald-500/5",
+  integrationKey: "ecom_shopify",
+  badges: ["ecommerce"],
+  docsUrl: "https://shopify.dev/docs/apps/auth/admin-app-access-tokens",
   description: "ربط متجرك على شوبيفاي لمزامنة الطلبات والمنتجات والمخزون تلقائياً مع نظام الفوترة والمحاسبة.",
   benefits: [
     "مزامنة تلقائية للطلبات وتحويلها لفواتير",

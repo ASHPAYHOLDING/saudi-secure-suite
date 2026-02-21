@@ -7,6 +7,18 @@ export const hyperpayManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/hyperpay.svg",
   color: "from-orange-500/10 to-amber-500/5",
+  integrationKey: "pay_hyperpay",
+  badges: ["local"],
+  docsUrl: "https://wordpressdemo.hyperpay.com/doc/",
+  webhookSignatureHeader: "X-Initialization-Vector",
+  webhookSecretLabel: "Webhook Secret Key",
+  webhookSecretHint: "من HyperPay Backoffice → Administration → Webhooks",
+  supportedMethods: ["مدى", "Visa", "Mastercard", "STC Pay", "Apple Pay", "iPay"],
+  useCases: ["قبول بطاقات محلية ودولية", "تكامل مع المتاجر الإلكترونية", "صفحات دفع احترافية"],
+  commonErrors: [
+    { code: "403", fix: "تأكد من صلاحيات Access Token وأن Entity ID صحيح" },
+    { code: "signature mismatch", fix: "تحقق من Webhook Secret Key" },
+  ],
   description: "بوابة دفع رائدة في الشرق الأوسط تدعم مدى وSTC Pay وApple Pay مع تفعيل يدوي عبر فريق HyperPay.",
   benefits: [
     "دعم شامل لمدى وSTC Pay وApple Pay",

@@ -7,6 +7,18 @@ export const telrManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/telr.svg",
   color: "from-red-600/10 to-red-500/5",
+  integrationKey: "pay_telr",
+  badges: ["local"],
+  description: "بوابة دفع معتمدة في الإمارات والسعودية — مثالية للمتاجر الإلكترونية.",
+  docsUrl: "https://telr.com/support/",
+  webhookSignatureHeader: "x-telr-signature",
+  webhookSecretLabel: "Webhook Secret",
+  webhookSecretHint: "من Telr Merchant Hub → Integration → Webhooks",
+  supportedMethods: ["مدى", "Visa", "Mastercard", "Apple Pay", "Fawry"],
+  useCases: ["مدفوعات الإمارات والخليج", "تكامل سريع", "دعم محلي"],
+  commonErrors: [
+    { code: "auth fail", fix: "تحقق من API Key و Store ID" },
+  ],
   fields: [
     {
       key: "merchant_id",

@@ -7,6 +7,18 @@ export const geideaManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/geidea.svg",
   color: "from-green-500/10 to-emerald-500/5",
+  integrationKey: "pay_geidea",
+  badges: ["local"],
+  docsUrl: "https://docs.geidea.net/",
+  webhookSignatureHeader: "X-Geidea-Signature",
+  webhookSecretLabel: "Webhook Shared Secret",
+  webhookSecretHint: "من Geidea Merchant Portal → Webhooks",
+  supportedMethods: ["مدى", "Visa", "Mastercard", "STC Pay"],
+  useCases: ["قبول مدفوعات محلية", "تكامل مع نقاط البيع", "تقارير مفصّلة"],
+  commonErrors: [
+    { code: "signature invalid", fix: "تحقق من Webhook Shared Secret" },
+    { code: "merchant not found", fix: "تأكد من Merchant Public Key" },
+  ],
   description: "بوابة دفع سعودية معتمدة تدعم مدى وفيزا وماستركارد مع حلول نقاط البيع والتجارة الإلكترونية.",
   benefits: [
     "شركة سعودية معتمدة من مؤسسة النقد",

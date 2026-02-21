@@ -7,6 +7,9 @@ export const foodicsManifest: IntegrationManifest = {
   category: "pos",
   logoPath: undefined,
   color: "from-orange-500/10 to-amber-500/5",
+  integrationKey: "pos_foodics",
+  badges: ["pos"],
+  docsUrl: "https://developers.foodics.com",
   description: "ربط نظام نقاط البيع فودكس لمزامنة المبيعات والمنتجات والمخزون تلقائياً مع نظام الفوترة والمحاسبة.",
   benefits: [
     "مزامنة تلقائية للمبيعات اليومية من فودكس",

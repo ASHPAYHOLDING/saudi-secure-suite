@@ -7,6 +7,19 @@ export const paypalManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/paypal.svg",
   color: "from-blue-700/10 to-blue-600/5",
+  integrationKey: "pay_paypal",
+  badges: ["global"],
+  description: "أشهر بوابة دفع عالمية — تدعم 200+ دولة ومحفظة PayPal.",
+  docsUrl: "https://developer.paypal.com/docs/api/webhooks/",
+  webhookSignatureHeader: "paypal-transmission-sig",
+  webhookSecretLabel: "Webhook ID",
+  webhookSecretHint: "من PayPal Developer → Webhooks → Webhook ID",
+  supportedMethods: ["PayPal", "Visa", "Mastercard", "Amex", "Venmo"],
+  useCases: ["قبول مدفوعات دولية", "PayPal Wallet", "بطاقات دولية"],
+  commonErrors: [
+    { code: "INVALID_CLIENT", fix: "تحقق من Client ID وClient Secret" },
+    { code: "webhook signature fail", fix: "تحقق من Webhook ID الصحيح" },
+  ],
   fields: [
     {
       key: "client_id",
