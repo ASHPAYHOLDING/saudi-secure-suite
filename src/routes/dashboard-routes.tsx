@@ -53,6 +53,7 @@ const ForecastingPage = lazy(() => import("@/components/forecasting/ForecastingP
 const PeriodLockManagement = lazy(() => import("@/components/accounting/PeriodLockManagement"));
 const CostProfitCenterManagement = lazy(() => import("@/components/centers/CostProfitCenterManagement"));
 const ApiKeysManagement = lazy(() => import("@/components/api/ApiKeysManagement"));
+const SsoSettingsPage = lazy(() => import("@/components/sso/SsoSettingsPage").then(m => ({ default: m.SsoSettingsPage })));
 const PaymentProvidersPage = lazy(() => import("@/components/integrations/PaymentProvidersPage"));
 const PaymentMarketplace = lazy(() => import("@/components/integrations/PaymentMarketplace"));
 const LegacyIntegrationRedirect = lazy(() => import("@/components/integrations/LegacyIntegrationRedirect"));
@@ -170,6 +171,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "stamp", element: StampManagement, gateSegment: "stamp", module: "stamp" },
   { path: "audit", element: AuditLogViewer, gateSegment: "audit", module: "audit" },
   { path: "api-keys", element: ApiKeysManagement, gateSegment: "api-keys", module: "integrations", permissionKey: "api_keys.view" },
+  { path: "sso-settings", element: SsoSettingsPage, module: "company", permissionKey: "company.view" },
   { path: "settings", element: SettingsPage, permissionKey: "settings.view" },
 
   // ── Productivity ──

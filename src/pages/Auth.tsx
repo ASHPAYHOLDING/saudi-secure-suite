@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { RamadanBadge, RamadanGlow, RamadanDivider } from "@/components/ramadan";
+import { SsoLoginButton } from "@/components/sso/SsoLoginButton";
 import { useTheme } from "@/theme/ThemeProvider";
 
 
@@ -566,6 +567,17 @@ const Auth = () => {
                         {mode === "login" ? "تسجيل الدخول" : mode === "signup" ? "إنشاء حساب" : "إرسال رابط التعيين"}
                       </Button>
                     </motion.div>
+
+                    {/* SSO Login */}
+                    {mode === "login" && (
+                      <div className="mt-4">
+                        <div className="relative mb-4">
+                          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/40" /></div>
+                          <div className="relative flex justify-center"><span className="bg-background px-3 text-[11px] text-muted-foreground/60">أو</span></div>
+                        </div>
+                        <SsoLoginButton />
+                      </div>
+                    )}
                   </form>
 
                   {/* Divider & Mode Switch */}
