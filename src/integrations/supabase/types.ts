@@ -10890,6 +10890,71 @@ export type Database = {
           },
         ]
       }
+      tenant_cashflow_projection: {
+        Row: {
+          actual_balance: number | null
+          actual_inflow: number | null
+          actual_outflow: number | null
+          breakdown_json: Json
+          created_at: string
+          id: string
+          last_calculated_at: string
+          liquidity_alert_level: string | null
+          projected_balance: number
+          projected_inflow: number
+          projected_outflow: number
+          projection_date: string
+          risk_weighted_inflow: number | null
+          scenario_adjustments: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_balance?: number | null
+          actual_inflow?: number | null
+          actual_outflow?: number | null
+          breakdown_json?: Json
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          liquidity_alert_level?: string | null
+          projected_balance?: number
+          projected_inflow?: number
+          projected_outflow?: number
+          projection_date: string
+          risk_weighted_inflow?: number | null
+          scenario_adjustments?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_balance?: number | null
+          actual_inflow?: number | null
+          actual_outflow?: number | null
+          breakdown_json?: Json
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          liquidity_alert_level?: string | null
+          projected_balance?: number
+          projected_inflow?: number
+          projected_outflow?: number
+          projection_date?: string
+          risk_weighted_inflow?: number | null
+          scenario_adjustments?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_cashflow_projection_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_compliance_scores: {
         Row: {
           breakdown_json: Json
