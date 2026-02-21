@@ -7,6 +7,18 @@ export const paytabsManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/paytabs.svg",
   color: "from-blue-600/10 to-blue-500/5",
+  integrationKey: "pay_paytabs",
+  badges: ["local"],
+  docsUrl: "https://developers.paytabs.com",
+  webhookSignatureHeader: "signature",
+  webhookSecretLabel: "IPN Secret",
+  webhookSecretHint: "من PayTabs Dashboard → Developers → IPN Settings",
+  supportedMethods: ["مدى", "Visa", "Mastercard", "Amex", "Apple Pay", "Fawry"],
+  useCases: ["مدفوعات إقليمية", "قبول عملات متعددة", "حلول للمؤسسات"],
+  commonErrors: [
+    { code: "IPN signature mismatch", fix: "تحقق من IPN Secret Key" },
+    { code: "profile_id invalid", fix: "تأكد من Profile ID الصحيح" },
+  ],
   description: "بوابة دفع إلكتروني تخدم المنطقة العربية مع دعم مدى وفيزا وماستركارد وتغطية لأكثر من 7 دول.",
   benefits: [
     "تغطية واسعة: السعودية والإمارات ومصر وعُمان والأردن",

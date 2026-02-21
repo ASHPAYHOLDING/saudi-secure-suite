@@ -7,6 +7,18 @@ export const myfatoorahManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/myfatoorah.svg",
   color: "from-teal-600/10 to-teal-500/5",
+  integrationKey: "pay_myfatoorah",
+  badges: ["local"],
+  docsUrl: "https://docs.myfatoorah.com/",
+  webhookSignatureHeader: "x-webhook-secret",
+  webhookSecretLabel: "Webhook Secret",
+  webhookSecretHint: "من MyFatoorah Dashboard → Settings → Webhooks",
+  supportedMethods: ["KNET", "مدى", "Visa", "Mastercard", "Apple Pay", "STC Pay", "Benefit"],
+  useCases: ["مدفوعات خليجية", "روابط دفع", "تحصيل الفواتير"],
+  commonErrors: [
+    { code: "Invalid token", fix: "تحقق من API Token — انتبه لبيئة Test vs Live" },
+    { code: "webhook not verified", fix: "تأكد من Webhook Secret المضاف في الداشبورد" },
+  ],
   description: "بوابة دفع خليجية تدعم مدى وKNET وBenefit وSTC Pay مع تغطية شاملة لدول الخليج.",
   benefits: [
     "تغطية كاملة لدول الخليج (السعودية، الكويت، الإمارات، قطر، البحرين، عُمان)",

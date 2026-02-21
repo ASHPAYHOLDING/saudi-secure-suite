@@ -7,6 +7,9 @@ export const woocommerceManifest: IntegrationManifest = {
   category: "ecommerce",
   logoPath: undefined,
   color: "from-purple-500/10 to-violet-500/5",
+  integrationKey: "ecom_woocommerce",
+  badges: ["ecommerce"],
+  docsUrl: "https://woocommerce.com/document/woocommerce-rest-api/",
   description: "ربط متجرك على ووكومرس (WordPress) لمزامنة الطلبات والمنتجات والمخزون تلقائياً مع نظام نومكسيو.",
   benefits: [
     "مزامنة تلقائية للطلبات من WooCommerce إلى الفواتير",

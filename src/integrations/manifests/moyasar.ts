@@ -7,6 +7,18 @@ export const moyasarManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/moyasar.svg",
   color: "from-cyan-500/10 to-teal-500/5",
+  integrationKey: "pay_moyasar",
+  badges: ["local"],
+  docsUrl: "https://moyasar.com/docs/",
+  webhookSignatureHeader: "x-moyasar-signature",
+  webhookSecretLabel: "Webhook Secret",
+  webhookSecretHint: "من Moyasar Dashboard → Webhooks → Secret",
+  supportedMethods: ["مدى", "Visa", "Mastercard", "Apple Pay", "STC Pay"],
+  useCases: ["قبول مدفوعات محلية سعودية", "تقارير مدفوعات مفصّلة", "روابط دفع مباشرة"],
+  commonErrors: [
+    { code: "x-moyasar-signature invalid", fix: "تحقق من Webhook Secret في إعداداتك بـ Moyasar" },
+    { code: "401", fix: "تأكد من استخدام sk_ وليس pk_" },
+  ],
   description: "بوابة دفع سعودية مصممة خصيصاً للسوق المحلي مع دعم كامل لمدى وApple Pay وواجهة عربية متكاملة.",
   benefits: [
     "تجربة دفع محلية بالكامل (عربي + مدى)",

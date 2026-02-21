@@ -7,6 +7,19 @@ export const tabbyManifest: IntegrationManifest = {
   category: "bnpl",
   logoPath: "/brands/payment/tabby.svg",
   color: "from-yellow-500/10 to-yellow-400/5",
+  integrationKey: "pay_tabby",
+  badges: ["bnpl"],
+  description: "خدمة اشترِ الآن وادفع لاحقاً (BNPL) الأشهر في الخليج.",
+  docsUrl: "https://docs.tabby.ai/",
+  webhookSignatureHeader: "x-tabby-signature",
+  webhookSecretLabel: "Webhook Secret",
+  webhookSecretHint: "من Tabby Merchant Dashboard → Settings → Webhooks",
+  supportedMethods: ["تقسيط 4 أقساط", "بدون فوائد", "مدى", "Visa"],
+  useCases: ["تقسيط المشتريات", "زيادة معدل التحويل", "دفع على 4 أقساط"],
+  commonErrors: [
+    { code: "merchant not eligible", fix: "تأكد من أن نشاطك التجاري مؤهل لـ Tabby" },
+    { code: "signature invalid", fix: "تحقق من Webhook Secret" },
+  ],
   fields: [
     {
       key: "api_key",

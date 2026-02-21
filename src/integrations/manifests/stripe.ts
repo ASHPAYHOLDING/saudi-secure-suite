@@ -7,6 +7,18 @@ export const stripeManifest: IntegrationManifest = {
   category: "payment",
   logoPath: "/brands/payment/stripe.svg",
   color: "from-indigo-500/10 to-indigo-600/5",
+  integrationKey: "pay_stripe",
+  badges: ["global"],
+  docsUrl: "https://docs.stripe.com/webhooks",
+  webhookSignatureHeader: "Stripe-Signature",
+  webhookSecretLabel: "Webhook Signing Secret",
+  webhookSecretHint: "من Stripe Dashboard → Webhooks → Signing secret (يبدأ بـ whsec_)",
+  supportedMethods: ["Visa", "Mastercard", "American Express", "Apple Pay", "Google Pay", "SEPA"],
+  useCases: ["قبول مدفوعات دولية", "اشتراكات متكررة", "مدفوعات بالبطاقات"],
+  commonErrors: [
+    { code: "sk_test_ in production", fix: "استخدم sk_live_ في بيئة الإنتاج" },
+    { code: "webhook signature failed", fix: "تأكد من Signing Secret الصحيح (whsec_...)" },
+  ],
   description: "بوابة دفع عالمية تدعم أكثر من 135 عملة و47 دولة مع أدوات متقدمة لإدارة الاشتراكات والمدفوعات.",
   benefits: [
     "دعم عالمي لأكثر من 135 عملة",

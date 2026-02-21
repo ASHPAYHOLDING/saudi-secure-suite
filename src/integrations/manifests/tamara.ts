@@ -7,6 +7,19 @@ export const tamaraManifest: IntegrationManifest = {
   category: "bnpl",
   logoPath: "/brands/payment/tamara.svg",
   color: "from-green-600/10 to-green-500/5",
+  integrationKey: "pay_tamara",
+  badges: ["bnpl"],
+  description: "منصة BNPL السعودية الرائدة — تقسيط مرن 3-6-12 شهر.",
+  docsUrl: "https://docs.tamara.co/",
+  webhookSignatureHeader: "x-tamara-signature",
+  webhookSecretLabel: "Notification Token",
+  webhookSecretHint: "من Tamara Partner Portal → Webhooks → Notification Token",
+  supportedMethods: ["تقسيط 3-6-12 شهر", "مدى", "Visa", "Mastercard"],
+  useCases: ["تقسيط مرن", "تحويل مبيعات أعلى", "تمويل فوري للمستهلك"],
+  commonErrors: [
+    { code: "token expired", fix: "جدّد API Token من Tamara Portal" },
+    { code: "order invalid", fix: "تحقق من تنسيق البيانات المرسلة" },
+  ],
   fields: [
     {
       key: "api_token",
