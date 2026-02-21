@@ -90,6 +90,7 @@ const JournalApprovalsPage = lazy(() => import("@/components/journal/JournalAppr
 const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepairPage"));
 const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
+const FinancialHealthPage = lazy(() => import("@/components/analytics/FinancialHealthPage"));
 const GovernancePage = lazy(() => import("@/components/governance/GovernancePage"));
 const StorageReportPage = lazy(() => import("@/components/system/StorageReportPage"));
 const MigrationsDashboardPage = lazy(() => import("@/components/system/MigrationsDashboardPage"));
@@ -159,6 +160,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "report-builder", element: CustomReportBuilder, gateSegment: "reports", module: "reports" },
   { path: "scheduled-reports", element: ScheduledReportsPage, gateSegment: "reports", module: "reports" },
   { path: "analytics/executive", element: ExecutiveAnalyticsDashboard, gateSegment: "analytics", module: "analytics" },
+  { path: "analytics/financial-health", element: FinancialHealthPage, gateSegment: "financial-health", module: "analytics", permissionKey: "finance.view_analytics" },
   { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
   { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
