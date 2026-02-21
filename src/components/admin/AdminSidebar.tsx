@@ -11,6 +11,7 @@ import {
   ToggleRight,
   ShieldAlert,
   Receipt,
+  BarChart3,
   LayoutTemplate,
   Mail,
   Inbox,
@@ -50,6 +51,7 @@ const menuItems = [
   { icon: Crown, label: "إدارة الشركاء", path: "/admin/affiliates" },
   { icon: LayoutTemplate, label: "توثيق التكاملات", path: "/admin/integrations/docs" },
   { icon: ClipboardCheck, label: "تدقيق النظام", path: "/admin/system/full-audit" },
+  { icon: BarChart3, label: "تحليلات الاستخدام", path: "/admin/system/usage" },
 ];
 
 interface AdminSidebarProps {
