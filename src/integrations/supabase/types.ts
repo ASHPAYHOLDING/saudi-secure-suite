@@ -13983,6 +13983,10 @@ export type Database = {
             }
             Returns: Json
           }
+      seed_role_permissions_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       set_integration_secrets: {
         Args: {
           p_actor_id: string
