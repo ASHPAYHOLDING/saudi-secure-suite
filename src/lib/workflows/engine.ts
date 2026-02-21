@@ -72,6 +72,7 @@ export interface WorkflowInstanceStep {
  * ✅ Single RPC call that atomically:
  * - Finds active workflow + validates steps exist
  * - Creates workflow_instance + all instance_steps
+ * - Evaluates condition steps using rule engine
  * - Advances auto/condition steps
  * - Logs to audit_logs
  * - Rolls back everything on any error
@@ -80,7 +81,8 @@ export async function startWorkflow(
   tenantId: string,
   entityType: string,
   entityId: string,
-  _startedBy: string // kept for API compat, server uses auth.uid()
+  _startedBy: string, // kept for API compat, server uses auth.uid()
+  context: Record<string, unknown> = {}
 ): Promise<{ instanceId: string; status: WfInstanceStatus } | { error: string }> {
   const { data, error } = await secureRpc<{ instance_id: string; status: WfInstanceStatus }>(
     "atomic_start_workflow",
@@ -88,6 +90,7 @@ export async function startWorkflow(
       p_tenant_id: tenantId,
       p_entity_type: entityType,
       p_entity_id: entityId,
+      p_context: context,
     }
   );
 
@@ -101,8 +104,9 @@ export async function startWorkflow(
  * processStep — معالجة خطوة (موافقة/رفض) عبر secure-rpc (Atomic)
  *
  * ✅ Single RPC call that atomically:
- * - Validates permissions (RBAC, tenant membership, self-approval)
+ * - Validates permissions (RBAC, tenant membership, strict self-approval prevention)
  * - Updates current step status
+ * - Evaluates condition steps using rule engine
  * - Advances auto/condition steps
  * - Updates instance status
  * - Logs to audit_logs
@@ -112,7 +116,8 @@ export async function processStep(
   instanceId: string,
   _userId: string, // kept for API compat, server uses auth.uid()
   action: "approved" | "rejected",
-  comment?: string
+  comment?: string,
+  context: Record<string, unknown> = {}
 ): Promise<{ status: WfInstanceStatus } | { error: string }> {
   const { data, error } = await secureRpc<{ status: WfInstanceStatus; step_order: number }>(
     "secure_workflow_action",
@@ -120,6 +125,7 @@ export async function processStep(
       p_instance_id: instanceId,
       p_action: action,
       p_comment: comment || null,
+      p_context: context,
     }
   );
 

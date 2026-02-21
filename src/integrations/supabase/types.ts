@@ -1128,6 +1128,7 @@ export type Database = {
           name: string
           name_en: string | null
           priority: number
+          rules_json: Json | null
           tenant_id: string
           updated_at: string
         }
@@ -1144,6 +1145,7 @@ export type Database = {
           name: string
           name_en?: string | null
           priority?: number
+          rules_json?: Json | null
           tenant_id: string
           updated_at?: string
         }
@@ -1160,6 +1162,7 @@ export type Database = {
           name?: string
           name_en?: string | null
           priority?: number
+          rules_json?: Json | null
           tenant_id?: string
           updated_at?: string
         }
@@ -12789,14 +12792,24 @@ export type Database = {
         Args: { p_roles?: string[]; p_tenant_id: string }
         Returns: undefined
       }
-      atomic_start_workflow: {
-        Args: {
-          p_entity_id: string
-          p_entity_type: string
-          p_tenant_id: string
-        }
-        Returns: Json
-      }
+      atomic_start_workflow:
+        | {
+            Args: {
+              p_entity_id: string
+              p_entity_type: string
+              p_tenant_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_context?: Json
+              p_entity_id: string
+              p_entity_type: string
+              p_tenant_id: string
+            }
+            Returns: Json
+          }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
@@ -12939,6 +12952,10 @@ export type Database = {
       }
       enforce_feature_entitlement: {
         Args: { _feature_key: string; _tenant_id: string }
+        Returns: boolean
+      }
+      evaluate_workflow_rules: {
+        Args: { p_context: Json; p_rules: Json }
         Returns: boolean
       }
       fail_job: {
@@ -13295,10 +13312,24 @@ export type Database = {
         }
         Returns: Json
       }
-      secure_workflow_action: {
-        Args: { p_action: string; p_comment?: string; p_instance_id: string }
-        Returns: Json
-      }
+      secure_workflow_action:
+        | {
+            Args: {
+              p_action: string
+              p_comment?: string
+              p_instance_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_action: string
+              p_comment?: string
+              p_context?: Json
+              p_instance_id: string
+            }
+            Returns: Json
+          }
       set_integration_secrets: {
         Args: {
           p_actor_id: string
