@@ -105,6 +105,7 @@ const navGroups: NavGroup[] = [
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
+      { icon: Sparkles, key: "nav.integrationsMarketplace", path: "/dashboard/integrations/marketplace", module: "integrations" },
       
       { icon: CreditCard, key: "nav.paymentProviders", path: "/dashboard/integrations/payments", module: "integrations" },
       { icon: Key, key: "nav.apiKeys", path: "/dashboard/api-keys", module: "integrations" },

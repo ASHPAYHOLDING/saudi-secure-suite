@@ -80,6 +80,7 @@
     "sheetView": "Sheet View",
     "team": "Team Management",
     "integrations": "Integrations",
+    "integrationsMarketplace": "Integrations Marketplace",
     "paidIntegrations": "Paid Integrations",
     "paymentProviders": "Payment Gateways",
     "apiKeys": "Public API",
