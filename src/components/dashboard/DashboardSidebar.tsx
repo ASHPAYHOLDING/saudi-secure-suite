@@ -6,7 +6,7 @@ import {
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, Table2, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, Sparkles, ChevronDown, Headphones, Lock, Target,
-  TrendingUp, Key, CheckCircle2, CalendarClock, Globe, Wrench, HardDrive, ShieldAlert,
+  TrendingUp, Key, CheckCircle2, CalendarClock, Globe, Wrench, HardDrive, ShieldAlert, Database,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -124,6 +124,7 @@ const navGroups: NavGroup[] = [
       { icon: Shield, key: "nav.enterpriseAuditExport", path: "/dashboard/enterprise/audit-export", module: "enterprise" },
       { icon: Shield, key: "nav.governance", path: "/dashboard/governance", module: "enterprise" },
       { icon: HardDrive, key: "nav.storageReport", path: "/dashboard/system/storage", module: "enterprise" },
+      { icon: Database, key: "nav.migrations", path: "/dashboard/system/migrations", module: "enterprise" },
     ],
   },
 ];

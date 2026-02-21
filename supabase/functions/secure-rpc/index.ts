@@ -111,6 +111,10 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   get_audit_heatmap: true,
   get_audit_timeline: true,
   get_rapid_approval_chains: true,
+  // Schema Migration Framework
+  get_schema_checksum: true,
+  get_applied_migrations: true,
+  request_background_reindex: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)
