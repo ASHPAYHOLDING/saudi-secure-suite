@@ -57,7 +57,11 @@ export function evaluateAccess(
     }
   }
 
-  // 2. Check RBAC permission
+  // 2. Check RBAC permission (skip if wildcard "*")
+  if (query.permissionKey === "*") {
+    return { allowed: true, featureAllowed, permissionGranted: true };
+  }
+
   const permissionGranted = permissionChecker(query.permissionKey);
   if (!permissionGranted) {
     return {
