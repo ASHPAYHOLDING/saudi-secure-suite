@@ -10628,6 +10628,14 @@ export type Database = {
         Args: { p_roles?: string[]; p_tenant_id: string }
         Returns: undefined
       }
+      atomic_start_workflow: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
