@@ -40,6 +40,8 @@ const ENTERPRISE_ONLY_RPCS = new Set([
   "get_balance_sheet",
   "get_cash_flow",
   "get_account_drilldown",
+  "approve_journal_entry",
+  "reject_journal_entry",
 ]);
 
 // Whitelist of functions allowed through this proxy
@@ -93,6 +95,9 @@ const ALLOWED_FUNCTIONS: Record<string, boolean> = {
   get_balance_sheet: true,
   get_cash_flow: true,
   get_account_drilldown: true,
+  // Journal Approvals
+  approve_journal_entry: true,
+  reject_journal_entry: true,
 };
 
 // Financial RPCs get stricter rate limits (10/min)

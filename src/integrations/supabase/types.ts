@@ -3410,6 +3410,7 @@ export type Database = {
           audit_retention_days: number
           created_at: string
           id: string
+          journal_approval_threshold: number
           password_min_length: number
           require_numbers: boolean
           require_symbols: boolean
@@ -3423,6 +3424,7 @@ export type Database = {
           audit_retention_days?: number
           created_at?: string
           id?: string
+          journal_approval_threshold?: number
           password_min_length?: number
           require_numbers?: boolean
           require_symbols?: boolean
@@ -3436,6 +3438,7 @@ export type Database = {
           audit_retention_days?: number
           created_at?: string
           id?: string
+          journal_approval_threshold?: number
           password_min_length?: number
           require_numbers?: boolean
           require_symbols?: boolean
@@ -5004,6 +5007,10 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          approval_reason: string | null
+          approval_status: Database["public"]["Enums"]["journal_approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           base_total_credit: number
           base_total_debit: number
           branch_id: string | null
@@ -5021,6 +5028,7 @@ export type Database = {
           posted_at: string | null
           posted_by: string | null
           profit_center_id: string | null
+          requires_approval: boolean
           source_id: string | null
           source_type: string | null
           status: string
@@ -5030,6 +5038,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_reason?: string | null
+          approval_status?: Database["public"]["Enums"]["journal_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           base_total_credit?: number
           base_total_debit?: number
           branch_id?: string | null
@@ -5047,6 +5059,7 @@ export type Database = {
           posted_at?: string | null
           posted_by?: string | null
           profit_center_id?: string | null
+          requires_approval?: boolean
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -5056,6 +5069,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_reason?: string | null
+          approval_status?: Database["public"]["Enums"]["journal_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           base_total_credit?: number
           base_total_debit?: number
           branch_id?: string | null
@@ -5073,6 +5090,7 @@ export type Database = {
           posted_at?: string | null
           posted_by?: string | null
           profit_center_id?: string | null
+          requires_approval?: boolean
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -11085,6 +11103,10 @@ export type Database = {
         Args: { _code: string; _plan_id: string; _tenant_id: string }
         Returns: Json
       }
+      approve_journal_entry: {
+        Args: { p_approver_id: string; p_entry_id: string; p_reason?: string }
+        Returns: Json
+      }
       approve_matured_commissions: { Args: never; Returns: number }
       assert_platform_admin: { Args: never; Returns: undefined }
       assert_tenant_admin: { Args: { p_tenant_id: string }; Returns: undefined }
@@ -11517,6 +11539,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reject_journal_entry: {
+        Args: { p_entry_id: string; p_reason?: string; p_rejector_id: string }
+        Returns: Json
+      }
       release_stock_reservation: {
         Args: { _sales_order_id: string; _tenant_id: string }
         Returns: undefined
@@ -11653,6 +11679,7 @@ export type Database = {
       budget_line_type: "revenue" | "expense" | "capex"
       budget_period_type: "monthly" | "quarterly" | "yearly"
       budget_status: "draft" | "active" | "locked" | "archived"
+      journal_approval_status: "none" | "pending" | "approved" | "rejected"
       tenant_type: "company" | "individual" | "freelancer"
       wf_instance_status:
         | "pending"
@@ -11802,6 +11829,7 @@ export const Constants = {
       budget_line_type: ["revenue", "expense", "capex"],
       budget_period_type: ["monthly", "quarterly", "yearly"],
       budget_status: ["draft", "active", "locked", "archived"],
+      journal_approval_status: ["none", "pending", "approved", "rejected"],
       tenant_type: ["company", "individual", "freelancer"],
       wf_instance_status: [
         "pending",
