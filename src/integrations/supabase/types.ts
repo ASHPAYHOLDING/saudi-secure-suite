@@ -4386,6 +4386,85 @@ export type Database = {
           },
         ]
       }
+      employee_documents: {
+        Row: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["employee_document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          issued_date: string | null
+          mime_type: string
+          notes: string | null
+          tenant_id: string
+          title: string
+          title_en: string | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["employee_document_type"]
+          employee_id: string
+          expiry_date?: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          issued_date?: string | null
+          mime_type?: string
+          notes?: string | null
+          tenant_id: string
+          title: string
+          title_en?: string | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["employee_document_type"]
+          employee_id?: string
+          expiry_date?: string | null
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          issued_date?: string | null
+          mime_type?: string
+          notes?: string | null
+          tenant_id?: string
+          title?: string
+          title_en?: string | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enterprise_allowed_ips: {
         Row: {
           created_at: string
@@ -15396,6 +15475,7 @@ export type Database = {
         Args: { _parent_tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      is_hr_doc_authorized: { Args: { _tenant_id: string }; Returns: boolean }
       is_hr_manager: {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: boolean
@@ -15747,6 +15827,18 @@ export type Database = {
         | "journal_entry"
         | "contract"
         | "receipt"
+      employee_document_type:
+        | "national_id"
+        | "passport"
+        | "iqama"
+        | "gosi_contract"
+        | "work_contract"
+        | "medical_insurance"
+        | "driving_license"
+        | "degree_certificate"
+        | "training_certificate"
+        | "bank_letter"
+        | "other"
       governance_policy_type:
         | "approval_limit"
         | "segregation_of_duties"
@@ -15936,6 +16028,19 @@ export const Constants = {
         "journal_entry",
         "contract",
         "receipt",
+      ],
+      employee_document_type: [
+        "national_id",
+        "passport",
+        "iqama",
+        "gosi_contract",
+        "work_contract",
+        "medical_insurance",
+        "driving_license",
+        "degree_certificate",
+        "training_certificate",
+        "bank_letter",
+        "other",
       ],
       governance_policy_type: [
         "approval_limit",

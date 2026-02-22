@@ -392,6 +392,12 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "تقارير HR",
     description: "تقارير الموارد البشرية والإحصائيات.",
   },
+  "hr-documents": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_employees"],
+    label: "مستندات الموظفين",
+    description: "إدارة ورفع مستندات الموظفين.",
+  },
 
   "cost-profit-centers": {
     featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
