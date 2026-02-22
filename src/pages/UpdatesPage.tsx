@@ -1,17 +1,82 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Bell, Sparkles, Zap, Shield, BarChart3 } from "lucide-react";
+import { ArrowRight, Bell, Sparkles, Zap, Shield, BarChart3, CreditCard, Layout, Mail, Layers, Palette, Smartphone } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
-const PLACEHOLDER_UPDATES = [
+interface Update {
+  date: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  tag: string;
+  tagColor?: string;
+  details?: string[];
+}
+
+const UPDATES: Update[] = [
   {
-    date: "قريباً",
-    title: "تحديثات قادمة",
-    description: "نعمل على تحسينات ومميزات جديدة. تابعنا لمعرفة آخر المستجدات.",
-    icon: Sparkles,
-    tag: "قادم",
+    date: "٢١ فبراير ٢٠٢٦",
+    title: "إعادة تصميم قسم الأسعار بالكامل",
+    description: "تم إعادة بناء صفحة الأسعار من الصفر بتصميم احترافي متجاوب مع جميع الأجهزة، مع أسعار ثابتة وشفافة لجميع الباقات.",
+    icon: CreditCard,
+    tag: "تحسين رئيسي",
+    details: [
+      "٣ باقات بأسعار ثابتة وواضحة (أساسي ١٤٩ ر.س، الأعمال ٣٩٩ ر.س، المؤسسي ٩٩٩ ر.س)",
+      "جدول مقارنة تفصيلي بين الباقات مصنف حسب الفئات",
+      "عرض الجدول كأكورديون تفاعلي على الأجهزة المحمولة",
+      "شرائح توضيحية لحدود كل باقة (مستخدمين، فواتير، تخزين، كيانات)",
+      "ملاحظة ضريبة القيمة المضافة أسفل الأسعار",
+    ],
+  },
+  {
+    date: "٢١ فبراير ٢٠٢٦",
+    title: "تصميم متجاوب بالكامل لقسم الأسعار",
+    description: "ضمان توافق مثالي مع جميع أحجام الشاشات من الهواتف المحمولة وحتى الشاشات العريضة.",
+    icon: Smartphone,
+    tag: "تحسين",
+    details: [
+      "بطاقات أسعار متساوية الارتفاع ومتناسقة بصرياً",
+      "تخطيط شبكي ذكي: عمود واحد للموبايل، عمودين للتابلت، ثلاثة للديسكتوب",
+      "دعم كامل لـ RTL مع محاذاة وأيقونات طبيعية",
+      "بدون أي تجاوز أفقي (overflow) على أي جهاز",
+    ],
+  },
+  {
+    date: "٢١ فبراير ٢٠٢٦",
+    title: "إضافة قسم التحديثات في الفوتر",
+    description: "قسم جديد في ذيل الصفحة يتيح للمستخدمين الاشتراك لمتابعة آخر أخبار وتحديثات المنصة.",
+    icon: Mail,
+    tag: "جديد",
+    details: [
+      "نموذج اشتراك بالبريد الإلكتروني",
+      "زر اشتراك بتصميم متناسق مع الهوية البصرية",
+      "إشعار تأكيد فوري عند الاشتراك",
+    ],
+  },
+  {
+    date: "٢١ فبراير ٢٠٢٦",
+    title: "صفحة سجل التحديثات",
+    description: "صفحة داخلية مخصصة لعرض جميع تحديثات المنصة بشكل منظم وزمني.",
+    icon: Layers,
+    tag: "جديد",
+    details: [
+      "تصميم Timeline احترافي لعرض التحديثات",
+      "تصنيف التحديثات بعلامات (جديد، تحسين، إصلاح)",
+      "رابط مباشر من الفوتر لسهولة الوصول",
+    ],
+  },
+  {
+    date: "٢١ فبراير ٢٠٢٦",
+    title: "تحسين محاذاة العناوين والنصوص",
+    description: "توحيد محاذاة جميع العناوين الرئيسية والفرعية في الصفحة الرئيسية لتكون بالمنتصف.",
+    icon: Palette,
+    tag: "تحسين",
+    details: [
+      "محاذاة \"اختر الباقة المناسبة لنموك\" بالوسط",
+      "توحيد نمط المحاذاة عبر جميع أقسام الصفحة الرئيسية",
+    ],
   },
 ];
 
@@ -52,9 +117,9 @@ const UpdatesPage = () => {
         {/* Timeline */}
         <section className="pb-20 sm:pb-28">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            {PLACEHOLDER_UPDATES.length > 0 ? (
+            {UPDATES.length > 0 ? (
               <div className="space-y-6">
-                {PLACEHOLDER_UPDATES.map((update, i) => {
+                {UPDATES.map((update, i) => {
                   const Icon = update.icon;
                   return (
                     <motion.div
@@ -62,7 +127,7 @@ const UpdatesPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: i * 0.1 }}
+                      transition={{ duration: 0.4, delay: i * 0.05 }}
                       className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-card"
                     >
                       <div className="flex items-start gap-4">
@@ -77,7 +142,17 @@ const UpdatesPage = () => {
                             </span>
                           </div>
                           <h3 className="text-lg font-bold text-foreground mb-2">{update.title}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{update.description}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{update.description}</p>
+                          {update.details && update.details.length > 0 && (
+                            <ul className="space-y-1.5">
+                              {update.details.map((detail, di) => (
+                                <li key={di} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/60" />
+                                  <span>{detail}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       </div>
                     </motion.div>
