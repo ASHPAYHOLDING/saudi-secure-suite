@@ -93,7 +93,7 @@ const Navbar = () => {
           : "bg-[hsl(220,25%,10%)]/90 backdrop-blur-md border-b border-white/5"
       )}
     >
-      <div className="max-w-6xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6 lg:px-8">
 
         {/* ═══ 1 · Brand (inline-start) ═══ */}
         <Link to="/" className="shrink-0 flex items-center">
@@ -101,7 +101,7 @@ const Navbar = () => {
         </Link>
 
         {/* ═══ 2 · Center Nav ═══ */}
-        <nav className="hidden lg:flex items-center justify-center gap-1 min-w-0">
+        <nav className="hidden lg:flex items-center justify-center gap-1.5 min-w-0">
           {links.map((link) => {
             const isActive = activeSection === link.href.replace("#", "");
             return (
@@ -130,7 +130,7 @@ const Navbar = () => {
         <div className="lg:hidden" />
 
         {/* ═══ 3 · Actions (inline-end) ═══ */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-2 justify-end shrink-0">
           {/* Language */}
           <button
             onClick={toggleLanguage}
