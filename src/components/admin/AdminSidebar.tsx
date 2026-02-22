@@ -28,6 +28,7 @@ import {
   HardDrive,
   Database,
   Server,
+  Megaphone,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ const menuItems = [
   { icon: HardDrive, label: "تقرير التخزين", path: "/admin/system/storage" },
   { icon: Database, label: "لوحة الترحيلات", path: "/admin/system/migrations" },
   { icon: Server, label: "البنية التحتية للنظام", path: "/admin/system/infrastructure" },
+  { icon: Megaphone, label: "إدارة التحديثات", path: "/admin/updates" },
 ];
 
 interface AdminSidebarProps {
