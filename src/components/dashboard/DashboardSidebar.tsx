@@ -107,7 +107,7 @@ const navGroups: NavGroup[] = [
       { icon: PieChart, key: "nav.financialHealth", path: "/dashboard/analytics/financial-health", module: "analytics" },
     ],
   },
-  // ── الإدارة (4) — workflow designer merged into approvals, integrations+subscription moved to settings ──
+  // ── الإدارة ──
   {
     labelKey: "nav.group.management",
     items: [
@@ -115,7 +115,20 @@ const navGroups: NavGroup[] = [
       { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
+      { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
     ],
+    subGroup: {
+      labelKey: "nav.hr",
+      items: [
+        { icon: Users, key: "nav.hrEmployees", path: "/dashboard/hr/employees", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: FileSignature, key: "nav.hrContracts", path: "/dashboard/hr/contracts", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: Building2, key: "nav.hrOrg", path: "/dashboard/hr/org", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: CalendarClock, key: "nav.hrLeave", path: "/dashboard/hr/leave", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: Activity, key: "nav.hrAttendance", path: "/dashboard/hr/attendance", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: GitBranch, key: "nav.hrApprovals", path: "/dashboard/hr/approvals", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: BarChart3, key: "nav.hrReports", path: "/dashboard/hr/reports", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      ],
+    },
   },
   // ── الإعدادات (10) — includes integrations + subscription now ──
   {
