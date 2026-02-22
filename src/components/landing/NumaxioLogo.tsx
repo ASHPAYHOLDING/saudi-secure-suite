@@ -8,9 +8,9 @@ interface NumaxioLogoProps {
 }
 
 const sizeMap = {
-  sm: { height: 32 },
-  md: { height: 40 },
-  lg: { height: 52 },
+  sm: { height: 44 },
+  md: { height: 56 },
+  lg: { height: 72 },
 };
 
 const NumaxioLogo = ({ className = "", size = "md" }: NumaxioLogoProps) => {
