@@ -8,7 +8,7 @@ const phases = [
     icon: FileText,
     color: "border-accent/30 bg-accent/5",
     iconBg: "bg-accent/10 text-accent",
-    items: ["توليد فواتير إلكترونية XML", "QR Code بتشفير TLV", "أرشفة آمنة لجميع الفواتير", "تقارير ضريبة القيمة المضافة"],
+    items: ["فواتير إلكترونية بصيغة XML معتمدة", "QR Code بتشفير TLV تلقائي", "أرشفة آمنة ومشفرة لجميع الفواتير", "احتساب ضريبة القيمة المضافة تلقائياً"],
   },
   {
     title: "ZATCA Phase 2",
@@ -16,7 +16,7 @@ const phases = [
     icon: Shield,
     color: "border-emerald-500/30 bg-emerald-500/5",
     iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    items: ["توقيع XML رقمي (XAdES-BES)", "تكامل مباشر مع بوابة ZATCA API", "مزامنة لحظية للحالة", "شهادات رقمية مُدارة"],
+    items: ["توقيع XML رقمي موثّق (XAdES-BES)", "ربط مباشر مع API هيئة الزكاة", "مزامنة لحظية لحالة كل فاتورة", "شهادات رقمية مُدارة وتُجدَّد تلقائياً"],
   },
 ];
 
@@ -41,7 +41,7 @@ const ZATCAComplianceSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            بوابة الامتثال <span className="text-gradient">الشاملة</span>
+            امتثال سعودي كامل… <span className="text-gradient">بدون صداع</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -51,7 +51,7 @@ const ZATCAComplianceSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            توافق كامل مع هيئة الزكاة والضريبة والجمارك — بدون أي جهد يدوي
+            كل ما تحتاجه للتوافق مع هيئة الزكاة والضريبة والجمارك — مؤتمت بالكامل من اليوم الأول
           </motion.p>
         </div>
 
@@ -98,8 +98,8 @@ const ZATCAComplianceSection = () => {
               <Gauge size={22} className="text-accent" />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">Compliance Score</p>
-              <p className="text-xs text-muted-foreground">تقييم 0-100% لجاهزية منشأتك التنظيمية</p>
+              <p className="text-sm font-bold text-foreground">درجة الامتثال</p>
+              <p className="text-xs text-muted-foreground">تقييم فوري من 0 إلى 100% لجاهزية منشأتك التنظيمية</p>
             </div>
           </motion.div>
           <motion.div
@@ -113,8 +113,8 @@ const ZATCAComplianceSection = () => {
               <Calculator size={22} className="text-accent" />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">أتمتة ضريبة القيمة المضافة</p>
-              <p className="text-xs text-muted-foreground">حساب تلقائي + تذكيرات مواعيد الإقرار</p>
+              <p className="text-sm font-bold text-foreground">إقرار ضريبي بلا تدخل</p>
+              <p className="text-xs text-muted-foreground">حساب تلقائي لضريبة القيمة المضافة مع تنبيهات قبل موعد الإقرار</p>
             </div>
           </motion.div>
         </div>

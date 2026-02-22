@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const modules = [
-  { icon: FileText, title: "الفواتير والضرائب", desc: "فواتير إلكترونية متوافقة مع ZATCA Phase 2 مع توقيع XML وQR Code تلقائي.", color: "bg-accent/10 text-accent" },
-  { icon: Wallet, title: "المصروفات", desc: "تتبع وتصنيف المصروفات تلقائياً مع مطابقة بنكية ذكية وتقارير فورية.", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-  { icon: Package, title: "المخزون", desc: "إدارة شاملة للمخزون مع تتبع لحظي للكميات والتكاليف وتنبيهات إعادة الطلب.", color: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحة تحكم تنفيذية بمؤشرات أداء فورية وتقارير مالية قابلة للتصدير.", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-  { icon: Bot, title: "AI المحاسبي", desc: "محاسب ذكي يحلل بياناتك المالية ويكشف الشذوذ ويقدم توصيات فورية.", color: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
-  { icon: Building2, title: "الحوكمة المؤسسية", desc: "أدوار وصلاحيات مسبقة التهيئة مع سلاسل موافقات وسجل تدقيق شامل.", color: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
+  { icon: FileText, title: "الفواتير والضرائب", desc: "فاتورة خلال 10 ثوانٍ — جاهزة لهيئة الزكاة تلقائياً مع توقيع XML و QR Code.", color: "bg-accent/10 text-accent" },
+  { icon: Wallet, title: "المصروفات", desc: "تصنيف ذكي تلقائي مع كشف شذوذ فوري ومطابقة بنكية بدون تدخل يدوي.", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
+  { icon: Package, title: "المخزون", desc: "تحكم لحظي بالكميات والتكاليف والربحية مع تنبيهات إعادة الطلب الذكية.", color: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحات تنفيذية يفهمها المدير قبل المحاسب — مؤشرات أداء فورية وتقارير جاهزة للتصدير.", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+  { icon: Bot, title: "AI المحاسبي", desc: "اسأل… ويجيب بالأرقام. محاسب ذكي يحلل بياناتك ويقدم توصيات فورية قابلة للتنفيذ.", color: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
+  { icon: Building2, title: "الحوكمة المؤسسية", desc: "قوالب أدوار جاهزة + سلاسل موافقات + سجل تدقيق شامل — جاهز للتدقيق من اليوم الأول.", color: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
 ];
 
 const ERPModulesSection = () => {
@@ -33,7 +33,7 @@ const ERPModulesSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            كل ما تحتاجه <span className="text-gradient">في منصة واحدة</span>
+            كل ما تحتاجه لإدارة منشأتك <span className="text-gradient">في مكان واحد</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -43,7 +43,7 @@ const ERPModulesSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            وحدات مترابطة تعمل معاً بسلاسة لإدارة منشأتك بالكامل
+            وحدات مترابطة تعمل بانسجام تام — من الفاتورة إلى التقرير التنفيذي
           </motion.p>
         </div>
 

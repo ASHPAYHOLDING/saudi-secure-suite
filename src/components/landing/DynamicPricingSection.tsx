@@ -38,10 +38,10 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 };
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
-  starter: "للمنشآت الناشئة والمتاجر الصغيرة",
+  starter: "للمنشآت الناشئة التي تبدأ رحلتها",
   business: "الأنسب للشركات المتوسطة والنامية",
-  professional: "الأنسب للشركات المتوسطة والنامية", // backward compat
-  enterprise: "للمنشآت الكبرى والجهات الحكومية",
+  professional: "الأنسب للشركات المتوسطة والنامية",
+  enterprise: "للمنشآت الكبرى التي تحتاج حوكمة كاملة",
 };
 
 // Collect all unique features across plans for comparison
@@ -159,7 +159,7 @@ const DynamicPricingSection = () => {
             viewport={{ once: true }}
             className="mb-4 text-3xl font-bold text-foreground md:text-5xl text-center"
           >
-            خطط تناسب حجم منشأتك
+            اختر الباقة المناسبة لنموك
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -168,7 +168,7 @@ const DynamicPricingSection = () => {
             transition={{ delay: 0.1 }}
             className="mx-auto max-w-xl text-base sm:text-lg text-muted-foreground text-center"
           >
-            ابدأ مجاناً لمدة 14 يوم. بدون بطاقة ائتمان. بدون التزام.
+            ابدأ مجاناً لمدة 14 يوم. بدون بطاقة بنكية. سعر المؤسس لأول 100 عميل.
           </motion.p>
         </div>
 
@@ -246,7 +246,7 @@ const DynamicPricingSection = () => {
                     className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
                   >
                     <Crown size={12} className="inline ml-1 -mt-0.5" />
-                    الأكثر شيوعاً
+                    الأكثر طلباً
                   </motion.div>
                 )}
 

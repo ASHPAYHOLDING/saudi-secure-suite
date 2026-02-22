@@ -4,9 +4,10 @@ import { ArrowLeft, Play, Shield, Zap, Bot, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const trustBadges = [
-  { icon: Shield, label: "ZATCA Ready" },
-  { icon: Bot, label: "AI Powered" },
-  { icon: Zap, label: "Enterprise Security" },
+  { icon: Shield, label: "جاهز لمرحلة ZATCA الثانية" },
+  { icon: Bot, label: "ذكاء محاسبي مدمج" },
+  { icon: Zap, label: "حوكمة مؤسسية" },
+  { icon: BarChart3, label: "استضافة آمنة داخل المملكة" },
 ];
 
 const kpis = [
@@ -47,7 +48,7 @@ const HeroSection = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
                 </span>
                 <span className="text-xs font-semibold text-accent">
-                  جاهز لمرحلة الفوترة الإلكترونية Phase 2
+                  متوافق مع الفوترة الإلكترونية — المرحلة الثانية
                 </span>
               </div>
             </motion.div>
@@ -63,9 +64,9 @@ const HeroSection = () => {
                 overflowWrap: "anywhere",
               }}
             >
-              ERP سعودي مؤسسي متكامل
+              نظام ERP سعودي يقود منشأتك
               <br />
-              <span className="text-gradient">يهيمن على السوق المحلي</span>
+              <span className="text-gradient">لا يعقّدها</span>
             </motion.h1>
 
             <motion.p
@@ -75,7 +76,7 @@ const HeroSection = () => {
               className="max-w-lg text-primary-foreground/90"
               style={{ fontSize: "clamp(14px, 1.5vw, 18px)", lineHeight: 1.7 }}
             >
-              فواتير في 10 ثوانٍ. امتثال ZATCA تلقائي. AI محاسبي يحلل أعمالك ويوصيك بخطوتك التالية.
+              من الفاتورة إلى الإقرار الضريبي… كل شيء يتم تلقائياً، بسرعة، ووفق متطلبات هيئة الزكاة والضريبة والجمارك.
             </motion.p>
 
             <motion.div
@@ -86,14 +87,14 @@ const HeroSection = () => {
             >
               <Link to="/auth">
                 <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-8 sm:px-10 min-h-[48px] text-base font-bold rounded-xl w-full sm:w-auto">
-                  ابدأ تجربتك المجانية
+                  ابدأ تجربتك المجانية الآن
                   <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
                 </Button>
               </Link>
               <a href="#demo">
                 <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm gap-2 rounded-xl w-full sm:w-auto">
                   <Play size={16} className="fill-current" />
-                  احجز عرض مباشر
+                  احجز عرض مباشر خلال 15 دقيقة
                 </Button>
               </a>
             </motion.div>
