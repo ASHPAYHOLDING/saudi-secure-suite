@@ -75,14 +75,14 @@ const AIDemoChat = () => {
             </div>
             <button
               onClick={restart}
-              className="text-xs text-muted-foreground hover:text-accent transition-colors px-3 py-1.5 rounded-lg border border-border"
+              className="text-xs text-muted-foreground hover:text-accent transition-colors px-3 py-2 min-h-[44px] rounded-lg border border-border"
             >
               إعادة التشغيل
             </button>
           </div>
 
           {/* Messages */}
-          <div className="p-5 space-y-3 min-h-[300px] max-h-[400px] overflow-y-auto">
+          <div className="p-4 sm:p-5 space-y-3 min-h-[280px] sm:min-h-[300px] max-h-[400px] overflow-y-auto">
             <AnimatePresence>
               {demoConversation.slice(0, visibleCount).map((msg, i) => (
                 <motion.div
