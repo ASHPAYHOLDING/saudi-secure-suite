@@ -144,41 +144,20 @@ const DynamicPricingSection = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 sm:mb-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
-          >
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2">
             <Sparkles size={14} className="text-accent" />
             <span className="text-sm font-semibold text-accent">الأسعار</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-4 text-3xl font-bold text-foreground md:text-5xl text-center"
-          >
+          </div>
+          <h2 className="mb-4 text-3xl font-bold text-foreground md:text-5xl text-center">
             اختر الباقة المناسبة لنموك
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-base sm:text-lg text-muted-foreground text-center"
-          >
+          </h2>
+          <p className="mx-auto max-w-xl text-base sm:text-lg text-muted-foreground text-center">
             ابدأ مجاناً لمدة 14 يوم. بدون بطاقة بنكية. سعر المؤسس لأول 100 عميل.
-          </motion.p>
+          </p>
         </div>
 
         {/* Billing Cycle Toggle */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex items-center justify-center mb-10 sm:mb-12"
-        >
+        <div className="flex items-center justify-center mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-1 p-1.5 bg-card border border-border rounded-2xl shadow-sm">
             {(["monthly", "quarterly", "yearly"] as const).map((c) => (
               <button
@@ -199,7 +178,7 @@ const DynamicPricingSection = () => {
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Plan Cards */}
         <div className="flex flex-col gap-5 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
@@ -225,12 +204,8 @@ const DynamicPricingSection = () => {
             const hasMore = comparisonItems.length > INITIAL_FEATURES_COUNT;
 
             return (
-              <motion.div
+              <div
                 key={plan.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "100px" }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
                 className={`relative rounded-2xl p-6 sm:p-8 transition-all duration-300 ${
                   isPopular
                     ? "border-2 border-accent bg-card shadow-elevated sm:scale-[1.04] z-10"
@@ -239,15 +214,12 @@ const DynamicPricingSection = () => {
               >
                 {/* Popular Badge */}
                 {isPopular && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
+                  <div
                     className="absolute -top-4 inset-inline-start-1/2 -translate-x-1/2 rtl:translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
                   >
                     <Crown size={12} className="inline mis-1 -mt-0.5" />
                     الأكثر طلباً
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* Plan Name */}
@@ -401,7 +373,7 @@ const DynamicPricingSection = () => {
                     </motion.button>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
