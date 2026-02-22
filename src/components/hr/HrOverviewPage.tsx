@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import ExpiringDocumentsWidget from "./ExpiringDocumentsWidget";
 
 export default function HrOverviewPage() {
   const { tenantId } = useAuth();
@@ -122,6 +123,9 @@ export default function HrOverviewPage() {
           </Card>
         ))}
       </div>
+
+      {/* Expiring Documents Alert */}
+      <ExpiringDocumentsWidget />
 
       {/* Quick Access */}
       <div className="space-y-4">
