@@ -4,6 +4,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import PowerStrip from "@/components/landing/PowerStrip";
 import Footer from "@/components/landing/Footer";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const WhyNumaxioSection = lazy(() => import("@/components/landing/WhyNumaxioSection"));
 const ERPModulesSection = lazy(() => import("@/components/landing/ERPModulesSection"));
@@ -34,6 +35,9 @@ const softwareJsonLd = {
 };
 
 const Index = () => {
+  // Sets dir & lang on <html> based on current i18n language
+  useLanguage();
+
   return (
     <>
       <Helmet>
@@ -45,7 +49,7 @@ const Index = () => {
         <link rel="canonical" href="https://saudi-secure-suite.lovable.app/" />
         <script type="application/ld+json">{JSON.stringify(softwareJsonLd)}</script>
       </Helmet>
-      <div className="min-h-screen bg-background overflow-x-hidden" dir="rtl">
+      <div className="min-h-screen bg-background overflow-x-hidden">
         <Navbar />
         <main>
           <HeroSection />

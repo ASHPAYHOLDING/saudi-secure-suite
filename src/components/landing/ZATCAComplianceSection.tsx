@@ -28,7 +28,7 @@ const phases = [
 
 const ZATCAComplianceSection = () => {
   return (
-    <section id="compliance" className="py-20 md:py-24 bg-secondary/30">
+    <section id="compliance" className="py-16 sm:py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
           <motion.div

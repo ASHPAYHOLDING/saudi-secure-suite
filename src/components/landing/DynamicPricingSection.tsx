@@ -129,7 +129,7 @@ const DynamicPricingSection = () => {
 
   if (loading) {
     return (
-      <section id="pricing" className="py-20 sm:py-28 bg-secondary/30" dir="rtl">
+      <section id="pricing" className="py-16 sm:py-20 md:py-24 bg-secondary/30">
         <div className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
         </div>
@@ -140,8 +140,8 @@ const DynamicPricingSection = () => {
   const allFeatures = getAllFeatures(plans);
 
   return (
-    <section id="pricing" className="py-20 sm:py-28 bg-secondary/30" dir="rtl">
-      <div className="container mx-auto px-4">
+    <section id="pricing" className="py-16 sm:py-20 md:py-24 bg-secondary/30">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 sm:mb-16 text-center">
           <motion.div
@@ -243,7 +243,7 @@ const DynamicPricingSection = () => {
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
+                    className="absolute -top-4 inset-inline-start-1/2 -translate-x-1/2 rtl:translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
                   >
                     <Crown size={12} className="inline mis-1 -mt-0.5" />
                     الأكثر طلباً

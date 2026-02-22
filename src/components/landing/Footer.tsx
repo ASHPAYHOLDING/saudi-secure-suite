@@ -25,7 +25,7 @@ const Footer = () => {
   };
 
   return (
-    <footer id="contact" className="bg-sidebar-background" dir="rtl">
+    <footer id="contact" className="bg-sidebar-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-8">
         {/* Main 4-column grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
