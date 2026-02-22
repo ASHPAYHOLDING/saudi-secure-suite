@@ -14,11 +14,11 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
 
   return (
     <div
-      className={cn("flex items-center gap-2 shrink-0", className)}
+      className={cn("flex items-center gap-2.5 shrink-0 whitespace-nowrap", className)}
       aria-label="Numaxio - Saudi ERP"
     >
       {/* Icon */}
-      <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 shrink-0">
+      <div className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
         <img
           src={numaxioLogo}
           alt="Numaxio"
@@ -27,8 +27,8 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
         />
       </div>
 
-      {/* Wordmark */}
-      <div className="flex flex-col leading-none">
+      {/* Wordmark + subtitle stacked */}
+      <div className="flex flex-col justify-center leading-none min-w-0">
         <span
           className={cn(
             "text-base sm:text-lg font-semibold tracking-tight",
@@ -40,7 +40,7 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
         {showSubtitle && (
           <span
             className={cn(
-              "hidden sm:block text-[10px] sm:text-xs font-medium opacity-60",
+              "hidden sm:block text-[10px] sm:text-xs leading-none mt-0.5 opacity-60",
               isLight ? "text-white" : "text-muted-foreground"
             )}
           >
