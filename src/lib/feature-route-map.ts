@@ -366,6 +366,26 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "موافقات HR",
     description: "اعتماد طلبات الإجازات.",
   },
+  // ── HR Payroll (Enterprise only) ──
+  "hr-payroll": {
+    featureKey: FEATURE_KEYS.HR_PAYROLL,
+    permissionKeys: ["hr.manage_payroll"],
+    label: "مسيّرات الرواتب",
+    description: "إعداد وصرف رواتب الموظفين والبدلات.",
+  },
+  "hr-payroll-settings": {
+    featureKey: FEATURE_KEYS.HR_PAYROLL,
+    permissionKeys: ["hr.manage_payroll"],
+    label: "إعدادات الرواتب",
+    description: "تهيئة هيكل الرواتب والاستقطاعات.",
+  },
+  "hr-payroll-reports": {
+    featureKey: FEATURE_KEYS.HR_PAYROLL,
+    permissionKeys: ["hr.view_reports"],
+    label: "تقارير الرواتب",
+    description: "تقارير الرواتب والاستقطاعات والتأمينات.",
+  },
+
   "hr-reports": {
     featureKey: FEATURE_KEYS.HR_CORE,
     permissionKeys: ["hr.view_reports"],
@@ -486,4 +506,8 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/compliance-score": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/collections-intelligence": FEATURE_KEYS.ADVANCED_REPORTS,
   "/dashboard/finance/cashflow-radar": FEATURE_KEYS.ADVANCED_REPORTS,
+  // HR Payroll sub-routes
+  "/dashboard/hr/payroll": FEATURE_KEYS.HR_PAYROLL,
+  "/dashboard/hr/payroll/settings": FEATURE_KEYS.HR_PAYROLL,
+  "/dashboard/hr/payroll/reports": FEATURE_KEYS.HR_PAYROLL,
 };

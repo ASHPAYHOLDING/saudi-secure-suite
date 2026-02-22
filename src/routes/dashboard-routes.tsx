@@ -110,6 +110,7 @@ const HrLeavePage = lazy(() => import("@/components/hr/HrLeavePage"));
 const HrAttendancePage = lazy(() => import("@/components/hr/HrAttendancePage"));
 const HrApprovalsPage = lazy(() => import("@/components/hr/HrApprovalsPage"));
 const HrReportsPage = lazy(() => import("@/components/hr/HrReportsPage"));
+const HrPayrollPage = lazy(() => import("@/components/hr/HrPayrollPage"));
 
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
@@ -231,6 +232,9 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "hr/attendance", element: HrAttendancePage, gateSegment: "hr-attendance", module: "hr", permissionKey: "hr.manage_attendance" },
   { path: "hr/approvals", element: HrApprovalsPage, gateSegment: "hr-approvals", module: "hr", permissionKey: "hr.approve_leave" },
   { path: "hr/reports", element: HrReportsPage, gateSegment: "hr-reports", module: "hr", permissionKey: "hr.view_reports" },
+  { path: "hr/payroll", element: HrPayrollPage, gateSegment: "hr-payroll", module: "hr", permissionKey: "hr.manage_payroll" },
+  { path: "hr/payroll/settings", element: HrPayrollPage, gateSegment: "hr-payroll-settings", module: "hr", permissionKey: "hr.manage_payroll" },
+  { path: "hr/payroll/reports", element: HrPayrollPage, gateSegment: "hr-payroll-reports", module: "hr", permissionKey: "hr.view_reports" },
   { path: "hr", element: HrOverviewPage, gateSegment: "hr", module: "hr", permissionKey: "hr.view" },
 
   // ── Settings & Admin ──

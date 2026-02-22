@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Shield, Lock, ArrowUpCircle, Ban, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UpgradeWallEnterprise from "@/components/guards/UpgradeWallEnterprise";
+import UpgradeWallPayroll from "@/components/guards/UpgradeWallPayroll";
 
 export type AccessDeniedReason =
   | "feature_not_in_plan"
@@ -25,6 +26,11 @@ export default function AccessDenied({ reason, featureLabel, featureKey }: Props
   // Enterprise upgrade wall for enterprise_mode feature denial
   if (reason === "feature_not_in_plan" && featureKey === "enterprise_mode") {
     return <UpgradeWallEnterprise featureKey={featureKey} />;
+  }
+
+  // Payroll upgrade wall for hr_payroll feature denial
+  if (reason === "feature_not_in_plan" && featureKey === "hr_payroll") {
+    return <UpgradeWallPayroll />;
   }
 
   const isUpgrade = reason === "feature_not_in_plan";

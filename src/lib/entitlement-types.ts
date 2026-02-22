@@ -46,7 +46,8 @@ export const FEATURE_KEYS = {
   INTERNAL_FINANCING: "internal_financing",
   VAT_AUTO_RETURN: "vat_auto_return",
   // ─── HR ───
-  HR_CORE: "hr",
+  HR_CORE: "hr_core",
+  HR_PAYROLL: "hr_payroll",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
