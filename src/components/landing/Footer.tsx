@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import BrandLockup from "@/components/landing/BrandLockup";
 import { useTranslation } from "react-i18next";
+import ComplianceTrustSection from "@/components/landing/ComplianceTrustSection";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -241,6 +242,9 @@ const Footer = () => {
             </form>
           </div>
         </div>
+
+        {/* Compliance & Trust Section */}
+        <ComplianceTrustSection />
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 md:flex-row" style={{ borderColor: "hsl(220 20% 20%)" }}>
