@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, X, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import NumaxioLogo from "@/components/landing/NumaxioLogo";
+import BrandLockup from "@/components/landing/BrandLockup";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 
@@ -97,7 +97,7 @@ const Navbar = () => {
 
         {/* ═══ 1 · Brand (inline-start) ═══ */}
         <Link to="/" className="shrink-0 flex items-center">
-          <NumaxioLogo variant={scrolled ? "dark" : "light"} size="md" />
+          <BrandLockup variant={scrolled ? "dark" : "light"} />
         </Link>
 
         {/* ═══ 2 · Center Nav ═══ */}
@@ -218,7 +218,7 @@ const Navbar = () => {
             >
               {/* Drawer header */}
               <div className="flex items-center justify-between h-16 px-4 border-b border-border shrink-0">
-                <NumaxioLogo variant="dark" size="sm" />
+                <BrandLockup variant="dark" showSubtitle={false} />
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="w-9 h-9 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground"
