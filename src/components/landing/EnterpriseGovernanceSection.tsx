@@ -19,7 +19,7 @@ const features = [
 
 const EnterpriseGovernanceSection = () => {
   return (
-    <section className="py-20 md:py-24 relative overflow-hidden">
+    <section className="py-16 sm:py-20 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom right, hsl(220 30% 8%), hsl(220 35% 12%), hsl(220 30% 8%))" }} />
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.3'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3C/g%3E%3C/svg%3E")`,

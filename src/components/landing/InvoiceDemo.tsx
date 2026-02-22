@@ -31,14 +31,15 @@ const InvoiceDemo = () => {
   ];
 
   return (
-    <section id="demo" className="py-20 md:py-28 bg-secondary/30" dir="rtl">
-      <div className="container mx-auto px-4">
+    <section id="demo" className="py-16 sm:py-20 md:py-24 bg-secondary/30">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-3 text-3xl font-bold text-foreground md:text-5xl"
+            className="mb-3 font-bold text-foreground"
+            style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
             فاتورة متوافقة <span className="text-gradient">خلال 10 ثوانٍ</span>
           </motion.h2>
@@ -47,7 +48,8 @@ const InvoiceDemo = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-base sm:text-lg text-muted-foreground"
+            className="mx-auto max-w-xl text-muted-foreground"
+            style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
             3 خطوات فقط — اختر العميل، أضف البنود، وأصدر فاتورة ZATCA متوافقة
           </motion.p>
