@@ -47,7 +47,7 @@ const ERPModulesSection = () => {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
           {modules.map((m, i) => (
             <motion.div
               key={m.title}
@@ -55,16 +55,16 @@ const ERPModulesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="group rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
+              className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${m.color} mb-4`}>
                 <m.icon size={22} />
               </div>
               <h3 className="text-base font-bold text-foreground mb-2">{m.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">{m.desc}</p>
-              <Link to="/auth" className="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1">
+              <Link to="/auth" className="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1 min-h-[44px]">
                 استكشف
-                <ArrowLeft size={14} className="rtl-mirror" />
+                <ArrowLeft size={14} className="rtl:rotate-180" />
               </Link>
             </motion.div>
           ))}

@@ -38,15 +38,15 @@ const Footer = () => {
               نظام ERP سعودي مؤسسي متكامل لإدارة المالية، الامتثال، والحوكمة.
             </p>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm text-sidebar-foreground/70">
+              <div className="flex items-center gap-3 text-sm text-sidebar-foreground/70 min-h-[44px]">
                 <MapPin size={14} className="text-accent shrink-0" />
                 <span>المملكة العربية السعودية</span>
               </div>
-              <a href="mailto:support@numaxio.com" className="flex items-center gap-3 text-sm text-sidebar-foreground/70 hover:text-accent transition-colors">
+              <a href="mailto:support@numaxio.com" className="flex items-center gap-3 text-sm text-sidebar-foreground/70 hover:text-accent transition-colors min-h-[44px]">
                 <Mail size={14} className="text-accent shrink-0" />
                 <span>support@numaxio.com</span>
               </a>
-              <a href="tel:9200XXXX" className="flex items-center gap-3 text-sm text-sidebar-foreground/70 hover:text-accent transition-colors">
+              <a href="tel:9200XXXX" className="flex items-center gap-3 text-sm text-sidebar-foreground/70 hover:text-accent transition-colors min-h-[44px]">
                 <Phone size={14} className="text-accent shrink-0" />
                 <span dir="ltr">9200XXXX</span>
               </a>
@@ -130,7 +130,7 @@ const Footer = () => {
             <Link to="/terms" className="text-xs text-sidebar-foreground/70 hover:text-accent transition-colors">الشروط والأحكام</Link>
             <button
               onClick={scrollToTop}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-sidebar-foreground/15 text-sidebar-foreground/70 hover:text-accent hover:border-accent/30 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-sidebar-foreground/15 text-sidebar-foreground/70 hover:text-accent hover:border-accent/30 transition-colors"
               aria-label="العودة للأعلى"
             >
               <ArrowUp size={16} />

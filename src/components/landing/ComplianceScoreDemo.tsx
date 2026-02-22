@@ -72,7 +72,7 @@ const ComplianceScoreDemo = () => {
               <button
                 key={step.label}
                 onClick={() => toggle(i)}
-                className="flex items-center gap-3 w-full text-start rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/50"
+                className="flex items-center gap-3 w-full text-start rounded-xl border border-border px-4 py-3 min-h-[44px] transition-colors hover:bg-muted/50"
               >
                 <CheckCircle2
                   size={18}

@@ -161,12 +161,12 @@ const HeroSection = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-4 pt-2"
+              className="flex flex-wrap gap-3 sm:gap-4 pt-2"
             >
               {trustBadges.map((item) => (
-                <div key={item.label} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2">
-                  <item.icon size={14} className="text-accent" />
-                  <span className="text-xs text-primary-foreground/80 font-medium">{item.label}</span>
+                <div key={item.label} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 min-h-[44px]">
+                  <item.icon size={14} className="text-accent shrink-0" />
+                  <span className="text-xs text-primary-foreground/80 font-medium whitespace-nowrap">{item.label}</span>
                 </div>
               ))}
             </motion.div>
@@ -195,7 +195,7 @@ const HeroSection = () => {
       </div>
 
       {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 inset-inline-0">
         <svg viewBox="0 0 1440 80" className="w-full h-auto block" preserveAspectRatio="none">
           <path fill="hsl(var(--background))" d="M0,50 C360,80 720,30 1080,50 C1260,65 1380,40 1440,50 L1440,80 L0,80 Z" />
         </svg>
