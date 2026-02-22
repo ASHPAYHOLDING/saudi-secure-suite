@@ -202,7 +202,7 @@ const DynamicPricingSection = () => {
         </motion.div>
 
         {/* Plan Cards */}
-        <div className="space-y-5 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
+        <div className="flex flex-col gap-5 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
           {plans.map((plan, i) => {
             const isPopular = plan.slug === "business" || plan.slug === "professional";
             const price = getPrice(plan);
@@ -227,10 +227,10 @@ const DynamicPricingSection = () => {
             return (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12, duration: 0.5 }}
+                viewport={{ once: true, margin: "100px" }}
+                transition={{ delay: i * 0.1, duration: 0.4 }}
                 className={`relative rounded-2xl p-6 sm:p-8 transition-all duration-300 ${
                   isPopular
                     ? "border-2 border-accent bg-card shadow-elevated sm:scale-[1.04] z-10"
