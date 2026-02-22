@@ -22,7 +22,7 @@ const FinalCTA = () => {
               className="font-bold text-white mb-5 leading-tight"
               style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
-              حوّل إدارتك المالية من عبء… إلى ميزة تنافسية
+              حوّل إدارتك المالية إلى <span className="text-accent">ميزة تنافسية</span>
             </motion.h2>
 
             <motion.p
