@@ -181,7 +181,7 @@ const DynamicPricingSection = () => {
         </div>
 
         {/* Plan Cards */}
-        <div className="flex flex-col gap-5 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
+        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-start">
           {plans.map((plan, i) => {
             const isPopular = plan.slug === "business" || plan.slug === "professional";
             const price = getPrice(plan);
@@ -206,7 +206,7 @@ const DynamicPricingSection = () => {
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-2xl p-6 sm:p-8 transition-all duration-300 ${
+                className={`relative rounded-2xl p-4 sm:p-6 lg:p-8 transition-all duration-300 ${
                   isPopular
                     ? "border-2 border-accent bg-card shadow-elevated sm:scale-[1.04] z-10"
                     : "border border-border bg-card shadow-card"
@@ -223,22 +223,21 @@ const DynamicPricingSection = () => {
                 )}
 
                 {/* Plan Name */}
-                <div className="mb-5 pt-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isPopular ? "bg-accent/20" : "bg-accent/10"}`}>
-                      <PlanIcon size={16} className="text-accent" />
+                <div className="mb-3 sm:mb-5 pt-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg ${isPopular ? "bg-accent/20" : "bg-accent/10"}`}>
+                      <PlanIcon size={14} className="text-accent sm:hidden" />
+                      <PlanIcon size={16} className="text-accent hidden sm:block" />
                     </div>
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-bold text-foreground">{plan.name_ar}</h3>
-                    </div>
+                    <h3 className="text-base sm:text-xl font-bold text-foreground">{plan.name_ar}</h3>
                   </div>
-                  <p className="text-xs text-muted-foreground">{description}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">{description}</p>
                 </div>
 
                 {/* Price Block */}
-                <div className="mb-5">
+                <div className="mb-3 sm:mb-5">
                   {isEnterprise ? (
-                    <span className="text-2xl font-bold text-foreground">تواصل معنا</span>
+                    <span className="text-xl sm:text-2xl font-bold text-foreground">تواصل معنا</span>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1.5 flex-wrap">
@@ -247,7 +246,7 @@ const DynamicPricingSection = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.25 }}
-                            className="text-4xl sm:text-5xl font-bold text-foreground tabular-nums"
+                            className="text-3xl sm:text-5xl font-bold text-foreground tabular-nums"
                           >
                             {price.toLocaleString("ar-SA")}
                           </motion.span>
@@ -288,7 +287,7 @@ const DynamicPricingSection = () => {
 
                 {/* Limits Pills */}
                 {!isEnterprise && (
-                  <div className="flex flex-wrap gap-1.5 mb-5">
+                  <div className="flex flex-wrap gap-1.5 mb-3 sm:mb-5">
                     {plan.max_users && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                         حتى {plan.max_users} مستخدم
@@ -307,7 +306,7 @@ const DynamicPricingSection = () => {
                   </div>
                 )}
                 {isEnterprise && (
-                  <div className="mb-5">
+                  <div className="mb-3 sm:mb-5">
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
                       كل شيء غير محدود
                     </span>
@@ -318,7 +317,7 @@ const DynamicPricingSection = () => {
                 <Link to="/auth">
                   <motion.div whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
                     <Button
-                      className={`mb-6 w-full py-6 text-base transition-shadow duration-300 ${
+                      className={`mb-4 sm:mb-6 w-full py-4 sm:py-6 text-sm sm:text-base transition-shadow duration-300 ${
                         isPopular
                           ? "gradient-accent text-accent-foreground shadow-accent-glow"
                           : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
