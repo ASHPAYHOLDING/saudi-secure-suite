@@ -328,7 +328,7 @@ const UpdatesPage = () => {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-base sm:text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed text-center">
                 نعمل باستمرار على تطوير المنصة. هنا تجد كل التحديثات والأنظمة الجديدة.
               </p>
             </motion.div>
