@@ -62,7 +62,7 @@ const WhySection = () => {
 
   return (
     <section id="why" className="py-24 md:py-32 bg-background" dir="rtl">
-      <div className="container mx-auto px-4" ref={ref}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <div className="mb-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -102,7 +102,7 @@ const WhySection = () => {
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
               className={`group relative rounded-2xl border border-border bg-card p-7 shadow-card transition-all duration-300 hover:shadow-elevated hover:border-accent/20 overflow-hidden`}
             >
-              <div className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${reason.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-3xl`} />
+              <div className={`absolute -top-16 -end-16 w-40 h-40 rounded-full bg-gradient-to-br ${reason.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-3xl`} />
               
               <div className="relative">
                 <div className="flex items-center justify-between mb-5">

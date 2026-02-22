@@ -26,7 +26,7 @@ const GovernanceSection = () => {
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.3'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }} />
 
-      <div className="container relative mx-auto px-4 z-10">
+      <div className="max-w-6xl relative mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -53,7 +53,7 @@ const GovernanceSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-base sm:text-lg text-white/50"
+            className="mx-auto max-w-xl text-base sm:text-lg text-white/70"
           >
             صلاحيات مسبقة التهيئة لكل دور — فعّل وابدأ فوراً
           </motion.p>
@@ -74,7 +74,7 @@ const GovernanceSection = () => {
               <Crown size={14} className="text-amber-400" />
               <div>
                 <p className="text-sm font-bold text-white">{role.name}</p>
-                <p className="text-[10px] text-white/40 font-english" dir="ltr">{role.nameEn}</p>
+                <p className="text-[10px] text-white/60 font-english" dir="ltr">{role.nameEn}</p>
               </div>
             </motion.div>
           ))}
@@ -96,7 +96,7 @@ const GovernanceSection = () => {
                 <f.icon size={18} className="text-amber-400" />
               </div>
               <h3 className="text-base font-bold text-white mb-1">{f.title}</h3>
-              <p className="text-sm text-white/40">{f.desc}</p>
+              <p className="text-sm text-white/60">{f.desc}</p>
             </motion.div>
           ))}
         </div>

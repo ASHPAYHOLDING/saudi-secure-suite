@@ -33,7 +33,7 @@ const phases = [
 const ComplianceSection = () => {
   return (
     <section className="py-20 md:py-28 bg-background" dir="rtl">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -110,7 +110,7 @@ const ComplianceSection = () => {
               <p className="text-xs text-muted-foreground">حساب تلقائي + تذكيرات مواعيد الإقرار</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 sm:mr-auto">
+          <div className="flex items-center gap-3 sm:ms-auto">
             <div className="flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-[11px] font-medium text-accent">
               <Bell size={10} />
               تنبيهات ضريبية

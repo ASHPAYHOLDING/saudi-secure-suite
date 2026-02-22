@@ -19,7 +19,7 @@ const messages = [
 const AISection = () => {
   return (
     <section className="py-20 md:py-28 bg-secondary/30" dir="rtl">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center max-w-6xl mx-auto">
           {/* Chat UI */}
           <motion.div
@@ -37,7 +37,7 @@ const AISection = () => {
                   <p className="text-sm font-bold text-foreground">المساعد المالي الذكي</p>
                   <p className="text-[10px] text-accent">متاح لـ Owner & CFO فقط</p>
                 </div>
-                <span className="mr-auto relative flex h-2 w-2">
+                <span className="ms-auto relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
                 </span>

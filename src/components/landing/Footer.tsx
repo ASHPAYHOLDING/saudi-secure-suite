@@ -47,18 +47,18 @@ const Footer = () => {
             <div className="mb-5">
               <NumaxioLogo variant="light" size="md" />
             </div>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: "hsl(210 20% 78%)" }}>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "hsl(210 20% 85%)" }}>
               {t("landing.footer.about")}
             </p>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm min-h-[44px]" style={{ color: "hsl(210 20% 78%)" }}>
+              <div className="flex items-center gap-3 text-sm min-h-[44px]" style={{ color: "hsl(210 20% 85%)" }}>
                 <MapPin size={14} className="text-accent shrink-0" />
                 <span>المملكة العربية السعودية</span>
               </div>
               <a
                 href="mailto:support@numaxio.com"
                 className="flex items-center gap-3 text-sm hover:text-accent transition-colors min-h-[44px]"
-                style={{ color: "hsl(210 20% 78%)" }}
+                style={{ color: "hsl(210 20% 85%)" }}
               >
                 <Mail size={14} className="text-accent shrink-0" />
                 <span className="font-english" dir="ltr">support@numaxio.com</span>
@@ -90,7 +90,7 @@ const Footer = () => {
                   <a
                     href={item.href}
                     className="text-sm hover:text-accent transition-colors"
-                    style={{ color: "hsl(210 20% 72%)" }}
+                    style={{ color: "hsl(210 20% 80%)" }}
                   >
                     {item.label}
                   </a>
@@ -110,7 +110,7 @@ const Footer = () => {
                   <a
                     href={item.href}
                     className="text-sm hover:text-accent transition-colors"
-                    style={{ color: "hsl(210 20% 72%)" }}
+                    style={{ color: "hsl(210 20% 80%)" }}
                   >
                     {item.label}
                   </a>
@@ -128,7 +128,7 @@ const Footer = () => {
                   <a
                     href={item.href}
                     className="text-sm hover:text-accent transition-colors"
-                    style={{ color: "hsl(210 20% 72%)" }}
+                    style={{ color: "hsl(210 20% 80%)" }}
                   >
                     {item.label}
                   </a>
@@ -149,7 +149,7 @@ const Footer = () => {
                     <Link
                       to={item.href}
                       className="text-sm hover:text-accent transition-colors"
-                      style={{ color: "hsl(210 20% 72%)" }}
+                      style={{ color: "hsl(210 20% 80%)" }}
                     >
                       {item.label}
                     </Link>
@@ -157,7 +157,7 @@ const Footer = () => {
                     <a
                       href={item.href}
                       className="text-sm hover:text-accent transition-colors"
-                      style={{ color: "hsl(210 20% 72%)" }}
+                      style={{ color: "hsl(210 20% 80%)" }}
                     >
                       {item.label}
                     </a>
@@ -171,7 +171,7 @@ const Footer = () => {
               <p className="text-xs font-semibold mb-1" style={{ color: "hsl(210 20% 90%)" }}>
                 {t("landing.footer.startToday")}
               </p>
-              <p className="text-[11px] mb-4" style={{ color: "hsl(210 20% 68%)" }}>
+              <p className="text-[11px] mb-4" style={{ color: "hsl(210 20% 78%)" }}>
                 {t("landing.footer.freeTrialNote")}
               </p>
               <Link
@@ -187,7 +187,7 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 md:flex-row" style={{ borderColor: "hsl(220 20% 20%)" }}>
-          <p className="text-xs" style={{ color: "hsl(210 20% 62%)" }}>
+          <p className="text-xs" style={{ color: "hsl(210 20% 72%)" }}>
             © {new Date().getFullYear()} {t("landing.footer.copyright")}
           </p>
 
@@ -195,21 +195,21 @@ const Footer = () => {
             <Link
               to="/privacy"
               className="text-xs hover:text-accent transition-colors"
-              style={{ color: "hsl(210 20% 68%)" }}
+              style={{ color: "hsl(210 20% 78%)" }}
             >
               {t("landing.footer.privacy")}
             </Link>
             <Link
               to="/terms"
               className="text-xs hover:text-accent transition-colors"
-              style={{ color: "hsl(210 20% 68%)" }}
+              style={{ color: "hsl(210 20% 78%)" }}
             >
               {t("landing.footer.terms")}
             </Link>
             <button
               onClick={scrollToTop}
               className="flex h-10 w-10 items-center justify-center rounded-full border hover:text-accent hover:border-accent/30 transition-colors"
-              style={{ borderColor: "hsl(220 20% 22%)", color: "hsl(210 20% 72%)" }}
+              style={{ borderColor: "hsl(220 20% 22%)", color: "hsl(210 20% 80%)" }}
               aria-label={t("landing.footer.backToTop")}
             >
               <ArrowUp size={16} />

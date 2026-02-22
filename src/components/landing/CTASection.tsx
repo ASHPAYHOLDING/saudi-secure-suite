@@ -11,7 +11,7 @@ const CTASection = () => {
 
   return (
     <section className="py-24 md:py-32 bg-background" dir="rtl">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -28,7 +28,7 @@ const CTASection = () => {
             <motion.div
               animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.15, 0.1] }}
               transition={{ duration: 8, repeat: Infinity }}
-              className="absolute top-0 right-1/4 w-96 h-96 rounded-full"
+              className="absolute top-0 end-1/4 w-96 h-96 rounded-full"
               style={{
                 background: isRamadan
                   ? "radial-gradient(circle, hsl(var(--ramadan-gold) / 0.15) 0%, transparent 70%)"
@@ -38,7 +38,7 @@ const CTASection = () => {
             <motion.div
               animate={{ scale: [1.2, 1, 1.2], opacity: [0.05, 0.1, 0.05] }}
               transition={{ duration: 10, repeat: Infinity }}
-              className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full"
+              className="absolute bottom-0 start-1/4 w-64 h-64 rounded-full"
               style={{
                 background: isRamadan
                   ? "radial-gradient(circle, hsl(var(--ramadan-emerald) / 0.12) 0%, transparent 70%)"
@@ -142,7 +142,7 @@ const CTASection = () => {
                   ) : (
                     <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-12 py-7 text-base font-bold">
                       ابدأ تجربتك المجانية الآن
-                      <ArrowLeft className="mr-2 h-5 w-5" />
+                      <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
                     </Button>
                   )}
                 </motion.div>
