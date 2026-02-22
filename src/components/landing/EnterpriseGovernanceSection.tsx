@@ -46,7 +46,7 @@ const EnterpriseGovernanceSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-3 font-bold text-primary-foreground"
+            className="mb-3 font-bold text-primary-foreground text-center"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
             {t("landing.governance.title")} <span className="text-gradient">{t("landing.governance.titleHighlight")}</span>
@@ -56,7 +56,7 @@ const EnterpriseGovernanceSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-primary-foreground/70"
+            className="mx-auto max-w-xl text-primary-foreground/70 text-center"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
             {t("landing.governance.subtitle")}

@@ -36,7 +36,7 @@ const PaymentGatewaySection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-3 font-bold text-foreground"
+            className="mb-3 font-bold text-foreground text-center"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
             {t("landing.payment.title")} <span className="text-gradient">{t("landing.payment.titleHighlight")}</span>
@@ -46,7 +46,7 @@ const PaymentGatewaySection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-muted-foreground"
+            className="mx-auto max-w-xl text-muted-foreground text-center"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
             {t("landing.payment.subtitle")}
