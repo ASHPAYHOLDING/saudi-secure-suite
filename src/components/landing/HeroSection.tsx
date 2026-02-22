@@ -234,9 +234,9 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 inset-inline-0 -mb-px">
-        <svg viewBox="0 0 1440 120" className="w-full h-auto block" preserveAspectRatio="none">
-          <path fill="hsl(0 0% 100%)" d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z" />
+      <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-[0]" style={{ marginBottom: "-1px" }}>
+        <svg className="relative block w-full" style={{ height: "clamp(40px, 8vw, 100px)" }} viewBox="0 0 1440 100" preserveAspectRatio="none">
+          <path fill="#ffffff" d="M0,100 L0,40 Q360,100 720,40 Q1080,-20 1440,40 L1440,100 Z" />
         </svg>
       </div>
     </section>
