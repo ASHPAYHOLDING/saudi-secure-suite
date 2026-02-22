@@ -53,21 +53,7 @@ const PowerStrip = () => {
   ];
 
   return (
-    <section ref={ref} className="relative py-16 md:py-20 overflow-hidden">
-      {/* Subtle gradient background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, hsl(220 25% 6%) 0%, hsl(220 30% 10%) 50%, hsl(220 25% 6%) 100%)",
-        }}
-      />
-      {/* Faint radial glow */}
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          background: "radial-gradient(ellipse 60% 40% at 50% 50%, hsl(172 50% 30% / 0.15), transparent)",
-        }}
-      />
+    <section ref={ref} className="relative py-16 md:py-20 bg-white overflow-hidden">
 
       <div className="relative max-w-5xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -77,20 +63,20 @@ const PowerStrip = () => {
               initial={{ opacity: 0, y: 24 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
-              className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-6 md:p-7 text-center transition-colors duration-300 hover:border-white/[0.12] hover:bg-white/[0.05]"
+              className="group relative rounded-2xl border border-border/60 bg-muted/30 p-6 md:p-7 text-center transition-colors duration-300 hover:border-border hover:bg-muted/50"
             >
               {/* Icon */}
-              <div className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.06] ${m.color} transition-transform duration-300 group-hover:scale-110`}>
+              <div className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 ${m.color} transition-transform duration-300 group-hover:scale-110`}>
                 <m.icon size={20} strokeWidth={1.8} />
               </div>
 
               {/* Value */}
-              <p className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-none mb-1.5">
+              <p className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-none mb-1.5">
                 <AnimatedCounter target={m.value} suffix={m.suffix} inView={isInView} />
               </p>
 
               {/* Label */}
-              <p className="text-sm text-white/50 leading-snug">{m.label}</p>
+              <p className="text-sm text-muted-foreground leading-snug">{m.label}</p>
             </motion.div>
           ))}
         </div>
