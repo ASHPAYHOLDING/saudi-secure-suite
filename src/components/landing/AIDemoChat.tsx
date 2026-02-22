@@ -24,7 +24,7 @@ const AIDemoChat = () => {
   const restart = () => setVisibleCount(0);
 
   return (
-    <section className="py-20 md:py-28 bg-secondary/30">
+    <section className="py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-10 text-center">
           <motion.div

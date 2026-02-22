@@ -11,19 +11,19 @@ const trustBadges = [
 ];
 
 const kpis = [
-  { label: "الإيرادات الشهرية", value: "٢٤٥,٠٠٠ ﷼", trend: "+12%", color: "text-emerald-400" },
-  { label: "صافي الربح", value: "١٦٢,٦٠٠ ﷼", trend: "+8%", color: "text-blue-400" },
-  { label: "DSO", value: "٢٣ يوم", trend: "-3", color: "text-amber-400" },
-  { label: "درجة الامتثال", value: "٩٤٪", trend: "A+", color: "text-emerald-400" },
+  { label: "الإيرادات الشهرية", value: "٢٤٥,٠٠٠ ﷼", trend: "+12%", color: "text-accent" },
+  { label: "صافي الربح", value: "١٦٢,٦٠٠ ﷼", trend: "+8%", color: "text-muted-foreground" },
+  { label: "DSO", value: "٢٣ يوم", trend: "-3", color: "text-accent" },
+  { label: "درجة الامتثال", value: "٩٤٪", trend: "A+", color: "text-accent" },
 ];
 
 const DashboardMock = ({ compact = false }: { compact?: boolean }) => (
   <div className={`relative rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-sm shadow-2xl ${compact ? "p-3" : "p-4 lg:p-5"}`}>
     <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/10">
       <div className="flex gap-1.5">
-        <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-        <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
-        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
+      <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40" />
+        <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/30" />
+        <div className="w-2.5 h-2.5 rounded-full bg-accent/60" />
       </div>
       <div className="flex-1 text-center">
         <span className="text-[10px] text-primary-foreground/30 bg-white/5 px-3 py-0.5 rounded-full">
@@ -50,10 +50,10 @@ const DashboardMock = ({ compact = false }: { compact?: boolean }) => (
       ))}
     </div>
 
-    <div className={`flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 ${compact ? "" : "mb-3"}`}>
-      <Shield size={14} className="text-emerald-400" />
-      <span className="text-[11px] text-emerald-300 font-medium">ZATCA Phase 2 — متوافق ✓</span>
-      <span className="ms-auto text-[10px] text-emerald-400/60">آخر مزامنة: الآن</span>
+    <div className={`flex items-center gap-2 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 ${compact ? "" : "mb-3"}`}>
+      <Shield size={14} className="text-accent" />
+      <span className="text-[11px] text-accent font-medium">ZATCA Phase 2 — متوافق ✓</span>
+      <span className="ms-auto text-[10px] text-accent/60">آخر مزامنة: الآن</span>
     </div>
 
     {!compact && (

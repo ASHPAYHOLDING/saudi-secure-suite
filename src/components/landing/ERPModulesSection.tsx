@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 
 const modules = [
   { icon: FileText, title: "الفواتير والضرائب", desc: "فاتورة خلال 10 ثوانٍ — جاهزة لهيئة الزكاة تلقائياً مع توقيع XML و QR Code.", color: "bg-accent/10 text-accent" },
-  { icon: Wallet, title: "المصروفات", desc: "تصنيف ذكي تلقائي مع كشف شذوذ فوري ومطابقة بنكية بدون تدخل يدوي.", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-  { icon: Package, title: "المخزون", desc: "تحكم لحظي بالكميات والتكاليف والربحية مع تنبيهات إعادة الطلب الذكية.", color: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحات تنفيذية يفهمها المدير قبل المحاسب — مؤشرات أداء فورية وتقارير جاهزة للتصدير.", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-  { icon: Bot, title: "AI المحاسبي", desc: "اسأل… ويجيب بالأرقام. محاسب ذكي يحلل بياناتك ويقدم توصيات فورية قابلة للتنفيذ.", color: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
-  { icon: Building2, title: "الحوكمة المؤسسية", desc: "قوالب أدوار جاهزة + سلاسل موافقات + سجل تدقيق شامل — جاهز للتدقيق من اليوم الأول.", color: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
+  { icon: Wallet, title: "المصروفات", desc: "تصنيف ذكي تلقائي مع كشف شذوذ فوري ومطابقة بنكية بدون تدخل يدوي.", color: "bg-accent/10 text-accent" },
+  { icon: Package, title: "المخزون", desc: "تحكم لحظي بالكميات والتكاليف والربحية مع تنبيهات إعادة الطلب الذكية.", color: "bg-accent/10 text-accent" },
+  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحات تنفيذية يفهمها المدير قبل المحاسب — مؤشرات أداء فورية وتقارير جاهزة للتصدير.", color: "bg-accent/10 text-accent" },
+  { icon: Bot, title: "AI المحاسبي", desc: "اسأل… ويجيب بالأرقام. محاسب ذكي يحلل بياناتك ويقدم توصيات فورية قابلة للتنفيذ.", color: "bg-accent/10 text-accent" },
+  { icon: Building2, title: "الحوكمة المؤسسية", desc: "قوالب أدوار جاهزة + سلاسل موافقات + سجل تدقيق شامل — جاهز للتدقيق من اليوم الأول.", color: "bg-accent/10 text-accent" },
 ];
 
 const ERPModulesSection = () => {
   return (
-    <section id="features" className="py-20 md:py-28 bg-secondary/30">
+    <section id="features" className="py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
           <motion.div
@@ -55,7 +55,7 @@ const ERPModulesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
+              className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card transition-all duration-300 hover:shadow-elevated"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${m.color} mb-4`}>
                 <m.icon size={22} />

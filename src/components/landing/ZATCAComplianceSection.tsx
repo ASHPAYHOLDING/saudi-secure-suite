@@ -14,25 +14,25 @@ const phases = [
     title: "ZATCA Phase 2",
     subtitle: "التكامل المباشر — متاح في باقة الأعمال+",
     icon: Shield,
-    color: "border-emerald-500/30 bg-emerald-500/5",
-    iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    color: "border-accent/30 bg-accent/5",
+    iconBg: "bg-accent/10 text-accent",
     items: ["توقيع XML رقمي موثّق (XAdES-BES)", "ربط مباشر مع API هيئة الزكاة", "مزامنة لحظية لحالة كل فاتورة", "شهادات رقمية مُدارة وتُجدَّد تلقائياً"],
   },
 ];
 
 const ZATCAComplianceSection = () => {
   return (
-    <section className="py-20 md:py-28 bg-secondary/30">
+    <section className="py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-5 py-2"
+            className="mb-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
           >
-            <Shield size={14} className="text-emerald-600 dark:text-emerald-400" />
-            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">الامتثال السعودي</span>
+            <Shield size={14} className="text-accent" />
+            <span className="text-sm font-semibold text-accent">الامتثال السعودي</span>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}

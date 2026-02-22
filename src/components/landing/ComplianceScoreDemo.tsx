@@ -19,10 +19,10 @@ const ComplianceScoreDemo = () => {
     setEnabled((prev) => prev.map((v, i) => (i === index ? !v : v)));
   };
 
-  const barColor = score >= 90 ? "bg-emerald-500" : score >= 70 ? "bg-accent" : "bg-amber-500";
+  const barColor = score >= 90 ? "bg-accent" : score >= 70 ? "bg-accent/70" : "bg-muted-foreground/40";
 
   return (
-    <section className="py-20 md:py-28 bg-secondary/30">
+    <section className="py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-10 text-center">
           <motion.h2
@@ -90,10 +90,10 @@ const ComplianceScoreDemo = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-5 flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5"
+              className="mt-5 flex items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 px-4 py-2.5"
             >
-              <Shield size={16} className="text-emerald-500" />
-              <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">جاهز للتدقيق — Audit Ready</span>
+              <Shield size={16} className="text-accent" />
+              <span className="text-sm font-semibold text-accent">جاهز للتدقيق — Audit Ready</span>
             </motion.div>
           )}
         </motion.div>

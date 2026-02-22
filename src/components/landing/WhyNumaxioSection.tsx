@@ -18,7 +18,7 @@ const highlights = [
 
 const WhyNumaxioSection = () => {
   return (
-    <section id="why" className="py-20 md:py-28 bg-background">
+    <section id="why" className="py-20 md:py-24 bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
           <motion.h2
