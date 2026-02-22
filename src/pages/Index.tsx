@@ -20,7 +20,7 @@ const softwareJsonLd = {
   name: "Numaxio ERP",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  description: "نظام ERP سعودي مؤسسي متكامل — فواتير إلكترونية ZATCA، AI محاسبي، حوكمة مؤسسية",
+  description: "أول ERP سعودي مؤسسي متكامل — فواتير إلكترونية ZATCA، ذكاء محاسبي مدمج، حوكمة مؤسسية سعودية",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -33,10 +33,10 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Numaxio ERP — نظام ERP سعودي مؤسسي متكامل | فواتير ZATCA + AI</title>
+        <title>Numaxio ERP — نظام ERP سعودي يقود منشأتك لا يعقّدها</title>
         <meta
           name="description"
-          content="نظام ERP سعودي مؤسسي: فواتير إلكترونية ZATCA Phase 2، AI محاسبي، حوكمة مؤسسية، تقارير مالية. ابدأ تجربتك المجانية 14 يوم."
+          content="أول ERP سعودي مؤسسي متكامل: فواتير إلكترونية ZATCA Phase 2، ذكاء محاسبي مدمج، حوكمة مؤسسية. ابدأ تجربتك المجانية 14 يوم بدون بطاقة بنكية."
         />
         <link rel="canonical" href="https://saudi-secure-suite.lovable.app/" />
         <script type="application/ld+json">{JSON.stringify(softwareJsonLd)}</script>

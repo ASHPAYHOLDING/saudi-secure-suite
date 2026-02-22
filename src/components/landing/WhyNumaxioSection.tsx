@@ -2,20 +2,20 @@ import { motion } from "framer-motion";
 import { CheckCircle2, X, Shield, Bot, Building2, Calculator } from "lucide-react";
 
 const comparisons = [
-  { feature: "ZATCA Phase 2 مدمج", numaxio: true, others: false },
-  { feature: "إقرار ضريبي آلي", numaxio: true, others: false },
-  { feature: "AI محاسبي مدمج", numaxio: true, others: false },
-  { feature: "حوكمة مؤسسية سعودية", numaxio: true, others: false },
-  { feature: "واجهة عربية أصلية RTL", numaxio: true, others: "جزئي" },
-  { feature: "دعم Multi-Entity", numaxio: true, others: true },
-  { feature: "تقارير مالية", numaxio: true, others: true },
+  { feature: "الفوترة الإلكترونية ZATCA Phase 2", numaxio: true, others: false },
+  { feature: "إقرار ضريبي آلي بدون تدخل", numaxio: true, others: false },
+  { feature: "ذكاء محاسبي مدمج (AI)", numaxio: true, others: false },
+  { feature: "حوكمة مؤسسية سعودية متكاملة", numaxio: true, others: false },
+  { feature: "واجهة عربية أصيلة 100%", numaxio: true, others: "جزئي" },
+  { feature: "كيانات متعددة (Multi-Entity)", numaxio: true, others: true },
+  { feature: "تقارير مالية تنفيذية", numaxio: true, others: true },
 ];
 
 const highlights = [
-  { icon: Shield, title: "ZATCA Phase 2 جاهز", desc: "توقيع XML رقمي وتكامل مباشر مع بوابة هيئة الزكاة" },
-  { icon: Calculator, title: "إقرار ضريبي آلي", desc: "حساب وإعداد إقرارات ضريبة القيمة المضافة تلقائياً" },
-  { icon: Bot, title: "AI محاسبي", desc: "محاسب ذكي يحلل بياناتك ويكشف الشذوذ والأنماط" },
-  { icon: Building2, title: "حوكمة مؤسسية", desc: "أدوار مسبقة التهيئة وسلاسل موافقات وسجل تدقيق شامل" },
+  { icon: Shield, title: "جاهزية فورية للامتثال", desc: "ابدأ متوافقاً من اللحظة الأولى — بدون إعدادات معقدة أو استشاريين" },
+  { icon: Calculator, title: "إقرار ضريبي بلا تدخل", desc: "حساب تلقائي لضريبة القيمة المضافة مع تنبيهات مواعيد الإقرار" },
+  { icon: Bot, title: "رؤية مالية واضحة", desc: "ذكاء محاسبي يحلل بياناتك ويكشف الأنماط قبل أن تسأل" },
+  { icon: Building2, title: "إعدادات أقل، إنتاجية أكثر", desc: "أدوار جاهزة وسلاسل موافقات مسبقة — فعّل وابدأ فوراً" },
 ];
 
 const WhyNumaxioSection = () => {
@@ -30,7 +30,7 @@ const WhyNumaxioSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            لماذا <span className="text-gradient">Numaxio</span>؟
+            ليس مجرد نظام محاسبة… بل <span className="text-gradient">قيادة مالية متكاملة</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -40,7 +40,7 @@ const WhyNumaxioSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            مقارنة مباشرة مع الأنظمة العالمية — الفرق واضح
+            الأنظمة العالمية صُممت للجميع. نيوماكسيو صُمم للسوق السعودي.
           </motion.p>
         </div>
 

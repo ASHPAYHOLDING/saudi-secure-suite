@@ -22,7 +22,7 @@ const FinalCTA = () => {
               className="font-bold text-white mb-5 leading-tight"
               style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
-              جاهز للانتقال إلى ERP سعودي حقيقي؟
+              حوّل إدارتك المالية من عبء… إلى ميزة تنافسية
             </motion.h2>
 
             <motion.p
@@ -33,7 +33,7 @@ const FinalCTA = () => {
               className="text-white/80 mb-8 max-w-2xl mx-auto"
               style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
             >
-              انضم لأكثر من 1,200 منشأة سعودية تدير أعمالها بذكاء عبر نيوماكسيو
+              لا تحتاج بطاقة بنكية. جاهز خلال دقائق. انضم لأكثر من 1,200 منشأة سعودية.
             </motion.p>
 
             <motion.div
@@ -44,9 +44,9 @@ const FinalCTA = () => {
               className="flex flex-wrap justify-center gap-6 mb-10"
             >
               {[
-                { icon: CheckCircle2, text: "14 يوم تجربة مجانية" },
-                { icon: Shield, text: "بياناتك مشفرة ومحمية" },
-                { icon: Zap, text: "إعداد في 5 دقائق" },
+                { icon: CheckCircle2, text: "14 يوم تجربة مجانية كاملة" },
+                { icon: Shield, text: "بياناتك مشفرة ومحمية داخل المملكة" },
+                { icon: Zap, text: "جاهز للعمل خلال 5 دقائق" },
               ].map((item) => (
                 <div key={item.text} className="flex items-center gap-2 text-sm text-white/80">
                   <item.icon size={16} className="text-accent" />
@@ -58,7 +58,7 @@ const FinalCTA = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/auth">
                 <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-12 min-h-[48px] text-base font-bold rounded-xl">
-                  ابدأ الآن
+                  ابدأ الآن مجاناً
                   <ArrowLeft className="ms-2 h-5 w-5 rtl-mirror" />
                 </Button>
               </Link>

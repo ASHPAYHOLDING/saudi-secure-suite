@@ -11,10 +11,10 @@ const roles = [
 ];
 
 const features = [
-  { icon: GitBranch, title: "موافقات متعددة المستويات", desc: "سلاسل اعتماد مخصصة بالأدوار والمبالغ" },
-  { icon: ShieldCheck, title: "سجل تدقيق شامل (Audit Trail)", desc: "كل عملية مسجلة مع تفاصيل كاملة وتاريخ" },
-  { icon: KeyRound, title: "عزل بيانات Multi-tenant", desc: "كل منشأة معزولة بالكامل عن الأخرى" },
-  { icon: Gauge, title: "Compliance Score", desc: "تقييم فوري لجاهزية الحوكمة والامتثال" },
+  { icon: GitBranch, title: "موافقات متعددة المستويات", desc: "سلاسل اعتماد مرنة حسب الأدوار والمبالغ — لا شيء يمر بدون إذن" },
+  { icon: ShieldCheck, title: "سجل تدقيق شامل", desc: "كل عملية مسجلة بتفاصيلها الكاملة — جاهز لأي تدقيق خارجي" },
+  { icon: KeyRound, title: "عزل بيانات كامل", desc: "كل منشأة معزولة بالكامل عن الأخرى بأعلى معايير الأمان" },
+  { icon: Gauge, title: "درجة الامتثال الفوري", desc: "تقييم لحظي لجاهزية الحوكمة والامتثال في منشأتك" },
 ];
 
 const EnterpriseGovernanceSection = () => {
@@ -43,9 +43,9 @@ const EnterpriseGovernanceSection = () => {
             className="mb-3 font-bold text-white"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            قوالب أدوار{" "}
+            جاهز للنمو{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-200">
-              مؤسسية جاهزة
+              المؤسسي؟
             </span>
           </motion.h2>
           <motion.p
@@ -56,7 +56,7 @@ const EnterpriseGovernanceSection = () => {
             className="mx-auto max-w-xl text-white/70"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            صلاحيات مسبقة التهيئة لكل دور — فعّل وابدأ فوراً
+            قوالب أدوار جاهزة، موافقات متعددة المستويات، وجاهزية كاملة للتدقيق
           </motion.p>
         </div>
 
@@ -108,7 +108,7 @@ const EnterpriseGovernanceSection = () => {
           className="max-w-2xl mx-auto rounded-2xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm p-6 text-center"
         >
           <p className="text-sm text-amber-300 mb-4">
-            الحوكمة المؤسسية متاحة في باقة Enterprise — مصممة للشركات التي تضم 10+ موظفين
+            الحوكمة المؤسسية متاحة في باقة المؤسسات — مصممة للشركات التي تتطلع للنمو والتوسع
           </p>
           <Link to="/auth">
             <Button size="lg" className="bg-gradient-to-r from-amber-500 to-amber-400 text-black font-bold px-10 min-h-[48px] text-base shadow-[0_8px_32px_-4px_hsl(45,90%,50%/0.3)]">

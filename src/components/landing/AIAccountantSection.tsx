@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const examples = [
-  "احسب ضريبة الربع الثاني",
-  "حلل الربحية لهذا الشهر",
-  "اكتشف الشذوذ في المصروفات",
+  "احسب ضريبة هذا الربع",
+  "لماذا انخفضت الأرباح؟",
+  "أين أعلى المصروفات؟",
 ];
 
 const messages = [
@@ -90,12 +90,12 @@ const AIAccountantSection = () => {
               <span className="text-sm font-semibold text-accent">AI محاسبي مدمج</span>
             </div>
             <h2 className="font-bold text-foreground leading-tight" style={{ fontSize: "clamp(22px, 3vw, 36px)" }}>
-              اسأل بياناتك
+              مستشارك المالي
               <br />
-              <span className="text-gradient">بلغة طبيعية</span>
+              <span className="text-gradient">يعمل 24/7</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed max-w-md" style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}>
-              محاسب ذكي يحلل بياناتك المالية ويعطيك توصيات فورية. متاح حصرياً للمالك والمدير المالي.
+              اسأل بلغتك العادية عن أي شيء مالي — وسيجيبك بالأرقام والتوصيات. متاح حصرياً لصاحب القرار والمدير المالي.
             </p>
 
             {/* Tier limits */}
