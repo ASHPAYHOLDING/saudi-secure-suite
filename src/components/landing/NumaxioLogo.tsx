@@ -1,4 +1,4 @@
-import numaxioIcon from "@/assets/numaxio-icon.png";
+import numaxioIcon from "@/assets/numaxio-logo-new.png";
 
 interface NumaxioLogoProps {
   className?: string;
