@@ -218,7 +218,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 inset-inline-0">
+      <div className="absolute bottom-0 inset-inline-0 -mb-px">
         <svg viewBox="0 0 1440 80" className="w-full h-auto block" preserveAspectRatio="none">
           <path fill="hsl(var(--background))" d="M0,50 C360,80 720,30 1080,50 C1260,65 1380,40 1440,50 L1440,80 L0,80 Z" />
         </svg>
