@@ -10,12 +10,12 @@ const WhyNumaxioSection = lazy(() => import("@/components/landing/WhyNumaxioSect
 const ERPModulesSection = lazy(() => import("@/components/landing/ERPModulesSection"));
 const InvoiceDemo = lazy(() => import("@/components/landing/InvoiceDemo"));
 const AIAccountantSection = lazy(() => import("@/components/landing/AIAccountantSection"));
-const AIDemoChat = lazy(() => import("@/components/landing/AIDemoChat"));
 const ZATCAComplianceSection = lazy(() => import("@/components/landing/ZATCAComplianceSection"));
 const EnterpriseGovernanceSection = lazy(() => import("@/components/landing/EnterpriseGovernanceSection"));
 const PaymentGatewaySection = lazy(() => import("@/components/landing/PaymentGatewaySection"));
 const ExecutiveReportsSection = lazy(() => import("@/components/landing/ExecutiveReportsSection"));
 const DynamicPricingSection = lazy(() => import("@/components/landing/DynamicPricingSection"));
+const UseCasesSection = lazy(() => import("@/components/landing/UseCasesSection"));
 const SecurityStrip = lazy(() => import("@/components/landing/SecurityStrip"));
 const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
 
@@ -35,7 +35,6 @@ const softwareJsonLd = {
 };
 
 const Index = () => {
-  // Sets dir & lang on <html> based on current i18n language
   useLanguage();
 
   return (
@@ -59,13 +58,13 @@ const Index = () => {
             <ERPModulesSection />
             <InvoiceDemo />
             <AIAccountantSection />
-            <AIDemoChat />
             <ZATCAComplianceSection />
             <SecurityStrip />
             <EnterpriseGovernanceSection />
             <PaymentGatewaySection />
             <ExecutiveReportsSection />
             <DynamicPricingSection />
+            <UseCasesSection />
             <FinalCTA />
           </Suspense>
         </main>

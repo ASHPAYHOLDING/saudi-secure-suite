@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, Clock, PieChart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const kpis = [
   { icon: DollarSign, label: "الإيرادات", value: "٢,٩٤٠,٠٠٠ ﷼", trend: "+١٤٪", up: true },
@@ -11,9 +12,11 @@ const kpis = [
 ];
 
 const ExecutiveReportsSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-16 sm:py-20 md:py-24 bg-secondary/30">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -22,7 +25,7 @@ const ExecutiveReportsSection = () => {
             className="mb-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
           >
             <BarChart3 size={14} className="text-accent" />
-            <span className="text-sm font-semibold text-accent">التقارير التنفيذية</span>
+            <span className="text-sm font-semibold text-accent">{t("landing.reports.badge")}</span>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -31,7 +34,7 @@ const ExecutiveReportsSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            قرارات مبنية على <span className="text-gradient">بيانات حقيقية</span>
+            {t("landing.reports.title")} <span className="text-gradient">{t("landing.reports.titleHighlight")}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -41,25 +44,23 @@ const ExecutiveReportsSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            لوحات تنفيذية يفهمها المدير قبل المحاسب — مؤشرات أداء فورية وتقارير جاهزة
+            {t("landing.reports.subtitle")}
           </motion.p>
         </div>
 
-        {/* Dashboard mock */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="max-w-4xl mx-auto rounded-2xl border border-border bg-card shadow-elevated p-5 md:p-8"
         >
-          {/* Browser chrome */}
           <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">
             <div className="flex gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-destructive/40" />
               <div className="w-2.5 h-2.5 rounded-full bg-warning/40" />
               <div className="w-2.5 h-2.5 rounded-full bg-accent/60" />
             </div>
-            <span className="text-[10px] text-muted-foreground bg-muted/50 px-3 py-0.5 rounded-full mx-auto">
+            <span className="text-[10px] text-muted-foreground bg-muted/50 px-3 py-0.5 rounded-full mx-auto font-english" dir="ltr">
               app.numaxio.com/reports
             </span>
           </div>

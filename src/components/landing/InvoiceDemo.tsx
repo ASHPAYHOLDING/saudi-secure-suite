@@ -2,12 +2,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { FileText, User, Package, CheckCircle2, Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const InvoiceDemo = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
 
   const reset = () => setStep(0);
-
   const startDemo = () => {
     setStep(1);
     setTimeout(() => setStep(2), 1200);
@@ -16,18 +17,8 @@ const InvoiceDemo = () => {
   };
 
   const steps = [
-    {
-      icon: User,
-      title: "اختيار العميل",
-      detail: "✓ شركة الفلاح للتجارة — CR: 1010123456",
-      minStep: 1,
-    },
-    {
-      icon: Package,
-      title: "إضافة البنود",
-      detail: "✓ استشارات مالية × 10 ساعات = ٥,٠٠٠ ﷼ + ضريبة ٧٥٠ ﷼",
-      minStep: 2,
-    },
+    { icon: User, title: t("landing.invoice.step1"), detail: t("landing.invoice.step1Detail"), minStep: 1 },
+    { icon: Package, title: t("landing.invoice.step2"), detail: t("landing.invoice.step2Detail"), minStep: 2 },
   ];
 
   return (
@@ -41,7 +32,7 @@ const InvoiceDemo = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            فاتورة متوافقة <span className="text-gradient">خلال 10 ثوانٍ</span>
+            {t("landing.invoice.title")} <span className="text-gradient">{t("landing.invoice.titleHighlight")}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -51,13 +42,26 @@ const InvoiceDemo = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            3 خطوات فقط — اختر العميل، أضف البنود، وأصدر فاتورة ZATCA متوافقة
+            {t("landing.invoice.subtitle")}
           </motion.p>
+        </div>
+
+        {/* Stepper indicator */}
+        <div className="flex items-center justify-center gap-2 mb-8 max-w-md mx-auto">
+          {[1, 2, 3].map((s) => (
+            <div key={s} className="flex items-center gap-2 flex-1">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold shrink-0 transition-colors ${
+                step >= s ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {s}
+              </div>
+              {s < 3 && <div className={`h-0.5 flex-1 rounded-full transition-colors ${step >= s + 1 ? "bg-accent" : "bg-border"}`} />}
+            </div>
+          ))}
         </div>
 
         <div className="max-w-2xl mx-auto">
           <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-elevated">
-            {/* Browser chrome */}
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-destructive/40" />
@@ -65,7 +69,7 @@ const InvoiceDemo = () => {
                 <div className="w-3 h-3 rounded-full bg-accent/60" />
               </div>
               <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-0.5 rounded-full mx-auto">
-                عرض توضيحي تفاعلي
+                {t("landing.invoice.demoLabel")}
               </span>
             </div>
 
@@ -83,11 +87,7 @@ const InvoiceDemo = () => {
                     <p className="text-sm font-medium text-foreground">{s.title}</p>
                     <AnimatePresence>
                       {step >= s.minStep && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="text-xs text-accent mt-0.5 truncate"
-                        >
+                        <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="text-xs text-accent mt-0.5 truncate">
                           {s.detail}
                         </motion.p>
                       )}
@@ -108,32 +108,25 @@ const InvoiceDemo = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">
-                    {step >= 4 ? "تم الإصدار!" : step === 3 ? "جارِ الإصدار..." : "إصدار الفاتورة"}
+                    {step >= 4 ? t("landing.invoice.issued") : step === 3 ? t("landing.invoice.issuing") : t("landing.invoice.step3")}
                   </p>
                   <AnimatePresence>
                     {step === 3 && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
                         <div className="h-2 rounded-full bg-muted overflow-hidden">
-                          <motion.div
-                            initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 3, ease: "easeInOut" }}
-                            className="h-full rounded-full bg-accent"
-                          />
+                          <motion.div initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 3, ease: "easeInOut" }} className="h-full rounded-full bg-accent" />
                         </div>
                         <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground">
-                          <span>توقيع XML...</span>
-                          <span>QR Code...</span>
-                          <span>ZATCA ✓</span>
+                          <span>{t("landing.invoice.xmlSign")}</span>
+                          <span>{t("landing.invoice.qrCode")}</span>
+                          <span>{t("landing.invoice.zatcaOk")}</span>
                         </div>
                       </motion.div>
                     )}
                     {step >= 4 && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 mt-1">
                         <Shield size={12} className="text-accent" />
-                        <span className="text-xs text-accent">
-                          فاتورة #INV-2026-1024 — ZATCA متوافقة — QR مرفق
-                        </span>
+                        <span className="text-xs text-accent">{t("landing.invoice.issuedDetail")}</span>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -142,18 +135,15 @@ const InvoiceDemo = () => {
               </div>
             </div>
 
-            {/* Action */}
             <div className="mt-6 text-center">
               {step === 0 ? (
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button onClick={startDemo} size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6">
-                    إصدار فاتورة تجريبية
-                  </Button>
-                </motion.div>
+                <Button onClick={startDemo} size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 min-h-[48px]">
+                  {t("landing.invoice.startDemo")}
+                </Button>
               ) : step >= 4 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <Button onClick={reset} variant="outline" size="lg">
-                    إعادة العرض
+                  <Button onClick={reset} variant="outline" size="lg" className="min-h-[48px]">
+                    {t("landing.invoice.restart")}
                   </Button>
                 </motion.div>
               ) : null}
