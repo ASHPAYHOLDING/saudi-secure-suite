@@ -1,13 +1,30 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, MapPin, ArrowUp, Shield, ExternalLink } from "lucide-react";
+import { Mail, MapPin, ArrowUp, Shield, ExternalLink, Bell, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import BrandLockup from "@/components/landing/BrandLockup";
 import { useTranslation } from "react-i18next";
 
 const Footer = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubmitting(true);
+    // Simulate subscription
+    await new Promise((r) => setTimeout(r, 600));
+    toast({ title: "تم الاشتراك بنجاح!", description: "ستصلك آخر التحديثات والأخبار على بريدك." });
+    setEmail("");
+    setSubmitting(false);
   };
 
   const productLinks = [
@@ -41,7 +58,7 @@ const Footer = () => {
     <footer id="contact" className="border-t border-sidebar-foreground/10" style={{ background: "hsl(220 30% 10%)" }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
         {/* Main grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8">
           {/* Column 1 – Brand & About (wider) */}
           <div className="sm:col-span-2 lg:col-span-2">
             <div className="mb-5">
@@ -182,6 +199,37 @@ const Footer = () => {
                 <ExternalLink size={14} />
               </Link>
             </div>
+          </div>
+
+          {/* Column 5 – التحديثات */}
+          <div>
+            <h4 className="mb-5 text-sm font-bold flex items-center gap-2" style={{ color: "hsl(210 20% 95%)" }}>
+              <Bell size={14} className="text-accent" />
+              التحديثات
+            </h4>
+            <p className="text-[11px] leading-relaxed mb-4" style={{ color: "hsl(210 20% 78%)" }}>
+              اشترك ليصلك كل جديد عن المنصة والتحديثات والمميزات الجديدة.
+            </p>
+            <form onSubmit={handleSubscribe} className="space-y-3">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="بريدك الإلكتروني"
+                required
+                dir="ltr"
+                className="w-full rounded-lg border border-accent/20 bg-accent/[0.04] px-3.5 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/30 transition-colors min-h-[44px]"
+                style={{ color: "hsl(210 20% 90%)" }}
+              />
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full gradient-accent text-accent-foreground text-sm font-semibold shadow-accent-glow hover:opacity-90 transition-all min-h-[44px] gap-2"
+              >
+                {submitting ? "جارٍ الاشتراك..." : "اشترك الآن"}
+                <Send size={14} />
+              </Button>
+            </form>
           </div>
         </div>
 
