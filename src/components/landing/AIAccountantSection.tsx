@@ -24,7 +24,7 @@ const tiers = [
 
 const AIAccountantSection = () => {
   return (
-    <section className="py-20 md:py-28 bg-background">
+    <section className="py-20 md:py-24 bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           {/* Chat UI */}
@@ -108,9 +108,9 @@ const AIAccountantSection = () => {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
-              <Shield size={14} className="text-amber-500 shrink-0" />
-              <span className="text-xs text-amber-700 dark:text-amber-400">
+            <div className="flex items-center gap-2 rounded-lg border border-accent/20 bg-accent/5 px-4 py-2.5">
+              <Shield size={14} className="text-accent shrink-0" />
+              <span className="text-xs text-muted-foreground">
                 متاح فقط لأدوار: Owner, CFO — لحماية البيانات الحساسة
               </span>
             </div>

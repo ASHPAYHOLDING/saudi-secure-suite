@@ -19,7 +19,7 @@ const SavingsCalculator = () => {
   }, [invoices, users]);
 
   return (
-    <section className="py-20 md:py-28 bg-background">
+    <section className="py-20 md:py-24 bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-10 text-center">
           <motion.h2
