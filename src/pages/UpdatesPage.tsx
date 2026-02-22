@@ -408,8 +408,6 @@ const UpdatesPage = () => {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                 {ALL_TAGS.map((tag) => {
                   const isActive = activeTag === tag;
-                  const count = tag === "الكل" ? UPDATES.length : UPDATES.filter((u) => u.tag === tag).length;
-                  if (count === 0 && tag !== "الكل") return null;
                   return (
                     <button
                       key={tag}
@@ -421,9 +419,6 @@ const UpdatesPage = () => {
                       }`}
                     >
                       {tag}
-                      <span className={`ms-1.5 text-[10px] ${isActive ? "text-emerald-100" : "text-neutral-600"}`}>
-                        {count}
-                      </span>
                     </button>
                   );
                 })}
