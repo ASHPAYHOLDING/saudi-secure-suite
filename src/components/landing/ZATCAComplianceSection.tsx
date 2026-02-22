@@ -1,28 +1,34 @@
 import { motion } from "framer-motion";
-import { Shield, FileText, CheckCircle2, Calculator, Bell, Gauge } from "lucide-react";
+import { Shield, FileText, CheckCircle2, Calculator, Gauge } from "lucide-react";
 
 const phases = [
   {
     title: "ZATCA Phase 1",
     subtitle: "الفوترة الإلكترونية — متاح لجميع الباقات",
     icon: FileText,
-    color: "border-accent/30 bg-accent/5",
-    iconBg: "bg-accent/10 text-accent",
-    items: ["فواتير إلكترونية بصيغة XML معتمدة", "QR Code بتشفير TLV تلقائي", "أرشفة آمنة ومشفرة لجميع الفواتير", "احتساب ضريبة القيمة المضافة تلقائياً"],
+    items: [
+      "فواتير إلكترونية بصيغة XML معتمدة",
+      "QR Code بتشفير TLV تلقائي",
+      "أرشفة آمنة ومشفرة لجميع الفواتير",
+      "احتساب ضريبة القيمة المضافة تلقائياً",
+    ],
   },
   {
     title: "ZATCA Phase 2",
     subtitle: "التكامل المباشر — متاح في باقة الأعمال+",
     icon: Shield,
-    color: "border-accent/30 bg-accent/5",
-    iconBg: "bg-accent/10 text-accent",
-    items: ["توقيع XML رقمي موثّق (XAdES-BES)", "ربط مباشر مع API هيئة الزكاة", "مزامنة لحظية لحالة كل فاتورة", "شهادات رقمية مُدارة وتُجدَّد تلقائياً"],
+    items: [
+      "توقيع XML رقمي موثّق (XAdES-BES)",
+      "ربط مباشر مع API هيئة الزكاة",
+      "مزامنة لحظية لحالة كل فاتورة",
+      "شهادات رقمية مُدارة وتُجدَّد تلقائياً",
+    ],
   },
 ];
 
 const ZATCAComplianceSection = () => {
   return (
-    <section className="py-20 md:py-24 bg-secondary/30">
+    <section id="compliance" className="py-20 md:py-24 bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
           <motion.div
@@ -51,7 +57,7 @@ const ZATCAComplianceSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            كل ما تحتاجه للتوافق مع هيئة الزكاة والضريبة والجمارك — مؤتمت بالكامل من اليوم الأول
+            كل ما تحتاجه للتوافق مع هيئة الزكاة والضريبة والجمارك — مؤتمت بالكامل
           </motion.p>
         </div>
 
@@ -63,11 +69,11 @@ const ZATCAComplianceSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`rounded-2xl border ${phase.color} p-6 md:p-8`}
+              className="rounded-2xl border border-accent/20 bg-accent/[0.03] p-6 md:p-8"
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${phase.iconBg}`}>
-                  <phase.icon size={20} />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                  <phase.icon size={20} className="text-accent" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground">{phase.title}</h3>
@@ -86,7 +92,6 @@ const ZATCAComplianceSection = () => {
           ))}
         </div>
 
-        {/* Compliance Score + VAT */}
         <div className="grid sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

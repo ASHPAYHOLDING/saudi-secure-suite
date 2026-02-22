@@ -19,7 +19,7 @@ const FinalCTA = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="font-bold text-white mb-5 leading-tight"
+              className="font-bold text-primary-foreground mb-5 leading-tight"
               style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
               حوّل إدارتك المالية إلى <span className="text-accent">ميزة تنافسية</span>
@@ -30,10 +30,10 @@ const FinalCTA = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-white/80 mb-8 max-w-2xl mx-auto"
+              className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto"
               style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
             >
-              لا تحتاج بطاقة بنكية. جاهز خلال دقائق. انضم لأكثر من 1,200 منشأة سعودية.
+              ابدأ اليوم بدون مخاطرة. لا تحتاج بطاقة بنكية. جاهز خلال دقائق.
             </motion.p>
 
             <motion.div
@@ -48,7 +48,7 @@ const FinalCTA = () => {
                 { icon: Shield, text: "بياناتك مشفرة ومحمية داخل المملكة" },
                 { icon: Zap, text: "جاهز للعمل خلال 5 دقائق" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-2 text-sm text-white/80">
+                <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/80">
                   <item.icon size={16} className="text-accent" />
                   {item.text}
                 </div>
@@ -63,7 +63,7 @@ const FinalCTA = () => {
                 </Button>
               </Link>
               <a href="#contact">
-                <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm rounded-xl">
+                <Button size="lg" className="border border-primary-foreground/20 bg-primary-foreground/[0.08] text-primary-foreground hover:bg-primary-foreground/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm rounded-xl">
                   تحدث مع المبيعات
                 </Button>
               </a>

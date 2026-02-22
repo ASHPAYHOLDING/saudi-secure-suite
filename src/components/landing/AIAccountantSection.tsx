@@ -1,25 +1,19 @@
 import { motion } from "framer-motion";
-import { Bot, Sparkles, Shield, ArrowLeft } from "lucide-react";
+import { Bot, Sparkles, Shield, ArrowLeft, AlertTriangle, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
-const examples = [
-  "احسب ضريبة هذا الربع",
-  "لماذا انخفضت الأرباح؟",
-  "أين أعلى المصروفات؟",
-];
 
 const messages = [
   { role: "user" as const, text: "كيف أرباحي هذا الشهر؟" },
   { role: "ai" as const, text: "صافي الربح ١٦٢,٦٠٠ ﷼ — انخفاض ١٢٪ مقارنة بالشهر الماضي بسبب ارتفاع المصاريف التشغيلية. أنصح بمراجعة بند الإيجارات." },
-  { role: "user" as const, text: "ما هي أعلى 3 مصاريف؟" },
-  { role: "ai" as const, text: "1. رواتب: ٤٥,٠٠٠ ﷼\n2. إيجار: ١٢,٠٠٠ ﷼\n3. تسويق رقمي: ٨,٥٠٠ ﷼ (+٤٠٪)" },
+  { role: "user" as const, text: "هل في شذوذ؟" },
+  { role: "ai" as const, text: "⚠️ بند التسويق الرقمي ارتفع ٤٠٪ بدون زيادة مقابلة في الإيرادات. أنصح بمراجعة عقود الحملات." },
 ];
 
-const tiers = [
-  { plan: "Starter", limit: "20 سؤال/شهر" },
-  { plan: "Business", limit: "200 سؤال/شهر" },
-  { plan: "Enterprise", limit: "غير محدود" },
+const capabilities = [
+  { icon: TrendingUp, text: "تحليل ربحية فوري" },
+  { icon: AlertTriangle, text: "كشف شذوذ تلقائي" },
+  { icon: Shield, text: "تنبيهات ضريبية" },
 ];
 
 const AIAccountantSection = () => {
@@ -29,8 +23,8 @@ const AIAccountantSection = () => {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           {/* Chat UI */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="order-2 lg:order-1"
           >
@@ -41,14 +35,17 @@ const AIAccountantSection = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground">المساعد المالي الذكي</p>
-                  <span className="relative flex h-2 w-2 inline-flex">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">متصل</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-3 max-h-[280px] overflow-y-auto">
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
                 {messages.map((msg, i) => (
                   <motion.div
                     key={i}
@@ -67,9 +64,8 @@ const AIAccountantSection = () => {
                 ))}
               </div>
 
-              {/* Quick prompts */}
               <div className="mt-4 pt-3 border-t border-border flex flex-wrap gap-2">
-                {examples.map((ex) => (
+                {["احسب ضريبة هذا الربع", "لماذا انخفضت الأرباح؟", "مقارنة شهرية"].map((ex) => (
                   <span key={ex} className="text-[11px] bg-accent/10 text-accent rounded-full px-3 py-1.5 font-medium">
                     {ex}
                   </span>
@@ -80,8 +76,8 @@ const AIAccountantSection = () => {
 
           {/* Content */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="order-1 lg:order-2 space-y-6"
           >
@@ -95,15 +91,15 @@ const AIAccountantSection = () => {
               <span className="text-gradient">يعمل 24/7</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed max-w-md" style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}>
-              اسأل بلغتك العادية عن أي شيء مالي — وسيجيبك بالأرقام والتوصيات. متاح حصرياً لصاحب القرار والمدير المالي.
+              اسأل بلغتك العادية عن أي شيء مالي — وسيجيبك بالأرقام والتوصيات الفورية.
             </p>
 
-            {/* Tier limits */}
+            {/* Capabilities */}
             <div className="flex flex-wrap gap-3">
-              {tiers.map((t) => (
-                <div key={t.plan} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-                  <span className="text-xs font-bold text-foreground">{t.plan}</span>
-                  <span className="text-xs text-muted-foreground">{t.limit}</span>
+              {capabilities.map((c) => (
+                <div key={c.text} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 min-h-[44px]">
+                  <c.icon size={14} className="text-accent" />
+                  <span className="text-xs font-medium text-foreground">{c.text}</span>
                 </div>
               ))}
             </div>

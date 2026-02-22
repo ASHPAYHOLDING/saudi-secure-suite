@@ -192,7 +192,7 @@ const DynamicPricingSection = () => {
               >
                 {CYCLE_LABELS[c]}
                 {c === "yearly" && (
-                  <span className="mr-1.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                  <span className="mis-1 text-[10px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full">
                     الأوفر
                   </span>
                 )}
@@ -245,7 +245,7 @@ const DynamicPricingSection = () => {
                     viewport={{ once: true }}
                     className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-xs font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap"
                   >
-                    <Crown size={12} className="inline ml-1 -mt-0.5" />
+                    <Crown size={12} className="inline mis-1 -mt-0.5" />
                     الأكثر طلباً
                   </motion.div>
                 )}
@@ -297,15 +297,15 @@ const DynamicPricingSection = () => {
                               أي ≈ <span className="font-semibold text-foreground">{monthlyEq.toLocaleString("ar-SA")}</span> ر.س/شهر
                             </span>
                             {savingsPct > 0 && (
-                              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] gap-0.5">
+                              <Badge className="bg-accent/10 text-accent text-[10px] gap-0.5">
                                 <TrendingDown size={10} />
                                 وفّر {savingsPct}%
                               </Badge>
                             )}
                           </div>
                           {savingsAmt > 0 && (
-                            <p className="text-[11px] text-muted-foreground">
-                              بدلاً من <span className="line-through">{(plan.price_monthly * (cycle === "yearly" ? 12 : 3)).toLocaleString("ar-SA")}</span> ر.س — توفير <span className="font-semibold text-emerald-600 dark:text-emerald-400">{savingsAmt.toLocaleString("ar-SA")} ر.س</span>
+                             <p className="text-[11px] text-muted-foreground">
+                              بدلاً من <span className="line-through">{(plan.price_monthly * (cycle === "yearly" ? 12 : 3)).toLocaleString("ar-SA")}</span> ر.س — توفير <span className="font-semibold text-accent">{savingsAmt.toLocaleString("ar-SA")} ر.س</span>
                             </p>
                           )}
                         </motion.div>
