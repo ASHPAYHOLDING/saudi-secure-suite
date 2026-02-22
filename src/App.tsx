@@ -20,6 +20,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { usePageTracking } from "./hooks/usePageTracking";
 import TermsConditions from "./pages/TermsConditions";
 import SLA from "./pages/SLA";
+import UpdatesPage from "./pages/UpdatesPage";
 import StatusPage from "./pages/StatusPage";
 import Admin from "./pages/Admin";
 import PlatformAdminRoute from "./components/admin/PlatformAdminRoute";
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsConditions />} />
                 <Route path="/sla" element={<SLA />} />
+                <Route path="/updates" element={<UpdatesPage />} />
                 <Route path="/status" element={<StatusPage />} />
                 <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
                 <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />

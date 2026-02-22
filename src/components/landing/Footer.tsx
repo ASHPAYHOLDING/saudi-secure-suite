@@ -151,6 +151,15 @@ const Footer = () => {
                   </a>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/updates"
+                  className="text-sm hover:text-accent transition-colors"
+                  style={{ color: "hsl(210 20% 80%)" }}
+                >
+                  التحديثات
+                </Link>
+              </li>
             </ul>
           </div>
 
