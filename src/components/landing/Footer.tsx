@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, MapPin, ArrowUp, Shield, ExternalLink } from "lucide-react";
-import NumaxioLogo from "@/components/landing/NumaxioLogo";
+import BrandLockup from "@/components/landing/BrandLockup";
 import { useTranslation } from "react-i18next";
 
 const Footer = () => {
@@ -45,7 +45,7 @@ const Footer = () => {
           {/* Column 1 – Brand & About (wider) */}
           <div className="sm:col-span-2 lg:col-span-2">
             <div className="mb-5">
-              <NumaxioLogo variant="light" size="md" />
+              <BrandLockup variant="light" />
             </div>
             <p className="text-sm leading-relaxed mb-6" style={{ color: "hsl(210 20% 85%)" }}>
               {t("landing.footer.about")}
