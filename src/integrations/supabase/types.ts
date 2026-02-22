@@ -8091,6 +8091,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_updates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          icon_name: string
+          id: string
+          is_published: boolean
+          published_at: string
+          sort_order: number
+          tag: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          icon_name?: string
+          id?: string
+          is_published?: boolean
+          published_at?: string
+          sort_order?: number
+          tag?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          icon_name?: string
+          id?: string
+          is_published?: boolean
+          published_at?: string
+          sort_order?: number
+          tag?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       policy_violations: {
         Row: {
           created_at: string

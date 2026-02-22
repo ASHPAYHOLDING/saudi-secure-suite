@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowRight,
   Zap,
@@ -34,6 +35,14 @@ import {
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
+
+/* ─── Icon Map ─── */
+const ICON_MAP: Record<string, React.ElementType> = {
+  FileText, Users, Package, BarChart3, Shield, Brain, CreditCard,
+  Building2, Receipt, ClipboardCheck, Workflow, Lock, Globe,
+  Landmark, CalendarClock, Search, Rocket, MessageSquare,
+  Database, RefreshCw, Gauge, Zap, Sparkles, TrendingUp, ArrowUpRight,
+};
 
 /* ─── Types ─── */
 interface Update {
@@ -245,13 +254,41 @@ const UpdatesPage = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [activeTag, setActiveTag] = useState<string>("الكل");
   const [searchQuery, setSearchQuery] = useState("");
+  const [dbUpdates, setDbUpdates] = useState<Update[] | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
 
+  // Fetch from DB, fallback to hardcoded
+  useEffect(() => {
+    supabase
+      .from("platform_updates")
+      .select("*")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const mapped: Update[] = data.map((row: any) => {
+            const dt = new Date(row.published_at);
+            return {
+              date: dt.toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }),
+              time: dt.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" }),
+              title: row.title,
+              description: row.description,
+              icon: ICON_MAP[row.icon_name] || Zap,
+              tag: row.tag as Update["tag"],
+            };
+          });
+          setDbUpdates(mapped);
+        }
+      });
+  }, []);
+
+  const allUpdates = dbUpdates ?? UPDATES;
+
   const filtered = useMemo(() => {
-    let items = UPDATES;
+    let items = allUpdates;
     if (activeTag !== "الكل") items = items.filter((u) => u.tag === activeTag);
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -260,7 +297,7 @@ const UpdatesPage = () => {
       );
     }
     return items;
-  }, [activeTag, searchQuery]);
+  }, [activeTag, searchQuery, allUpdates]);
 
   const visibleUpdates = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -271,11 +308,11 @@ const UpdatesPage = () => {
   }
 
   const stats = useMemo(() => {
-    const systems = UPDATES.filter((u) => u.tag === "نظام جديد").length;
-    const improvements = UPDATES.filter((u) => u.tag === "تحسين").length;
-    const perf = UPDATES.filter((u) => u.tag === "أداء").length;
-    return { total: UPDATES.length, systems, improvements, perf };
-  }, []);
+    const systems = allUpdates.filter((u) => u.tag === "نظام جديد").length;
+    const improvements = allUpdates.filter((u) => u.tag === "تحسين").length;
+    const perf = allUpdates.filter((u) => u.tag === "أداء").length;
+    return { total: allUpdates.length, systems, improvements, perf };
+  }, [allUpdates]);
 
   return (
     <>
