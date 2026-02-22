@@ -114,8 +114,8 @@ const Navbar = () => {
                       ? "text-accent"
                       : "text-muted-foreground hover:text-foreground"
                     : isActive
-                      ? "text-primary-foreground"
-                      : "text-primary-foreground/70 hover:text-primary-foreground"
+                      ? "text-white"
+                      : "text-white/80 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -138,7 +138,7 @@ const Navbar = () => {
             className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition-colors ${
               scrolled
                 ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                : "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                : "text-white/80 hover:text-white hover:bg-white/10"
             }`}
             aria-label="Switch language"
           >
@@ -151,7 +151,7 @@ const Navbar = () => {
               className={`min-h-[44px] ${
                 scrolled
                   ? "text-foreground"
-                  : "text-primary-foreground hover:bg-primary-foreground/10"
+                  : "text-white hover:bg-white/10"
               }`}
             >
               {loginLabel}
@@ -170,7 +170,7 @@ const Navbar = () => {
         {/* Mobile hamburger */}
         <button
           className={`lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg ${
-            scrolled ? "text-foreground" : "text-primary-foreground"
+            scrolled ? "text-foreground" : "text-white"
           }`}
           onClick={() => setMobileOpen(true)}
           aria-label={menuLabel}
