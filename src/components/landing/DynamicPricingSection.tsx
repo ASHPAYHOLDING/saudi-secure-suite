@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import EnterpriseEstimator from "./EnterpriseEstimator";
 
 interface Plan {
   id: string;
@@ -41,7 +42,7 @@ const PLAN_DESCRIPTIONS: Record<string, string> = {
   starter: "للمنشآت الناشئة التي تبدأ رحلتها",
   business: "الأنسب للشركات المتوسطة والنامية",
   professional: "الأنسب للشركات المتوسطة والنامية",
-  enterprise: "للمنشآت الكبرى التي تحتاج حوكمة كاملة",
+  enterprise: "مرونة أعلى، تخصيص أكبر، ودعم مخصص حسب احتياجك.",
 };
 
 const getAllFeatures = (plans: Plan[]): string[] => {
@@ -228,7 +229,14 @@ const DynamicPricingSection = () => {
                 {/* Price */}
                 <div className="mb-3 sm:mb-4">
                   {isEnterprise ? (
-                    <span className="text-lg sm:text-xl font-bold text-foreground">تواصل معنا</span>
+                    <div className="space-y-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        يبدأ من{" "}
+                        <span className="font-bold text-foreground text-base sm:text-lg">١٬٩٩٩</span>{" "}
+                        ر.س / شهرياً
+                      </p>
+                      <EnterpriseEstimator />
+                    </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1.5">
@@ -303,17 +311,27 @@ const DynamicPricingSection = () => {
                 )}
 
                 {/* CTA */}
-                <Link to="/auth" className="block mb-3 sm:mb-4">
+                <Link to={isEnterprise ? "#contact" : "/auth"} className="block mb-2 sm:mb-3">
                   <Button
                     className={`w-full py-3 sm:py-4 md:py-5 text-xs sm:text-sm transition-shadow duration-300 ${
                       isPopular
                         ? "gradient-accent text-accent-foreground shadow-accent-glow"
+                        : isEnterprise
+                        ? "gradient-accent text-accent-foreground shadow-accent-glow"
                         : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                     }`}
                   >
-                    {isEnterprise ? "تواصل مع المبيعات" : "ابدأ تجربتك المجانية"}
+                    {isEnterprise ? "اطلب عرض سعر" : "ابدأ تجربتك المجانية"}
                   </Button>
                 </Link>
+                {isEnterprise && (
+                  <a
+                    href="#pricing-comparison"
+                    className="block text-center text-[11px] sm:text-xs text-accent hover:text-accent/80 transition-colors mb-2 sm:mb-3"
+                  >
+                    شاهد مقارنة الباقات ↓
+                  </a>
+                )}
 
                 {/* Features */}
                 <div className="mt-auto space-y-0 border-t border-border/40 pt-3 sm:pt-4">
