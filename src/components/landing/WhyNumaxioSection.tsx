@@ -30,7 +30,7 @@ const WhyNumaxioSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-xl text-muted-foreground"
+            className="mx-auto max-w-xl text-muted-foreground text-center"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
             {t("landing.why.subtitle")}

@@ -107,12 +107,12 @@ const AIAccountantSection = () => {
               <Sparkles size={14} className="text-accent" />
               <span className="text-sm font-semibold text-accent">{t("landing.aiSection.badge")}</span>
             </div>
-            <h2 className="font-bold text-foreground leading-tight" style={{ fontSize: "clamp(22px, 3vw, 36px)" }}>
+            <h2 className="font-bold text-foreground leading-tight text-center lg:text-start" style={{ fontSize: "clamp(22px, 3vw, 36px)" }}>
               {t("landing.aiSection.title")}
               <br />
               <span className="text-gradient">{t("landing.aiSection.titleHighlight")}</span>
             </h2>
-            <p className="text-muted-foreground leading-relaxed max-w-md" style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}>
+            <p className="text-muted-foreground leading-relaxed max-w-md text-center lg:text-start" style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}>
               {t("landing.aiSection.subtitle")}
             </p>
 

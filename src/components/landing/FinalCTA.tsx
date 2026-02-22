@@ -28,7 +28,7 @@ const FinalCTA = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="font-bold text-primary-foreground mb-5 leading-tight"
+              className="font-bold text-primary-foreground mb-5 leading-tight text-center"
               style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
               {t("landing.finalCta.title")} <span className="text-accent">{t("landing.finalCta.titleHighlight")}</span>
@@ -39,7 +39,7 @@ const FinalCTA = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto"
+              className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto text-center"
               style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
             >
               {t("landing.finalCta.subtitle")}
