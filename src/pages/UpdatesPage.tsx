@@ -274,7 +274,7 @@ const UpdatesPage = () => {
                 <History size={14} className="text-accent" />
                 <span className="text-xs sm:text-sm font-semibold text-accent">سجل التحديثات</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 text-center mx-auto">
                 ما الجديد في نيوماكسيو؟
               </h1>
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
