@@ -28,7 +28,7 @@ const WhyNumaxioSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            لماذا تختار نظام <span className="text-gradient">مصمم للسوق السعودي؟</span>
+            إدارة مالية متكاملة… <span className="text-gradient">لا مجرد قيود يومية</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -38,7 +38,7 @@ const WhyNumaxioSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            الأنظمة العالمية صُممت للجميع. نيوماكسيو صُمم للسوق السعودي.
+            نظام واحد يربط الفوترة، الامتثال، والحوكمة — بدلاً من أدوات متفرقة وإعدادات لا تنتهي.
           </motion.p>
         </div>
 

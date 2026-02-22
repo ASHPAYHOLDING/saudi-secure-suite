@@ -33,7 +33,7 @@ const ERPModulesSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            كل ما تحتاجه لإدارة منشأتك <span className="text-gradient">في مكان واحد</span>
+            وحدات مترابطة تعمل <span className="text-gradient">كمنظومة واحدة</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -43,7 +43,7 @@ const ERPModulesSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            وحدات مترابطة تعمل بانسجام تام — من الفاتورة إلى التقرير التنفيذي
+            كل وحدة تغذّي الأخرى — من إصدار الفاتورة إلى التقرير التنفيذي، بدون إدخال يدوي مكرر
           </motion.p>
         </div>
 
