@@ -13,6 +13,10 @@ const ZATCAComplianceSection = lazy(() => import("@/components/landing/ZATCAComp
 const DynamicPricingSection = lazy(() => import("@/components/landing/DynamicPricingSection"));
 const EnterpriseGovernanceSection = lazy(() => import("@/components/landing/EnterpriseGovernanceSection"));
 const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
+const ComplianceScoreDemo = lazy(() => import("@/components/landing/ComplianceScoreDemo"));
+const SavingsCalculator = lazy(() => import("@/components/landing/SavingsCalculator"));
+const AIDemoChat = lazy(() => import("@/components/landing/AIDemoChat"));
+const SecurityStrip = lazy(() => import("@/components/landing/SecurityStrip"));
 
 const softwareJsonLd = {
   "@context": "https://schema.org",
@@ -50,8 +54,12 @@ const Index = () => {
             <WhyNumaxioSection />
             <ERPModulesSection />
             <InvoiceDemo />
+            <ComplianceScoreDemo />
+            <SavingsCalculator />
             <AIAccountantSection />
+            <AIDemoChat />
             <ZATCAComplianceSection />
+            <SecurityStrip />
             <DynamicPricingSection />
             <EnterpriseGovernanceSection />
             <FinalCTA />
