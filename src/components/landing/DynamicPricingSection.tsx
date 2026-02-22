@@ -145,10 +145,10 @@ const DynamicPricingSection = () => {
             <Sparkles size={14} className="text-accent" />
             <span className="text-xs sm:text-sm font-semibold text-accent">الأسعار</span>
           </div>
-          <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+          <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground text-center">
             اختر الباقة المناسبة لنموك
           </h2>
-          <p className="mx-auto max-w-xl text-sm sm:text-base md:text-lg text-muted-foreground">
+          <p className="mx-auto max-w-xl text-sm sm:text-base md:text-lg text-muted-foreground text-center">
             ابدأ مجاناً لمدة 14 يوم. بدون بطاقة بنكية. سعر المؤسس لأول 100 عميل.
           </p>
         </div>
