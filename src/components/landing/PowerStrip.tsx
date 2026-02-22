@@ -3,10 +3,10 @@ import { useRef, useState, useEffect } from "react";
 import { Zap, Shield, Clock, Building2 } from "lucide-react";
 
 const metrics = [
-  { icon: Clock, value: 10, suffix: "s", label: "إصدار فاتورة", color: "text-accent" },
-  { icon: Shield, value: 100, suffix: "%", label: "ZATCA Phase 2", color: "text-emerald-500" },
-  { icon: Zap, value: 99.9, suffix: "%", label: "وقت التشغيل", color: "text-blue-500" },
-  { icon: Building2, value: 1200, suffix: "+", label: "منشأة سعودية", color: "text-amber-500" },
+  { icon: Clock, value: 10, suffix: "s", label: "إصدار فاتورة" },
+  { icon: Shield, value: 100, suffix: "%", label: "ZATCA Phase 2" },
+  { icon: Zap, value: 99.9, suffix: "%", label: "وقت التشغيل" },
+  { icon: Building2, value: 1200, suffix: "+", label: "منشأة سعودية" },
 ];
 
 const AnimatedCounter = ({ target, suffix, inView }: { target: number; suffix: string; inView: boolean }) => {
@@ -43,8 +43,8 @@ const PowerStrip = () => {
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <section className="py-6 bg-background border-y border-border/50" dir="rtl" ref={ref}>
-      <div className="container mx-auto px-4">
+    <section className="py-6 bg-background border-y border-border/50" ref={ref}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
           {metrics.map((m, i) => (
             <motion.div
@@ -54,11 +54,11 @@ const PowerStrip = () => {
               transition={{ delay: i * 0.1, duration: 0.4 }}
               className="flex items-center gap-3 justify-center py-3"
             >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50 ${m.color}`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <m.icon size={18} />
               </div>
               <div>
-                <p className={`text-2xl font-bold ${m.color}`}>
+                <p className="text-2xl font-bold text-accent">
                   <AnimatedCounter target={m.value} suffix={m.suffix} inView={isInView} />
                 </p>
                 <p className="text-xs text-muted-foreground">{m.label}</p>

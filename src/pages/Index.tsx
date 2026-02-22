@@ -9,14 +9,14 @@ const WhyNumaxioSection = lazy(() => import("@/components/landing/WhyNumaxioSect
 const ERPModulesSection = lazy(() => import("@/components/landing/ERPModulesSection"));
 const InvoiceDemo = lazy(() => import("@/components/landing/InvoiceDemo"));
 const AIAccountantSection = lazy(() => import("@/components/landing/AIAccountantSection"));
-const ZATCAComplianceSection = lazy(() => import("@/components/landing/ZATCAComplianceSection"));
-const DynamicPricingSection = lazy(() => import("@/components/landing/DynamicPricingSection"));
-const EnterpriseGovernanceSection = lazy(() => import("@/components/landing/EnterpriseGovernanceSection"));
-const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
-const ComplianceScoreDemo = lazy(() => import("@/components/landing/ComplianceScoreDemo"));
-const SavingsCalculator = lazy(() => import("@/components/landing/SavingsCalculator"));
 const AIDemoChat = lazy(() => import("@/components/landing/AIDemoChat"));
+const ZATCAComplianceSection = lazy(() => import("@/components/landing/ZATCAComplianceSection"));
+const EnterpriseGovernanceSection = lazy(() => import("@/components/landing/EnterpriseGovernanceSection"));
+const PaymentGatewaySection = lazy(() => import("@/components/landing/PaymentGatewaySection"));
+const ExecutiveReportsSection = lazy(() => import("@/components/landing/ExecutiveReportsSection"));
+const DynamicPricingSection = lazy(() => import("@/components/landing/DynamicPricingSection"));
 const SecurityStrip = lazy(() => import("@/components/landing/SecurityStrip"));
+const FinalCTA = lazy(() => import("@/components/landing/FinalCTA"));
 
 const softwareJsonLd = {
   "@context": "https://schema.org",
@@ -24,7 +24,7 @@ const softwareJsonLd = {
   name: "Numaxio ERP",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  description: "أول ERP سعودي مؤسسي متكامل — فواتير إلكترونية ZATCA، ذكاء محاسبي مدمج، حوكمة مؤسسية سعودية",
+  description: "نظام ERP سعودي مؤسسي متكامل — فواتير إلكترونية ZATCA، ذكاء محاسبي مدمج، حوكمة مؤسسية",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -37,10 +37,10 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Numaxio ERP — نظام ERP سعودي يقود منشأتك لا يعقّدها</title>
+        <title>Numaxio ERP — نظام ERP سعودي مؤسسي لإدارة مالية متكاملة</title>
         <meta
           name="description"
-          content="أول ERP سعودي مؤسسي متكامل: فواتير إلكترونية ZATCA Phase 2، ذكاء محاسبي مدمج، حوكمة مؤسسية. ابدأ تجربتك المجانية 14 يوم بدون بطاقة بنكية."
+          content="نظام ERP سعودي مؤسسي متكامل: فواتير إلكترونية ZATCA Phase 2، ذكاء محاسبي مدمج، حوكمة مؤسسية. ابدأ تجربتك المجانية 14 يوم بدون بطاقة بنكية."
         />
         <link rel="canonical" href="https://saudi-secure-suite.lovable.app/" />
         <script type="application/ld+json">{JSON.stringify(softwareJsonLd)}</script>
@@ -54,14 +54,14 @@ const Index = () => {
             <WhyNumaxioSection />
             <ERPModulesSection />
             <InvoiceDemo />
-            <ComplianceScoreDemo />
-            <SavingsCalculator />
             <AIAccountantSection />
             <AIDemoChat />
             <ZATCAComplianceSection />
             <SecurityStrip />
-            <DynamicPricingSection />
             <EnterpriseGovernanceSection />
+            <PaymentGatewaySection />
+            <ExecutiveReportsSection />
+            <DynamicPricingSection />
             <FinalCTA />
           </Suspense>
         </main>

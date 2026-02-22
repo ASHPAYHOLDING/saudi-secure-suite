@@ -18,25 +18,24 @@ const Navbar = () => {
   const links = [
     { label: "المميزات", href: "#features" },
     { label: "لماذا نيوماكسيو", href: "#why" },
+    { label: "الامتثال", href: "#compliance" },
     { label: "الأسعار", href: "#pricing" },
-    { label: "آراء العملاء", href: "#testimonials" },
     { label: "تواصل معنا", href: "#contact" },
   ];
 
   return (
     <nav
-      dir="rtl"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 inset-inline-0 z-50 transition-all duration-500 ${
         scrolled
           ? "border-b border-border/50 bg-background/90 backdrop-blur-xl shadow-sm"
           : "bg-transparent"
       }`}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2">
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2.5"
           >
@@ -52,7 +51,7 @@ const Navbar = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.05 }}
-              className={`text-sm font-medium transition-colors hover:text-accent ${
+              className={`text-sm font-medium transition-colors hover:text-accent min-h-[44px] flex items-center ${
                 scrolled ? "text-muted-foreground" : "text-primary-foreground/80 hover:text-primary-foreground"
               }`}
             >
@@ -62,8 +61,8 @@ const Navbar = () => {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="hidden items-center gap-3 lg:flex"
         >
@@ -77,11 +76,9 @@ const Navbar = () => {
             </Button>
           </Link>
           <Link to="/auth">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
-              <Button size="sm" className="min-h-[44px] gradient-accent text-accent-foreground shadow-accent-glow rounded-xl">
-                ابدأ مجاناً
-              </Button>
-            </motion.div>
+            <Button size="sm" className="min-h-[48px] gradient-accent text-accent-foreground shadow-accent-glow rounded-xl px-6 font-bold">
+              ابدأ مجاناً
+            </Button>
           </Link>
         </motion.div>
 
@@ -102,7 +99,7 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="border-t border-border bg-background lg:hidden"
           >
-            <div className="container mx-auto flex flex-col gap-2 px-4 py-6">
+            <div className="max-w-6xl mx-auto flex flex-col gap-1 px-4 py-6">
               {links.map((link) => (
                 <a
                   key={link.href}
@@ -114,7 +111,7 @@ const Navbar = () => {
                 </a>
               ))}
               <Link to="/auth" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full gradient-accent text-accent-foreground min-h-[48px] rounded-xl mt-2">
+                <Button className="w-full gradient-accent text-accent-foreground min-h-[48px] rounded-xl mt-2 font-bold">
                   ابدأ مجاناً
                 </Button>
               </Link>

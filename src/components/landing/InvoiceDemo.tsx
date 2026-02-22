@@ -58,9 +58,9 @@ const InvoiceDemo = () => {
             {/* Browser chrome */}
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
               <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-400/60" />
-                <div className="w-3 h-3 rounded-full bg-amber-400/60" />
-                <div className="w-3 h-3 rounded-full bg-emerald-400/60" />
+                <div className="w-3 h-3 rounded-full bg-destructive/40" />
+                <div className="w-3 h-3 rounded-full bg-warning/40" />
+                <div className="w-3 h-3 rounded-full bg-accent/60" />
               </div>
               <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-0.5 rounded-full mx-auto">
                 عرض توضيحي تفاعلي
@@ -97,10 +97,10 @@ const InvoiceDemo = () => {
 
               {/* Step 3: Issuing */}
               <div className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
-                step >= 3 ? (step >= 4 ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5") : "border-border"
+                step >= 3 ? (step >= 4 ? "border-accent/30 bg-accent/5" : "border-warning/30 bg-warning/5") : "border-border"
               }`}>
                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${
-                  step >= 4 ? "bg-emerald-500 text-white" : step >= 3 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+                  step >= 4 ? "bg-accent text-accent-foreground" : step >= 3 ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground"
                 }`}>
                   {step === 3 ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
                 </div>
@@ -128,15 +128,15 @@ const InvoiceDemo = () => {
                     )}
                     {step >= 4 && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 mt-1">
-                        <Shield size={12} className="text-emerald-500" />
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                        <Shield size={12} className="text-accent" />
+                        <span className="text-xs text-accent">
                           فاتورة #INV-2026-1024 — ZATCA متوافقة — QR مرفق
                         </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-                {step >= 4 && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
+                {step >= 4 && <CheckCircle2 size={18} className="text-accent shrink-0" />}
               </div>
             </div>
 

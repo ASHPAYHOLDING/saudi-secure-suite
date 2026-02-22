@@ -1,15 +1,17 @@
 import { motion } from "framer-motion";
-import { FileText, Wallet, Package, BarChart3, Bot, Building2, ArrowLeft } from "lucide-react";
+import { FileText, Wallet, Package, BarChart3, Bot, Building2, ArrowLeft, Users, ShoppingCart, Calculator } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 const modules = [
-  { icon: FileText, title: "الفواتير والضرائب", desc: "فاتورة خلال 10 ثوانٍ — جاهزة لهيئة الزكاة تلقائياً مع توقيع XML و QR Code.", color: "bg-accent/10 text-accent" },
-  { icon: Wallet, title: "المصروفات", desc: "تصنيف ذكي تلقائي مع كشف شذوذ فوري ومطابقة بنكية بدون تدخل يدوي.", color: "bg-accent/10 text-accent" },
-  { icon: Package, title: "المخزون", desc: "تحكم لحظي بالكميات والتكاليف والربحية مع تنبيهات إعادة الطلب الذكية.", color: "bg-accent/10 text-accent" },
-  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحات تنفيذية يفهمها المدير قبل المحاسب — مؤشرات أداء فورية وتقارير جاهزة للتصدير.", color: "bg-accent/10 text-accent" },
-  { icon: Bot, title: "AI المحاسبي", desc: "اسأل… ويجيب بالأرقام. محاسب ذكي يحلل بياناتك ويقدم توصيات فورية قابلة للتنفيذ.", color: "bg-accent/10 text-accent" },
-  { icon: Building2, title: "الحوكمة المؤسسية", desc: "قوالب أدوار جاهزة + سلاسل موافقات + سجل تدقيق شامل — جاهز للتدقيق من اليوم الأول.", color: "bg-accent/10 text-accent" },
+  { icon: FileText, title: "الفواتير والضرائب", desc: "فاتورة خلال 10 ثوانٍ — ZATCA Phase 2 مع توقيع XML و QR Code وإقرار ضريبي تلقائي." },
+  { icon: Users, title: "العملاء والموردين", desc: "إدارة شاملة لبيانات العملاء والموردين مع ربط تلقائي بالفواتير والمدفوعات." },
+  { icon: Wallet, title: "المصروفات", desc: "تصنيف ذكي تلقائي مع كشف شذوذ فوري وربط بمراكز التكلفة." },
+  { icon: Package, title: "المخزون", desc: "تحكم لحظي بالكميات والتكاليف مع تنبيهات إعادة الطلب الذكية." },
+  { icon: ShoppingCart, title: "أوامر البيع والشراء", desc: "إدارة دورة المبيعات والمشتريات الكاملة مع ربط تلقائي بالمخزون والفواتير." },
+  { icon: Calculator, title: "القيود اليومية", desc: "قيود محاسبية متوازنة مع حوكمة صارمة ومنع التعديل بعد الترحيل." },
+  { icon: BarChart3, title: "التقارير التنفيذية", desc: "لوحات تنفيذية بمؤشرات أداء فورية — الميزانيات ومراكز التكلفة وتقارير جاهزة للتصدير." },
+  { icon: Bot, title: "AI المحاسبي", desc: "اسأل ويجيب بالأرقام — تحليل ربحية، كشف شذوذ، اقتراحات مالية، وتنبيهات ضريبية." },
+  { icon: Building2, title: "الحوكمة المؤسسية", desc: "قوالب أدوار جاهزة، موافقات متعددة، سجل تدقيق شامل، Multi-Entity، SSO، و API Keys." },
 ];
 
 const ERPModulesSection = () => {
@@ -43,21 +45,21 @@ const ERPModulesSection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            كل وحدة تغذّي الأخرى — من إصدار الفاتورة إلى التقرير التنفيذي، بدون إدخال يدوي مكرر
+            كل وحدة تغذّي الأخرى — من إصدار الفاتورة إلى التقرير التنفيذي
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {modules.map((m, i) => (
             <motion.div
               key={m.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
+              transition={{ delay: i * 0.06 }}
               className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card transition-all duration-300 hover:shadow-elevated"
             >
-              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${m.color} mb-4`}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent mb-4">
                 <m.icon size={22} />
               </div>
               <h3 className="text-base font-bold text-foreground mb-2">{m.title}</h3>
