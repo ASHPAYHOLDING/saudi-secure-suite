@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { CreditCard, Wallet, ArrowLeftRight, CheckCircle2 } from "lucide-react";
+import { CreditCard, Wallet, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const gateways = [
   { name: "مدى", nameEn: "Mada" },
@@ -8,17 +9,19 @@ const gateways = [
   { name: "Apple Pay", nameEn: "Apple Pay" },
 ];
 
-const features = [
-  "استقبل المدفوعات مباشرة على فواتيرك",
-  "إدارة عمولات الشركاء والوسطاء",
-  "سحب المبالغ بشكل آمن ومباشر",
-  "ربط تلقائي بسجل المدفوعات والفواتير",
-];
-
 const PaymentGatewaySection = () => {
+  const { t } = useTranslation();
+
+  const features = [
+    t("landing.payment.f1"),
+    t("landing.payment.f2"),
+    t("landing.payment.f3"),
+    t("landing.payment.f4"),
+  ];
+
   return (
     <section className="py-16 sm:py-20 md:py-24 bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -27,7 +30,7 @@ const PaymentGatewaySection = () => {
             className="mb-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
           >
             <CreditCard size={14} className="text-accent" />
-            <span className="text-sm font-semibold text-accent">بوابة الدفع</span>
+            <span className="text-sm font-semibold text-accent">{t("landing.payment.badge")}</span>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -36,7 +39,7 @@ const PaymentGatewaySection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            استقبل المدفوعات <span className="text-gradient">بكل سهولة</span>
+            {t("landing.payment.title")} <span className="text-gradient">{t("landing.payment.titleHighlight")}</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -46,12 +49,11 @@ const PaymentGatewaySection = () => {
             className="mx-auto max-w-xl text-muted-foreground"
             style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
           >
-            دعم لأشهر بوابات الدفع في المملكة مع ربط تلقائي بالفواتير
+            {t("landing.payment.subtitle")}
           </motion.p>
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Payment logos */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -76,7 +78,6 @@ const PaymentGatewaySection = () => {
             ))}
           </motion.div>
 
-          {/* Features list */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

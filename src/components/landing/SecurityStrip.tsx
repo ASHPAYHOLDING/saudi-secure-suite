@@ -1,17 +1,20 @@
 import { motion } from "framer-motion";
 import { Shield, Lock, Server, CheckCircle2 } from "lucide-react";
-
-const items = [
-  { icon: Server, text: "استضافة داخل المملكة العربية السعودية" },
-  { icon: Lock, text: "تشفير AES-256 لجميع البيانات" },
-  { icon: Shield, text: "معتمد ZATCA Phase 2" },
-  { icon: CheckCircle2, text: "نسخ احتياطي يومي مشفّر" },
-];
+import { useTranslation } from "react-i18next";
 
 const SecurityStrip = () => {
+  const { t } = useTranslation();
+
+  const items = [
+    { icon: Server, text: t("landing.security.hosting") },
+    { icon: Lock, text: t("landing.security.encryption") },
+    { icon: Shield, text: t("landing.security.zatca") },
+    { icon: CheckCircle2, text: t("landing.security.backup") },
+  ];
+
   return (
     <section className="py-10 bg-card border-y border-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -21,7 +24,7 @@ const SecurityStrip = () => {
           {items.map((item) => (
             <div key={item.text} className="flex items-center gap-2.5 min-h-[44px]">
               <item.icon size={16} className="text-accent shrink-0" />
-              <span className="text-xs sm:text-sm text-foreground/80 font-medium">{item.text}</span>
+              <span className="text-xs sm:text-sm text-foreground font-medium">{item.text}</span>
             </div>
           ))}
         </motion.div>
