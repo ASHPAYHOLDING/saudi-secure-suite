@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/theme/ThemeProvider";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 import PageLoadingSkeleton from "./components/ui/PageLoadingSkeleton";
 import Index from "./pages/Index";
+import ModulePage from "./pages/ModulePage";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -76,6 +77,7 @@ const App = () => (
               <PageTracker />
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/modules/:slug" element={<ModulePage />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
