@@ -87,13 +87,13 @@ const Navbar = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full h-16 transition-colors duration-300",
+        "sticky top-0 z-50 w-full h-16 md:h-[4.5rem] transition-colors duration-300 border-b",
         scrolled
-          ? "bg-background/95 backdrop-blur-lg border-b border-border shadow-sm"
-          : "bg-[hsl(220,25%,10%)]/90 backdrop-blur-md border-b border-white/5"
+          ? "bg-background border-border shadow-sm"
+          : "bg-[hsl(220,25%,8%)] border-white/5"
       )}
     >
-      <div className="max-w-6xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-4 px-6 md:px-10">
 
         {/* ═══ 1 · Brand (inline-start) ═══ */}
         <Link to="/" className="shrink-0 flex items-center">

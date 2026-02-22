@@ -14,24 +14,22 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
 
   return (
     <div
-      className={cn("flex items-center gap-2.5 shrink-0 whitespace-nowrap", className)}
-      aria-label="Numaxio - Saudi ERP"
+      className={cn("flex items-center gap-3 shrink-0", className)}
+      aria-label="Numaxio - Saudi Enterprise ERP"
     >
-      {/* Icon */}
-      <div className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
-        <img
-          src={numaxioIcon}
-          alt="Numaxio"
-          className="h-full w-full object-contain"
-          draggable={false}
-        />
-      </div>
+      {/* Monogram icon — no box, no padding */}
+      <img
+        src={numaxioIcon}
+        alt="Numaxio"
+        className="h-9 md:h-10 w-auto shrink-0 object-contain"
+        draggable={false}
+      />
 
-      {/* Wordmark + subtitle stacked */}
-      <div className="flex flex-col justify-center leading-none min-w-0">
+      {/* Wordmark + sub-label stacked */}
+      <div className="flex flex-col justify-center leading-none">
         <span
           className={cn(
-            "text-base sm:text-lg font-semibold tracking-tight",
+            "text-lg md:text-xl font-semibold tracking-[0.08em]",
             isLight ? "text-white" : "text-foreground"
           )}
         >
@@ -40,11 +38,11 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
         {showSubtitle && (
           <span
             className={cn(
-              "hidden sm:block text-[10px] sm:text-xs leading-none mt-0.5 opacity-60",
+              "hidden sm:block text-[11px] leading-none mt-0.5 opacity-60",
               isLight ? "text-white" : "text-muted-foreground"
             )}
           >
-            {currentLang === "ar" ? "ERP سعودي" : "Saudi ERP"}
+            {currentLang === "ar" ? "نظام ERP سعودي للمؤسسات" : "Saudi Enterprise ERP"}
           </span>
         )}
       </div>
