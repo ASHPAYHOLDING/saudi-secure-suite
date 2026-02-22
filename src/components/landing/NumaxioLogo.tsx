@@ -1,4 +1,4 @@
-import numaxioIcon from "@/assets/numaxio-logo-new.png";
+import { cn } from "@/lib/utils";
 
 interface NumaxioLogoProps {
   className?: string;
@@ -8,22 +8,27 @@ interface NumaxioLogoProps {
 }
 
 const sizeMap = {
-  sm: { height: 44 },
-  md: { height: 56 },
-  lg: { height: 72 },
+  sm: "text-xl",
+  md: "text-2xl",
+  lg: "text-3xl md:text-4xl",
 };
 
-const NumaxioLogo = ({ className = "", size = "md" }: NumaxioLogoProps) => {
-  const s = sizeMap[size];
+const NumaxioLogo = ({ className = "", variant = "dark", size = "md" }: NumaxioLogoProps) => {
+  const isLight = variant === "light";
+  const base = isLight ? "text-white" : "text-foreground";
 
   return (
-    <img
-      src={numaxioIcon}
-      alt="Numaxio"
-      className={className}
-      style={{ height: s.height, width: "auto", objectFit: "contain" }}
-      draggable={false}
-    />
+    <span
+      className={cn(
+        "font-semibold tracking-[0.05em] leading-none select-none shrink-0",
+        sizeMap[size],
+        base,
+        className
+      )}
+      aria-label="Numaxio"
+    >
+      NUMA<span className="text-[#2EC4B6]">XIO</span>
+    </span>
   );
 };
 
