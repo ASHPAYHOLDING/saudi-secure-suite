@@ -506,6 +506,15 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/enterprise/compliance-score": FEATURE_KEYS.ENTERPRISE_MODE,
   "/dashboard/finance/collections-intelligence": FEATURE_KEYS.ADVANCED_REPORTS,
   "/dashboard/finance/cashflow-radar": FEATURE_KEYS.ADVANCED_REPORTS,
+  // HR Core sub-routes
+  "/dashboard/hr": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/employees": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/contracts": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/org": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/leave": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/attendance": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/approvals": FEATURE_KEYS.HR_CORE,
+  "/dashboard/hr/reports": FEATURE_KEYS.HR_CORE,
   // HR Payroll sub-routes
   "/dashboard/hr/payroll": FEATURE_KEYS.HR_PAYROLL,
   "/dashboard/hr/payroll/settings": FEATURE_KEYS.HR_PAYROLL,
