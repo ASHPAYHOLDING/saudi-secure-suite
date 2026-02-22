@@ -5,6 +5,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import PowerStrip from "@/components/landing/PowerStrip";
 import Footer from "@/components/landing/Footer";
 import { useLanguage } from "@/hooks/useLanguage";
+import { LazySection } from "@/lib/perf";
 
 const WhyNumaxioSection = lazy(() => import("@/components/landing/WhyNumaxioSection"));
 const ERPModulesSection = lazy(() => import("@/components/landing/ERPModulesSection"));
@@ -53,42 +54,42 @@ const Index = () => {
         <main>
           <HeroSection />
           <PowerStrip />
-          <Suspense fallback={null}>
-            <WhyNumaxioSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <ERPModulesSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <InvoiceDemo />
-          </Suspense>
-          <Suspense fallback={null}>
-            <AIAccountantSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <ZATCAComplianceSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <SecurityStrip />
-          </Suspense>
-          <Suspense fallback={null}>
-            <EnterpriseGovernanceSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <PaymentGatewaySection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <ExecutiveReportsSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <DynamicPricingSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <UseCasesSection />
-          </Suspense>
-          <Suspense fallback={null}>
-            <FinalCTA />
-          </Suspense>
+          <LazySection>
+            <Suspense fallback={null}><WhyNumaxioSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><ERPModulesSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><InvoiceDemo /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><AIAccountantSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><ZATCAComplianceSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><SecurityStrip /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><EnterpriseGovernanceSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><PaymentGatewaySection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><ExecutiveReportsSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><DynamicPricingSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><UseCasesSection /></Suspense>
+          </LazySection>
+          <LazySection>
+            <Suspense fallback={null}><FinalCTA /></Suspense>
+          </LazySection>
         </main>
         <Footer />
       </div>
