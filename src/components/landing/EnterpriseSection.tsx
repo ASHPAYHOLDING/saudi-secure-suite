@@ -21,7 +21,7 @@ const EnterpriseSection = () => {
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.3'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }} />
 
-      <div className="container relative mx-auto px-4 z-10">
+      <div className="max-w-6xl relative mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="mb-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -48,7 +48,7 @@ const EnterpriseSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="mx-auto max-w-2xl text-lg text-white/50"
+            className="mx-auto max-w-2xl text-lg text-white/70"
           >
             أدوات حوكمة وتحكم مالي على مستوى المؤسسات الكبرى
           </motion.p>
@@ -69,7 +69,7 @@ const EnterpriseSection = () => {
                 <f.icon size={18} className="text-amber-400" />
               </div>
               <h3 className="text-base font-bold text-white mb-1">{f.title}</h3>
-              <p className="text-sm text-white/40">{f.desc}</p>
+              <p className="text-sm text-white/60">{f.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -79,7 +79,7 @@ const EnterpriseSection = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
               <Button size="lg" className="bg-gradient-to-r from-amber-500 to-amber-400 text-black font-bold px-10 py-7 text-base shadow-[0_8px_32px_-4px_hsl(45,90%,50%/0.3)]">
                 فعّل الوضع المؤسسي
-                <ArrowLeft className="mr-2 h-5 w-5" />
+                <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
               </Button>
             </motion.div>
           </Link>

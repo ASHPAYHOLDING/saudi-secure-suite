@@ -152,7 +152,7 @@ const PlatformShowcase = () => {
 
   return (
     <section className="py-24 md:py-32 bg-secondary/30" dir="rtl">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -180,8 +180,7 @@ const PlatformShowcase = () => {
               <motion.button
                 key={item.id}
                 onClick={() => setActiveItem(item.id)}
-                whileHover={{ x: -4 }}
-                className={`w-full text-start flex gap-4 p-5 rounded-2xl border transition-all duration-300 ${
+              className={`w-full text-start flex gap-4 p-5 rounded-2xl border transition-all duration-300 ${
                   activeItem === item.id
                     ? "border-accent/30 bg-accent/5 shadow-lg"
                     : "border-border bg-card hover:border-accent/20"
@@ -219,7 +218,7 @@ const PlatformShowcase = () => {
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Button size="lg" className="w-full gradient-accent text-accent-foreground shadow-accent-glow py-6">
                   جرّب المنصة مجاناً
-                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
                 </Button>
               </motion.div>
             </Link>
@@ -250,7 +249,7 @@ const PlatformShowcase = () => {
             {active.mockContent}
 
             {/* Decorative gradient */}
-            <div className={`absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br ${active.gradient} blur-3xl opacity-30`} />
+            <div className={`absolute -bottom-20 -end-20 w-60 h-60 rounded-full bg-gradient-to-br ${active.gradient} blur-3xl opacity-30`} />
           </motion.div>
         </div>
       </div>

@@ -101,7 +101,7 @@ const FeaturesSection = () => {
 
   return (
     <section id="features" className="py-24 md:py-32 bg-background" dir="rtl">
-      <div className="container mx-auto px-4" ref={ref}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         {/* Header */}
         <div className="mb-16 text-center">
           <motion.div
@@ -178,7 +178,7 @@ const FeaturesSection = () => {
               className="group relative rounded-2xl border border-border bg-card p-7 shadow-card transition-all duration-300 hover:shadow-elevated hover:border-accent/20 overflow-hidden"
             >
               {/* Hover gradient */}
-              <div className={`absolute -top-16 -right-16 w-40 h-40 rounded-full bg-gradient-to-br ${activeCat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-3xl`} />
+              <div className={`absolute -top-16 -end-16 w-40 h-40 rounded-full bg-gradient-to-br ${activeCat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-3xl`} />
               
               <div className="relative text-center flex flex-col items-center">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-accent-foreground group-hover:shadow-accent-glow group-hover:scale-110">
@@ -203,7 +203,7 @@ const FeaturesSection = () => {
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6">
                 جرّب جميع المميزات مجاناً
-                <ArrowLeft className="mr-2 h-5 w-5" />
+                <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
               </Button>
             </motion.div>
           </Link>

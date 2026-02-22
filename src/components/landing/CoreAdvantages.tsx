@@ -54,7 +54,7 @@ const CoreAdvantages = () => {
 
   return (
     <section className="py-24 md:py-32 bg-background" dir="rtl">
-      <div className="container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -89,7 +89,7 @@ const CoreAdvantages = () => {
                 onClick={() => setExpanded(isOpen ? null : i)}
               >
                 {/* Gradient bg */}
-                <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-to-br ${pillar.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-3xl`} />
+                <div className={`absolute -top-20 -end-20 w-48 h-48 rounded-full bg-gradient-to-br ${pillar.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-3xl`} />
 
                 <div className="relative p-7">
                   <div className="mb-5">
