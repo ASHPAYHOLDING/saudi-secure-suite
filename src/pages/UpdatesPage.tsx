@@ -315,7 +315,7 @@ const UpdatesPage = () => {
                 >
                   <Inbox size={40} className="text-emerald-400/60" />
                 </motion.div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-center">
                   لا توجد تحديثات حالياً
                 </h3>
                 <p className="text-base text-neutral-400 max-w-md mx-auto mb-8 leading-relaxed">
