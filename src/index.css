@@ -447,10 +447,107 @@
     --tw-space-x-reverse: 1;
   }
 
-  /* Flip icon for RTL directional arrows */
+  /* Flip icon for RTL directional arrows / chevrons */
   [dir="rtl"] .rtl-mirror {
     transform: scaleX(-1);
   }
+
+  /* ═══════════════════════════════════════════════
+     Auto-swap: remap physical → logical in RTL
+     This handles legacy ml/mr/pl/pr/left/right usage
+     ═══════════════════════════════════════════════ */
+
+  /* --- Margins --- */
+  [dir="rtl"] .ml-1 { margin-left: unset; margin-inline-start: 0.25rem; }
+  [dir="rtl"] .ml-2 { margin-left: unset; margin-inline-start: 0.5rem; }
+  [dir="rtl"] .ml-3 { margin-left: unset; margin-inline-start: 0.75rem; }
+  [dir="rtl"] .ml-4 { margin-left: unset; margin-inline-start: 1rem; }
+  [dir="rtl"] .ml-5 { margin-left: unset; margin-inline-start: 1.25rem; }
+  [dir="rtl"] .ml-6 { margin-left: unset; margin-inline-start: 1.5rem; }
+  [dir="rtl"] .ml-8 { margin-left: unset; margin-inline-start: 2rem; }
+  [dir="rtl"] .ml-auto { margin-left: unset; margin-inline-start: auto; }
+
+  [dir="rtl"] .mr-1 { margin-right: unset; margin-inline-end: 0.25rem; }
+  [dir="rtl"] .mr-2 { margin-right: unset; margin-inline-end: 0.5rem; }
+  [dir="rtl"] .mr-3 { margin-right: unset; margin-inline-end: 0.75rem; }
+  [dir="rtl"] .mr-4 { margin-right: unset; margin-inline-end: 1rem; }
+  [dir="rtl"] .mr-5 { margin-right: unset; margin-inline-end: 1.25rem; }
+  [dir="rtl"] .mr-6 { margin-right: unset; margin-inline-end: 1.5rem; }
+  [dir="rtl"] .mr-8 { margin-right: unset; margin-inline-end: 2rem; }
+  [dir="rtl"] .mr-auto { margin-right: unset; margin-inline-end: auto; }
+
+  /* --- Paddings --- */
+  [dir="rtl"] .pl-1 { padding-left: unset; padding-inline-start: 0.25rem; }
+  [dir="rtl"] .pl-2 { padding-left: unset; padding-inline-start: 0.5rem; }
+  [dir="rtl"] .pl-3 { padding-left: unset; padding-inline-start: 0.75rem; }
+  [dir="rtl"] .pl-4 { padding-left: unset; padding-inline-start: 1rem; }
+  [dir="rtl"] .pl-5 { padding-left: unset; padding-inline-start: 1.25rem; }
+  [dir="rtl"] .pl-6 { padding-left: unset; padding-inline-start: 1.5rem; }
+  [dir="rtl"] .pl-8 { padding-left: unset; padding-inline-start: 2rem; }
+  [dir="rtl"] .pl-9 { padding-left: unset; padding-inline-start: 2.25rem; }
+  [dir="rtl"] .pl-10 { padding-left: unset; padding-inline-start: 2.5rem; }
+
+  [dir="rtl"] .pr-1 { padding-right: unset; padding-inline-end: 0.25rem; }
+  [dir="rtl"] .pr-2 { padding-right: unset; padding-inline-end: 0.5rem; }
+  [dir="rtl"] .pr-3 { padding-right: unset; padding-inline-end: 0.75rem; }
+  [dir="rtl"] .pr-4 { padding-right: unset; padding-inline-end: 1rem; }
+  [dir="rtl"] .pr-5 { padding-right: unset; padding-inline-end: 1.25rem; }
+  [dir="rtl"] .pr-6 { padding-right: unset; padding-inline-end: 1.5rem; }
+  [dir="rtl"] .pr-8 { padding-right: unset; padding-inline-end: 2rem; }
+  [dir="rtl"] .pr-9 { padding-right: unset; padding-inline-end: 2.25rem; }
+  [dir="rtl"] .pr-10 { padding-right: unset; padding-inline-end: 2.5rem; }
+
+  /* --- Positioning --- */
+  [dir="rtl"] .left-0 { left: unset; inset-inline-start: 0; }
+  [dir="rtl"] .left-1 { left: unset; inset-inline-start: 0.25rem; }
+  [dir="rtl"] .left-2 { left: unset; inset-inline-start: 0.5rem; }
+  [dir="rtl"] .left-3 { left: unset; inset-inline-start: 0.75rem; }
+  [dir="rtl"] .left-4 { left: unset; inset-inline-start: 1rem; }
+  [dir="rtl"] .left-1\/2 { left: unset; inset-inline-start: 50%; }
+
+  [dir="rtl"] .right-0 { right: unset; inset-inline-end: 0; }
+  [dir="rtl"] .right-1 { right: unset; inset-inline-end: 0.25rem; }
+  [dir="rtl"] .right-2 { right: unset; inset-inline-end: 0.5rem; }
+  [dir="rtl"] .right-3 { right: unset; inset-inline-end: 0.75rem; }
+  [dir="rtl"] .right-4 { right: unset; inset-inline-end: 1rem; }
+
+  /* Negative positions */
+  [dir="rtl"] .-left-0\.5 { left: unset; inset-inline-start: -0.125rem; }
+  [dir="rtl"] .-left-1 { left: unset; inset-inline-start: -0.25rem; }
+  [dir="rtl"] .-right-0\.5 { right: unset; inset-inline-end: -0.125rem; }
+  [dir="rtl"] .-right-1 { right: unset; inset-inline-end: -0.25rem; }
+
+  /* --- Border radius --- */
+  [dir="rtl"] .rounded-l-md { border-radius: 0; border-start-start-radius: 0.375rem; border-end-start-radius: 0.375rem; }
+  [dir="rtl"] .rounded-r-md { border-radius: 0; border-start-end-radius: 0.375rem; border-end-end-radius: 0.375rem; }
+  [dir="rtl"] .rounded-l-lg { border-radius: 0; border-start-start-radius: 0.5rem; border-end-start-radius: 0.5rem; }
+  [dir="rtl"] .rounded-r-lg { border-radius: 0; border-start-end-radius: 0.5rem; border-end-end-radius: 0.5rem; }
+
+  /* --- Borders --- */
+  [dir="rtl"] .border-l { border-left: unset; border-inline-start-width: 1px; }
+  [dir="rtl"] .border-r { border-right: unset; border-inline-end-width: 1px; }
+  [dir="rtl"] .border-l-2 { border-left: unset; border-inline-start-width: 2px; }
+  [dir="rtl"] .border-r-2 { border-right: unset; border-inline-end-width: 2px; }
+
+  /* --- Text alignment --- */
+  [dir="rtl"] .text-left { text-align: start; }
+  [dir="rtl"] .text-right { text-align: end; }
+
+  /* --- Translate X flip for RTL animations --- */
+  [dir="rtl"] .translate-x-full { --tw-translate-x: -100%; }
+  [dir="rtl"] .-translate-x-full { --tw-translate-x: 100%; }
+
+  /* --- Space X reversal for RTL --- */
+  [dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  /* ═══════════════════════════════════════════════
+     End auto-swap
+     ═══════════════════════════════════════════════ */
 
   /* Logical margin helpers */
   .mis-1 { margin-inline-start: 0.25rem; }

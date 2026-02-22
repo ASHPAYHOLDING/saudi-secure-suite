@@ -5,11 +5,14 @@ type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
+  const isRTL = document.documentElement.dir === "rtl";
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position={isRTL ? "bottom-right" : "bottom-left"}
+      dir={isRTL ? "rtl" : "ltr"}
       toastOptions={{
         classNames: {
           toast:
