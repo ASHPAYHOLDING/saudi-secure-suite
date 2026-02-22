@@ -1,14 +1,12 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, X, Shield, Bot, Building2, Calculator } from "lucide-react";
+import { Shield, Bot, Building2, Calculator } from "lucide-react";
 
 const comparisons = [
-  { feature: "الفوترة الإلكترونية ZATCA Phase 2", numaxio: true, others: false },
-  { feature: "إقرار ضريبي آلي بدون تدخل", numaxio: true, others: false },
-  { feature: "ذكاء محاسبي مدمج (AI)", numaxio: true, others: false },
-  { feature: "حوكمة مؤسسية سعودية متكاملة", numaxio: true, others: false },
-  { feature: "واجهة عربية أصيلة 100%", numaxio: true, others: "جزئي" },
-  { feature: "كيانات متعددة (Multi-Entity)", numaxio: true, others: true },
-  { feature: "تقارير مالية تنفيذية", numaxio: true, others: true },
+  { feature: "جاهزية ZATCA Phase 2", numaxio: "جاهز من اليوم الأول", others: "إعداد يدوي" },
+  { feature: "إقرار ضريبي تلقائي", numaxio: "مدمج بالكامل", others: "إضافات خارجية" },
+  { feature: "واجهة عربية أصلية", numaxio: "100%", others: "جزئي" },
+  { feature: "ذكاء محاسبي", numaxio: "مدمج", others: "محدود" },
+  { feature: "حوكمة مؤسسية", numaxio: "قوالب جاهزة", others: "معقد" },
 ];
 
 const highlights = [
@@ -30,7 +28,7 @@ const WhyNumaxioSection = () => {
             className="mb-3 font-bold text-foreground"
             style={{ fontSize: "clamp(22px, 3vw, 36px)" }}
           >
-            ليس مجرد نظام محاسبة… بل <span className="text-gradient">قيادة مالية متكاملة</span>
+            لماذا تختار نظام <span className="text-gradient">مصمم للسوق السعودي؟</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -74,22 +72,16 @@ const WhyNumaxioSection = () => {
           <div className="grid grid-cols-3 text-center text-sm font-bold border-b border-border bg-muted/30">
             <div className="p-4 text-start text-foreground">الميزة</div>
             <div className="p-4 text-accent">Numaxio</div>
-            <div className="p-4 text-muted-foreground">Zoho / Odoo</div>
+            <div className="p-4 text-muted-foreground">أنظمة تقليدية</div>
           </div>
           {comparisons.map((row, i) => (
             <div key={i} className="grid grid-cols-3 text-center text-sm border-b border-border/50 last:border-b-0">
               <div className="p-3.5 text-start text-foreground">{row.feature}</div>
               <div className="p-3.5 flex items-center justify-center">
-                {row.numaxio ? <CheckCircle2 size={18} className="text-accent" /> : <X size={18} className="text-muted-foreground/40" />}
+                <span className="text-xs text-accent font-semibold">{row.numaxio}</span>
               </div>
               <div className="p-3.5 flex items-center justify-center">
-                {row.others === true ? (
-                  <CheckCircle2 size={18} className="text-muted-foreground/60" />
-                ) : row.others === false ? (
-                  <X size={18} className="text-muted-foreground/40" />
-                ) : (
-                  <span className="text-xs text-amber-500 font-medium">{row.others}</span>
-                )}
+                <span className="text-xs text-muted-foreground">{row.others}</span>
               </div>
             </div>
           ))}
