@@ -7,15 +7,15 @@ const ERPModulesSection = () => {
   const { t } = useTranslation();
 
   const modules = [
-    { icon: FileText, title: t("landing.modules.invoices"), desc: t("landing.modules.invoicesDesc") },
-    { icon: Users, title: t("landing.modules.clients"), desc: t("landing.modules.clientsDesc") },
-    { icon: Wallet, title: t("landing.modules.expenses"), desc: t("landing.modules.expensesDesc") },
-    { icon: Package, title: t("landing.modules.inventory"), desc: t("landing.modules.inventoryDesc") },
-    { icon: ShoppingCart, title: t("landing.modules.orders"), desc: t("landing.modules.ordersDesc") },
-    { icon: Calculator, title: t("landing.modules.journal"), desc: t("landing.modules.journalDesc") },
-    { icon: BarChart3, title: t("landing.modules.reports"), desc: t("landing.modules.reportsDesc") },
-    { icon: Bot, title: t("landing.modules.ai"), desc: t("landing.modules.aiDesc") },
-    { icon: Building2, title: t("landing.modules.governance"), desc: t("landing.modules.governanceDesc") },
+    { icon: FileText, slug: "invoices", title: t("landing.modules.invoices"), desc: t("landing.modules.invoicesDesc") },
+    { icon: Users, slug: "clients", title: t("landing.modules.clients"), desc: t("landing.modules.clientsDesc") },
+    { icon: Wallet, slug: "expenses", title: t("landing.modules.expenses"), desc: t("landing.modules.expensesDesc") },
+    { icon: Package, slug: "inventory", title: t("landing.modules.inventory"), desc: t("landing.modules.inventoryDesc") },
+    { icon: ShoppingCart, slug: "orders", title: t("landing.modules.orders"), desc: t("landing.modules.ordersDesc") },
+    { icon: Calculator, slug: "journal", title: t("landing.modules.journal"), desc: t("landing.modules.journalDesc") },
+    { icon: BarChart3, slug: "reports", title: t("landing.modules.reports"), desc: t("landing.modules.reportsDesc") },
+    { icon: Bot, slug: "ai", title: t("landing.modules.ai"), desc: t("landing.modules.aiDesc") },
+    { icon: Building2, slug: "governance", title: t("landing.modules.governance"), desc: t("landing.modules.governanceDesc") },
   ];
 
   return (
@@ -67,9 +67,12 @@ const ERPModulesSection = () => {
               </div>
               <h3 className="text-base font-bold text-foreground mb-2">{m.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">{m.desc}</p>
-              <Link to="/auth" className="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1 min-h-[44px]">
+              <Link
+                to={`/modules/${m.slug}`}
+                className="text-sm font-semibold text-accent hover:underline inline-flex items-center gap-1 min-h-[44px] group/link"
+              >
                 {t("landing.modules.explore")}
-                <ArrowLeft size={14} className="rtl-mirror" />
+                <ArrowLeft size={14} className="rtl-mirror transition-transform group-hover/link:-translate-x-1 rtl:group-hover/link:translate-x-1" />
               </Link>
             </motion.div>
           ))}
