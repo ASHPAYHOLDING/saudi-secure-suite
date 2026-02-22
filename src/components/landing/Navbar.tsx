@@ -87,7 +87,7 @@ const Navbar = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full h-16 md:h-[4.5rem] transition-colors duration-300 border-b",
+        "sticky top-0 z-50 w-full h-16 transition-colors duration-300 border-b",
         scrolled
           ? "bg-background border-border shadow-sm"
           : "bg-[hsl(220,25%,8%)] border-white/5"
