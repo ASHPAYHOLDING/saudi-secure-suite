@@ -1,4 +1,4 @@
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import numaxioIcon from "@/assets/numaxio-icon.png";
 
 interface NumaxioLogoProps {
   className?: string;
@@ -18,7 +18,7 @@ const NumaxioLogo = ({ className = "", size = "md" }: NumaxioLogoProps) => {
 
   return (
     <img
-      src={numaxioLogo}
+      src={numaxioIcon}
       alt="Numaxio"
       className={className}
       style={{ height: s.height, width: "auto", objectFit: "contain" }}

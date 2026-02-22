@@ -1,4 +1,4 @@
-import numaxioLogo from "@/assets/numaxio-logo.png";
+import numaxioIcon from "@/assets/numaxio-icon.png";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ const BrandLockup = ({ variant = "dark", showSubtitle = true, className }: Brand
       {/* Icon */}
       <div className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
         <img
-          src={numaxioLogo}
+          src={numaxioIcon}
           alt="Numaxio"
           className="h-full w-full object-contain"
           draggable={false}
