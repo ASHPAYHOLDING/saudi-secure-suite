@@ -9,7 +9,7 @@ import { EntitlementsProvider } from "@/contexts/EntitlementsContext";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 import PageLoadingSkeleton from "./components/ui/PageLoadingSkeleton";
-import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTop from "./components/routing/ScrollToTop";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { lazy, Suspense, createElement, useEffect } from "react";
 import GatedRoute from "./routes/GatedRoute";
