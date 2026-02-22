@@ -82,7 +82,7 @@ const BadgeCarousel = () => {
   }, [items.length]);
 
   return (
-    <div className="h-6 overflow-hidden relative">
+    <div className="h-6 overflow-hidden relative w-full max-w-md">
       <AnimatePresence mode="wait">
         <motion.span
           key={index}
@@ -90,7 +90,7 @@ const BadgeCarousel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.3 }}
-          className="absolute inset-inline-0 text-xs text-white/80 font-medium"
+          className="absolute inset-0 text-xs text-white/80 font-medium text-start"
         >
           {items[index]}
         </motion.span>
