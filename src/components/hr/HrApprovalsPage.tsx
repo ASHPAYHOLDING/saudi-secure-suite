@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserCheck, Check, X } from "lucide-react";
+import { UserCheck, Check, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,7 +30,7 @@ export default function HrApprovalsPage() {
       if (error) throw error;
     },
     onSuccess: (_, { status }) => {
-      toast.success(status === "approved" ? "تم قبول الطلب" : "تم رفض الطلب");
+      toast.success(status === "approved" ? "تم اعتماد الطلب بنجاح | Request Approved" : "تم رفض الطلب | Request Rejected");
       qc.invalidateQueries({ queryKey: ["hr-pending-leave"] });
       qc.invalidateQueries({ queryKey: ["hr-leave-requests"] });
     },
@@ -38,41 +38,106 @@ export default function HrApprovalsPage() {
   });
 
   return (
-    <div className="p-4 sm:p-6 space-y-4">
-      <h1 className="text-xl font-bold flex items-center gap-2"><UserCheck className="h-5 w-5" />موافقات الإجازات</h1>
-      {pending.length === 0 && !isLoading && (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">لا توجد طلبات معلقة 🎉</CardContent></Card>
-      )}
-      {pending.length > 0 && (
-        <Card><CardContent className="p-0">
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>الموظف</TableHead><TableHead>نوع الإجازة</TableHead><TableHead>من</TableHead><TableHead>إلى</TableHead><TableHead>الأيام</TableHead><TableHead>السبب</TableHead><TableHead>إجراء</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {pending.map((r: any) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.hr_employees?.first_name} {r.hr_employees?.last_name}</TableCell>
-                  <TableCell>{r.hr_leave_types?.name}</TableCell>
-                  <TableCell className="text-sm">{r.start_date}</TableCell>
-                  <TableCell className="text-sm">{r.end_date}</TableCell>
-                  <TableCell>{Number(r.days_count)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{r.reason ?? "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="default" onClick={() => actionMut.mutate({ id: r.id, status: "approved" })} disabled={actionMut.isPending}>
-                        <Check className="h-3 w-3 me-1" />قبول
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => actionMut.mutate({ id: r.id, status: "rejected" })} disabled={actionMut.isPending}>
-                        <X className="h-3 w-3 me-1" />رفض
-                      </Button>
-                    </div>
-                  </TableCell>
+    <div className="p-4 sm:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-primary/10">
+          <UserCheck className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-foreground">اعتماد الطلبات</h1>
+          <p className="text-xs text-muted-foreground">Leave Approvals</p>
+        </div>
+      </div>
+
+      {/* KPI */}
+      <Card className="border-border/50"><CardContent className="p-3 sm:p-4">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1">Pending Requests / طلبات معلقة</p>
+        <p className="text-2xl font-bold text-amber-500">{pending.length.toLocaleString("ar-SA")}</p>
+      </CardContent></Card>
+
+      {/* Content */}
+      {!isLoading && pending.length === 0 ? (
+        <Card className="border-border/50">
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="p-4 rounded-full bg-primary/5">
+                <ShieldCheck className="h-10 w-10 text-primary/40" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-foreground">لا توجد طلبات تحتاج اعتماد</p>
+                <p className="text-sm text-muted-foreground">No pending requests to review</p>
+                <p className="text-xs text-muted-foreground/70 max-w-sm mx-auto mt-3">
+                  جميع طلبات الإجازات تم مراجعتها. ستظهر الطلبات الجديدة هنا تلقائياً.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-border/50 overflow-hidden">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="text-xs font-semibold">الموظف<br /><span className="text-muted-foreground/60 font-normal">Employee</span></TableHead>
+                  <TableHead className="text-xs font-semibold">نوع الإجازة<br /><span className="text-muted-foreground/60 font-normal">Leave Type</span></TableHead>
+                  <TableHead className="text-xs font-semibold">من<br /><span className="text-muted-foreground/60 font-normal">From</span></TableHead>
+                  <TableHead className="text-xs font-semibold">إلى<br /><span className="text-muted-foreground/60 font-normal">To</span></TableHead>
+                  <TableHead className="text-xs font-semibold">الأيام<br /><span className="text-muted-foreground/60 font-normal">Days</span></TableHead>
+                  <TableHead className="text-xs font-semibold">السبب<br /><span className="text-muted-foreground/60 font-normal">Reason</span></TableHead>
+                  <TableHead className="text-xs font-semibold">إجراء<br /><span className="text-muted-foreground/60 font-normal">Action</span></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent></Card>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={7} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-muted-foreground">جاري تحميل الطلبات المعلقة...</p>
+                    </div>
+                  </TableCell></TableRow>
+                ) : pending.map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/40 transition-colors">
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">{r.hr_employees?.first_name} {r.hr_employees?.last_name}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">{r.hr_employees?.employee_number}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{r.hr_leave_types?.name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground" dir="ltr">{r.start_date}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground" dir="ltr">{r.end_date}</TableCell>
+                    <TableCell className="font-medium tabular-nums">{Number(r.days_count)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{r.reason ?? "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1 text-xs"
+                          onClick={() => actionMut.mutate({ id: r.id, status: "approved" })}
+                          disabled={actionMut.isPending}
+                        >
+                          <Check className="h-3 w-3" />اعتماد
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="gap-1 text-xs"
+                          onClick={() => actionMut.mutate({ id: r.id, status: "rejected" })}
+                          disabled={actionMut.isPending}
+                        >
+                          <X className="h-3 w-3" />رفض
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
