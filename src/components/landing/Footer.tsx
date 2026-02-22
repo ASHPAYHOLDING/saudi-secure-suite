@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Link } from "react-router-dom";
 import { Mail, MapPin, ArrowUp, Shield, ExternalLink, Bell, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -278,4 +278,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default memo(Footer);
