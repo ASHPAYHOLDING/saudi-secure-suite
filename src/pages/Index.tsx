@@ -55,16 +55,38 @@ const Index = () => {
           <PowerStrip />
           <Suspense fallback={null}>
             <WhyNumaxioSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <ERPModulesSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <InvoiceDemo />
+          </Suspense>
+          <Suspense fallback={null}>
             <AIAccountantSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <ZATCAComplianceSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <SecurityStrip />
+          </Suspense>
+          <Suspense fallback={null}>
             <EnterpriseGovernanceSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <PaymentGatewaySection />
+          </Suspense>
+          <Suspense fallback={null}>
             <ExecutiveReportsSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <DynamicPricingSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <UseCasesSection />
+          </Suspense>
+          <Suspense fallback={null}>
             <FinalCTA />
           </Suspense>
         </main>
