@@ -365,59 +365,46 @@ const UpdatesPage = () => {
                     <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
                   </div>
 
-                  {/* Timeline line + cards */}
-                  <div className="relative">
-                    {/* Vertical line */}
-                    <div className="absolute start-5 sm:start-6 top-0 bottom-0 w-px bg-gradient-to-b from-accent/30 via-border to-transparent" />
-
-                    <div className="space-y-4">
-                      {section.map((update, i) => {
-                        const Icon = update.icon;
-                        const tagStyle = TAG_STYLES[update.tag] || TAG_STYLES["نظام جديد"];
-                        return (
-                          <motion.div
-                            key={si * ITEMS_PER_PAGE + i}
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, amount: 0.3 }}
-                            transition={{ duration: 0.35, delay: i * 0.06 }}
-                            className="relative ps-12 sm:ps-14"
-                          >
-                            {/* Dot on timeline */}
-                            <div className="absolute start-3 sm:start-4 top-5 sm:top-6 h-4 w-4 rounded-full border-2 border-accent bg-background z-10" />
-
-                            <div className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card hover:border-accent/30 hover:shadow-elevated transition-all duration-300">
-                              {/* Top meta */}
-                              <div className="flex items-center justify-between gap-2 mb-3">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold ${tagStyle}`}>
-                                    {update.tag}
-                                  </span>
-                                </div>
-                                <span className="text-[11px] font-medium text-muted-foreground tabular-nums shrink-0">
-                                  {update.time}
-                                </span>
-                              </div>
-
-                              {/* Content */}
-                              <div className="flex items-start gap-3">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors">
-                                  <Icon size={18} className="text-accent" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1">
-                                    {update.title}
-                                  </h3>
-                                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                                    {update.description}
-                                  </p>
-                                </div>
-                              </div>
+                  {/* Cards */}
+                  <div className="space-y-4">
+                    {section.map((update, i) => {
+                      const Icon = update.icon;
+                      const tagStyle = TAG_STYLES[update.tag] || TAG_STYLES["نظام جديد"];
+                      return (
+                        <motion.div
+                          key={si * ITEMS_PER_PAGE + i}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.3 }}
+                          transition={{ duration: 0.35, delay: i * 0.06 }}
+                        >
+                          <div className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-card hover:border-accent/30 hover:shadow-elevated transition-all duration-300 text-center">
+                            {/* Icon */}
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 group-hover:bg-accent/15 transition-colors mx-auto mb-3">
+                              <Icon size={20} className="text-accent" />
                             </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
+
+                            {/* Tag + Time */}
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold ${tagStyle}`}>
+                                {update.tag}
+                              </span>
+                              <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
+                                {update.time}
+                              </span>
+                            </div>
+
+                            {/* Content */}
+                            <h3 className="text-sm sm:text-base font-bold text-foreground mb-2">
+                              {update.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">
+                              {update.description}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               ))
