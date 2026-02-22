@@ -82,19 +82,35 @@ const BadgeCarousel = () => {
   }, [items.length]);
 
   return (
-    <div className="h-6 overflow-hidden relative w-full max-w-md">
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={index}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.3 }}
-          className="absolute inset-0 text-xs text-white/80 font-medium text-start"
-        >
-          {items[index]}
-        </motion.span>
-      </AnimatePresence>
+    <div className="flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/[0.08] backdrop-blur-sm px-4 py-3 max-w-sm">
+      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/20 shrink-0">
+        <span className="text-accent text-xs font-bold">⚡</span>
+      </div>
+      <div className="h-5 overflow-hidden relative flex-1 min-w-0">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={index}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -14 }}
+            transition={{ duration: 0.35 }}
+            className="absolute inset-0 text-sm text-white/90 font-medium text-start truncate"
+          >
+            {items[index]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      {/* Dots indicator */}
+      <div className="flex gap-1.5 shrink-0">
+        {items.map((_, i) => (
+          <span
+            key={i}
+            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+              i === index ? "bg-accent" : "bg-white/20"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
