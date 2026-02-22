@@ -101,6 +101,16 @@ const AuditIntelligencePage = lazy(() => import("@/components/audit/AuditIntelli
 const SystemInfrastructurePage = lazy(() => import("@/components/system/SystemInfrastructurePage"));
 const DocumentTemplateEditor = lazy(() => import("@/components/documents/DocumentTemplateEditor"));
 
+// ── HR ──
+const HrOverviewPage = lazy(() => import("@/components/hr/HrOverviewPage"));
+const HrEmployeesPage = lazy(() => import("@/components/hr/HrEmployeesPage"));
+const HrContractsPage = lazy(() => import("@/components/hr/HrContractsPage"));
+const HrOrgPage = lazy(() => import("@/components/hr/HrOrgPage"));
+const HrLeavePage = lazy(() => import("@/components/hr/HrLeavePage"));
+const HrAttendancePage = lazy(() => import("@/components/hr/HrAttendancePage"));
+const HrApprovalsPage = lazy(() => import("@/components/hr/HrApprovalsPage"));
+const HrReportsPage = lazy(() => import("@/components/hr/HrReportsPage"));
+
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
   path: string;
@@ -212,6 +222,16 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "permissions", element: PermissionsManagement, gateSegment: "permissions" },
   { path: "chat", element: ChatPage, gateSegment: "chat", module: "chat", permissionKey: "chat.view" },
   { path: "group", element: GroupDashboardPage, gateSegment: "group", module: "company" },
+
+  // ── HR ──
+  { path: "hr/employees", element: HrEmployeesPage, gateSegment: "hr-employees", module: "hr", permissionKey: "hr.manage_employees" },
+  { path: "hr/contracts", element: HrContractsPage, gateSegment: "hr-contracts", module: "hr", permissionKey: "hr.manage_contracts" },
+  { path: "hr/org", element: HrOrgPage, gateSegment: "hr-org", module: "hr", permissionKey: "hr.manage_org" },
+  { path: "hr/leave", element: HrLeavePage, gateSegment: "hr-leave", module: "hr", permissionKey: "hr.manage_leave" },
+  { path: "hr/attendance", element: HrAttendancePage, gateSegment: "hr-attendance", module: "hr", permissionKey: "hr.manage_attendance" },
+  { path: "hr/approvals", element: HrApprovalsPage, gateSegment: "hr-approvals", module: "hr", permissionKey: "hr.approve_leave" },
+  { path: "hr/reports", element: HrReportsPage, gateSegment: "hr-reports", module: "hr", permissionKey: "hr.view_reports" },
+  { path: "hr", element: HrOverviewPage, gateSegment: "hr", module: "hr", permissionKey: "hr.view" },
 
   // ── Settings & Admin ──
   { path: "company", element: CompanySettings, gateSegment: "company", module: "company" },

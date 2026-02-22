@@ -323,7 +323,56 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     description: "تصميم وإدارة قوالب المستندات (فواتير، أوامر شراء، قيود).",
   },
 
-  // ── Routes added in P1 gating fix ──
+  // ── HR Core ──
+  hr: {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.view"],
+    label: "الموارد البشرية",
+    description: "إدارة شؤون الموظفين والإجازات والحضور.",
+  },
+  "hr-employees": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_employees"],
+    label: "الموظفون",
+    description: "إدارة بيانات الموظفين وعقودهم.",
+  },
+  "hr-contracts": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_contracts"],
+    label: "عقود العمل",
+    description: "إدارة عقود الموظفين.",
+  },
+  "hr-org": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_org"],
+    label: "الهيكل التنظيمي",
+    description: "إدارة الأقسام والمسميات الوظيفية.",
+  },
+  "hr-leave": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_leave"],
+    label: "الإجازات",
+    description: "إدارة أنواع الإجازات والأرصدة والطلبات.",
+  },
+  "hr-attendance": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.manage_attendance"],
+    label: "الحضور والانصراف",
+    description: "تسجيل ومتابعة حضور الموظفين.",
+  },
+  "hr-approvals": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.approve_leave"],
+    label: "موافقات HR",
+    description: "اعتماد طلبات الإجازات.",
+  },
+  "hr-reports": {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["hr.view_reports"],
+    label: "تقارير HR",
+    description: "تقارير الموارد البشرية والإحصائيات.",
+  },
+
   "cost-profit-centers": {
     featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
     permissionKeys: ["finance.view_reports"],

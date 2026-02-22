@@ -5213,6 +5213,638 @@ export type Database = {
           },
         ]
       }
+      hr_allowances: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_taxable: boolean
+          name: string
+          name_en: string | null
+          tenant_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_taxable?: boolean
+          name: string
+          name_en?: string | null
+          tenant_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_taxable?: boolean
+          name?: string
+          name_en?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_allowances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_attendance_logs: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          import_job_id: string | null
+          log_date: string
+          notes: string | null
+          overtime_hours: number | null
+          source: Database["public"]["Enums"]["hr_attendance_source"]
+          status: string | null
+          tenant_id: string
+          updated_at: string
+          worked_hours: number | null
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          import_job_id?: string | null
+          log_date: string
+          notes?: string | null
+          overtime_hours?: number | null
+          source?: Database["public"]["Enums"]["hr_attendance_source"]
+          status?: string | null
+          tenant_id: string
+          updated_at?: string
+          worked_hours?: number | null
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          import_job_id?: string | null
+          log_date?: string
+          notes?: string | null
+          overtime_hours?: number | null
+          source?: Database["public"]["Enums"]["hr_attendance_source"]
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string
+          worked_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_attendance_import"
+            columns: ["import_job_id"]
+            isOneToOne: false
+            referencedRelation: "hr_import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_attendance_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_attendance_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_contracts: {
+        Row: {
+          basic_salary: number
+          contract_number: string
+          contract_type: Database["public"]["Enums"]["hr_contract_type"]
+          created_at: string
+          currency: string
+          employee_id: string
+          end_date: string | null
+          housing_allowance: number | null
+          id: string
+          is_current: boolean
+          notes: string | null
+          other_allowances: number | null
+          probation_end_date: string | null
+          start_date: string
+          tenant_id: string
+          terms_json: Json | null
+          total_salary: number | null
+          transport_allowance: number | null
+          updated_at: string
+        }
+        Insert: {
+          basic_salary?: number
+          contract_number: string
+          contract_type?: Database["public"]["Enums"]["hr_contract_type"]
+          created_at?: string
+          currency?: string
+          employee_id: string
+          end_date?: string | null
+          housing_allowance?: number | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          other_allowances?: number | null
+          probation_end_date?: string | null
+          start_date: string
+          tenant_id: string
+          terms_json?: Json | null
+          total_salary?: number | null
+          transport_allowance?: number | null
+          updated_at?: string
+        }
+        Update: {
+          basic_salary?: number
+          contract_number?: string
+          contract_type?: Database["public"]["Enums"]["hr_contract_type"]
+          created_at?: string
+          currency?: string
+          employee_id?: string
+          end_date?: string | null
+          housing_allowance?: number | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          other_allowances?: number | null
+          probation_end_date?: string | null
+          start_date?: string
+          tenant_id?: string
+          terms_json?: Json | null
+          total_salary?: number | null
+          transport_allowance?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_contracts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_employee_allowances: {
+        Row: {
+          allowance_id: string
+          amount: number
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          is_active: boolean
+          tenant_id: string
+        }
+        Insert: {
+          allowance_id: string
+          amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          is_active?: boolean
+          tenant_id: string
+        }
+        Update: {
+          allowance_id?: string
+          amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          is_active?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employee_allowances_allowance_id_fkey"
+            columns: ["allowance_id"]
+            isOneToOne: false
+            referencedRelation: "hr_allowances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employee_allowances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employee_allowances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_employees: {
+        Row: {
+          address: Json | null
+          avatar_url: string | null
+          bank_details: Json | null
+          branch_id: string | null
+          created_at: string
+          date_of_birth: string | null
+          department_id: string | null
+          email: string | null
+          emergency_contact: Json | null
+          employee_number: string
+          first_name: string
+          first_name_en: string | null
+          gender: string | null
+          hire_date: string
+          id: string
+          last_name: string
+          last_name_en: string | null
+          manager_id: string | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          phone: string | null
+          position_id: string | null
+          status: Database["public"]["Enums"]["hr_employee_status"]
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: Json | null
+          avatar_url?: string | null
+          bank_details?: Json | null
+          branch_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          department_id?: string | null
+          email?: string | null
+          emergency_contact?: Json | null
+          employee_number: string
+          first_name: string
+          first_name_en?: string | null
+          gender?: string | null
+          hire_date?: string
+          id?: string
+          last_name: string
+          last_name_en?: string | null
+          manager_id?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          position_id?: string | null
+          status?: Database["public"]["Enums"]["hr_employee_status"]
+          tenant_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: Json | null
+          avatar_url?: string | null
+          bank_details?: Json | null
+          branch_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          department_id?: string | null
+          email?: string | null
+          emergency_contact?: Json | null
+          employee_number?: string
+          first_name?: string
+          first_name_en?: string | null
+          gender?: string | null
+          hire_date?: string
+          id?: string
+          last_name?: string
+          last_name_en?: string | null
+          manager_id?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          position_id?: string | null
+          status?: Database["public"]["Enums"]["hr_employee_status"]
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "org_departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "org_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_rows: number | null
+          errors_json: Json | null
+          file_name: string | null
+          id: string
+          import_type: string
+          imported_by: string
+          status: Database["public"]["Enums"]["hr_import_status"]
+          tenant_id: string
+          total_rows: number | null
+          updated_at: string
+          valid_rows: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_rows?: number | null
+          errors_json?: Json | null
+          file_name?: string | null
+          id?: string
+          import_type?: string
+          imported_by: string
+          status?: Database["public"]["Enums"]["hr_import_status"]
+          tenant_id: string
+          total_rows?: number | null
+          updated_at?: string
+          valid_rows?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_rows?: number | null
+          errors_json?: Json | null
+          file_name?: string | null
+          id?: string
+          import_type?: string
+          imported_by?: string
+          status?: Database["public"]["Enums"]["hr_import_status"]
+          tenant_id?: string
+          total_rows?: number | null
+          updated_at?: string
+          valid_rows?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_import_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_leave_balances: {
+        Row: {
+          created_at: string
+          employee_id: string
+          entitled_days: number
+          id: string
+          leave_type_id: string
+          remaining_days: number | null
+          tenant_id: string
+          updated_at: string
+          used_days: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          entitled_days?: number
+          id?: string
+          leave_type_id: string
+          remaining_days?: number | null
+          tenant_id: string
+          updated_at?: string
+          used_days?: number
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          entitled_days?: number
+          id?: string
+          leave_type_id?: string
+          remaining_days?: number | null
+          tenant_id?: string
+          updated_at?: string
+          used_days?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_leave_balances_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "hr_leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_leave_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_leave_requests: {
+        Row: {
+          attachment_url: string | null
+          created_at: string
+          days_count: number
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type_id: string
+          reason: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["hr_leave_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string
+          days_count: number
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type_id: string
+          reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["hr_leave_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string
+          days_count?: number
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type_id?: string
+          reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["hr_leave_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_leave_requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "hr_leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_leave_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_leave_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_leave_types: {
+        Row: {
+          code: string | null
+          color: string | null
+          created_at: string
+          default_days: number
+          id: string
+          is_active: boolean
+          is_paid: boolean
+          name: string
+          name_en: string | null
+          requires_attachment: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          default_days?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          name: string
+          name_en?: string | null
+          requires_attachment?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          default_days?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          name?: string
+          name_en?: string | null
+          requires_attachment?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_leave_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_updates: {
         Row: {
           created_at: string
@@ -6925,6 +7557,118 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ocr_usage_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_departments: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          manager_id: string | null
+          name: string
+          name_en: string | null
+          parent_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name?: string
+          name_en?: string | null
+          parent_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_dept_manager"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_departments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "org_departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_positions: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          grade: string | null
+          id: string
+          is_active: boolean
+          tenant_id: string
+          title: string
+          title_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          grade?: string | null
+          id?: string
+          is_active?: boolean
+          tenant_id: string
+          title: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          grade?: string | null
+          id?: string
+          is_active?: boolean
+          tenant_id?: string
+          title?: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_positions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "org_departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_positions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -14208,6 +14952,10 @@ export type Database = {
       }
       get_edge_latency_by_function: { Args: { _since?: string }; Returns: Json }
       get_edge_latency_percentiles: { Args: { _since?: string }; Returns: Json }
+      get_employee_id: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: string
+      }
       get_entitlements_cached: { Args: { p_tenant_id: string }; Returns: Json }
       get_event_subscribers: {
         Args: { p_domain: string; p_event_type: string }
@@ -14382,6 +15130,14 @@ export type Database = {
       is_enterprise_tenant: { Args: { p_tenant_id: string }; Returns: boolean }
       is_group_admin: {
         Args: { _parent_tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_hr_manager: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_manager_of: {
+        Args: { p_employee_id: string; p_user_id: string }
         Returns: boolean
       }
       is_period_locked: {
@@ -14726,6 +15482,27 @@ export type Database = {
         | "segregation_of_duties"
         | "transaction_limit"
         | "restricted_access"
+      hr_attendance_source: "manual" | "csv_import" | "biometric" | "system"
+      hr_contract_type:
+        | "full_time"
+        | "part_time"
+        | "contract"
+        | "internship"
+        | "probation"
+      hr_employee_status:
+        | "active"
+        | "on_leave"
+        | "suspended"
+        | "terminated"
+        | "resigned"
+      hr_import_status:
+        | "pending"
+        | "validating"
+        | "validated"
+        | "importing"
+        | "completed"
+        | "failed"
+      hr_leave_status: "pending" | "approved" | "rejected" | "cancelled"
       integration_alert_severity: "info" | "warn" | "critical"
       integration_health_status: "healthy" | "degraded" | "down"
       journal_approval_status: "none" | "pending" | "approved" | "rejected"
@@ -14896,6 +15673,30 @@ export const Constants = {
         "transaction_limit",
         "restricted_access",
       ],
+      hr_attendance_source: ["manual", "csv_import", "biometric", "system"],
+      hr_contract_type: [
+        "full_time",
+        "part_time",
+        "contract",
+        "internship",
+        "probation",
+      ],
+      hr_employee_status: [
+        "active",
+        "on_leave",
+        "suspended",
+        "terminated",
+        "resigned",
+      ],
+      hr_import_status: [
+        "pending",
+        "validating",
+        "validated",
+        "importing",
+        "completed",
+        "failed",
+      ],
+      hr_leave_status: ["pending", "approved", "rejected", "cancelled"],
       integration_alert_severity: ["info", "warn", "critical"],
       integration_health_status: ["healthy", "degraded", "down"],
       journal_approval_status: ["none", "pending", "approved", "rejected"],

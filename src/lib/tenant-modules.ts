@@ -41,7 +41,8 @@ export type Module =
   | "supplier-inbox"
   | "payment-reminders"
   | "help"
-  | "enterprise";
+  | "enterprise"
+  | "hr";
 
 const MODULE_ACCESS: Record<TenantType, Module[]> = {
   individual: ["dashboard", "billing", "quotations", "expenses", "finance", "payment-reminders", "sheet-view", "chat", "subscription", "settings", "help"],
@@ -78,6 +79,7 @@ const MODULE_ACCESS: Record<TenantType, Module[]> = {
     "settings",
     "help",
     "enterprise",
+    "hr",
   ],
 };
 
