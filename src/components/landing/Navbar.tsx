@@ -80,22 +80,25 @@ const Navbar = () => {
   const menuLabel = currentLang === "ar" ? "القائمة" : "Menu";
 
   return (
-    <nav
-      className={`fixed top-0 inset-inline-0 z-50 h-16 transition-[background-color,border-color,box-shadow] duration-300 ${
-        scrolled
-          ? "border-b border-border/50 bg-background/90 backdrop-blur-xl shadow-sm"
-          : "bg-transparent"
-      }`}
-    >
-      {/* 3-zone grid: [Brand] [Nav] [Actions] */}
-      <div className="max-w-6xl mx-auto grid h-16 items-center px-4 sm:px-6 lg:px-8 grid-cols-[auto_1fr_auto]">
-        {/* Zone 1: Brand — anchored to inline-start */}
+    <header className="fixed top-0 inset-inline-0 z-50 h-16">
+      {/* Background layer — always visible */}
+      <div
+        className={`absolute inset-0 transition-all duration-300 ${
+          scrolled
+            ? "bg-background shadow-md border-b border-border"
+            : "bg-black/30 backdrop-blur-md"
+        }`}
+      />
+
+      {/* Content */}
+      <div className="relative max-w-6xl mx-auto grid h-16 items-center px-4 sm:px-6 lg:px-8 grid-cols-[auto_1fr_auto]">
+        {/* Zone 1: Brand */}
         <Link to="/" className="flex items-center shrink-0">
           <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
         </Link>
 
-        {/* Zone 2: Centered nav links (desktop only) */}
-        <div className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 min-w-0">
+        {/* Zone 2: Centered nav (desktop) */}
+        <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 min-w-0">
           {links.map((link) => {
             const isActive = activeSection === link.href.replace("#", "");
             return (
@@ -110,7 +113,7 @@ const Navbar = () => {
                       : "text-muted-foreground hover:text-foreground"
                     : isActive
                       ? "text-white"
-                      : "text-white/80 hover:text-white"
+                      : "text-white/70 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -124,18 +127,17 @@ const Navbar = () => {
               </a>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Zone 3: Actions — anchored to inline-end */}
+        {/* Zone 3: Actions */}
         <div className="flex items-center justify-end gap-2">
-          {/* Desktop actions */}
           <div className="hidden lg:flex items-center gap-2">
             <button
               onClick={toggleLanguage}
               className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition-colors ${
                 scrolled
                   ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  : "text-white/80 hover:text-white hover:bg-white/10"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
               }`}
               aria-label="Switch language"
             >
@@ -147,7 +149,7 @@ const Navbar = () => {
                 size="sm"
                 className={`min-h-[44px] ${
                   scrolled
-                    ? "text-foreground"
+                    ? "text-foreground hover:bg-muted"
                     : "text-white hover:bg-white/10"
                 }`}
               >
@@ -233,7 +235,7 @@ const Navbar = () => {
           </div>
         </SheetContent>
       </Sheet>
-    </nav>
+    </header>
   );
 };
 
