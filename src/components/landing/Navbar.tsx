@@ -7,6 +7,7 @@ import MobileDrawer from "@/components/landing/MobileDrawer";
 import type { NavItem } from "@/components/landing/MobileDrawer";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
+import { scrollToSection } from "@/lib/scrollToSection";
 
 /* ── Single source of truth for nav items ── */
 const navLinks: Record<string, NavItem[]> = {
@@ -64,17 +65,22 @@ const Navbar = () => {
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
-  /* ── Smooth scroll handler (shared between desktop & mobile) ── */
-  const handleNavClick = useCallback(
+  /* ── Desktop nav click ── */
+  const handleDesktopNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
-      if (href === "#home") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        const el = document.getElementById(href.replace("#", ""));
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      scrollToSection(href.replace("#", ""));
+    },
+    []
+  );
+
+  /* ── Mobile nav click: close drawer first, then scroll ── */
+  const handleMobileNavClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      e.preventDefault();
       setMobileOpen(false);
+      // Wait for drawer close animation (300ms) before scrolling
+      scrollToSection(href.replace("#", ""), 320);
     },
     []
   );
@@ -106,7 +112,7 @@ const Navbar = () => {
                 <a
                   key={link.href}
                   href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
+                  onClick={(e) => handleDesktopNavClick(e, link.href)}
                   className={cn(
                     "text-sm font-medium px-3 xl:px-4 py-2 rounded-md transition-colors whitespace-nowrap",
                     scrolled
@@ -189,7 +195,7 @@ const Navbar = () => {
         onClose={closeMobile}
         links={links}
         activeSection={activeSection}
-        onNavClick={handleNavClick}
+        onNavClick={handleMobileNavClick}
         currentLang={currentLang}
         onToggleLanguage={toggleLanguage}
         ctaLabel={ctaLabel}
