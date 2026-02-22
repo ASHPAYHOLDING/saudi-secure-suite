@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Users, UserPlus } from "lucide-react";
+import { Plus, Search, Users, UserPlus, AlertTriangle } from "lucide-react";
+import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
+import { FEATURE_KEYS } from "@/lib/entitlement-types";
+import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +27,9 @@ const STATUS_MAP: Record<string, { labelAr: string; labelEn: string; variant: "d
 export default function HrEmployeesPage() {
   const { tenantId } = useAuth();
   const qc = useQueryClient();
+  const { entitlementsMap } = useEntitlementsContext();
+  const maxUsersEntry = entitlementsMap[FEATURE_KEYS.MAX_USERS];
+  const employeeLimit = maxUsersEntry?.limit ?? null; // null = unlimited
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -74,6 +80,9 @@ export default function HrEmployeesPage() {
   };
 
   const activeCount = employees.filter((e: any) => e.status === "active").length;
+  const totalCount = employees.length;
+  const isAtLimit = employeeLimit !== null && totalCount >= employeeLimit;
+  const usagePercent = employeeLimit ? Math.min((totalCount / employeeLimit) * 100, 100) : 0;
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -88,7 +97,12 @@ export default function HrEmployeesPage() {
             <p className="text-xs text-muted-foreground">Employee Management</p>
           </div>
         </div>
-        <Button onClick={() => setDrawerOpen(true)} size="sm" className="gap-1.5">
+        <Button
+          onClick={() => setDrawerOpen(true)}
+          size="sm"
+          className="gap-1.5 min-h-[48px]"
+          disabled={isAtLimit}
+        >
           <UserPlus className="h-4 w-4" />
           <span>إضافة موظف</span>
         </Button>
@@ -121,6 +135,31 @@ export default function HrEmployeesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Employee Limit Banner */}
+      {employeeLimit !== null && (
+        <Card className={`border-border/50 ${isAtLimit ? 'border-destructive/50 bg-destructive/5' : ''}`}>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                {isAtLimit && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                <p className="text-xs font-semibold text-foreground">
+                  عداد الموظفين | Employee Quota
+                </p>
+              </div>
+              <p className="text-sm font-bold tabular-nums">
+                {totalCount.toLocaleString("ar-SA")} / {employeeLimit.toLocaleString("ar-SA")}
+              </p>
+            </div>
+            <Progress value={usagePercent} className="h-2" />
+            {isAtLimit && (
+              <p className="text-xs text-destructive mt-2">
+                تم الوصول للحد الأقصى من الموظفين. يرجى ترقية الباقة لإضافة المزيد.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
@@ -209,7 +248,7 @@ export default function HrEmployeesPage() {
 
       {/* Drawer */}
       <Sheet open={drawerOpen} onOpenChange={(o) => { if (!o) closeDrawer(); }}>
-        <SheetContent side="left" className="w-full sm:w-[420px] overflow-y-auto">
+        <SheetContent side={document.documentElement.dir === "rtl" ? "right" : "left"} className="w-full sm:w-[420px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{editId ? "تعديل بيانات الموظف" : "إضافة موظف جديد"}</SheetTitle>
             <SheetDescription>{editId ? "Edit Employee Details" : "Add New Employee"}</SheetDescription>

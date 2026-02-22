@@ -278,7 +278,7 @@ export default function HrContractsPage() {
 
       {/* Employee Contract Drawer */}
       <Sheet open={drawerOpen} onOpenChange={(o) => { if (!o) { setDrawerOpen(false); setSelectedEmployee(null); } }}>
-        <SheetContent side="left" className="w-full sm:w-[520px] overflow-y-auto">
+        <SheetContent side={document.documentElement.dir === "rtl" ? "right" : "left"} className="w-full sm:w-[520px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
               عقد التأمينات — {selectedEmployee?.first_name} {selectedEmployee?.last_name}
