@@ -166,27 +166,31 @@ const EnterpriseUpgradeWall = ({ compact = false, featureContext }: Props) => {
 
       <Separator />
 
-      {/* Comparison */}
+      {/* Value Proposition */}
       <Wrapper {...fadeProps(0.6)} className="text-center space-y-4">
-        <h2 className="text-xl font-bold">{isAr ? "لماذا نيوماكسيو وليس SAP؟" : "Why Numaxio, Not SAP?"}</h2>
-        <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+        <h2 className="text-xl font-bold">{isAr ? "لماذا نيوماكسيو للمؤسسات؟" : "Why Numaxio for Enterprises?"}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
           <Card className="border-accent/20">
             <CardContent className="pt-4 text-center space-y-1">
-              <Badge className="enterprise-indicator text-[10px]">Numaxio</Badge>
-              <p className="text-2xl font-bold text-accent">~5,000</p>
-              <p className="text-xs text-muted-foreground">{isAr ? "ريال/سنة" : "SAR/year"}</p>
+              <p className="text-2xl font-bold text-accent">100%</p>
+              <p className="text-xs text-muted-foreground">{isAr ? "دعم سعودي" : "Saudi Support"}</p>
             </CardContent>
           </Card>
-          <Card className="opacity-60">
+          <Card className="border-accent/20">
             <CardContent className="pt-4 text-center space-y-1">
-              <Badge variant="outline" className="text-[10px]">SAP</Badge>
-              <p className="text-2xl font-bold text-muted-foreground">500,000+</p>
-              <p className="text-xs text-muted-foreground">{isAr ? "ريال/سنة" : "SAR/year"}</p>
+              <p className="text-2xl font-bold text-accent">ZATCA</p>
+              <p className="text-xs text-muted-foreground">{isAr ? "جاهز Phase 2" : "Phase 2 Ready"}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20">
+            <CardContent className="pt-4 text-center space-y-1">
+              <p className="text-2xl font-bold text-accent">24/7</p>
+              <p className="text-xs text-muted-foreground">{isAr ? "حوكمة مؤسسية" : "Enterprise Governance"}</p>
             </CardContent>
           </Card>
         </div>
         <p className="text-sm text-muted-foreground">
-          {isAr ? "نفس مستوى الحوكمة. 1% من التكلفة. بدعم سعودي 100%." : "Same governance level. 1% of the cost. 100% Saudi support."}
+          {isAr ? "حوكمة مؤسسية كاملة بتكلفة مناسبة وبدعم سعودي 100%." : "Full enterprise governance at an affordable cost with 100% Saudi support."}
         </p>
       </Wrapper>
 
