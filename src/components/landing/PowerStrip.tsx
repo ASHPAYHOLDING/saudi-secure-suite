@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import { Zap, Shield, Clock, Building2 } from "lucide-react";
+import { Zap, Shield, Clock, Building2, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const AnimatedCounter = ({ target, suffix, inView }: { target: number; suffix: string; inView: boolean }) => {
@@ -8,8 +8,8 @@ const AnimatedCounter = ({ target, suffix, inView }: { target: number; suffix: s
 
   useEffect(() => {
     if (!inView) return;
-    const duration = 1500;
-    const steps = 40;
+    const duration = 1800;
+    const steps = 50;
     const increment = target / steps;
     let current = 0;
     const timer = setInterval(() => {
@@ -32,39 +32,65 @@ const AnimatedCounter = ({ target, suffix, inView }: { target: number; suffix: s
   );
 };
 
+interface Metric {
+  icon: LucideIcon;
+  value: number;
+  suffix: string;
+  label: string;
+  color: string;
+}
+
 const PowerStrip = () => {
   const { t } = useTranslation();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
-  const metrics = [
-    { icon: Clock, value: 10, suffix: "s", label: t("landing.kpis.invoiceSpeed") },
-    { icon: Shield, value: 100, suffix: "%", label: t("landing.kpis.zatcaReady") },
-    { icon: Zap, value: 99.9, suffix: "%", label: t("landing.kpis.uptime") },
-    { icon: Building2, value: 1200, suffix: "+", label: t("landing.kpis.companies") },
+  const metrics: Metric[] = [
+    { icon: Shield, value: 100, suffix: "%", label: t("landing.kpis.zatcaReady"), color: "text-emerald-400" },
+    { icon: Clock, value: 10, suffix: "s", label: t("landing.kpis.invoiceSpeed"), color: "text-sky-400" },
+    { icon: Building2, value: 1200, suffix: "+", label: t("landing.kpis.companies"), color: "text-violet-400" },
+    { icon: Zap, value: 99.9, suffix: "%", label: t("landing.kpis.uptime"), color: "text-amber-400" },
   ];
 
   return (
-    <section className="py-6 bg-background border-y border-border/50" ref={ref}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+    <section ref={ref} className="relative py-16 md:py-20 overflow-hidden">
+      {/* Subtle gradient background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg, hsl(220 25% 6%) 0%, hsl(220 30% 10%) 50%, hsl(220 25% 6%) 100%)",
+        }}
+      />
+      {/* Faint radial glow */}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background: "radial-gradient(ellipse 60% 40% at 50% 50%, hsl(172 50% 30% / 0.15), transparent)",
+        }}
+      />
+
+      <div className="relative max-w-5xl mx-auto px-6 md:px-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {metrics.map((m, i) => (
             <motion.div
               key={m.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.1, duration: 0.4 }}
-              className="flex items-center gap-3 justify-center py-3"
+              transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
+              className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm p-6 md:p-7 text-center transition-colors duration-300 hover:border-white/[0.12] hover:bg-white/[0.05]"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <m.icon size={18} />
+              {/* Icon */}
+              <div className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.06] ${m.color} transition-transform duration-300 group-hover:scale-110`}>
+                <m.icon size={20} strokeWidth={1.8} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-accent">
-                  <AnimatedCounter target={m.value} suffix={m.suffix} inView={isInView} />
-                </p>
-                <p className="text-xs text-muted-foreground">{m.label}</p>
-              </div>
+
+              {/* Value */}
+              <p className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-none mb-1.5">
+                <AnimatedCounter target={m.value} suffix={m.suffix} inView={isInView} />
+              </p>
+
+              {/* Label */}
+              <p className="text-sm text-white/50 leading-snug">{m.label}</p>
             </motion.div>
           ))}
         </div>
