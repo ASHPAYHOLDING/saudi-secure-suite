@@ -84,7 +84,7 @@ const Navbar = () => {
         "sticky top-0 z-50 w-full h-16 transition-colors duration-300",
         scrolled
           ? "bg-background/95 backdrop-blur-lg border-b border-border shadow-sm"
-          : "bg-[hsl(220,25%,10%)] border-b border-transparent"
+          : "bg-transparent border-b border-transparent"
       )}
     >
       <div className="max-w-6xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
