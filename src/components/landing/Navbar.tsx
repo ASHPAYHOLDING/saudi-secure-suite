@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = {
   ar: [
+    { label: "الرئيسية", href: "#home" },
     { label: "المميزات", href: "#features" },
     { label: "لماذا Numaxio", href: "#why" },
     { label: "الامتثال", href: "#compliance" },
@@ -16,6 +17,7 @@ const navLinks = {
     { label: "تواصل معنا", href: "#contact" },
   ],
   en: [
+    { label: "Home", href: "#home" },
     { label: "Features", href: "#features" },
     { label: "Why Numaxio", href: "#why" },
     { label: "Compliance", href: "#compliance" },
@@ -24,7 +26,7 @@ const navLinks = {
   ],
 };
 
-const sectionIds = ["features", "why", "compliance", "pricing", "contact"];
+const sectionIds = ["home", "features", "why", "compliance", "pricing", "contact"];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -62,8 +64,12 @@ const Navbar = () => {
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
-      const el = document.getElementById(href.replace("#", ""));
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (href === "#home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        const el = document.getElementById(href.replace("#", ""));
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       setMobileOpen(false);
     },
     []
