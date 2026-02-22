@@ -97,7 +97,7 @@ const Navbar = () => {
 
         {/* ═══ 1 · Brand (inline-start) ═══ */}
         <Link to="/" className="shrink-0 flex items-center">
-          <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
+          <NumaxioLogo variant={scrolled ? "dark" : "light"} size="md" />
         </Link>
 
         {/* ═══ 2 · Center Nav ═══ */}
