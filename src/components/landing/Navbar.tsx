@@ -34,6 +34,7 @@ const Navbar = () => {
 
   const links = navLinks[currentLang === "ar" ? "ar" : "en"];
 
+  /* ── Scroll ── */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -41,6 +42,7 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /* ── Section observer ── */
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
     sectionIds.forEach((id) => {
@@ -56,6 +58,7 @@ const Navbar = () => {
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
+  /* ── Smooth scroll ── */
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
@@ -66,6 +69,7 @@ const Navbar = () => {
     []
   );
 
+  /* ── Body scroll lock ── */
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -75,114 +79,113 @@ const Navbar = () => {
   const loginLabel = currentLang === "ar" ? "تسجيل الدخول" : "Login";
 
   return (
-    <>
-      {/* Spacer to prevent content from hiding behind fixed header */}
-      <div className="h-16" />
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full h-16 transition-colors duration-300",
+        scrolled
+          ? "bg-background/95 backdrop-blur-lg border-b border-border shadow-sm"
+          : "bg-[hsl(220,25%,10%)] border-b border-transparent"
+      )}
+    >
+      <div className="max-w-6xl mx-auto h-full grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
 
-      <header
-        className={cn(
-          "fixed top-0 inset-inline-0 z-50 transition-all duration-300",
-          scrolled
-            ? "bg-background/98 backdrop-blur-lg shadow-sm border-b border-border"
-            : "bg-[hsl(220,25%,12%)]/95 backdrop-blur-md"
-        )}
-      >
-        <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* ═══ 1 · Brand (inline-start) ═══ */}
+        <Link to="/" className="shrink-0 flex items-center">
+          <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
+        </Link>
 
-          {/* ═══ Brand ═══ */}
-          <Link to="/" className="flex items-center shrink-0">
-            <NumaxioLogo variant={scrolled ? "dark" : "light"} size="sm" />
-          </Link>
-
-          {/* ═══ Desktop Nav (centered) ═══ */}
-          <nav className="hidden lg:flex items-center gap-1 absolute inset-inline-start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
-            {links.map((link) => {
-              const isActive = activeSection === link.href.replace("#", "");
-              return (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className={cn(
-                    "relative text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-200 whitespace-nowrap",
-                    scrolled
-                      ? isActive
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      : isActive
-                        ? "text-white bg-white/15"
-                        : "text-white/70 hover:text-white hover:bg-white/10"
-                  )}
-                >
-                  {link.label}
-                </a>
-              );
-            })}
-          </nav>
-
-          {/* ═══ Actions ═══ */}
-          <div className="flex items-center gap-2">
-            {/* Language */}
-            <button
-              onClick={toggleLanguage}
-              className={cn(
-                "hidden sm:flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
-                scrolled
-                  ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              )}
-              aria-label="Switch language"
-            >
-              <Globe size={16} />
-            </button>
-
-            {/* Login */}
-            <Link to="/auth" className="hidden lg:block">
-              <Button
-                variant="ghost"
-                size="sm"
+        {/* ═══ 2 · Center Nav ═══ */}
+        <nav className="hidden lg:flex items-center justify-center gap-1 min-w-0">
+          {links.map((link) => {
+            const isActive = activeSection === link.href.replace("#", "");
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={cn(
-                  "h-9 rounded-lg font-medium",
+                  "text-sm font-medium px-3 xl:px-4 py-2 rounded-md transition-colors whitespace-nowrap",
                   scrolled
-                    ? "text-foreground hover:bg-muted"
-                    : "text-white hover:bg-white/10"
+                    ? isActive
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : isActive
+                      ? "text-white bg-white/15"
+                      : "text-white/70 hover:text-white hover:bg-white/[0.08]"
                 )}
               >
-                {loginLabel}
-              </Button>
-            </Link>
+                {link.label}
+              </a>
+            );
+          })}
+        </nav>
 
-            {/* CTA */}
-            <Link to="/auth" className="hidden sm:block">
-              <Button
-                size="sm"
-                className="h-9 px-5 rounded-lg bg-accent text-accent-foreground font-bold hover:bg-accent/90 shadow-md transition-all"
-              >
-                {ctaLabel}
-              </Button>
-            </Link>
+        {/* Empty spacer for mobile when nav is hidden */}
+        <div className="lg:hidden" />
 
-            {/* Mobile toggle */}
-            <button
+        {/* ═══ 3 · Actions (inline-end) ═══ */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Language */}
+          <button
+            onClick={toggleLanguage}
+            className={cn(
+              "hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-md transition-colors",
+              scrolled
+                ? "text-muted-foreground hover:text-foreground hover:bg-muted"
+                : "text-white/60 hover:text-white hover:bg-white/[0.08]"
+            )}
+            aria-label="Switch language"
+          >
+            <Globe size={16} />
+          </button>
+
+          {/* Login — desktop */}
+          <Link to="/auth" className="hidden lg:inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                "lg:hidden flex items-center justify-center w-10 h-10 rounded-lg transition-colors",
+                "h-9 rounded-md font-medium",
                 scrolled
                   ? "text-foreground hover:bg-muted"
-                  : "text-white hover:bg-white/10"
+                  : "text-white/90 hover:text-white hover:bg-white/[0.08]"
               )}
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-      </header>
+              {loginLabel}
+            </Button>
+          </Link>
 
-      {/* ═══ Mobile Menu ═══ */}
+          {/* CTA */}
+          <Link to="/auth" className="hidden sm:inline-flex">
+            <Button
+              size="sm"
+              className="h-9 px-4 rounded-md bg-accent text-accent-foreground font-bold hover:bg-accent/90 transition-colors"
+            >
+              {ctaLabel}
+            </Button>
+          </Link>
+
+          {/* Mobile hamburger */}
+          <button
+            className={cn(
+              "lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md transition-colors",
+              scrolled
+                ? "text-foreground hover:bg-muted"
+                : "text-white/80 hover:text-white hover:bg-white/[0.08]"
+            )}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      </div>
+
+      {/* ═══ Mobile Drawer ═══ */}
       <AnimatePresence>
         {mobileOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -192,30 +195,35 @@ const Navbar = () => {
               onClick={() => setMobileOpen(false)}
             />
 
+            {/* Panel */}
             <motion.div
               initial={{ opacity: 0, x: isRTL ? 300 : -300 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRTL ? 300 : -300 }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               className={cn(
-                "fixed top-0 bottom-0 z-50 w-[300px] bg-background shadow-2xl lg:hidden flex flex-col",
-                isRTL ? "inset-inline-end-0 border-s border-border" : "inset-inline-start-0 border-e border-border"
+                "fixed top-0 bottom-0 z-50 w-[min(300px,85vw)] bg-background shadow-2xl lg:hidden flex flex-col",
+                isRTL
+                  ? "inset-inline-end-0 border-s border-border"
+                  : "inset-inline-start-0 border-e border-border"
               )}
+              role="dialog"
+              aria-modal="true"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between h-16 px-5 border-b border-border">
+              {/* Drawer header */}
+              <div className="flex items-center justify-between h-16 px-4 border-b border-border shrink-0">
                 <NumaxioLogo variant="dark" size="sm" />
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground"
+                  className="w-9 h-9 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground"
                   aria-label="Close"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Links */}
-              <div className="flex-1 overflow-y-auto py-3 px-3">
+              {/* Drawer links */}
+              <div className="flex-1 overflow-y-auto py-2 px-3">
                 {links.map((link) => {
                   const isActive = activeSection === link.href.replace("#", "");
                   return (
@@ -224,7 +232,7 @@ const Navbar = () => {
                       href={link.href}
                       onClick={(e) => handleNavClick(e, link.href)}
                       className={cn(
-                        "flex items-center text-sm font-medium min-h-[44px] px-4 rounded-lg transition-colors mb-0.5",
+                        "flex items-center text-sm font-medium min-h-[44px] px-3 rounded-md transition-colors",
                         isActive
                           ? "text-primary bg-primary/10 font-semibold"
                           : "text-foreground hover:bg-muted"
@@ -236,22 +244,22 @@ const Navbar = () => {
                 })}
               </div>
 
-              {/* Footer */}
-              <div className="p-4 border-t border-border space-y-2">
+              {/* Drawer footer */}
+              <div className="p-4 border-t border-border space-y-2 shrink-0">
                 <button
                   onClick={() => { toggleLanguage(); setMobileOpen(false); }}
-                  className="flex items-center gap-3 w-full min-h-[44px] px-4 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 w-full min-h-[44px] px-3 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
                 >
                   <Globe size={16} />
                   {currentLang === "ar" ? "English" : "العربية"}
                 </button>
                 <Link to="/auth" onClick={() => setMobileOpen(false)} className="block">
-                  <Button variant="outline" className="w-full h-11 rounded-lg">
+                  <Button variant="outline" className="w-full h-11 rounded-md">
                     {loginLabel}
                   </Button>
                 </Link>
                 <Link to="/auth" onClick={() => setMobileOpen(false)} className="block">
-                  <Button className="w-full h-11 rounded-lg bg-accent text-accent-foreground font-bold">
+                  <Button className="w-full h-11 rounded-md bg-accent text-accent-foreground font-bold">
                     {ctaLabel}
                   </Button>
                 </Link>
@@ -260,7 +268,7 @@ const Navbar = () => {
           </>
         )}
       </AnimatePresence>
-    </>
+    </header>
   );
 };
 
