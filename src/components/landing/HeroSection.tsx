@@ -13,15 +13,15 @@ const kpis = [
 ];
 
 const DashboardMock = () => (
-  <div className="relative rounded-2xl border border-primary-foreground/10 bg-primary-foreground/[0.05] backdrop-blur-sm shadow-2xl p-4 lg:p-5">
-    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-primary-foreground/10">
+  <div className="relative rounded-2xl border border-white/10 bg-white/[0.05] backdrop-blur-sm shadow-2xl p-4 lg:p-5">
+    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/10">
       <div className="flex gap-1.5">
         <div className="w-2.5 h-2.5 rounded-full bg-destructive/40" />
         <div className="w-2.5 h-2.5 rounded-full bg-warning/40" />
         <div className="w-2.5 h-2.5 rounded-full bg-accent/60" />
       </div>
       <div className="flex-1 text-center">
-        <span className="text-[10px] text-primary-foreground/30 bg-primary-foreground/5 px-3 py-0.5 rounded-full font-english" dir="ltr">
+        <span className="text-[10px] text-white/50 bg-white/5 px-3 py-0.5 rounded-full font-english" dir="ltr">
           app.numaxio.com/dashboard
         </span>
       </div>
@@ -34,11 +34,11 @@ const DashboardMock = () => (
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 + i * 0.1 }}
-          className="rounded-xl bg-primary-foreground/[0.06] border border-primary-foreground/[0.08] p-2.5 lg:p-3"
+          className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-2.5 lg:p-3"
         >
-          <p className="text-[10px] text-primary-foreground/40 mb-1">{kpi.labelKey}</p>
+          <p className="text-[10px] text-white/60 mb-1">{kpi.labelKey}</p>
           <div className="flex items-baseline gap-2">
-            <span className="font-bold text-primary-foreground/90 text-xs lg:text-sm">{kpi.value}</span>
+            <span className="font-bold text-white/90 text-xs lg:text-sm">{kpi.value}</span>
             <span className="text-[10px] font-semibold text-accent">{kpi.trend}</span>
           </div>
         </motion.div>
@@ -48,17 +48,17 @@ const DashboardMock = () => (
     <div className="flex items-center gap-2 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 mb-3">
       <Shield size={14} className="text-accent" />
       <span className="text-[11px] text-accent font-medium">ZATCA Phase 2 — متوافق ✓</span>
-      <span className="ms-auto text-[10px] text-accent/60">آخر مزامنة: الآن</span>
+      <span className="ms-auto text-[10px] text-accent/80">آخر مزامنة: الآن</span>
     </div>
 
-    <div className="rounded-xl bg-primary-foreground/[0.08] border border-accent/20 p-3">
+    <div className="rounded-xl bg-white/[0.08] border border-accent/20 p-3">
       <div className="flex items-start gap-2">
         <div className="w-6 h-6 rounded-lg bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
           <Bot size={12} className="text-accent" />
         </div>
         <div className="min-w-0">
           <p className="text-[10px] text-accent font-semibold mb-0.5">توصية AI</p>
-          <p className="text-[11px] text-primary-foreground/70 leading-relaxed">
+          <p className="text-[11px] text-white/80 leading-relaxed">
             لاحظت ارتفاع DSO بمقدار 3 أيام. يُوصى بتفعيل التحصيل الذكي لـ 4 عملاء متأخرين.
           </p>
         </div>
@@ -90,7 +90,7 @@ const BadgeCarousel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.3 }}
-          className="absolute inset-inline-0 text-xs text-primary-foreground/60 font-medium"
+          className="absolute inset-inline-0 text-xs text-white/80 font-medium"
         >
           {items[index]}
         </motion.span>
@@ -145,19 +145,19 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="font-bold text-primary-foreground"
+              className="font-bold text-white"
               style={{ fontSize: "clamp(24px, 4vw, 52px)", lineHeight: 1.3, overflowWrap: "anywhere" }}
             >
-              {t("landing.hero.title1")}
+              <span className="text-accent">{t("landing.hero.title1")}</span>
               <br />
-              <span className="text-gradient">{t("landing.hero.title2")}</span>
+              <span>{t("landing.hero.title2")}</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="max-w-lg text-primary-foreground/90"
+              className="max-w-lg text-white/90"
               style={{ fontSize: "clamp(14px, 1.5vw, 18px)", lineHeight: 1.8 }}
             >
               {t("landing.hero.subtitle")}
@@ -176,7 +176,7 @@ const HeroSection = () => {
                 </Button>
               </Link>
               <a href="#demo">
-                <Button size="lg" className="border border-primary-foreground/20 bg-primary-foreground/[0.08] text-primary-foreground hover:bg-primary-foreground/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm gap-2 rounded-xl w-full sm:w-auto">
+                <Button size="lg" className="border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15] px-8 min-h-[48px] text-base backdrop-blur-sm gap-2 rounded-xl w-full sm:w-auto">
                   <Play size={16} className="fill-current" />
                   {t("landing.hero.ctaDemo")}
                 </Button>
@@ -190,9 +190,9 @@ const HeroSection = () => {
               className="flex flex-wrap gap-3 sm:gap-4 pt-2"
             >
               {trustBadges.map((item) => (
-                <div key={item.label} className="flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/[0.08] px-3 py-2 min-h-[44px]">
+                <div key={item.label} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-3 py-2 min-h-[44px]">
                   <item.icon size={14} className="text-accent shrink-0" />
-                  <span className="text-xs text-primary-foreground font-medium whitespace-nowrap">{item.label}</span>
+                  <span className="text-xs text-white font-medium whitespace-nowrap">{item.label}</span>
                 </div>
               ))}
             </motion.div>
