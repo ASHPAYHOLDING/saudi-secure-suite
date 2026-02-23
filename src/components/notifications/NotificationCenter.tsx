@@ -1,150 +1,79 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Bell, Check, AlertTriangle, FileText, Package, CreditCard,
   Shield, ShieldAlert, CheckCheck, Loader2, Archive, Link2, Inbox,
+  Search, ExternalLink, MailOpen, Mail, ChevronDown,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isToday, isYesterday } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import {
+  useNotifications, useMarkRead, useMarkUnread, useMarkAllRead,
+  useArchiveNotification, useNotificationRealtime,
+  type MergedNotification, type NotificationFilters,
+} from "@/hooks/useNotifications";
 
 const typeIcons: Record<string, any> = {
-  invoice_due: FileText,
-  invoice_overdue: FileText,
-  invoices: FileText,
-  low_stock: Package,
-  inventory: Package,
-  subscription: CreditCard,
-  subscription_expiry: CreditCard,
-  compliance_warning: Shield,
-  hr: ShieldAlert,
-  hr_doc_expiry: ShieldAlert,
-  approvals: Check,
-  wallet: CreditCard,
-  integrations: Link2,
-  platform: Bell,
+  invoice_due: FileText, invoice_overdue: FileText, invoices: FileText,
+  low_stock: Package, inventory: Package,
+  subscription: CreditCard, subscription_expiry: CreditCard,
+  compliance_warning: Shield, hr: ShieldAlert, hr_doc_expiry: ShieldAlert,
+  approvals: Check, wallet: CreditCard, integrations: Link2, platform: Bell,
 };
 
-// Minimal severity dot colors
-const severityDot: Record<string, string> = {
-  info: "bg-muted-foreground/40",
-  warning: "bg-amber-500/70",
-  critical: "bg-destructive/70",
+const severityBorder: Record<string, string> = {
+  info: "border-s-border",
+  success: "border-s-primary",
+  warning: "border-s-destructive/50",
+  critical: "border-s-destructive",
 };
 
 const severityIcon: Record<string, string> = {
   info: "text-muted-foreground border-border",
-  warning: "text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800",
-  critical: "text-destructive border-destructive/20",
+  success: "text-primary border-primary/20",
+  warning: "text-destructive/80 border-destructive/20",
+  critical: "text-destructive border-destructive/30",
 };
-
-type FilterTab = "all" | "unread" | "critical";
-
-interface MergedNotification {
-  id: string;
-  title: string;
-  message: string;
-  severity: string;
-  type: string;
-  event_key?: string | null;
-  link?: string | null;
-  is_read: boolean;
-  created_at: string;
-  archived_at?: string | null;
-  _source: "tenant" | "user";
-}
 
 const NotificationCenter = () => {
   const { tenantId, user } = useAuth();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const locale = isAr ? ar : enUS;
-  const [filter, setFilter] = useState<FilterTab>("all");
 
-  const { data: tenantNotifs = [], isLoading: loadingTenant } = useQuery({
-    queryKey: ["tenant_notifications_full", tenantId],
-    queryFn: async () => {
-      if (!tenantId) return [];
-      const { data } = await supabase
-        .from("tenant_notifications")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      return (data || []).map((n: any) => ({ ...n, _source: "tenant" as const } as MergedNotification));
-    },
-    enabled: !!tenantId,
-  });
+  const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
+  const [severityFilter, setSeverityFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: userNotifs = [], isLoading: loadingUser } = useQuery({
-    queryKey: ["user_notifications_full", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase
-        .from("user_notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      return (data || []).map((n: any) => ({
-        ...n,
-        _source: "user" as const,
-        severity: n.type === "hr" ? "warning" : "info",
-        message: n.body,
-      } as MergedNotification));
-    },
-    enabled: !!user?.id,
-  });
+  useNotificationRealtime();
 
-  // Realtime
-  useEffect(() => {
-    if (!tenantId) return;
-    const ch = supabase
-      .channel("notif-center-tenant")
-      .on("postgres_changes", { event: "*", schema: "public", table: "tenant_notifications", filter: `tenant_id=eq.${tenantId}` },
-        () => queryClient.invalidateQueries({ queryKey: ["tenant_notifications_full", tenantId] })
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [tenantId, queryClient]);
+  const filters: NotificationFilters = useMemo(() => ({
+    status: statusFilter,
+    severity: severityFilter,
+    query: searchQuery,
+  }), [statusFilter, severityFilter, searchQuery]);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    const ch = supabase
-      .channel("notif-center-user")
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` },
-        () => queryClient.invalidateQueries({ queryKey: ["user_notifications_full", user.id] })
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [user?.id, queryClient]);
+  const { notifications, total, isLoading, hasMore, loadMore } = useNotifications(filters);
 
-  const allNotifications = useMemo(() => {
-    const merged = [...tenantNotifs, ...userNotifs].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-    if (filter === "unread") return merged.filter(n => !n.is_read);
-    if (filter === "critical") return merged.filter(n => n.severity === "critical");
-    return merged;
-  }, [tenantNotifs, userNotifs, filter]);
+  const markRead = useMarkRead();
+  const markUnread = useMarkUnread();
+  const markAllRead = useMarkAllRead();
+  const archive = useArchiveNotification();
 
   // Group by day
   const grouped = useMemo(() => {
     const groups: { label: string; items: MergedNotification[] }[] = [];
     let currentLabel = "";
-    for (const n of allNotifications) {
+    for (const n of notifications) {
       const d = new Date(n.created_at);
       let label: string;
       if (isToday(d)) label = isAr ? "اليوم" : "Today";
@@ -158,216 +87,186 @@ const NotificationCenter = () => {
       groups[groups.length - 1].items.push(n);
     }
     return groups;
-  }, [allNotifications, isAr, locale]);
+  }, [notifications, isAr, locale]);
 
-  const totalUnread = useMemo(() => 
-    [...tenantNotifs, ...userNotifs].filter(n => !n.is_read).length,
-    [tenantNotifs, userNotifs]
-  );
-
-  // Optimistic mark read
-  const markReadMutation = useMutation({
-    mutationFn: async ({ id, source }: { id: string; source: string }) => {
-      const table = source === "user" ? "user_notifications" : "tenant_notifications";
-      await supabase.from(table).update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
-    },
-    onMutate: async ({ id, source }) => {
-      const key = source === "user"
-        ? ["user_notifications_full", user?.id]
-        : ["tenant_notifications_full", tenantId];
-      await queryClient.cancelQueries({ queryKey: key });
-      const prev = queryClient.getQueryData<MergedNotification[]>(key);
-      queryClient.setQueryData<MergedNotification[]>(key, old =>
-        (old || []).map(n => n.id === id ? { ...n, is_read: true } : n)
-      );
-      return { prev, key };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.key) queryClient.setQueryData(ctx.key, ctx.prev);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
-    },
-  });
-
-  const markAllReadMutation = useMutation({
-    mutationFn: async () => {
-      if (tenantId) {
-        await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("tenant_id", tenantId).eq("is_read", false);
-      }
-      if (user?.id) {
-        await supabase.from("user_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("user_id", user.id).eq("is_read", false);
-      }
-    },
-    onMutate: async () => {
-      const tKey = ["tenant_notifications_full", tenantId];
-      const uKey = ["user_notifications_full", user?.id];
-      const prevT = queryClient.getQueryData<MergedNotification[]>(tKey);
-      const prevU = queryClient.getQueryData<MergedNotification[]>(uKey);
-      queryClient.setQueryData<MergedNotification[]>(tKey, old =>
-        (old || []).map(n => ({ ...n, is_read: true }))
-      );
-      queryClient.setQueryData<MergedNotification[]>(uKey, old =>
-        (old || []).map(n => ({ ...n, is_read: true }))
-      );
-      return { prevT, prevU, tKey, uKey };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx) {
-        queryClient.setQueryData(ctx.tKey, ctx.prevT);
-        queryClient.setQueryData(ctx.uKey, ctx.prevU);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
-    },
-  });
-
-  // Archive
-  const archiveMutation = useMutation({
-    mutationFn: async ({ id, source }: { id: string; source: string }) => {
-      const table = source === "user" ? "user_notifications" : "tenant_notifications";
-      await supabase.from(table).update({ archived_at: new Date().toISOString() } as any).eq("id", id);
-    },
-    onMutate: async ({ id, source }) => {
-      const key = source === "user"
-        ? ["user_notifications_full", user?.id]
-        : ["tenant_notifications_full", tenantId];
-      await queryClient.cancelQueries({ queryKey: key });
-      const prev = queryClient.getQueryData<MergedNotification[]>(key);
-      queryClient.setQueryData<MergedNotification[]>(key, old =>
-        (old || []).filter(n => n.id !== id)
-      );
-      return { prev, key };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.key) queryClient.setQueryData(ctx.key, ctx.prev);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
-    },
-  });
+  const unreadCount = useMemo(() => notifications.filter(n => !n.is_read).length, [notifications]);
 
   const handleClick = useCallback((n: MergedNotification) => {
-    if (!n.is_read) markReadMutation.mutate({ id: n.id, source: n._source });
+    if (!n.is_read) markRead.mutate({ id: n.id, source: n._source });
     if (n.link) navigate(n.link);
-  }, [markReadMutation, navigate]);
+  }, [markRead, navigate]);
 
-  const loading = loadingTenant || loadingUser;
+  const toggleRead = useCallback((e: React.MouseEvent, n: MergedNotification) => {
+    e.stopPropagation();
+    if (n.is_read) markUnread.mutate({ id: n.id, source: n._source });
+    else markRead.mutate({ id: n.id, source: n._source });
+  }, [markRead, markUnread]);
 
   return (
     <Card>
       <CardContent className="pt-4">
-        {/* Header bar */}
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)} dir={isAr ? "rtl" : "ltr"}>
-            <TabsList className="h-8">
-              <TabsTrigger value="all" className="text-xs h-7">
-                {isAr ? "الكل" : "All"}
-              </TabsTrigger>
-              <TabsTrigger value="unread" className="text-xs h-7">
-                {isAr ? "غير مقروء" : "Unread"}
-                {totalUnread > 0 && (
-                  <Badge variant="secondary" className="ms-1 h-4 px-1 text-[10px]">{totalUnread}</Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="critical" className="text-xs h-7">
-                {isAr ? "حرج" : "Critical"}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          {totalUnread > 0 && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 text-xs gap-1"
-              onClick={() => markAllReadMutation.mutate()}
-              disabled={markAllReadMutation.isPending}
-            >
-              <CheckCheck size={12} />
-              {isAr ? "قراءة الكل" : "Mark all read"}
-            </Button>
-          )}
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {/* Status */}
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+            <SelectTrigger className="w-28 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">{isAr ? "الكل" : "All"}</SelectItem>
+              <SelectItem value="unread" className="text-xs">{isAr ? "غير مقروء" : "Unread"}</SelectItem>
+              <SelectItem value="read" className="text-xs">{isAr ? "مقروء" : "Read"}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Severity */}
+          <Select value={severityFilter} onValueChange={setSeverityFilter}>
+            <SelectTrigger className="w-28 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">{isAr ? "كل الأولويات" : "All"}</SelectItem>
+              <SelectItem value="info" className="text-xs">{isAr ? "معلومات" : "Info"}</SelectItem>
+              <SelectItem value="success" className="text-xs">{isAr ? "نجاح" : "Success"}</SelectItem>
+              <SelectItem value="warning" className="text-xs">{isAr ? "تحذير" : "Warning"}</SelectItem>
+              <SelectItem value="critical" className="text-xs">{isAr ? "حرج" : "Critical"}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Search */}
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+            <Input
+              placeholder={isAr ? "بحث في الإشعارات..." : "Search notifications..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="ps-8 h-8 text-xs"
+            />
+          </div>
+
+          {/* Mark all read */}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs gap-1 ms-auto"
+            onClick={() => markAllRead.mutate()}
+            disabled={markAllRead.isPending}
+          >
+            <CheckCheck size={12} />
+            {isAr ? "قراءة الكل" : "Mark all read"}
+          </Button>
         </div>
 
-        {loading ? (
+        {/* Content */}
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : allNotifications.length === 0 ? (
+        ) : notifications.length === 0 ? (
           <div className="py-20 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50">
               <Inbox size={28} className="text-muted-foreground/50" />
             </div>
             <p className="text-sm font-medium text-foreground mb-1">
-              {filter === "all"
-                ? (isAr ? "لا توجد إشعارات" : "No notifications")
-                : filter === "unread"
-                  ? (isAr ? "لا توجد إشعارات غير مقروءة" : "No unread notifications")
-                  : (isAr ? "لا توجد إشعارات حرجة" : "No critical notifications")}
+              {searchQuery || statusFilter !== "all" || severityFilter !== "all"
+                ? (isAr ? "لا توجد نتائج" : "No results")
+                : (isAr ? "لا توجد إشعارات" : "No notifications")}
             </p>
             <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              {isAr
-                ? "ستظهر هنا الإشعارات المهمة مثل الفواتير المتأخرة والتنبيهات الأمنية."
-                : "Important alerts like overdue invoices and security warnings will appear here."}
+              {searchQuery || statusFilter !== "all" || severityFilter !== "all"
+                ? (isAr ? "جرّب تعديل الفلاتر أو البحث." : "Try adjusting filters or search.")
+                : (isAr ? "ستظهر هنا الإشعارات المهمة مثل الفواتير المتأخرة والتنبيهات الأمنية." : "Important alerts like overdue invoices and security warnings will appear here.")}
             </p>
           </div>
         ) : (
-          <ScrollArea className="max-h-[600px]">
-            <div className="space-y-0">
-              {grouped.map(group => (
-                <div key={group.label}>
-                  {/* Day header */}
-                  <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm px-4 py-2 border-b border-border">
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {group.label}
-                    </span>
-                  </div>
-                  {group.items.map(n => {
-                    const Icon = typeIcons[n.type] || typeIcons[n.event_key?.split(".")?.[0] || ""] || Bell;
-                    const sev = n.severity || "info";
-                    return (
-                      <div
-                        key={`${n._source}-${n.id}`}
-                        className={`group flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-secondary/40 ${!n.is_read ? "bg-accent/[0.03]" : ""}`}
-                        onClick={() => handleClick(n)}
-                      >
-                        <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-card ${severityIcon[sev] || severityIcon.info}`}>
-                          <Icon size={15} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
-                            {!n.is_read && <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${severityDot[sev] || severityDot.info}`} />}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                          <p className="text-[10px] text-muted-foreground/60 mt-1">
-                            {format(new Date(n.created_at), "hh:mm a", { locale })}
-                          </p>
-                        </div>
-                        {/* Archive button on hover */}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1 text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            archiveMutation.mutate({ id: n.id, source: n._source });
-                          }}
-                          title={isAr ? "أرشفة" : "Archive"}
+          <>
+            <ScrollArea className="max-h-[600px]">
+              <div className="space-y-0">
+                {grouped.map(group => (
+                  <div key={group.label}>
+                    {/* Day header */}
+                    <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm px-4 py-2 border-b border-border">
+                      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                        {group.label}
+                      </span>
+                    </div>
+                    {group.items.map(n => {
+                      const Icon = typeIcons[n.type] || typeIcons[n.event_key?.split(".")?.[0] || ""] || Bell;
+                      const sev = n.severity || "info";
+                      return (
+                        <div
+                          key={`${n._source}-${n.id}`}
+                          className={`group flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-secondary/40 border-s-2 ${severityBorder[sev] || severityBorder.info} ${!n.is_read ? "bg-accent/[0.04]" : ""}`}
+                          onClick={() => handleClick(n)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleClick(n); }}
                         >
-                          <Archive size={13} />
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                          <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-card ${severityIcon[sev] || severityIcon.info}`}>
+                            <Icon size={15} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
+                              {!n.is_read && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <p className="text-[10px] text-muted-foreground/60">
+                                {format(new Date(n.created_at), "hh:mm a", { locale })}
+                              </p>
+                              {n.link && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 px-2 text-[10px] gap-1"
+                                  onClick={(e) => { e.stopPropagation(); navigate(n.link!); }}
+                                >
+                                  <ExternalLink size={9} />
+                                  {isAr ? "فتح" : "Open"}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {/* Actions on hover */}
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={(e) => toggleRead(e, n)}
+                              title={n.is_read ? (isAr ? "كغير مقروء" : "Mark unread") : (isAr ? "كمقروء" : "Mark read")}
+                            >
+                              {n.is_read ? <Mail size={13} /> : <MailOpen size={13} />}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={(e) => { e.stopPropagation(); archive.mutate({ id: n.id, source: n._source }); }}
+                              title={isAr ? "أرشفة" : "Archive"}
+                            >
+                              <Archive size={13} />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="border-t border-border p-3 text-center">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={loadMore}>
+                  <ChevronDown size={14} />
+                  {isAr ? `تحميل المزيد (${total - notifications.length} متبقي)` : `Load more (${total - notifications.length} remaining)`}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
