@@ -268,7 +268,7 @@ Deno.serve(withRequestTimeout(async (req) => {
     console.error("paylink-gateway error:", err);
     return jsonResponse({ error: err.message || "Internal error" }, 500);
   }
-});
+}, 30000, corsHeaders));
 
 // ─── SECURED CALLBACK HANDLER ──────────────────────────────────────
 async function handleCallback(req: Request) {
@@ -370,4 +370,4 @@ async function handleCallback(req: Request) {
   });
 
   return jsonResponse({ success: true });
-}, 30000, corsHeaders));
+}
