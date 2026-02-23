@@ -7984,38 +7984,56 @@ export type Database = {
       }
       notification_event_outbox: {
         Row: {
+          attempt_count: number
           channel: string
           created_at: string
           email_mode: string | null
           error: string | null
           event_key: string
           id: string
+          idempotency_key: string | null
+          meta: Json
+          next_attempt_at: string | null
           payload: Json
+          provider_message_id: string | null
           recipient: Json
+          sent_at: string | null
           status: string
           tenant_id: string
         }
         Insert: {
+          attempt_count?: number
           channel: string
           created_at?: string
           email_mode?: string | null
           error?: string | null
           event_key: string
           id?: string
+          idempotency_key?: string | null
+          meta?: Json
+          next_attempt_at?: string | null
           payload: Json
+          provider_message_id?: string | null
           recipient: Json
+          sent_at?: string | null
           status?: string
           tenant_id: string
         }
         Update: {
+          attempt_count?: number
           channel?: string
           created_at?: string
           email_mode?: string | null
           error?: string | null
           event_key?: string
           id?: string
+          idempotency_key?: string | null
+          meta?: Json
+          next_attempt_at?: string | null
           payload?: Json
+          provider_message_id?: string | null
           recipient?: Json
+          sent_at?: string | null
           status?: string
           tenant_id?: string
         }
@@ -15883,6 +15901,33 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "background_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      claim_outbox_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempt_count: number
+          channel: string
+          created_at: string
+          email_mode: string | null
+          error: string | null
+          event_key: string
+          id: string
+          idempotency_key: string | null
+          meta: Json
+          next_attempt_at: string | null
+          payload: Json
+          provider_message_id: string | null
+          recipient: Json
+          sent_at: string | null
+          status: string
+          tenant_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_event_outbox"
           isOneToOne: false
           isSetofReturn: true
         }

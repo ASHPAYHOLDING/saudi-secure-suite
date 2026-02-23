@@ -110,3 +110,9 @@ verify_jwt = false
 
 [functions.send-whatsapp-template]
 verify_jwt = false
+
+[functions.notify-dispatch]
+verify_jwt = false
+
+[functions.notify-worker]
+verify_jwt = false
