@@ -30,6 +30,7 @@ import {
   Server,
   Megaphone,
   Globe,
+  Bell,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ const menuItems = [
   { icon: Database, label: "لوحة الترحيلات", path: "/admin/system/migrations" },
   { icon: Server, label: "البنية التحتية للنظام", path: "/admin/system/infrastructure" },
   { icon: Megaphone, label: "إدارة التحديثات", path: "/admin/updates" },
+  { icon: Bell, label: "كتالوج الإشعارات", path: "/admin/notifications" },
 ];
 
 interface AdminSidebarProps {
