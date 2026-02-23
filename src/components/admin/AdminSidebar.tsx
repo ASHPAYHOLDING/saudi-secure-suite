@@ -69,6 +69,7 @@ const menuItems = [
   { icon: Server, label: "البنية التحتية للنظام", path: "/admin/system/infrastructure" },
   { icon: Megaphone, label: "إدارة التحديثات", path: "/admin/updates" },
   { icon: Bell, label: "كتالوج الإشعارات", path: "/admin/notifications" },
+  { icon: LayoutTemplate, label: "استوديو القوالب", path: "/admin/template-studio" },
 ];
 
 interface AdminSidebarProps {

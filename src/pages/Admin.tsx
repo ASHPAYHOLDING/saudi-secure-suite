@@ -41,6 +41,7 @@ const MigrationsDashboardPage = lazy(() => import("@/components/system/Migration
 const SystemInfrastructurePage = lazy(() => import("@/components/system/SystemInfrastructurePage"));
 const AdminUpdatesManager = lazy(() => import("@/components/admin/AdminUpdatesManager"));
 const AdminNotificationCatalog = lazy(() => import("@/components/admin/AdminNotificationCatalog"));
+const AdminTemplateStudio = lazy(() => import("@/components/admin/AdminTemplateStudio"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -116,6 +117,7 @@ const Admin = () => {
     if (path === "/admin/system/infrastructure") return <SystemInfrastructurePage />;
     if (path === "/admin/updates") return <AdminUpdatesManager />;
     if (path === "/admin/notifications") return <AdminNotificationCatalog />;
+    if (path === "/admin/template-studio") return <AdminTemplateStudio />;
     return <AdminDashboard />;
   };
 
