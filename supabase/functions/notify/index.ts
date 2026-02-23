@@ -26,10 +26,15 @@ interface NotifyRequest {
   metadata?: Record<string, unknown>;
   email_subject?: string;
   email_html?: string;
-  channels?: ("in_app" | "email")[];
+  channels?: ("in_app" | "email" | "whatsapp")[];
   target_user_ids?: string[];
   target_roles?: string[];
   idempotency_key?: string;
+  /** WhatsApp-specific fields */
+  whatsapp_template_name?: string;
+  whatsapp_language_code?: string;
+  whatsapp_components?: any[];
+  whatsapp_to_phones?: string[];
 }
 
 Deno.serve(async (req) => {
@@ -106,7 +111,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const results = { in_app: 0, email_queued: 0, skipped_email: 0, smtp_blocked: false };
+    const results = { in_app: 0, email_queued: 0, skipped_email: 0, smtp_blocked: false, whatsapp_queued: 0, whatsapp_blocked: false };
 
     // ── 3) Create In-App Notifications ──
     if (channels.includes("in_app") && userIds.length > 0) {
@@ -286,6 +291,75 @@ Deno.serve(async (req) => {
           } else {
             console.error("Email job enqueue error:", emailErr.message);
           }
+        }
+      }
+    }
+
+    // ── 5) WhatsApp Channel ──
+    if (channels.includes("whatsapp") && tenant_id) {
+      const { data: waAccount } = await admin
+        .from("tenant_whatsapp_accounts")
+        .select("id, status")
+        .eq("tenant_id", tenant_id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      const phones = payload.whatsapp_to_phones || [];
+      const templateName = payload.whatsapp_template_name || event_key.replace(/\./g, "_");
+      const langCode = payload.whatsapp_language_code || "ar";
+
+      if (!waAccount) {
+        // Block: no active WhatsApp account
+        results.whatsapp_blocked = true;
+        if (phones.length > 0) {
+          await admin.from("notification_outbox").insert(
+            phones.slice(0, 10).map((ph: string) => ({
+              tenant_id,
+              channel: "whatsapp",
+              template_key: event_key,
+              recipient: ph,
+              payload_json: metadata,
+              status: "blocked",
+              block_reason: "whatsapp_not_configured",
+            }))
+          );
+        }
+      } else if (phones.length > 0) {
+        // Check rate limits
+        const { data: rl } = await admin
+          .from("notification_rate_limits")
+          .select("daily_limit, daily_count")
+          .eq("tenant_id", tenant_id)
+          .eq("channel", "whatsapp")
+          .maybeSingle();
+
+        const limitOk = !rl || rl.daily_count < rl.daily_limit;
+
+        if (!limitOk) {
+          await admin.from("notification_outbox").insert(
+            phones.map((ph: string) => ({
+              tenant_id,
+              channel: "whatsapp",
+              template_key: event_key,
+              recipient: ph,
+              payload_json: metadata,
+              status: "blocked",
+              block_reason: "rate_limit_exceeded",
+            }))
+          );
+        } else {
+          // Enqueue for sending
+          await admin.from("notification_outbox").insert(
+            phones.map((ph: string) => ({
+              tenant_id,
+              channel: "whatsapp",
+              template_key: event_key,
+              recipient: ph,
+              payload_json: { ...metadata, template_name: templateName, language_code: langCode, components: payload.whatsapp_components || [] },
+              status: "queued",
+            }))
+          );
+          results.whatsapp_queued = phones.length;
         }
       }
     }

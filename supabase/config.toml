@@ -104,3 +104,9 @@ verify_jwt = false
 
 [functions.executive-intelligence]
 verify_jwt = false
+
+[functions.verify-whatsapp-connection]
+verify_jwt = false
+
+[functions.send-whatsapp-template]
+verify_jwt = false
