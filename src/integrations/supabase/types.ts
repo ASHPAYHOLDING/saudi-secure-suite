@@ -9692,6 +9692,45 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_whatsapp_config: {
+        Row: {
+          access_token_encrypted: string
+          business_name: string
+          created_at: string
+          display_phone_number: string | null
+          id: string
+          is_active: boolean
+          phone_number_id: string
+          provider: string
+          updated_at: string
+          waba_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          business_name?: string
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean
+          phone_number_id: string
+          provider?: string
+          updated_at?: string
+          waba_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          business_name?: string
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_active?: boolean
+          phone_number_id?: string
+          provider?: string
+          updated_at?: string
+          waba_id?: string
+        }
+        Relationships: []
+      }
       policy_violations: {
         Row: {
           created_at: string
@@ -13060,6 +13099,7 @@ export type Database = {
           enabled: boolean
           id: string
           is_default: boolean
+          mode: string
           tenant_id: string
           updated_at: string
         }
@@ -13069,6 +13109,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           is_default?: boolean
+          mode?: string
           tenant_id: string
           updated_at?: string
         }
@@ -13078,6 +13119,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           is_default?: boolean
+          mode?: string
           tenant_id?: string
           updated_at?: string
         }
@@ -14696,6 +14738,127 @@ export type Database = {
           tenant_id?: string | null
         }
         Relationships: []
+      }
+      whatsapp_message_log: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          error_code: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          language_code: string
+          notification_id: string | null
+          outbox_id: string | null
+          provider_message_id: string | null
+          read_at: string | null
+          sent_at: string | null
+          status: string
+          template_key: string
+          template_name: string | null
+          tenant_id: string
+          to_phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          language_code?: string
+          notification_id?: string | null
+          outbox_id?: string | null
+          provider_message_id?: string | null
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key: string
+          template_name?: string | null
+          tenant_id: string
+          to_phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          language_code?: string
+          notification_id?: string | null
+          outbox_id?: string | null
+          provider_message_id?: string | null
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+          template_name?: string | null
+          tenant_id?: string
+          to_phone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_message_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_optins: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          lang: string
+          opted_in: boolean
+          opted_in_at: string | null
+          opted_out_at: string | null
+          phone_e164: string
+          source: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          lang?: string
+          opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone_e164: string
+          source?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          lang?: string
+          opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone_e164?: string
+          source?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_optins_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_templates: {
         Row: {
