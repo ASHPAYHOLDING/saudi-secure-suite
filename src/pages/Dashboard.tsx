@@ -56,7 +56,7 @@ const DashboardLayout = memo(() => {
               className={cn(
                 "transition-all duration-300",
                 "md:transition-all",
-                sidebarCollapsed ? "md:ms-[68px]" : "md:ms-64"
+                sidebarCollapsed ? "md:ms-[68px]" : "md:ms-[260px]"
               )}
             >
               <DashboardTopbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
