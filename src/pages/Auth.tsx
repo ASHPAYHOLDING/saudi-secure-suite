@@ -53,7 +53,8 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const OTP_LENGTH = 8;
+  const [otpDigits, setOtpDigits] = useState<string[]>(Array(8).fill(""));
   const [resendTimer, setResendTimer] = useState(0);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -121,7 +122,7 @@ const Auth = () => {
     const newDigits = [...otpDigits];
     newDigits[index] = value;
     setOtpDigits(newDigits);
-    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+    if (value && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus();
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -130,19 +131,19 @@ const Auth = () => {
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
     const newDigits = [...otpDigits];
-    for (let i = 0; i < 6; i++) newDigits[i] = pasted[i] || "";
+    for (let i = 0; i < OTP_LENGTH; i++) newDigits[i] = pasted[i] || "";
     setOtpDigits(newDigits);
     const nextEmpty = newDigits.findIndex((d) => !d);
-    otpRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
+    otpRefs.current[nextEmpty === -1 ? OTP_LENGTH - 1 : nextEmpty]?.focus();
   };
 
   /* ───── Verify OTP (NO API CHANGES) ───── */
   const verifyOtp = async () => {
     const otp = otpDigits.join("");
-    if (otp.length !== 6) {
-      toast({ title: "خطأ", description: "يرجى إدخال الرمز المكون من 6 أرقام", variant: "destructive" });
+    if (otp.length !== OTP_LENGTH) {
+      toast({ title: "خطأ", description: `يرجى إدخال الرمز المكون من ${OTP_LENGTH} أرقام`, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -195,7 +196,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, tenant_type: tenantType }, emailRedirectTo: window.location.origin } });
         if (error) throw error;
         try { await supabase.functions.invoke("send-auth-email", { body: { email, type: "signup", redirectTo: window.location.origin } }); } catch (emailErr) { console.error("Failed to send OTP email:", emailErr); }
-        setOtpDigits(["", "", "", "", "", ""]);
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
         setMode("otp");
         startResendTimer();
       } else {
@@ -208,7 +209,7 @@ const Auth = () => {
           if (error.message.includes("Email not confirmed")) {
             try {
               await supabase.functions.invoke("send-auth-email", { body: { email, type: "signup", redirectTo: window.location.origin } });
-              setOtpDigits(["", "", "", "", "", ""]);
+              setOtpDigits(Array(OTP_LENGTH).fill(""));
               setMode("otp");
               startResendTimer();
               toast({ title: "تحقق مطلوب", description: "تم إرسال رمز التحقق إلى بريدك الإلكتروني" });
@@ -230,7 +231,7 @@ const Auth = () => {
     setResetSent(false);
     setShowPassword(false);
     setShowConfirm(false);
-    setOtpDigits(["", "", "", "", "", ""]);
+    setOtpDigits(Array(OTP_LENGTH).fill(""));
     setFormErrors({});
     if (newMode !== "forgot") { setPassword(""); setConfirmPassword(""); }
   };
@@ -302,7 +303,7 @@ const Auth = () => {
                   </div>
 
                   <h2 className="text-xl font-bold text-foreground mb-2 text-center">أدخل رمز التحقق</h2>
-                  <p className="text-sm text-muted-foreground mb-1 text-center">أرسلنا رمزًا مكونًا من 6 أرقام إلى بريدك الإلكتروني</p>
+                  <p className="text-sm text-muted-foreground mb-1 text-center">أرسلنا رمزًا مكونًا من {OTP_LENGTH} أرقام إلى بريدك الإلكتروني</p>
                   <p className="text-sm font-semibold text-foreground mb-6 font-english" dir="ltr">{email}</p>
 
                   {/* [OTP-02] 6 خانات OTP */}
@@ -318,7 +319,7 @@ const Auth = () => {
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         autoFocus={i === 0}
-                        className="w-12 h-[52px] text-center text-xl font-bold rounded-lg border-2 border-input bg-background text-foreground focus:border-accent focus:ring-2 focus:ring-ring/20 outline-none transition-colors duration-150"
+                        className="w-10 sm:w-11 h-12 text-center text-lg font-bold rounded-lg border-2 border-input bg-background text-foreground focus:border-accent focus:ring-2 focus:ring-ring/20 outline-none transition-colors duration-150"
                         aria-label={`رقم ${i + 1}`}
                       />
                     ))}
@@ -327,7 +328,7 @@ const Auth = () => {
                   {/* [CONS-01] زر بارتفاع 48px */}
                   <Button
                     onClick={verifyOtp}
-                    disabled={loading || otpDigits.join("").length !== 6}
+                    disabled={loading || otpDigits.join("").length !== OTP_LENGTH}
                     className="w-full min-h-[48px] gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg text-base font-semibold mb-4"
                   >
                     {loading && <Loader2 size={18} className="animate-spin" />}
