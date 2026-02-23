@@ -248,7 +248,7 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 md:flex-row" style={{ borderColor: "hsl(220 20% 20%)" }}>
-          <p className="text-xs" style={{ color: "hsl(210 20% 72%)" }}>
+          <p className="text-xs" style={{ color: "hsl(210 20% 82%)" }}>
             © {new Date().getFullYear()} {t("landing.footer.copyright")}
           </p>
 

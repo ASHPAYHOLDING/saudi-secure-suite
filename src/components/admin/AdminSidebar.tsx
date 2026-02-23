@@ -107,7 +107,7 @@ const AdminSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: AdminS
     <aside
       dir="rtl"
       className={cn(
-        "fixed right-0 top-0 z-40 flex h-screen flex-col border-l border-sidebar-border bg-sidebar transition-all duration-300",
+        "fixed inset-inline-end-0 top-0 z-40 flex h-screen flex-col border-s border-sidebar-border bg-sidebar transition-all duration-300",
         collapsed ? "w-[68px]" : "w-64",
         "max-md:hidden",
         mobileOpen && "max-md:!flex"

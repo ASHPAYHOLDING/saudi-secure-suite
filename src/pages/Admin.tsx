@@ -142,7 +142,7 @@ const Admin = () => {
       <div
         className={cn(
           "transition-all duration-300",
-          sidebarCollapsed ? "md:mr-[68px]" : "md:mr-64"
+          sidebarCollapsed ? "md:me-[68px]" : "md:me-64"
         )}
       >
         <div className="flex items-center justify-between border-b bg-card px-3 md:px-6 py-3">
