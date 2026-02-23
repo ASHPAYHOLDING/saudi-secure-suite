@@ -104,6 +104,7 @@ const NotificationCenterPage = lazy(() => import("@/components/notifications/Not
 const SmtpSettingsPage = lazy(() => import("@/components/notifications/SmtpSettingsPage"));
 const TenantEmailTemplatesPage = lazy(() => import("@/components/notifications/TenantEmailTemplatesPage"));
 const NotificationSettingsPage = lazy(() => import("@/components/notifications/NotificationSettingsPage"));
+const NotificationMappingPage = lazy(() => import("@/components/notifications/NotificationMappingPage"));
 
 // ── HR ──
 const HrOverviewPage = lazy(() => import("@/components/hr/HrOverviewPage"));
@@ -268,6 +269,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "settings/email", element: SmtpSettingsPage, gateSegment: "company", permissionKey: "company.view" },
   { path: "settings/email-templates", element: TenantEmailTemplatesPage, gateSegment: "company", permissionKey: "company.view" },
   { path: "settings/notifications", element: NotificationSettingsPage, gateSegment: "company", permissionKey: "company.view" },
+  { path: "settings/notification-mapping", element: NotificationMappingPage, gateSegment: "company", permissionKey: "company.view" },
 
   // ── Productivity ──
   { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard", permissionKey: "finance.view_overview" },

@@ -7982,12 +7982,102 @@ export type Database = {
           },
         ]
       }
+      notification_event_outbox: {
+        Row: {
+          channel: string
+          created_at: string
+          email_mode: string | null
+          error: string | null
+          event_key: string
+          id: string
+          payload: Json
+          recipient: Json
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          email_mode?: string | null
+          error?: string | null
+          event_key: string
+          id?: string
+          payload: Json
+          recipient: Json
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          email_mode?: string | null
+          error?: string | null
+          event_key?: string
+          id?: string
+          payload?: Json
+          recipient?: Json
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_event_outbox_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_event_templates: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          event_key: string
+          id: string
+          is_active: boolean
+          is_platform_default: boolean
+          lang: string
+          subject: string | null
+          version: number
+        }
+        Insert: {
+          body: string
+          channel: string
+          created_at?: string
+          event_key: string
+          id?: string
+          is_active?: boolean
+          is_platform_default?: boolean
+          lang: string
+          subject?: string | null
+          version?: number
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          event_key?: string
+          id?: string
+          is_active?: boolean
+          is_platform_default?: boolean
+          lang?: string
+          subject?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       notification_events: {
         Row: {
+          allowed_channels: string[]
           category: string
           created_at: string
           default_audience_roles: string[]
           default_channels: string[]
+          default_email_mode: string
+          description_ar: string | null
+          description_en: string | null
           id: string
           is_active: boolean
           key: string
@@ -7995,12 +8085,17 @@ export type Database = {
           name_en: string
           scope: string
           severity: string
+          updated_at: string
         }
         Insert: {
+          allowed_channels?: string[]
           category?: string
           created_at?: string
           default_audience_roles?: string[]
           default_channels?: string[]
+          default_email_mode?: string
+          description_ar?: string | null
+          description_en?: string | null
           id?: string
           is_active?: boolean
           key: string
@@ -8008,12 +8103,17 @@ export type Database = {
           name_en?: string
           scope?: string
           severity?: string
+          updated_at?: string
         }
         Update: {
+          allowed_channels?: string[]
           category?: string
           created_at?: string
           default_audience_roles?: string[]
           default_channels?: string[]
+          default_email_mode?: string
+          description_ar?: string | null
+          description_en?: string | null
           id?: string
           is_active?: boolean
           key?: string
@@ -8021,6 +8121,7 @@ export type Database = {
           name_en?: string
           scope?: string
           severity?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -12940,6 +13041,53 @@ export type Database = {
           },
         ]
       }
+      tenant_notification_preferences: {
+        Row: {
+          audience: string
+          channels: string[] | null
+          custom_recipients: Json | null
+          email_mode: string | null
+          enabled: boolean
+          event_key: string
+          id: string
+          quiet_hours: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          channels?: string[] | null
+          custom_recipients?: Json | null
+          email_mode?: string | null
+          enabled?: boolean
+          event_key: string
+          id?: string
+          quiet_hours?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          channels?: string[] | null
+          custom_recipients?: Json | null
+          email_mode?: string | null
+          enabled?: boolean
+          event_key?: string
+          id?: string
+          quiet_hours?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_preferences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_notifications: {
         Row: {
           archived_at: string | null
@@ -16234,6 +16382,10 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { p_tenant_id: string; p_user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      list_notification_events_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       lock_affiliate_commission: {
         Args: { _cooling_days?: number; _subscription_id: string }
         Returns: Json
@@ -16424,6 +16576,10 @@ export type Database = {
         Args: { p_error?: string; p_event_id: string; p_success: boolean }
         Returns: undefined
       }
+      resolve_notification_plan: {
+        Args: { p_event_key: string; p_lang?: string; p_tenant_id: string }
+        Returns: Json
+      }
       reverse_payment: {
         Args: { p_payment_id: string; p_reason: string; p_user_id?: string }
         Returns: string
@@ -16606,6 +16762,15 @@ export type Database = {
       integration_alert_severity: "info" | "warn" | "critical"
       integration_health_status: "healthy" | "degraded" | "down"
       journal_approval_status: "none" | "pending" | "approved" | "rejected"
+      notification_audience:
+        | "owner_only"
+        | "admins"
+        | "finance"
+        | "hr"
+        | "custom"
+      notification_channel: "in_app" | "email" | "whatsapp"
+      notification_email_mode: "platform" | "tenant_smtp"
+      notification_status: "queued" | "sent" | "failed" | "skipped"
       tenant_region: "ksa" | "gcc" | "eu"
       tenant_type: "company" | "individual" | "freelancer"
       wf_instance_status:
@@ -16815,6 +16980,16 @@ export const Constants = {
       integration_alert_severity: ["info", "warn", "critical"],
       integration_health_status: ["healthy", "degraded", "down"],
       journal_approval_status: ["none", "pending", "approved", "rejected"],
+      notification_audience: [
+        "owner_only",
+        "admins",
+        "finance",
+        "hr",
+        "custom",
+      ],
+      notification_channel: ["in_app", "email", "whatsapp"],
+      notification_email_mode: ["platform", "tenant_smtp"],
+      notification_status: ["queued", "sent", "failed", "skipped"],
       tenant_region: ["ksa", "gcc", "eu"],
       tenant_type: ["company", "individual", "freelancer"],
       wf_instance_status: [
