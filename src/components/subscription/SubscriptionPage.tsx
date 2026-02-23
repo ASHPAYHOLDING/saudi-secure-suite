@@ -881,22 +881,6 @@ const SubscriptionPage = () => {
                               <CheckCircle2 size={16} />
                               خطتك الحالية
                             </Button>
-                          ) : plan.slug === "enterprise" ? (
-                            <>
-                              <Button
-                                className="w-full gap-2 h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
-                                onClick={() => window.open("mailto:sales@numaxio.com?subject=طلب باقة المؤسسي", "_blank")}
-                              >
-                                <Building2 size={16} />
-                                اطلب عرض سعر
-                              </Button>
-                              <button
-                                onClick={() => window.open("tel:+966", "_blank")}
-                                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-2 underline underline-offset-2"
-                              >
-                                تواصل مع فريق المبيعات
-                              </button>
-                            </>
                           ) : isPopular ? (
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                               <Button
