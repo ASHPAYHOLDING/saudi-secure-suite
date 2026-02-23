@@ -16130,19 +16130,10 @@ export type Database = {
         Args: { _file_size_bytes?: number; _tenant_id: string }
         Returns: Json
       }
-      check_subscription_integrity:
-        | {
-            Args: { _tenant_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.check_subscription_integrity(_tenant_id => text), public.check_subscription_integrity(_tenant_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { _tenant_id: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.check_subscription_integrity(_tenant_id => text), public.check_subscription_integrity(_tenant_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
+      check_subscription_integrity: {
+        Args: { _tenant_id: string }
+        Returns: Json
+      }
       claim_next_job: {
         Args: { p_job_types?: string[] }
         Returns: {
