@@ -8024,6 +8024,68 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_outbox: {
+        Row: {
+          attempts: number
+          block_reason: string | null
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload_json: Json
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          template_key: string
+          tenant_id: string
+        }
+        Insert: {
+          attempts?: number
+          block_reason?: string | null
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload_json?: Json
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          template_key: string
+          tenant_id: string
+        }
+        Update: {
+          attempts?: number
+          block_reason?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload_json?: Json
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_outbox_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -8055,6 +8117,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "notification_preferences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_rate_limits: {
+        Row: {
+          channel: string
+          daily_count: number
+          daily_limit: number
+          id: string
+          last_reset_daily: string
+          last_reset_monthly: string
+          monthly_count: number
+          monthly_limit: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          daily_count?: number
+          daily_limit?: number
+          id?: string
+          last_reset_daily?: string
+          last_reset_monthly?: string
+          monthly_count?: number
+          monthly_limit?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          daily_count?: number
+          daily_limit?: number
+          id?: string
+          last_reset_daily?: string
+          last_reset_monthly?: string
+          monthly_count?: number
+          monthly_limit?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_rate_limits_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -12793,6 +12902,44 @@ export type Database = {
           },
         ]
       }
+      tenant_notification_channels: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          id: string
+          is_default: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_default?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_default?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_channels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_notifications: {
         Row: {
           archived_at: string | null
@@ -13087,6 +13234,65 @@ export type Database = {
             foreignKeyName: "tenant_wallets_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_whatsapp_accounts: {
+        Row: {
+          access_token_encrypted: string
+          business_name: string | null
+          created_at: string
+          created_by: string | null
+          display_phone_number: string | null
+          id: string
+          last_error: string | null
+          phone_number_id: string
+          provider: string
+          status: string
+          tenant_id: string
+          token_expires_at: string | null
+          updated_at: string
+          waba_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          business_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_phone_number?: string | null
+          id?: string
+          last_error?: string | null
+          phone_number_id: string
+          provider?: string
+          status?: string
+          tenant_id: string
+          token_expires_at?: string | null
+          updated_at?: string
+          waba_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          business_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_phone_number?: string | null
+          id?: string
+          last_error?: string | null
+          phone_number_id?: string
+          provider?: string
+          status?: string
+          tenant_id?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          waba_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_whatsapp_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -14292,6 +14498,59 @@ export type Database = {
           tenant_id?: string | null
         }
         Relationships: []
+      }
+      whatsapp_templates: {
+        Row: {
+          components_json: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          language: string
+          scope: string
+          template_key: string
+          tenant_id: string | null
+          updated_at: string
+          variable_mapping: Json
+          whatsapp_namespace: string | null
+          whatsapp_template_name: string
+        }
+        Insert: {
+          components_json?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          scope?: string
+          template_key: string
+          tenant_id?: string | null
+          updated_at?: string
+          variable_mapping?: Json
+          whatsapp_namespace?: string | null
+          whatsapp_template_name: string
+        }
+        Update: {
+          components_json?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          scope?: string
+          template_key?: string
+          tenant_id?: string | null
+          updated_at?: string
+          variable_mapping?: Json
+          whatsapp_namespace?: string | null
+          whatsapp_template_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow_instance_steps: {
         Row: {
