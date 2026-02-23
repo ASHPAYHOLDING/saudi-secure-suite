@@ -304,6 +304,7 @@ Deno.serve(withRequestTimeout(async (req) => {
       .eq("id", currentSub.id);
 
     if (subUpdateErr) {
+      console.error("Subscription update error:", JSON.stringify(subUpdateErr));
       // Rollback wallet with optimistic lock (only if we charged)
       if (finalPrice > 0 && wallet) {
         const { error: rollbackErr2 } = await supabase
@@ -321,7 +322,7 @@ Deno.serve(withRequestTimeout(async (req) => {
         }
       }
 
-      return new Response(JSON.stringify({ error: "فشل تحديث الاشتراك. تم استرداد المبلغ" }), {
+      return new Response(JSON.stringify({ error: `فشل تحديث الاشتراك: ${subUpdateErr.message || subUpdateErr.code || 'خطأ غير معروف'}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
