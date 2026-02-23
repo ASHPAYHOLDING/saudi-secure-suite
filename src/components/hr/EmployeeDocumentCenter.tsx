@@ -15,11 +15,12 @@ import { toast } from "sonner";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
 import { FEATURE_KEYS } from "@/lib/entitlement-types";
 
-const DOC_TYPES: Record<string, { ar: string; en: string }> = {
-  national_id: { ar: "الهوية الوطنية", en: "National ID" },
+const DOC_TYPES: Record<string, { ar: string; en: string; noExpiry?: boolean; requiredExpiry?: boolean }> = {
+  national_id_or_iqama: { ar: "الهوية / الإقامة", en: "National ID / Iqama", requiredExpiry: true },
+  national_id: { ar: "الهوية الوطنية", en: "National ID", requiredExpiry: true },
+  iqama: { ar: "الإقامة", en: "Iqama", requiredExpiry: true },
+  gosi_contract: { ar: "عقد التأمينات", en: "GOSI Contract", noExpiry: true },
   passport: { ar: "جواز السفر", en: "Passport" },
-  iqama: { ar: "الإقامة", en: "Iqama" },
-  gosi_contract: { ar: "عقد التأمينات", en: "GOSI Contract" },
   work_contract: { ar: "عقد العمل", en: "Work Contract" },
   medical_insurance: { ar: "التأمين الطبي", en: "Medical Insurance" },
   driving_license: { ar: "رخصة القيادة", en: "Driving License" },
@@ -98,7 +99,7 @@ export default function EmployeeDocumentCenter({ employeeId, employeeName }: Pro
         file_size_bytes: file.size,
         mime_type: file.type,
         issued_date: form.issued_date || null,
-        expiry_date: form.expiry_date || null,
+        expiry_date: DOC_TYPES[form.document_type]?.noExpiry ? null : (form.expiry_date || null),
         notes: form.notes || null,
         uploaded_by: user!.id,
       });
@@ -138,6 +139,10 @@ export default function EmployeeDocumentCenter({ employeeId, employeeName }: Pro
     const allowed = ["application/pdf", "image/jpeg", "image/png"];
     if (!allowed.includes(file.type)) return toast.error("يُسمح بـ PDF / JPG / PNG فقط");
     if (file.size > 10 * 1024 * 1024) return toast.error("الحد الأقصى 10MB");
+    const docMeta = DOC_TYPES[form.document_type];
+    if (docMeta?.requiredExpiry && !form.expiry_date) {
+      return toast.error("تاريخ الانتهاء مطلوب لهذا النوع | Expiry date is required");
+    }
     uploadMutation.mutate(file);
   };
 
@@ -307,9 +312,15 @@ export default function EmployeeDocumentCenter({ employeeId, employeeName }: Pro
                 <Input type="date" dir="ltr" value={form.issued_date} onChange={(e) => setForm(f => ({ ...f, issued_date: e.target.value }))} />
               </div>
               <div>
-                <Label className="text-xs font-semibold">تاريخ الانتهاء</Label>
+                <Label className="text-xs font-semibold">
+                  تاريخ الانتهاء {DOC_TYPES[form.document_type]?.requiredExpiry && <span className="text-destructive">*</span>}
+                </Label>
                 <p className="text-[10px] text-muted-foreground mb-1.5">Expiry Date</p>
-                <Input type="date" dir="ltr" value={form.expiry_date} onChange={(e) => setForm(f => ({ ...f, expiry_date: e.target.value }))} />
+                {DOC_TYPES[form.document_type]?.noExpiry ? (
+                  <p className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3">غير مطلوب لهذا النوع | Not applicable</p>
+                ) : (
+                  <Input type="date" dir="ltr" value={form.expiry_date} onChange={(e) => setForm(f => ({ ...f, expiry_date: e.target.value }))} />
+                )}
               </div>
             </div>
 

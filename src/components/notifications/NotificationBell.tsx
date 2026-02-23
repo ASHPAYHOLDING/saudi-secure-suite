@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, AlertTriangle, FileText, Package, CreditCard, Shield, X } from "lucide-react";
+import { Bell, Check, AlertTriangle, FileText, Package, CreditCard, Shield, X, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 const typeIcons: Record<string, any> = {
   invoice_due: FileText,
@@ -15,6 +16,7 @@ const typeIcons: Record<string, any> = {
   low_stock: Package,
   subscription_expiry: CreditCard,
   compliance_warning: Shield,
+  hr_doc_expiry: ShieldAlert,
 };
 
 const severityColors: Record<string, string> = {
@@ -24,8 +26,9 @@ const severityColors: Record<string, string> = {
 };
 
 const NotificationBell = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -38,7 +41,8 @@ const NotificationBell = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const { data: notifications = [] } = useQuery({
+  // Tenant-level notifications
+  const { data: tenantNotifs = [] } = useQuery({
     queryKey: ["tenant_notifications", tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
@@ -47,15 +51,43 @@ const NotificationBell = () => {
         .select("*")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(30);
       if (error) throw error;
-      return data || [];
+      return (data || []).map((n: any) => ({ ...n, _source: "tenant" as const }));
     },
     enabled: !!tenantId,
-    refetchInterval: 30000, // poll every 30s
+    refetchInterval: 30000,
   });
 
-  // Realtime subscription
+  // User-level notifications (HR doc alerts, etc.)
+  const { data: userNotifs = [] } = useQuery({
+    queryKey: ["user_notifications", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("user_notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return (data || []).map((n: any) => ({
+        ...n,
+        _source: "user" as const,
+        severity: "warning",
+        message: n.body,
+      }));
+    },
+    enabled: !!user?.id,
+    refetchInterval: 30000,
+  });
+
+  // Merge and sort by created_at
+  const notifications = [...tenantNotifs, ...userNotifs].sort(
+    (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  ).slice(0, 50);
+
+  // Realtime for tenant_notifications
   useEffect(() => {
     if (!tenantId) return;
     const channel = supabase
@@ -67,22 +99,53 @@ const NotificationBell = () => {
     return () => { supabase.removeChannel(channel); };
   }, [tenantId, queryClient]);
 
+  // Realtime for user_notifications
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel("user-notifications")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["user_notifications", user.id] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, queryClient]);
+
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
   const markReadMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
+    mutationFn: async ({ id, source }: { id: string; source: string }) => {
+      const table = source === "user" ? "user_notifications" : "tenant_notifications";
+      await supabase.from(table).update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
+    },
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      if (!tenantId) return;
-      await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("tenant_id", tenantId).eq("is_read", false);
+      if (tenantId) {
+        await supabase.from("tenant_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("tenant_id", tenantId).eq("is_read", false);
+      }
+      if (user?.id) {
+        await supabase.from("user_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("user_id", user.id).eq("is_read", false);
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
+    },
   });
+
+  const handleNotifClick = (n: any) => {
+    if (!n.is_read) markReadMutation.mutate({ id: n.id, source: n._source });
+    if (n.link) {
+      setOpen(false);
+      navigate(n.link);
+    }
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -125,9 +188,9 @@ const NotificationBell = () => {
                   const Icon = typeIcons[n.type] || AlertTriangle;
                   return (
                     <div
-                      key={n.id}
+                      key={`${n._source}-${n.id}`}
                       className={`flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-secondary/30 ${!n.is_read ? "bg-accent/5" : ""}`}
-                      onClick={() => { if (!n.is_read) markReadMutation.mutate(n.id); }}
+                      onClick={() => handleNotifClick(n)}
                     >
                       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${severityColors[n.severity] || severityColors.info}`}>
                         <Icon size={14} />
