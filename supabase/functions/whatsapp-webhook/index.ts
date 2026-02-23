@@ -1,8 +1,8 @@
 /**
  * whatsapp-webhook
  * Receives Meta Cloud API webhook callbacks for delivery status updates.
- * Public endpoint — verifies via hub.verify_token for subscription,
- * and processes status updates (sent/delivered/read/failed).
+ * Updates whatsapp_message_log + inserts into notification_message_status_history.
+ * Ensures idempotency via provider_message_id + status + occurred_at.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -52,23 +52,47 @@ Deno.serve(async (req) => {
           const value = change?.value;
           if (!value) continue;
 
-          // Process status updates
           const statuses = value?.statuses || [];
           for (const status of statuses) {
             const providerMsgId = status.id;
-            const recipientPhone = status.recipient_id;
             const statusValue = status.status; // sent, delivered, read, failed
-            const timestamp = status.timestamp ? new Date(Number(status.timestamp) * 1000).toISOString() : new Date().toISOString();
+            const timestamp = status.timestamp
+              ? new Date(Number(status.timestamp) * 1000).toISOString()
+              : new Date().toISOString();
 
-            // Map Meta status to our status
             const statusMap: Record<string, string> = {
               sent: "sent",
               delivered: "delivered",
               read: "read",
               failed: "failed",
             };
-
             const mappedStatus = statusMap[statusValue] || statusValue;
+
+            // Find the message row
+            const { data: msgRow } = await admin
+              .from("whatsapp_message_log")
+              .select("id, tenant_id, status")
+              .eq("provider_message_id", providerMsgId)
+              .maybeSingle();
+
+            if (!msgRow) {
+              console.warn(`No message found for provider_message_id: ${providerMsgId}`);
+              continue;
+            }
+
+            // Idempotency: check if this exact status+time already exists
+            const { data: existing } = await admin
+              .from("notification_message_status_history")
+              .select("id")
+              .eq("message_id", msgRow.id)
+              .eq("status", mappedStatus)
+              .eq("occurred_at", timestamp)
+              .maybeSingle();
+
+            if (existing) {
+              console.log(`Duplicate status update skipped: ${providerMsgId} ${mappedStatus}`);
+              continue;
+            }
 
             // Build update payload
             const updateData: Record<string, any> = {
@@ -76,26 +100,47 @@ Deno.serve(async (req) => {
               updated_at: new Date().toISOString(),
             };
 
+            // Build provider_status_payload snippet
+            const providerPayload: Record<string, any> = {
+              status: statusValue,
+              timestamp,
+            };
+
             if (mappedStatus === "delivered") updateData.delivered_at = timestamp;
-            if (mappedStatus === "read") updateData.read_at = timestamp;
+            if (mappedStatus === "read") {
+              updateData.read_at = timestamp;
+              updateData.delivered_at = updateData.delivered_at || timestamp;
+            }
             if (mappedStatus === "failed") {
               updateData.failed_at = timestamp;
               const errors = status.errors || [];
               if (errors.length > 0) {
                 updateData.error_code = String(errors[0].code || "");
                 updateData.error_message = errors[0].title || errors[0].message || "Unknown error";
+                providerPayload.errors = errors;
               }
             }
+
+            updateData.provider_status_payload = providerPayload;
 
             // Update whatsapp_message_log
             const { error: logErr } = await admin
               .from("whatsapp_message_log")
               .update(updateData)
-              .eq("provider_message_id", providerMsgId);
+              .eq("id", msgRow.id);
 
             if (logErr) {
               console.error(`Failed to update message log for ${providerMsgId}:`, logErr.message);
             }
+
+            // Insert status history record
+            await admin.from("notification_message_status_history").insert({
+              tenant_id: msgRow.tenant_id,
+              message_id: msgRow.id,
+              status: mappedStatus,
+              occurred_at: timestamp,
+              provider_payload: providerPayload,
+            });
 
             // Also update notification_outbox if exists
             await admin

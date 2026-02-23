@@ -72,6 +72,7 @@ const menuItems = [
   { icon: Bell, label: "كتالوج الإشعارات", path: "/admin/notifications" },
   { icon: LayoutTemplate, label: "استوديو القوالب", path: "/admin/template-studio" },
   { icon: MessageSquare, label: "مركز واتساب", path: "/admin/whatsapp" },
+  { icon: BarChart3, label: "تحليلات واتساب", path: "/admin/whatsapp/analytics" },
 ];
 
 interface AdminSidebarProps {
