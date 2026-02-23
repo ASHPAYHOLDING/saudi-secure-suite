@@ -4192,6 +4192,7 @@ export type Database = {
       email_jobs: {
         Row: {
           attempts: number
+          block_reason: string | null
           created_at: string
           event_key: string | null
           html_body: string
@@ -4215,6 +4216,7 @@ export type Database = {
         }
         Insert: {
           attempts?: number
+          block_reason?: string | null
           created_at?: string
           event_key?: string | null
           html_body: string
@@ -4238,6 +4240,7 @@ export type Database = {
         }
         Update: {
           attempts?: number
+          block_reason?: string | null
           created_at?: string
           event_key?: string | null
           html_body?: string
@@ -12390,6 +12393,62 @@ export type Database = {
           },
           {
             foreignKeyName: "tenant_customer_risk_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_email_template_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          html_body: string
+          id: string
+          locale: string
+          published_at: string | null
+          status: string
+          subject: string
+          template_definition_id: string
+          tenant_id: string
+          text_body: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          html_body: string
+          id?: string
+          locale?: string
+          published_at?: string | null
+          status?: string
+          subject: string
+          template_definition_id: string
+          tenant_id: string
+          text_body?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          html_body?: string
+          id?: string
+          locale?: string
+          published_at?: string | null
+          status?: string
+          subject?: string
+          template_definition_id?: string
+          tenant_id?: string
+          text_body?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_email_template_overrides_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
