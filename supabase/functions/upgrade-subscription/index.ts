@@ -327,12 +327,14 @@ Deno.serve(withRequestTimeout(async (req) => {
       });
     }
 
-    // 10. Consume the discount code (only after successful payment + subscription update)
-    if (appliedDiscountCode) {
-      await supabase.rpc("apply_subscription_discount", {
-        _code: appliedDiscountCode,
+    // 10. Record discount usage (only after successful payment + subscription update)
+    if (appliedDiscountId) {
+      await supabase.rpc("record_discount_usage", {
+        _discount_id: appliedDiscountId,
         _tenant_id: tenantId,
-        _plan_id: plan_id,
+        _subscription_id: currentSub.id,
+        _amount_before: price,
+        _amount_after: finalPrice,
       });
     }
 

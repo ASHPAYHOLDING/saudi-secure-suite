@@ -16813,6 +16813,16 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: string
       }
+      record_discount_usage: {
+        Args: {
+          _amount_after: number
+          _amount_before: number
+          _discount_id: string
+          _subscription_id: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       record_stock_movement: {
         Args: {
           _created_by?: string
