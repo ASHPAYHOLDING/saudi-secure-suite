@@ -100,6 +100,8 @@ const MigrationsDashboardPage = lazy(() => import("@/components/system/Migration
 const AuditIntelligencePage = lazy(() => import("@/components/audit/AuditIntelligencePage"));
 const SystemInfrastructurePage = lazy(() => import("@/components/system/SystemInfrastructurePage"));
 const DocumentTemplateEditor = lazy(() => import("@/components/documents/DocumentTemplateEditor"));
+const NotificationCenterPage = lazy(() => import("@/components/notifications/NotificationCenterPage"));
+const SmtpSettingsPage = lazy(() => import("@/components/notifications/SmtpSettingsPage"));
 
 // ── HR ──
 const HrOverviewPage = lazy(() => import("@/components/hr/HrOverviewPage"));
@@ -260,6 +262,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   // Deprecation redirects are in App.tsx
   { path: "document-templates", element: DocumentTemplateEditor, gateSegment: "document-templates", module: "enterprise", permissionKey: "templates.manage" },
   { path: "settings", element: SettingsPage, gateSegment: "settings", permissionKey: "settings.view" },
+  { path: "notifications", element: NotificationCenterPage, isOpenRoute: true },
+  { path: "smtp-settings", element: SmtpSettingsPage, gateSegment: "company", permissionKey: "company.view" },
 
   // ── Productivity ──
   { path: "productivity", element: AccountantDashboard, gateSegment: "productivity", module: "dashboard", permissionKey: "finance.view_overview" },
