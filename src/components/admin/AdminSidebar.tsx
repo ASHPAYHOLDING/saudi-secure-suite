@@ -29,6 +29,7 @@ import {
   Database,
   Server,
   Megaphone,
+  Globe,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const menuItems = [
   { icon: LayoutTemplate, label: "إدارة القوالب", path: "/admin/templates" },
   { icon: Mail, label: "قوالب البريد", path: "/admin/email-templates" },
   { icon: Inbox, label: "مركز البريد", path: "/admin/email-center" },
+  { icon: Globe, label: "مزودي البريد", path: "/admin/email-provider" },
   { icon: Bot, label: "المستشار الذكي", path: "/admin/ai" },
   { icon: Cloud, label: "البنية التحتية", path: "/admin/infrastructure" },
   { icon: HeartPulse, label: "صحة المنصة", path: "/admin/platform-health" },

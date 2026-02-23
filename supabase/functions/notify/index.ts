@@ -2,11 +2,11 @@
  * Unified Notification Dispatcher
  * Creates in-app notifications + enqueues email jobs atomically.
  * 
- * Called by other edge functions or RPCs to dispatch notifications.
- * Uses service_role — never expose to client directly.
+ * Scope rules:
+ *   scope=platform → email via Platform SMTP (Resend) ONLY
+ *   scope=tenant  → email via Tenant SMTP ONLY; if inactive → block + owner alert
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { encryptSecret } from "../_shared/aes-gcm.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,18 +19,16 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 interface NotifyRequest {
   event_key: string;
-  tenant_id?: string;        // null for platform scope
+  tenant_id?: string;
   title: string;
   body: string;
   link?: string;
   metadata?: Record<string, unknown>;
-  // Email-specific
   email_subject?: string;
   email_html?: string;
-  // Override defaults
   channels?: ("in_app" | "email")[];
-  target_user_ids?: string[];   // specific users
-  target_roles?: string[];      // or by role
+  target_user_ids?: string[];
+  target_roles?: string[];
   idempotency_key?: string;
 }
 
@@ -108,11 +106,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    const results = { in_app: 0, email_queued: 0, skipped_email: 0 };
+    const results = { in_app: 0, email_queued: 0, skipped_email: 0, smtp_blocked: false };
 
     // ── 3) Create In-App Notifications ──
     if (channels.includes("in_app") && userIds.length > 0) {
-      // Use user_notifications for targeted notifications
       const notifRows = userIds.map((uid) => ({
         tenant_id: tenant_id!,
         user_id: uid,
@@ -152,11 +149,11 @@ Deno.serve(async (req) => {
 
     // ── 4) Enqueue Email Jobs ──
     if (channels.includes("email") && userIds.length > 0) {
-      // Check if tenant has active SMTP
       let providerId: string | null = null;
       let smtpBlocked = false;
 
       if (scope === "tenant" && tenant_id) {
+        // Tenant emails MUST use tenant SMTP
         const { data: tenantProvider } = await admin
           .from("email_providers")
           .select("id, is_active")
@@ -167,12 +164,11 @@ Deno.serve(async (req) => {
         if (tenantProvider?.is_active) {
           providerId = tenantProvider.id;
         } else {
-          // Option X: Block tenant email if no SMTP configured
-          // (Feature flag for Option Y fallback can be added later)
+          // BLOCK: tenant SMTP not active → no email + warn owner
           smtpBlocked = true;
         }
       } else if (scope === "platform") {
-        // Platform emails use platform SMTP (Resend)
+        // Platform emails use platform SMTP (Resend) — no provider_id needed
         const { data: platformProvider } = await admin
           .from("email_providers")
           .select("id")
@@ -184,18 +180,86 @@ Deno.serve(async (req) => {
         // Platform emails always go through Resend even without DB provider
       }
 
-      if (!smtpBlocked) {
-        // Get user emails
+      if (smtpBlocked) {
+        results.skipped_email = userIds.length;
+        results.smtp_blocked = true;
+
+        // Create blocked email_job records for audit trail
+        const blockedJobs = userIds.slice(0, 10).map((uid) => ({
+          scope,
+          tenant_id: tenant_id || null,
+          provider_id: null,
+          event_key,
+          to_email: "blocked@placeholder",
+          to_name: null,
+          subject: email_subject || title,
+          html_body: "<p>Blocked - tenant SMTP inactive</p>",
+          payload: metadata,
+          status: "blocked",
+          block_reason: "tenant_smtp_inactive",
+          idempotency_key: idempotency_key ? `${idempotency_key}:blocked:${uid}` : null,
+        }));
+
+        await admin.from("email_jobs").insert(blockedJobs);
+
+        // ── CRITICAL: Notify Owner that SMTP is not active ──
+        const { data: ownerMembers } = await admin
+          .from("tenant_members")
+          .select("user_id")
+          .eq("tenant_id", tenant_id!)
+          .eq("role", "owner");
+
+        if (ownerMembers && ownerMembers.length > 0) {
+          // Check idempotency: don't spam owner with duplicate warnings
+          const today = new Date().toISOString().split("T")[0];
+          const warnKey = `smtp_warn:${tenant_id}:${today}`;
+
+          const { data: existing } = await admin
+            .from("tenant_notifications")
+            .select("id")
+            .eq("tenant_id", tenant_id!)
+            .eq("event_key", "system.smtp_inactive_warning")
+            .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .limit(1);
+
+          if (!existing || existing.length === 0) {
+            // Create tenant notification
+            await admin.from("tenant_notifications").insert({
+              tenant_id: tenant_id!,
+              type: "integrations",
+              title: "فعّل SMTP لإرسال البريد",
+              message: "تم منع إرسال إشعارات البريد الإلكتروني لأن إعدادات SMTP غير مفعّلة. انتقل إلى الإعدادات > البريد (SMTP) لتفعيلها.",
+              severity: "warning",
+              link: "/dashboard/settings/email",
+              event_key: "system.smtp_inactive_warning",
+              metadata: { blocked_event: event_key },
+            });
+
+            // Create user notifications for each owner
+            const ownerNotifs = ownerMembers.map((o: any) => ({
+              tenant_id: tenant_id!,
+              user_id: o.user_id,
+              type: "integrations",
+              title: "فعّل SMTP لإرسال البريد",
+              body: "تم منع إرسال إشعارات البريد الإلكتروني لأن إعدادات SMTP غير مفعّلة. انتقل إلى الإعدادات > البريد (SMTP) لتفعيلها.",
+              link: "/dashboard/settings/email",
+              event_key: "system.smtp_inactive_warning",
+              metadata: { blocked_event: event_key },
+              is_read: false,
+            }));
+
+            await admin.from("user_notifications").insert(ownerNotifs);
+          }
+        }
+      } else {
+        // Get user emails and enqueue
         const { data: profiles } = await admin
           .from("profiles")
           .select("id, email, full_name")
           .in("id", userIds);
 
         const emailJobs = (profiles || []).map((p: any) => {
-          const ikey = idempotency_key
-            ? `${idempotency_key}:${p.id}`
-            : null;
-
+          const ikey = idempotency_key ? `${idempotency_key}:${p.id}` : null;
           return {
             scope,
             tenant_id: tenant_id || null,
@@ -207,6 +271,7 @@ Deno.serve(async (req) => {
             html_body: email_html || buildDefaultEmailHtml(title, body, link, severity),
             payload: metadata,
             status: "queued",
+            block_reason: null,
             idempotency_key: ikey,
           };
         });
@@ -222,8 +287,6 @@ Deno.serve(async (req) => {
             console.error("Email job enqueue error:", emailErr.message);
           }
         }
-      } else {
-        results.skipped_email = userIds.length;
       }
     }
 
