@@ -1,34 +1,45 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, AlertTriangle, FileText, Package, CreditCard, Shield, X, ShieldAlert } from "lucide-react";
+import { Bell, Check, AlertTriangle, FileText, Package, CreditCard, Shield, X, ShieldAlert, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const typeIcons: Record<string, any> = {
   invoice_due: FileText,
   invoice_overdue: FileText,
+  invoices: FileText,
   low_stock: Package,
+  inventory: Package,
+  subscription: CreditCard,
   subscription_expiry: CreditCard,
   compliance_warning: Shield,
+  hr: ShieldAlert,
   hr_doc_expiry: ShieldAlert,
+  approvals: Check,
+  wallet: CreditCard,
+  integrations: Link2,
+  platform: Bell,
 };
 
-const severityColors: Record<string, string> = {
-  info: "bg-blue-100 text-blue-700 border-blue-200",
-  warning: "bg-amber-100 text-amber-700 border-amber-200",
-  critical: "bg-red-100 text-red-700 border-red-200",
+const severityIcon: Record<string, string> = {
+  info: "text-muted-foreground border-border",
+  warning: "text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800",
+  critical: "text-destructive border-destructive/20",
 };
 
 const NotificationBell = () => {
   const { tenantId, user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
+  const locale = isAr ? ar : enUS;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,6 +61,7 @@ const NotificationBell = () => {
         .from("tenant_notifications")
         .select("*")
         .eq("tenant_id", tenantId)
+        .is("archived_at", null)
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
@@ -59,7 +71,7 @@ const NotificationBell = () => {
     refetchInterval: 30000,
   });
 
-  // User-level notifications (HR doc alerts, etc.)
+  // User-level notifications
   const { data: userNotifs = [] } = useQuery({
     queryKey: ["user_notifications", user?.id],
     queryFn: async () => {
@@ -68,6 +80,7 @@ const NotificationBell = () => {
         .from("user_notifications")
         .select("*")
         .eq("user_id", user.id)
+        .is("archived_at", null)
         .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
@@ -82,12 +95,12 @@ const NotificationBell = () => {
     refetchInterval: 30000,
   });
 
-  // Merge and sort by created_at
+  // Merge and sort
   const notifications = [...tenantNotifs, ...userNotifs].sort(
     (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   ).slice(0, 50);
 
-  // Realtime for tenant_notifications
+  // Realtime
   useEffect(() => {
     if (!tenantId) return;
     const channel = supabase
@@ -99,7 +112,6 @@ const NotificationBell = () => {
     return () => { supabase.removeChannel(channel); };
   }, [tenantId, queryClient]);
 
-  // Realtime for user_notifications
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -118,9 +130,24 @@ const NotificationBell = () => {
       const table = source === "user" ? "user_notifications" : "tenant_notifications";
       await supabase.from(table).update({ is_read: true, read_at: new Date().toISOString() }).eq("id", id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
+    onMutate: async ({ id, source }) => {
+      // Optimistic update
+      const key = source === "user"
+        ? ["user_notifications", user?.id]
+        : ["tenant_notifications", tenantId];
+      await queryClient.cancelQueries({ queryKey: key });
+      const prev = queryClient.getQueryData<any[]>(key);
+      queryClient.setQueryData<any[]>(key, old =>
+        (old || []).map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
+      return { prev, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.key) queryClient.setQueryData(ctx.key, ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tenant_notifications_full"] });
+      queryClient.invalidateQueries({ queryKey: ["user_notifications_full"] });
     },
   });
 
@@ -133,9 +160,21 @@ const NotificationBell = () => {
         await supabase.from("user_notifications").update({ is_read: true, read_at: new Date().toISOString() }).eq("user_id", user.id).eq("is_read", false);
       }
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      const tKey = ["tenant_notifications", tenantId];
+      const uKey = ["user_notifications", user?.id];
+      queryClient.setQueryData<any[]>(tKey, old =>
+        (old || []).map(n => ({ ...n, is_read: true }))
+      );
+      queryClient.setQueryData<any[]>(uKey, old =>
+        (old || []).map(n => ({ ...n, is_read: true }))
+      );
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant_notifications"] });
       queryClient.invalidateQueries({ queryKey: ["user_notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["tenant_notifications_full"] });
+      queryClient.invalidateQueries({ queryKey: ["user_notifications_full"] });
     },
   });
 
@@ -159,14 +198,16 @@ const NotificationBell = () => {
       </Button>
 
       {open && (
-        <div className="absolute inset-inline-start-0 top-full mt-2 w-96 rounded-xl border border-border bg-card shadow-lg z-50 overflow-hidden" dir="rtl">
+        <div className="absolute inset-inline-end-0 top-full mt-2 w-96 rounded-xl border border-border bg-card shadow-lg z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
-            <h3 className="text-sm font-bold text-foreground">الإشعارات</h3>
+            <h3 className="text-sm font-bold text-foreground">
+              {isAr ? "الإشعارات" : "Notifications"}
+            </h3>
             <div className="flex gap-1">
               {unreadCount > 0 && (
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => markAllReadMutation.mutate()}>
-                  <Check size={12} /> قراءة الكل
+                  <Check size={12} /> {isAr ? "قراءة الكل" : "Read all"}
                 </Button>
               )}
               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setOpen(false)}>
@@ -180,29 +221,32 @@ const NotificationBell = () => {
             {notifications.length === 0 ? (
               <div className="py-12 text-center">
                 <Bell size={28} className="mx-auto text-muted-foreground/40 mb-2" />
-                <p className="text-sm text-muted-foreground">لا توجد إشعارات</p>
+                <p className="text-sm text-muted-foreground">
+                  {isAr ? "لا توجد إشعارات" : "No notifications"}
+                </p>
               </div>
             ) : (
               <div className="divide-y divide-border">
                 {notifications.map((n: any) => {
                   const Icon = typeIcons[n.type] || AlertTriangle;
+                  const sev = n.severity || "info";
                   return (
                     <div
                       key={`${n._source}-${n.id}`}
-                      className={`flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-secondary/30 ${!n.is_read ? "bg-accent/5" : ""}`}
+                      className={`flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-secondary/30 ${!n.is_read ? "bg-accent/[0.03]" : ""}`}
                       onClick={() => handleNotifClick(n)}
                     >
-                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${severityColors[n.severity] || severityColors.info}`}>
+                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-card ${severityIcon[sev] || severityIcon.info}`}>
                         <Icon size={14} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
-                          {!n.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
+                          {!n.is_read && <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ar })}
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale })}
                         </p>
                       </div>
                     </div>
@@ -211,6 +255,20 @@ const NotificationBell = () => {
               </div>
             )}
           </ScrollArea>
+
+          {/* Footer */}
+          {notifications.length > 0 && (
+            <div className="border-t border-border p-2 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 w-full text-muted-foreground"
+                onClick={() => { setOpen(false); navigate("/dashboard/notifications"); }}
+              >
+                {isAr ? "عرض جميع الإشعارات" : "View all notifications"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
