@@ -1,4 +1,3 @@
-import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Zap, Shield, Clock, Building2, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -42,8 +41,19 @@ interface Metric {
 
 const PowerStrip = () => {
   const { t } = useTranslation();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const ref = useRef<HTMLElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsInView(true); obs.disconnect(); } },
+      { threshold: 0.2 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   const metrics: Metric[] = [
     { icon: Shield, value: 100, suffix: "%", label: t("landing.kpis.zatcaReady"), color: "text-emerald-400" },
@@ -53,31 +63,22 @@ const PowerStrip = () => {
   ];
 
   return (
-    <section ref={ref} className="relative py-16 md:py-20 bg-white overflow-hidden">
-
-      <div className="relative max-w-5xl mx-auto px-6 md:px-10">
+    <section ref={ref} className="py-16 sm:py-20 md:py-24 bg-white overflow-hidden">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {metrics.map((m, i) => (
-            <motion.div
+          {metrics.map((m) => (
+            <div
               key={m.label}
-              initial={{ opacity: 0, y: 24 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.12, duration: 0.5, ease: "easeOut" }}
-              className="group relative rounded-2xl border border-border/60 bg-muted/30 p-6 md:p-7 text-center transition-colors duration-300 hover:border-border hover:bg-muted/50"
+              className="group relative rounded-2xl border border-border/60 bg-muted/30 p-6 md:p-7 text-center transition-colors duration-200 hover:border-border hover:bg-muted/50"
             >
-              {/* Icon */}
-              <div className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 ${m.color} transition-transform duration-300 group-hover:scale-110`}>
+              <div className={`mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 ${m.color}`}>
                 <m.icon size={20} strokeWidth={1.8} />
               </div>
-
-              {/* Value */}
               <p className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-none mb-1.5">
                 <AnimatedCounter target={m.value} suffix={m.suffix} inView={isInView} />
               </p>
-
-              {/* Label */}
               <p className="text-sm text-muted-foreground leading-snug">{m.label}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,50 +14,34 @@ const FinalCTA = () => {
 
   return (
     <section className="py-16 sm:py-20 md:py-24 bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div
           className="relative rounded-3xl overflow-hidden"
           style={{ background: "linear-gradient(135deg, hsl(220 30% 8%) 0%, hsl(220 35% 16%) 50%, hsl(172 40% 18%) 100%)" }}
         >
           <div className="relative p-8 md:p-16 lg:p-20 text-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <h2
               className="font-bold text-primary-foreground mb-5 leading-tight text-center"
               style={{ fontSize: "clamp(22px, 3vw, 42px)" }}
             >
               {t("landing.finalCta.title")} <span className="text-accent">{t("landing.finalCta.titleHighlight")}</span>
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
+            <p
               className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto text-center"
               style={{ fontSize: "clamp(14px, 1.3vw, 18px)" }}
             >
               {t("landing.finalCta.subtitle")}
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-wrap justify-center gap-6 mb-10"
-            >
+            <div className="flex flex-wrap justify-center gap-6 mb-10">
               {assurances.map((item) => (
                 <div key={item.text} className="flex items-center gap-2 text-sm text-primary-foreground/80">
                   <item.icon size={16} className="text-accent" />
                   {item.text}
                 </div>
               ))}
-            </motion.div>
+            </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/auth">
@@ -74,7 +57,7 @@ const FinalCTA = () => {
               </a>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

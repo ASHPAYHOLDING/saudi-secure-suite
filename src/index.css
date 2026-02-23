@@ -277,51 +277,30 @@
   }
 
   /* ═══════════════════════════════════════════════
-     Theme Transition — ناعم بين جميع الثيمات بدون وميض
+     Theme Transition — color properties only (no layout/transform)
      ═══════════════════════════════════════════════ */
   html {
-    transition:
-      background-color 180ms ease,
-      color 180ms ease;
+    transition: background-color 180ms ease, color 180ms ease;
   }
 
-  /* Only transition color-related properties — NOT transform/opacity/layout */
-  /* هذا يمنع الوميض ويحافظ على الأنيميشن */
-  *,
-  *::before,
-  *::after {
-    transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color;
-    transition-duration: 180ms;
+  /* Interactive elements only — NOT * wildcard to avoid global perf hit */
+  button, a, input, textarea, select, [role="button"], [data-radix-collection-item] {
+    transition-property: background-color, border-color, color, box-shadow;
+    transition-duration: 150ms;
     transition-timing-function: ease;
   }
 
-  /* لا تُطبّق الانتقال على العناصر المتحركة (Framer Motion / keyframes) */
-  [data-motion],
-  [data-animate],
-  .motion-safe\:animate-none,
-  [class*="animate-"] {
-    transition-duration: 0ms !important;
-  }
-
-  /* Interactive elements: أسرع */
-  button,
-  a,
-  input,
-  textarea,
-  select,
-  [role="button"],
-  [data-radix-collection-item] {
-    transition-duration: 120ms;
-  }
-
   /* ═══════════════════════════════════════════════
-     Ramadan Theme — نمط زخرفي خفيف في الخلفية
+     prefers-reduced-motion — disable all non-essential animation
      ═══════════════════════════════════════════════ */
-
-  /* إزالة background-image على body — يسبب تكراراً مع RamadanPattern component */
-  /* بدلاً منه نستخدم المكوّن RamadanPattern المستقل */
-
-  /* Reserved for future seasonal themes */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer components {
