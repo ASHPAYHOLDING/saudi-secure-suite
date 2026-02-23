@@ -109,16 +109,7 @@ Deno.serve(withRequestTimeout(async (req) => {
       });
     }
 
-    // ── GUARD: Block Enterprise direct purchase (price = 0, custom pricing) ──
-    if (plan.slug === "enterprise") {
-      return new Response(JSON.stringify({
-        error: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات. لا يمكن شراؤها مباشرة.",
-        requires_sales_contact: true,
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Enterprise plan is now available for direct purchase like other plans
 
     // 3. Get current subscription
     const { data: currentSub } = await supabase
