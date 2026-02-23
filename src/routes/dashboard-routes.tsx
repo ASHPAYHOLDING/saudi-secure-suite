@@ -24,6 +24,7 @@ const AnalyticsPage = lazy(() => import("@/components/analytics/AnalyticsPage"))
 const SettingsPage = lazy(() => import("@/components/settings/SettingsPage"));
 const HelpPage = lazy(() => import("@/components/help/HelpPage"));
 const SubscriptionPage = lazy(() => import("@/components/subscription/SubscriptionPage"));
+const SubscriptionUpgradePage = lazy(() => import("@/components/subscription/SubscriptionUpgradePage"));
 const IntegrationsPage = lazy(() => import("@/components/integrations/IntegrationsPage"));
 const SheetViewPage = lazy(() => import("@/components/sheet-view/SheetViewPage"));
 const FinancialOverview = lazy(() => import("@/components/finance/FinancialOverview"));
@@ -281,6 +282,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "help", element: HelpPage, gateSegment: "help", isOpenRoute: true },
 
   // ── Subscription & Misc (intentionally open) ──
+  { path: "subscription/upgrade", element: SubscriptionUpgradePage, gateSegment: "subscription", isOpenRoute: true },
   { path: "subscription", element: SubscriptionPage, gateSegment: "subscription", isOpenRoute: true },
   { path: "affiliate", element: AffiliateDashboardPage, gateSegment: "affiliate-dashboard", module: "finance" },
 ];

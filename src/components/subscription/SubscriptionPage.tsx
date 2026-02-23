@@ -1,32 +1,28 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard, Crown, Clock, ArrowUpRight, ArrowDownRight,
   CheckCircle2, AlertTriangle, History, Zap, Shield, Calendar,
-  Wallet, Building2, Loader2, Upload, Copy, Sparkles, TrendingUp,
+  Wallet, Building2, Sparkles, TrendingUp,
   Users, FileText, HardDrive, ShieldCheck, Star, BarChart3,
   Stamp, Headphones, Phone, ScrollText, Palette, UserCog,
-  Globe, GraduationCap, Server, Handshake, Award, Lock, QrCode,
-  ChevronDown, Check, X, Plug, Rocket, Gift, ArrowLeft, ArrowRight,
-  BadgeCheck, Flame, CircleDollarSign, Timer, RefreshCw
+  Globe, GraduationCap, Server, Handshake, Lock,
+  Check, X, Rocket,
+  BadgeCheck, CircleDollarSign, Timer, RefreshCw
 } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import DiscountCodeInput from "./DiscountCodeInput";
-import BankTransferForm from "./BankTransferForm";
 import ROICalculator from "./ROICalculator";
 
 interface Plan {
@@ -259,19 +255,13 @@ const SubscriptionPage = () => {
   const { user, tenantId } = useAuth();
   const { invalidate: invalidateEntitlements } = useEntitlementsContext();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planEntitlements, setPlanEntitlements] = useState<PlanEntitlement[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [logs, setLogs] = useState<SubLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [upgradeDialog, setUpgradeDialog] = useState<Plan | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<string>("monthly");
-  const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
-  const [discountCode, setDiscountCode] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "paylink" | "bank_transfer">("wallet");
-  const [bankReference, setBankReference] = useState("");
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [upgrading, setUpgrading] = useState(false);
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [usage, setUsage] = useState<any>(null);
   const [activeMotivation, setActiveMotivation] = useState(0);
@@ -353,173 +343,12 @@ const SubscriptionPage = () => {
 
   const progressPct = totalDays > 0 ? Math.round(((totalDays - daysRemaining) / totalDays) * 100) : 0;
 
-  // ─── Business Logic (unchanged) ───
-  const handleUpgrade = async (plan: Plan) => {
-    if (!subscription || !user || !tenantId) return;
+  const navigateToUpgrade = (plan: Plan) => {
     if (plan.slug === "enterprise") {
       toast({ title: "تواصل معنا", description: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات", variant: "default" });
       return;
     }
-    setUpgrading(true);
-    const idempotencyKey = `${tenantId}-${plan.id}-${selectedCycle}-${Date.now()}`;
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({ title: "خطأ", description: "يرجى تسجيل الدخول أولاً", variant: "destructive" });
-        setUpgrading(false);
-        return;
-      }
-
-      const finalAmount = discountedPrice ?? getPlanPrice(plan, selectedCycle);
-
-      if (paymentMethod === "wallet") {
-        const response = await supabase.functions.invoke("upgrade-subscription", {
-          body: {
-            plan_id: plan.id,
-            billing_cycle: selectedCycle,
-            discount_code: discountedPrice !== null ? discountCode : undefined,
-            idempotency_key: idempotencyKey,
-          },
-        });
-
-        // Handle edge function errors - extract body from FunctionsHttpError
-        let responseData = response.data;
-        if (response.error && !responseData) {
-          try {
-            // supabase-js wraps non-2xx responses; try to parse the error context
-            const ctx = (response.error as any)?.context;
-            if (ctx && typeof ctx.json === "function") {
-              responseData = await ctx.json();
-            }
-          } catch { /* ignore parse errors */ }
-        }
-
-        if (response.error || !responseData?.success) {
-          if (responseData?.already_processed) {
-            toast({ title: "تنبيه", description: "تمت معالجة هذا الطلب مسبقاً" });
-            setUpgradeDialog(null);
-            fetchData();
-            setUpgrading(false);
-            return;
-          }
-          const errMsg = responseData?.error || response.error?.message || "فشلت العملية";
-          if (responseData?.insufficient_balance) {
-            toast({
-              title: "رصيد غير كافي",
-              description: `المطلوب: ${responseData.required} ر.س — المتاح: ${responseData.available} ر.س. يرجى شحن المحفظة أولاً`,
-              variant: "destructive",
-            });
-          } else if (responseData?.needs_wallet) {
-            toast({ title: "خطأ", description: "يرجى إنشاء محفظة رقمية أولاً من قسم المحفظة", variant: "destructive" });
-          } else {
-            toast({ title: "خطأ", description: errMsg, variant: "destructive" });
-          }
-          setUpgrading(false);
-          return;
-        }
-
-        toast({ title: "تم بنجاح ✅", description: response.data.message });
-        invalidateEntitlements();
-      } else if (paymentMethod === "paylink") {
-        const orderNum = `SUB-${Date.now()}`;
-        const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/subscription-webhook?action=webhook`;
-        const callbackUrl = `${window.location.origin}/dashboard/subscription?upgrade=pending&plan_id=${plan.id}&cycle=${selectedCycle}`;
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name, email, phone")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        const response = await supabase.functions.invoke("paylink-gateway?action=create-invoice", {
-          body: {
-            amount: finalAmount,
-            clientName: profile?.full_name || "عميل",
-            clientMobile: profile?.phone || "0500000000",
-            clientEmail: profile?.email || "",
-            orderNumber: orderNum,
-            callBackUrl: callbackUrl,
-            note: `ترقية اشتراك إلى ${plan.name_ar}`,
-            products: [{ title: `اشتراك ${plan.name_ar} - ${CYCLE_LABELS[selectedCycle]}`, price: finalAmount, qty: 1 }],
-          },
-        });
-
-        if (response.error || !response.data?.success) {
-          toast({ title: "خطأ", description: response.data?.error || "فشل إنشاء رابط الدفع", variant: "destructive" });
-          setUpgrading(false);
-          return;
-        }
-
-        await supabase.from("subscription_upgrade_requests").insert({
-          tenant_id: tenantId,
-          requested_by: user.id,
-          plan_id: plan.id,
-          billing_cycle: selectedCycle,
-          amount: finalAmount,
-          discount_code: discountCode || null,
-          payment_method: "paylink",
-          bank_reference: response.data.transactionNo,
-          status: "pending",
-          notes: `Paylink Transaction: ${response.data.transactionNo}`,
-        });
-
-        window.open(response.data.paymentUrl, "_blank");
-        toast({ title: "تم إنشاء رابط الدفع", description: "تم فتح صفحة الدفع في نافذة جديدة" });
-      } else if (paymentMethod === "bank_transfer") {
-        if (!bankReference.trim()) {
-          toast({ title: "خطأ", description: "يرجى إدخال رقم مرجع التحويل", variant: "destructive" });
-          setUpgrading(false);
-          return;
-        }
-
-        let receiptUrl: string | null = null;
-        let receiptFilename: string | null = null;
-
-        if (receiptFile) {
-          const fileExt = receiptFile.name.split('.').pop();
-          const filePath = `subscription-receipts/${tenantId}/${Date.now()}.${fileExt}`;
-          const { error: uploadErr } = await supabase.storage.from("private-files").upload(filePath, receiptFile);
-          if (!uploadErr) {
-            receiptUrl = filePath;
-            receiptFilename = receiptFile.name;
-          }
-        }
-
-        const { error: reqErr } = await supabase.from("subscription_upgrade_requests").insert({
-          tenant_id: tenantId,
-          requested_by: user.id,
-          plan_id: plan.id,
-          billing_cycle: selectedCycle,
-          amount: finalAmount,
-          discount_code: discountCode || null,
-          payment_method: "bank_transfer",
-          bank_reference: bankReference.trim(),
-          receipt_url: receiptUrl,
-          receipt_filename: receiptFilename,
-          status: "pending",
-        });
-
-        if (reqErr) {
-          toast({ title: "خطأ", description: reqErr.message, variant: "destructive" });
-          setUpgrading(false);
-          return;
-        }
-
-        toast({ title: "تم إرسال الطلب ✅", description: "سيتم مراجعة التحويل البنكي واعتماد الترقية بعد التحقق" });
-      }
-
-      setUpgradeDialog(null);
-      setDiscountedPrice(null);
-      setDiscountCode("");
-      setBankReference("");
-      setReceiptFile(null);
-      setPaymentMethod("wallet");
-      fetchData();
-    } catch (err: any) {
-      toast({ title: "خطأ", description: err.message || "حدث خطأ غير متوقع", variant: "destructive" });
-    }
-    setUpgrading(false);
+    navigate(`/dashboard/subscription/upgrade?plan_id=${plan.id}`);
   };
 
   const handleCancel = async () => {
@@ -541,163 +370,11 @@ const SubscriptionPage = () => {
     }
   };
 
-  const resetDialogState = () => {
-    setUpgradeDialog(null);
-    setDiscountedPrice(null);
-    setDiscountCode("");
-    setPaymentMethod("wallet");
-    setBankReference("");
-    setReceiptFile(null);
-  };
-
   if (loading) return <SubscriptionSkeleton />;
 
   const allFeatureKeys = getAllFeatureKeys();
   const isHighestPlan = currentPlan && plans.every(p => p.sort_order <= (currentPlan.sort_order || 0));
   const currentMeta = currentPlan ? (PLAN_META[currentPlan.slug] || PLAN_META.starter) : PLAN_META.starter;
-
-  // ─── Payment Dialog Content ───
-  const PaymentContent = () => upgradeDialog ? (
-    <div className="space-y-4">
-      <div className="rounded-xl bg-gradient-to-bl from-accent/5 via-background to-background border border-accent/10 p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">من:</span>
-          <span className="font-medium">{currentPlan?.name_ar}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">إلى:</span>
-          <span className="font-bold text-accent">{upgradeDialog.name_ar}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">الدورة:</span>
-          <span>{CYCLE_LABELS[selectedCycle]}</span>
-        </div>
-        <div className="border-t border-border/50 pt-3 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">السعر:</span>
-          <div className="text-left">
-            {discountedPrice !== null ? (
-              <>
-                <span className="text-sm text-muted-foreground line-through mr-2">
-                  {getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س
-                </span>
-                <span className="text-xl font-bold text-accent">{discountedPrice.toLocaleString("ar-SA")} ر.س</span>
-              </>
-            ) : (
-              <span className="text-xl font-bold">{getPlanPrice(upgradeDialog, selectedCycle).toLocaleString("ar-SA")} ر.س</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <DiscountCodeInput
-        planId={upgradeDialog.id}
-        originalPrice={getPlanPrice(upgradeDialog, selectedCycle)}
-        onDiscountApplied={(res) => {
-          if (res.success && res.amount_after !== undefined) {
-            setDiscountedPrice(res.amount_after);
-            setDiscountCode(res.code || "");
-          } else {
-            setDiscountedPrice(null);
-            setDiscountCode("");
-          }
-        }}
-      />
-
-      {/* Payment Method Selector */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/50 rounded-xl">
-          {([
-            { value: "paylink" as const, icon: CreditCard, label: "بطاقة" },
-            { value: "wallet" as const, icon: Wallet, label: "محفظة" },
-            { value: "bank_transfer" as const, icon: Building2, label: "تحويل" },
-          ]).map((method) => (
-            <button
-              key={method.value}
-              onClick={() => setPaymentMethod(method.value)}
-              className={`flex flex-col items-center gap-1.5 py-3 sm:py-2.5 px-2 rounded-xl text-xs font-medium transition-all duration-200 min-h-[56px] sm:min-h-0 sm:flex-row sm:gap-2 ${
-                paymentMethod === method.value
-                  ? "bg-background shadow-lg shadow-accent/5 text-accent ring-1 ring-accent/20"
-                  : "text-muted-foreground active:scale-95 hover:text-foreground"
-              }`}
-            >
-              <method.icon size={18} className="sm:w-4 sm:h-4" />
-              <span>{method.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={paymentMethod}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {paymentMethod === "wallet" && (
-              <div className="rounded-xl border border-primary/20 bg-gradient-to-bl from-primary/5 to-transparent p-4 text-sm text-foreground">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Wallet size={16} className="text-primary" />
-                  </div>
-                  <span className="font-semibold">الدفع من المحفظة الرقمية</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  سيتم خصم <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span> من رصيد محفظتك فوراً.
-                </p>
-              </div>
-            )}
-
-            {paymentMethod === "paylink" && (
-              <div className="rounded-xl border border-accent/20 bg-gradient-to-bl from-accent/5 to-transparent p-4 text-sm text-foreground space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <CreditCard size={16} className="text-accent" />
-                  </div>
-                  <span className="font-semibold">الدفع عبر بوابة الدفع الإلكتروني</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  سيتم فتح صفحة دفع آمنة لإتمام العملية. المبلغ: <span className="font-bold text-foreground">{(discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)).toLocaleString("ar-SA")} ر.س</span>
-                </p>
-              </div>
-            )}
-
-            {paymentMethod === "bank_transfer" && (
-              <BankTransferForm
-                amount={discountedPrice ?? getPlanPrice(upgradeDialog, selectedCycle)}
-                bankReference={bankReference}
-                onBankReferenceChange={setBankReference}
-                receiptFile={receiptFile}
-                onReceiptFileChange={setReceiptFile}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </div>
-  ) : null;
-
-  const PaymentFooter = () => (
-    <div className="flex flex-col-reverse sm:flex-row gap-2 w-full">
-      <Button variant="outline" onClick={resetDialogState} className="w-full sm:w-auto h-12 sm:h-10 text-base sm:text-sm rounded-xl">
-        إلغاء
-      </Button>
-      <Button
-        onClick={() => upgradeDialog && handleUpgrade(upgradeDialog)}
-        disabled={upgrading}
-        className="w-full sm:w-auto gap-2 h-12 sm:h-10 text-base sm:text-sm rounded-xl shadow-lg shadow-accent/10"
-      >
-        {upgrading ? <Loader2 size={16} className="animate-spin" /> : (
-          paymentMethod === "wallet" ? <Wallet size={16} /> :
-          paymentMethod === "paylink" ? <CreditCard size={16} /> :
-          <Building2 size={16} />
-        )}
-        {paymentMethod === "wallet" ? "دفع وتأكيد الترقية" :
-         paymentMethod === "paylink" ? "الدفع بالبطاقة" :
-         "إرسال طلب الترقية"}
-      </Button>
-    </div>
-  );
 
   const countEnabledFeatures = (planId: string) =>
     planEntitlements.filter((e) => e.plan_id === planId && e.is_enabled && !EXCLUDED_FROM_LIST.has(e.feature_key)).length;
@@ -743,7 +420,7 @@ const SubscriptionPage = () => {
                 className="gap-2 rounded-xl shadow-lg shadow-accent/10 h-10 px-5"
                 onClick={() => {
                   const nextPlan = plans.find(p => p.sort_order > (currentPlan.sort_order || 0));
-                  if (nextPlan) setUpgradeDialog(nextPlan);
+                  if (nextPlan) navigateToUpgrade(nextPlan);
                 }}
               >
                 <Rocket size={16} />
@@ -1239,7 +916,7 @@ const SubscriptionPage = () => {
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                               <Button
                                 className="w-full gap-2 h-13 rounded-xl font-bold text-base shadow-xl shadow-accent/25 bg-accent hover:bg-accent/90"
-                                onClick={() => setUpgradeDialog(plan)}
+                                onClick={() => navigateToUpgrade(plan)}
                               >
                                 {(currentPlan?.sort_order || 0) < plan.sort_order ? (
                                   <><Rocket size={18} /> اشترك الآن</>
@@ -1253,7 +930,7 @@ const SubscriptionPage = () => {
                               <Button
                                 variant="outline"
                                 className="w-full gap-2 h-12 rounded-xl font-semibold border-2"
-                                onClick={() => setUpgradeDialog(plan)}
+                                onClick={() => navigateToUpgrade(plan)}
                               >
                                 {(currentPlan?.sort_order || 0) < plan.sort_order ? (
                                   <><ArrowUpRight size={16} /> ابدأ الآن</>
@@ -1619,7 +1296,7 @@ const SubscriptionPage = () => {
               className="w-full gap-2 h-14 text-base rounded-xl shadow-lg shadow-accent/20"
               onClick={() => {
                 const nextPlan = plans.find(p => p.sort_order > (currentPlan.sort_order || 0));
-                if (nextPlan) setUpgradeDialog(nextPlan);
+                if (nextPlan) navigateToUpgrade(nextPlan);
               }}
             >
               <Rocket size={18} />
@@ -1631,40 +1308,6 @@ const SubscriptionPage = () => {
         {/* Extra bottom padding on mobile for fixed CTA */}
         {isMobile && currentPlan && !isHighestPlan && <div className="h-20" />}
 
-        {/* ═══════ Upgrade Dialog / Drawer ═══════ */}
-        {isMobile ? (
-          <Drawer open={!!upgradeDialog} onOpenChange={(open) => { if (!open) resetDialogState(); }}>
-            <DrawerContent dir="rtl" className="max-h-[90vh]">
-              <DrawerHeader className="text-right">
-                <DrawerTitle className="flex items-center gap-2">
-                  <Rocket size={18} className="text-accent" />
-                  {upgradeDialog && (currentPlan?.sort_order || 0) < upgradeDialog.sort_order ? "ترقية" : "تخفيض"} الاشتراك
-                </DrawerTitle>
-              </DrawerHeader>
-              <div className="px-4 pb-2 overflow-y-auto">
-                <PaymentContent />
-              </div>
-              <DrawerFooter>
-                <PaymentFooter />
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
-        ) : (
-          <Dialog open={!!upgradeDialog} onOpenChange={(open) => { if (!open) resetDialogState(); }}>
-            <DialogContent dir="rtl" className="sm:max-w-lg rounded-2xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Rocket size={18} className="text-accent" />
-                  {upgradeDialog && (currentPlan?.sort_order || 0) < upgradeDialog.sort_order ? "ترقية" : "تخفيض"} الاشتراك
-                </DialogTitle>
-              </DialogHeader>
-              <PaymentContent />
-              <DialogFooter className="gap-2">
-                <PaymentFooter />
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
     </TooltipProvider>
   );
