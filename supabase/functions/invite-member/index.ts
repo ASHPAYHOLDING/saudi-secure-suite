@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
     const existingUser = profileMatch ? { id: profileMatch.id } : null;
 
     let userId: string;
+    let isNewUser = false;
 
     if (existingUser) {
       userId = existingUser.id;
@@ -105,6 +106,7 @@ Deno.serve(async (req) => {
       }
     } else {
       // Create new user with a random password (they'll reset it)
+      // email_confirm: true prevents Supabase from sending default confirmation email
       const tempPassword = crypto.randomUUID() + "Aa1!";
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email,
@@ -121,6 +123,7 @@ Deno.serve(async (req) => {
       }
 
       userId = newUser.user.id;
+      isNewUser = true;
 
       // Update profile with tenant_id
       await adminClient
@@ -142,6 +145,64 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Get tenant name and inviter name for the email
+    const { data: tenantData } = await adminClient
+      .from("tenants")
+      .select("name, name_en")
+      .eq("id", tenant_id)
+      .single();
+
+    const { data: inviterProfile } = await adminClient
+      .from("profiles")
+      .select("full_name, full_name_en")
+      .eq("id", callingUser.id)
+      .single();
+
+    // Role labels mapping
+    const roleLabels: Record<string, string> = {
+      admin: "مدير",
+      editor: "محرر",
+      member: "عضو",
+      viewer: "مشاهد",
+      accountant: "محاسب",
+      hr_manager: "مدير موارد بشرية",
+    };
+
+    // Send invitation email (not activation email)
+    try {
+      const emailPayload = {
+        email_type: "member_invitation",
+        recipient_email: email,
+        tenant_id,
+        user_id: userId,
+        entity_type: "member",
+        entity_id: userId,
+        data: {
+          user_name: full_name || email,
+          email,
+          company_name: tenantData?.name || "",
+          role,
+          role_label: roleLabels[role] || role,
+          invited_by: inviterProfile?.full_name || callingUser.email || "",
+          is_new_user: isNewUser,
+          login_url: `${Deno.env.get("SITE_URL") || supabaseUrl.replace('.supabase.co', '.lovable.app')}/auth`,
+        },
+      };
+
+      await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceRoleKey}`,
+          apikey: serviceRoleKey,
+        },
+        body: JSON.stringify(emailPayload),
+      });
+    } catch (emailErr) {
+      console.error("[invite-member] Failed to send invitation email:", emailErr);
+      // Don't fail the invitation if email fails
     }
 
     // Log the action
