@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Mail, Settings2 } from "lucide-react";
+import { Bell, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
+import { useUnreadCount } from "@/hooks/useNotifications";
+import { Badge } from "@/components/ui/badge";
 
 const NotificationCenterPage = () => {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const [tab, setTab] = useState("all");
+  const unreadCount = useUnreadCount();
 
   return (
     <div className="space-y-6">
@@ -29,6 +32,11 @@ const NotificationCenterPage = () => {
           <TabsTrigger value="all" className="gap-1.5">
             <Bell size={14} />
             {isAr ? "الكل" : "All"}
+            {unreadCount > 0 && (
+              <Badge variant="secondary" className="h-4 px-1 text-[10px] ms-1">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-1.5">
             <Settings2 size={14} />
