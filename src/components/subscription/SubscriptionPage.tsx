@@ -383,22 +383,34 @@ const SubscriptionPage = () => {
           },
         });
 
-        if (response.error || !response.data?.success) {
-          if (response.data?.already_processed) {
+        // Handle edge function errors - extract body from FunctionsHttpError
+        let responseData = response.data;
+        if (response.error && !responseData) {
+          try {
+            // supabase-js wraps non-2xx responses; try to parse the error context
+            const ctx = (response.error as any)?.context;
+            if (ctx && typeof ctx.json === "function") {
+              responseData = await ctx.json();
+            }
+          } catch { /* ignore parse errors */ }
+        }
+
+        if (response.error || !responseData?.success) {
+          if (responseData?.already_processed) {
             toast({ title: "تنبيه", description: "تمت معالجة هذا الطلب مسبقاً" });
             setUpgradeDialog(null);
             fetchData();
             setUpgrading(false);
             return;
           }
-          const errMsg = response.data?.error || response.error?.message || "فشلت العملية";
-          if (response.data?.insufficient_balance) {
+          const errMsg = responseData?.error || response.error?.message || "فشلت العملية";
+          if (responseData?.insufficient_balance) {
             toast({
               title: "رصيد غير كافي",
-              description: `المطلوب: ${response.data.required} ر.س — المتاح: ${response.data.available} ر.س. يرجى شحن المحفظة أولاً`,
+              description: `المطلوب: ${responseData.required} ر.س — المتاح: ${responseData.available} ر.س. يرجى شحن المحفظة أولاً`,
               variant: "destructive",
             });
-          } else if (response.data?.needs_wallet) {
+          } else if (responseData?.needs_wallet) {
             toast({ title: "خطأ", description: "يرجى إنشاء محفظة رقمية أولاً من قسم المحفظة", variant: "destructive" });
           } else {
             toast({ title: "خطأ", description: errMsg, variant: "destructive" });

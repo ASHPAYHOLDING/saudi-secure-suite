@@ -187,97 +187,102 @@ Deno.serve(withRequestTimeout(async (req) => {
       }
     }
 
-    // ── GUARD: Final price must be positive even after discount ──
-    if (finalPrice <= 0) {
+    // ── GUARD: Final price must not be negative ──
+    if (finalPrice < 0) {
       return new Response(JSON.stringify({ error: "السعر النهائي غير صالح بعد الخصم" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 6. Check wallet balance
-    const { data: wallet } = await supabase
-      .from("tenant_wallets")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
+    // 6. Wallet operations (skip if free via discount)
+    let balanceBefore = 0;
+    let balanceAfter = 0;
+    let wallet: any = null;
 
-    if (!wallet) {
-      return new Response(JSON.stringify({ error: "لا توجد محفظة. يرجى إنشاء محفظة أولاً", needs_wallet: true }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (wallet.balance_available < finalPrice) {
-      return new Response(JSON.stringify({
-        error: `رصيد المحفظة غير كافي. المطلوب: ${finalPrice} ر.س، المتاح: ${wallet.balance_available} ر.س`,
-        insufficient_balance: true,
-        required: finalPrice,
-        available: wallet.balance_available,
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 7. Deduct from wallet (atomic with optimistic lock)
-    const balanceBefore = wallet.balance_available;
-    const balanceAfter = balanceBefore - finalPrice;
-
-    const { data: walletUpdateResult, error: walletUpdateErr } = await supabase
-      .from("tenant_wallets")
-      .update({
-        balance_available: balanceAfter,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", wallet.id)
-      .eq("balance_available", balanceBefore) // Optimistic lock
-      .select("id")
-      .maybeSingle();
-
-    if (walletUpdateErr || !walletUpdateResult) {
-      return new Response(JSON.stringify({ error: "فشل في خصم المبلغ - يرجى المحاولة مرة أخرى (قد يكون الرصيد تغير)" }), {
-        status: 409, // Conflict - indicates race condition
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 8. Record wallet transaction
-    const { error: txnErr } = await supabase.from("wallet_transactions").insert({
-      wallet_id: wallet.id,
-      type: "debit",
-      source: "system",
-      reason: "subscription",
-      amount: finalPrice,
-      balance_before: balanceBefore,
-      balance_after: balanceAfter,
-      reference_type: "subscription",
-      reference_id: currentSub.id,
-      created_by: user.id,
-    });
-
-    if (txnErr) {
-      // Rollback wallet balance with optimistic lock to prevent overwriting concurrent changes
-      const { error: rollbackErr } = await supabase
+    if (finalPrice > 0) {
+      const { data: w } = await supabase
         .from("tenant_wallets")
-        .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
-        .eq("id", wallet.id)
-        .eq("balance_available", balanceAfter); // Only rollback if balance hasn't changed
-      if (rollbackErr) {
-        console.error("Rollback with optimistic lock failed, attempting forced rollback via RPC");
-        await supabase.rpc("process_wallet_transaction", {
-          p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
-          p_reason: "rollback", p_reference_type: "subscription_rollback",
-          p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      wallet = w;
+
+      if (!wallet) {
+        return new Response(JSON.stringify({ error: "لا توجد محفظة. يرجى إنشاء محفظة أولاً", needs_wallet: true }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      console.error("Wallet transaction insert error:", txnErr);
-      return new Response(JSON.stringify({ error: "فشل تسجيل العملية المالية" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (wallet.balance_available < finalPrice) {
+        return new Response(JSON.stringify({
+          error: `رصيد المحفظة غير كافي. المطلوب: ${finalPrice} ر.س، المتاح: ${wallet.balance_available} ر.س`,
+          insufficient_balance: true,
+          required: finalPrice,
+          available: wallet.balance_available,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 7. Deduct from wallet (atomic with optimistic lock)
+      balanceBefore = wallet.balance_available;
+      balanceAfter = balanceBefore - finalPrice;
+
+      const { data: walletUpdateResult, error: walletUpdateErr } = await supabase
+        .from("tenant_wallets")
+        .update({
+          balance_available: balanceAfter,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", wallet.id)
+        .eq("balance_available", balanceBefore) // Optimistic lock
+        .select("id")
+        .maybeSingle();
+
+      if (walletUpdateErr || !walletUpdateResult) {
+        return new Response(JSON.stringify({ error: "فشل في خصم المبلغ - يرجى المحاولة مرة أخرى (قد يكون الرصيد تغير)" }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 8. Record wallet transaction
+      const { error: txnErr } = await supabase.from("wallet_transactions").insert({
+        wallet_id: wallet.id,
+        type: "debit",
+        source: "system",
+        reason: "subscription",
+        amount: finalPrice,
+        balance_before: balanceBefore,
+        balance_after: balanceAfter,
+        reference_type: "subscription",
+        reference_id: currentSub.id,
+        created_by: user.id,
       });
+
+      if (txnErr) {
+        const { error: rollbackErr } = await supabase
+          .from("tenant_wallets")
+          .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
+          .eq("id", wallet.id)
+          .eq("balance_available", balanceAfter);
+        if (rollbackErr) {
+          console.error("Rollback with optimistic lock failed, attempting forced rollback via RPC");
+          await supabase.rpc("process_wallet_transaction", {
+            p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
+            p_reason: "rollback", p_reference_type: "subscription_rollback",
+            p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
+          });
+        }
+        console.error("Wallet transaction insert error:", txnErr);
+        return new Response(JSON.stringify({ error: "فشل تسجيل العملية المالية" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // 9. Update subscription
@@ -299,19 +304,21 @@ Deno.serve(withRequestTimeout(async (req) => {
       .eq("id", currentSub.id);
 
     if (subUpdateErr) {
-      // Rollback wallet with optimistic lock
-      const { error: rollbackErr2 } = await supabase
-        .from("tenant_wallets")
-        .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
-        .eq("id", wallet.id)
-        .eq("balance_available", balanceAfter);
-      if (rollbackErr2) {
-        console.error("Rollback with optimistic lock failed on sub update, using RPC");
-        await supabase.rpc("process_wallet_transaction", {
-          p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
-          p_reason: "rollback", p_reference_type: "subscription_rollback",
-          p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
-        });
+      // Rollback wallet with optimistic lock (only if we charged)
+      if (finalPrice > 0 && wallet) {
+        const { error: rollbackErr2 } = await supabase
+          .from("tenant_wallets")
+          .update({ balance_available: balanceBefore, updated_at: new Date().toISOString() })
+          .eq("id", wallet.id)
+          .eq("balance_available", balanceAfter);
+        if (rollbackErr2) {
+          console.error("Rollback with optimistic lock failed on sub update, using RPC");
+          await supabase.rpc("process_wallet_transaction", {
+            p_wallet_id: wallet.id, p_type: "credit", p_amount: finalPrice,
+            p_reason: "rollback", p_reference_type: "subscription_rollback",
+            p_reference_id: currentSub.id, p_actor_id: user.id, p_source: "system",
+          });
+        }
       }
 
       return new Response(JSON.stringify({ error: "فشل تحديث الاشتراك. تم استرداد المبلغ" }), {
