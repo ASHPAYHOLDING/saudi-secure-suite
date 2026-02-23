@@ -43,6 +43,7 @@ const AdminUpdatesManager = lazy(() => import("@/components/admin/AdminUpdatesMa
 const AdminNotificationCatalog = lazy(() => import("@/components/admin/AdminNotificationCatalog"));
 const AdminTemplateStudio = lazy(() => import("@/components/admin/AdminTemplateStudio"));
 const AdminWhatsAppDashboard = lazy(() => import("@/components/admin/AdminWhatsAppDashboard"));
+const AdminWhatsAppAnalytics = lazy(() => import("@/components/admin/AdminWhatsAppAnalytics"));
 
 const Admin = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -120,6 +121,7 @@ const Admin = () => {
     if (path === "/admin/notifications") return <AdminNotificationCatalog />;
     if (path === "/admin/template-studio") return <AdminTemplateStudio />;
     if (path === "/admin/whatsapp") return <AdminWhatsAppDashboard />;
+    if (path === "/admin/whatsapp/analytics") return <AdminWhatsAppAnalytics />;
     return <AdminDashboard />;
   };
 

@@ -8175,6 +8175,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_message_status_history: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          occurred_at: string
+          provider_payload: Json | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          occurred_at?: string
+          provider_payload?: Json | null
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          occurred_at?: string
+          provider_payload?: Json | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_message_status_history_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_message_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_message_status_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_outbox: {
         Row: {
           attempts: number
@@ -14741,17 +14786,22 @@ export type Database = {
       }
       whatsapp_message_log: {
         Row: {
+          buttons_payload: Json | null
           created_at: string
           delivered_at: string | null
           error_code: string | null
           error_message: string | null
+          event_key: string | null
           failed_at: string | null
           id: string
           language_code: string
           notification_id: string | null
           outbox_id: string | null
           provider_message_id: string | null
+          provider_status_payload: Json | null
           read_at: string | null
+          recipient_id: string | null
+          recipient_type: string | null
           sent_at: string | null
           status: string
           template_key: string
@@ -14761,17 +14811,22 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buttons_payload?: Json | null
           created_at?: string
           delivered_at?: string | null
           error_code?: string | null
           error_message?: string | null
+          event_key?: string | null
           failed_at?: string | null
           id?: string
           language_code?: string
           notification_id?: string | null
           outbox_id?: string | null
           provider_message_id?: string | null
+          provider_status_payload?: Json | null
           read_at?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
           sent_at?: string | null
           status?: string
           template_key: string
@@ -14781,17 +14836,22 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buttons_payload?: Json | null
           created_at?: string
           delivered_at?: string | null
           error_code?: string | null
           error_message?: string | null
+          event_key?: string | null
           failed_at?: string | null
           id?: string
           language_code?: string
           notification_id?: string | null
           outbox_id?: string | null
           provider_message_id?: string | null
+          provider_status_payload?: Json | null
           read_at?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
           sent_at?: string | null
           status?: string
           template_key?: string

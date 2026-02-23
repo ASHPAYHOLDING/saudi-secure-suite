@@ -2,6 +2,7 @@
  * send-whatsapp-template
  * Sends a WhatsApp template message via Meta Cloud API.
  * Supports Platform mode (Option A) and Tenant mode (Option B).
+ * Supports interactive CTA buttons.
  * Checks opt-in compliance before sending.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -24,6 +25,84 @@ function decryptToken(encrypted: string): string {
     decrypted[i] = encBytes[i] ^ keyBytes[i % keyBytes.length];
   }
   return new TextDecoder().decode(decrypted);
+}
+
+// Interactive button presets per event_key and language
+const BUTTON_PRESETS: Record<string, Record<string, Array<{ type: string; text: string; url_suffix: string }>>> = {
+  invoice_created: {
+    ar: [
+      { type: "url", text: "عرض الفاتورة", url_suffix: "/invoices/{{invoice_id}}" },
+      { type: "url", text: "الدفع الآن", url_suffix: "/pay/{{invoice_id}}" },
+    ],
+    en: [
+      { type: "url", text: "View Invoice", url_suffix: "/invoices/{{invoice_id}}" },
+      { type: "url", text: "Pay Now", url_suffix: "/pay/{{invoice_id}}" },
+    ],
+  },
+  invoice_overdue: {
+    ar: [
+      { type: "url", text: "عرض الفاتورة", url_suffix: "/invoices/{{invoice_id}}" },
+      { type: "url", text: "تواصل مع الدعم", url_suffix: "/support" },
+    ],
+    en: [
+      { type: "url", text: "View Invoice", url_suffix: "/invoices/{{invoice_id}}" },
+      { type: "url", text: "Contact Support", url_suffix: "/support" },
+    ],
+  },
+  payment_received: {
+    ar: [
+      { type: "url", text: "عرض الفاتورة", url_suffix: "/invoices/{{invoice_id}}" },
+    ],
+    en: [
+      { type: "url", text: "View Invoice", url_suffix: "/invoices/{{invoice_id}}" },
+    ],
+  },
+  login_alert: {
+    ar: [
+      { type: "url", text: "تغيير كلمة المرور", url_suffix: "/settings/security" },
+      { type: "url", text: "تأمين الحساب", url_suffix: "/settings/security" },
+    ],
+    en: [
+      { type: "url", text: "Reset Password", url_suffix: "/settings/security" },
+      { type: "url", text: "Secure Account", url_suffix: "/settings/security" },
+    ],
+  },
+  security_alert: {
+    ar: [
+      { type: "url", text: "تغيير كلمة المرور", url_suffix: "/settings/security" },
+      { type: "url", text: "تأمين الحساب", url_suffix: "/settings/security" },
+    ],
+    en: [
+      { type: "url", text: "Reset Password", url_suffix: "/settings/security" },
+      { type: "url", text: "Secure Account", url_suffix: "/settings/security" },
+    ],
+  },
+};
+
+function buildButtonComponents(
+  eventKey: string,
+  lang: string,
+  variables: Record<string, string>,
+  baseUrl: string
+): any[] {
+  const presets = BUTTON_PRESETS[eventKey]?.[lang] || BUTTON_PRESETS[eventKey]?.["ar"];
+  if (!presets || presets.length === 0) return [];
+
+  const buttons = presets.map((btn, idx) => {
+    let url = baseUrl + btn.url_suffix;
+    // Replace template variables in URL
+    for (const [key, val] of Object.entries(variables)) {
+      url = url.replace(`{{${key}}}`, val);
+    }
+    return {
+      type: "button",
+      sub_type: "url",
+      index: String(idx),
+      parameters: [{ type: "text", text: url }],
+    };
+  });
+
+  return buttons;
 }
 
 Deno.serve(async (req) => {
@@ -64,6 +143,11 @@ Deno.serve(async (req) => {
       language_code = "ar",
       components = [],
       template_key = "manual_send",
+      event_key = null,
+      recipient_type = "customer",
+      recipient_id = null,
+      variables = {},
+      base_url = "",
       skip_optin_check = false,
     } = await req.json();
 
@@ -86,7 +170,6 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!optinRecord?.opted_in) {
-        // Check with + prefix too
         const { data: optinAlt } = await admin
           .from("whatsapp_optins")
           .select("opted_in")
@@ -106,17 +189,29 @@ Deno.serve(async (req) => {
             error: "Recipient has not opted in to WhatsApp notifications",
           });
 
-          // Log to message log too
-          await admin.from("whatsapp_message_log").insert({
+          const { data: blockedMsg } = await admin.from("whatsapp_message_log").insert({
             tenant_id,
             to_phone: normalizedPhone,
             template_key,
             template_name,
             language_code,
+            event_key,
+            recipient_type,
+            recipient_id,
             status: "failed",
             error_code: "NO_OPTIN",
             error_message: "Recipient has not opted in",
-          });
+          }).select("id").maybeSingle();
+
+          if (blockedMsg?.id) {
+            await admin.from("notification_message_status_history").insert({
+              tenant_id,
+              message_id: blockedMsg.id,
+              status: "failed",
+              occurred_at: new Date().toISOString(),
+              provider_payload: { reason: "no_optin" },
+            });
+          }
 
           return new Response(
             JSON.stringify({ error: "Recipient not opted in", status: "blocked", reason: "no_optin" }),
@@ -132,7 +227,6 @@ Deno.serve(async (req) => {
     let accessToken: string;
     let mode = "platform";
 
-    // First check tenant-specific account
     const { data: tenantWa } = await admin
       .from("tenant_whatsapp_accounts")
       .select("*")
@@ -146,7 +240,6 @@ Deno.serve(async (req) => {
       phoneNumberId = tenantWa.phone_number_id;
       accessToken = decryptToken(tenantWa.access_token_encrypted);
     } else {
-      // Fallback to platform config (Option A)
       const { data: platformConfig } = await admin
         .from("platform_whatsapp_config")
         .select("*")
@@ -213,6 +306,45 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Build interactive button components if event_key is provided ──
+    let finalComponents = [...components];
+    let buttonsPayload: any = null;
+
+    if (event_key && BUTTON_PRESETS[event_key]) {
+      const lang = language_code === "en" ? "en" : "ar";
+      const buttonComponents = buildButtonComponents(event_key, lang, variables, base_url);
+      if (buttonComponents.length > 0) {
+        finalComponents = [...finalComponents, ...buttonComponents];
+        buttonsPayload = BUTTON_PRESETS[event_key][lang];
+      }
+    }
+
+    // ── Create message log entry with queued status ──
+    const { data: msgRow } = await admin.from("whatsapp_message_log").insert({
+      tenant_id,
+      to_phone: normalizedPhone,
+      template_key,
+      template_name,
+      language_code,
+      event_key,
+      recipient_type,
+      recipient_id,
+      buttons_payload: buttonsPayload,
+      status: "queued",
+    }).select("id").maybeSingle();
+
+    const messageId = msgRow?.id;
+
+    // Insert initial status history
+    if (messageId) {
+      await admin.from("notification_message_status_history").insert({
+        tenant_id,
+        message_id: messageId,
+        status: "queued",
+        occurred_at: new Date().toISOString(),
+      });
+    }
+
     // ── Send via Meta Cloud API ──
     const metaPayload = {
       messaging_product: "whatsapp",
@@ -221,7 +353,7 @@ Deno.serve(async (req) => {
       template: {
         name: template_name,
         language: { code: language_code },
-        components: components.length > 0 ? components : undefined,
+        components: finalComponents.length > 0 ? finalComponents : undefined,
       },
     };
 
@@ -242,41 +374,55 @@ Deno.serve(async (req) => {
     let status: string;
     let providerMsgId: string | null = null;
     let error: string | null = null;
+    let errorCode: string | null = null;
 
     if (metaData.messages?.[0]?.id) {
       status = "sent";
       providerMsgId = metaData.messages[0].id;
     } else {
       status = "failed";
+      errorCode = metaData.error?.code?.toString() || "UNKNOWN";
       error = metaData.error?.message || JSON.stringify(metaData);
     }
 
+    // ── Update message log ──
+    if (messageId) {
+      const updateData: Record<string, any> = {
+        status,
+        provider_message_id: providerMsgId,
+        updated_at: new Date().toISOString(),
+      };
+      if (status === "sent") {
+        updateData.sent_at = new Date().toISOString();
+      } else {
+        updateData.error_code = errorCode;
+        updateData.error_message = error;
+        updateData.failed_at = new Date().toISOString();
+      }
+
+      await admin.from("whatsapp_message_log").update(updateData).eq("id", messageId);
+
+      // Insert status history
+      await admin.from("notification_message_status_history").insert({
+        tenant_id,
+        message_id: messageId,
+        status,
+        occurred_at: new Date().toISOString(),
+        provider_payload: status === "failed" ? { error: metaData.error } : { message_id: providerMsgId },
+      });
+    }
+
     // ── Log to outbox ──
-    const { data: outboxRow } = await admin.from("notification_outbox").insert({
+    await admin.from("notification_outbox").insert({
       tenant_id,
       channel: "whatsapp",
       template_key,
       recipient: to_phone,
-      payload_json: { template_name, language_code, components, mode },
+      payload_json: { template_name, language_code, components: finalComponents, mode, buttons: buttonsPayload },
       status,
       provider_message_id: providerMsgId,
       error,
       sent_at: status === "sent" ? new Date().toISOString() : null,
-    }).select("id").maybeSingle();
-
-    // ── Log to whatsapp_message_log ──
-    await admin.from("whatsapp_message_log").insert({
-      tenant_id,
-      to_phone: normalizedPhone,
-      provider_message_id: providerMsgId,
-      template_key,
-      template_name,
-      language_code,
-      status,
-      error_code: status === "failed" ? (metaData.error?.code?.toString() || "UNKNOWN") : null,
-      error_message: error,
-      sent_at: status === "sent" ? new Date().toISOString() : null,
-      outbox_id: outboxRow?.id || null,
     });
 
     // ── Update rate limits ──
@@ -303,7 +449,9 @@ Deno.serve(async (req) => {
         success: status === "sent",
         status,
         mode,
+        message_id: messageId,
         provider_message_id: providerMsgId,
+        buttons: buttonsPayload ? true : false,
         error,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
