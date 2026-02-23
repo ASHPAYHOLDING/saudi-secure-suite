@@ -4189,6 +4189,100 @@ export type Database = {
         }
         Relationships: []
       }
+      email_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_key: string | null
+          html_body: string
+          id: string
+          idempotency_key: string | null
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          provider_id: string | null
+          scheduled_at: string
+          scope: string
+          sent_at: string | null
+          status: string
+          subject: string
+          template_id: string | null
+          tenant_id: string | null
+          text_body: string | null
+          to_email: string
+          to_name: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_key?: string | null
+          html_body: string
+          id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          provider_id?: string | null
+          scheduled_at?: string
+          scope?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+          tenant_id?: string | null
+          text_body?: string | null
+          to_email: string
+          to_name?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_key?: string | null
+          html_body?: string
+          id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          provider_id?: string | null
+          scheduled_at?: string
+          scope?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+          tenant_id?: string | null
+          text_body?: string | null
+          to_email?: string
+          to_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "email_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_jobs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           created_at: string
@@ -4197,17 +4291,21 @@ export type Database = {
           entity_type: string | null
           failure_reason: string | null
           id: string
+          job_id: string | null
           last_retry_at: string | null
+          latency_ms: number | null
           max_retries: number
           metadata: Json | null
           provider_id: string | null
           provider_response: Json | null
+          provider_used: string | null
           recipient_email: string
           resend_of: string | null
           resend_reason: string | null
           retry_count: number
           sender_address: string
           sent_at: string | null
+          smtp_response_snippet: string | null
           status: string
           subject: string
           tenant_id: string | null
@@ -4220,17 +4318,21 @@ export type Database = {
           entity_type?: string | null
           failure_reason?: string | null
           id?: string
+          job_id?: string | null
           last_retry_at?: string | null
+          latency_ms?: number | null
           max_retries?: number
           metadata?: Json | null
           provider_id?: string | null
           provider_response?: Json | null
+          provider_used?: string | null
           recipient_email: string
           resend_of?: string | null
           resend_reason?: string | null
           retry_count?: number
           sender_address?: string
           sent_at?: string | null
+          smtp_response_snippet?: string | null
           status?: string
           subject: string
           tenant_id?: string | null
@@ -4243,23 +4345,34 @@ export type Database = {
           entity_type?: string | null
           failure_reason?: string | null
           id?: string
+          job_id?: string | null
           last_retry_at?: string | null
+          latency_ms?: number | null
           max_retries?: number
           metadata?: Json | null
           provider_id?: string | null
           provider_response?: Json | null
+          provider_used?: string | null
           recipient_email?: string
           resend_of?: string | null
           resend_reason?: string | null
           retry_count?: number
           sender_address?: string
           sent_at?: string | null
+          smtp_response_snippet?: string | null
           status?: string
           subject?: string
           tenant_id?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "email_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "email_jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "email_logs_resend_of_fkey"
             columns: ["resend_of"]
@@ -4271,6 +4384,80 @@ export type Database = {
             foreignKeyName: "email_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_providers: {
+        Row: {
+          created_at: string
+          from_email: string
+          from_name_ar: string | null
+          from_name_en: string | null
+          id: string
+          is_active: boolean
+          last_error: string | null
+          last_test_at: string | null
+          last_test_status: string | null
+          provider_type: string
+          reply_to: string | null
+          scope: string
+          smtp_host: string
+          smtp_password_encrypted: string
+          smtp_port: number
+          smtp_secure: boolean
+          smtp_username: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_email: string
+          from_name_ar?: string | null
+          from_name_en?: string | null
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_test_at?: string | null
+          last_test_status?: string | null
+          provider_type?: string
+          reply_to?: string | null
+          scope?: string
+          smtp_host: string
+          smtp_password_encrypted: string
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_username: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_email?: string
+          from_name_ar?: string | null
+          from_name_en?: string | null
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_test_at?: string | null
+          last_test_status?: string | null
+          provider_type?: string
+          reply_to?: string | null
+          scope?: string
+          smtp_host?: string
+          smtp_password_encrypted?: string
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_username?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_providers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4382,6 +4569,59 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_template_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          design_version: number
+          html_body: string
+          id: string
+          is_active: boolean
+          locale: string
+          scope: string
+          subject: string
+          template_key: string
+          tenant_id: string | null
+          text_body: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          design_version?: number
+          html_body: string
+          id?: string
+          is_active?: boolean
+          locale?: string
+          scope?: string
+          subject: string
+          template_key: string
+          tenant_id?: string | null
+          text_body?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          design_version?: number
+          html_body?: string
+          id?: string
+          is_active?: boolean
+          locale?: string
+          scope?: string
+          subject?: string
+          template_key?: string
+          tenant_id?: string | null
+          text_body?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -7738,6 +7978,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_events: {
+        Row: {
+          category: string
+          created_at: string
+          default_audience_roles: string[]
+          default_channels: string[]
+          id: string
+          is_active: boolean
+          key: string
+          name_ar: string
+          name_en: string
+          scope: string
+          severity: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          default_audience_roles?: string[]
+          default_channels?: string[]
+          id?: string
+          is_active?: boolean
+          key: string
+          name_ar?: string
+          name_en?: string
+          scope?: string
+          severity?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          default_audience_roles?: string[]
+          default_channels?: string[]
+          id?: string
+          is_active?: boolean
+          key?: string
+          name_ar?: string
+          name_en?: string
+          scope?: string
+          severity?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -12457,9 +12739,12 @@ export type Database = {
           created_at: string
           entity_id: string | null
           entity_type: string | null
+          event_key: string | null
           id: string
           is_read: boolean
+          link: string | null
           message: string
+          metadata: Json | null
           read_at: string | null
           severity: string
           tenant_id: string
@@ -12470,9 +12755,12 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          event_key?: string | null
           id?: string
           is_read?: boolean
+          link?: string | null
           message?: string
+          metadata?: Json | null
           read_at?: string | null
           severity?: string
           tenant_id: string
@@ -12483,9 +12771,12 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          event_key?: string | null
           id?: string
           is_read?: boolean
+          link?: string | null
           message?: string
+          metadata?: Json | null
           read_at?: string | null
           severity?: string
           tenant_id?: string
@@ -12986,9 +13277,11 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          event_key: string | null
           id: string
           is_read: boolean
           link: string | null
+          metadata: Json | null
           read_at: string | null
           tenant_id: string
           title: string
@@ -12998,9 +13291,11 @@ export type Database = {
         Insert: {
           body?: string
           created_at?: string
+          event_key?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
+          metadata?: Json | null
           read_at?: string | null
           tenant_id: string
           title: string
@@ -13010,9 +13305,11 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          event_key?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
+          metadata?: Json | null
           read_at?: string | null
           tenant_id?: string
           title?: string
