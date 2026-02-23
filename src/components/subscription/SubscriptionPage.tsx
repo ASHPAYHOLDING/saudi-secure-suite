@@ -99,7 +99,7 @@ const STATIC_PRICING: Record<string, { monthly: string; yearly: string; yearlyNo
   starter:      { monthly: "149", yearly: "119",  yearlyNote: "تُحسب سنوياً" },
   business:     { monthly: "399", yearly: "319",  yearlyNote: "تُحسب سنوياً" },
   professional: { monthly: "399", yearly: "319",  yearlyNote: "تُحسب سنوياً" },
-  enterprise:   { monthly: "—",   yearly: "—",    yearlyNote: "تسعير مخصص", enterpriseNote: "السعر يعتمد على عدد الفروع وحجم النشاط" },
+  enterprise:   { monthly: "999", yearly: "799",  yearlyNote: "تُحسب سنوياً" },
 };
 
 // Feature highlights per plan for the new design (static, UI only)
@@ -820,23 +820,8 @@ const SubscriptionPage = () => {
 
                         {/* Price */}
                         <div className="mt-2">
-                          {plan.slug === "enterprise" ? (
-                            <div>
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-bold text-foreground">
-                                  يبدأ من {selectedCycle === "yearly" ? staticPricing?.yearly : staticPricing?.monthly}
-                                </span>
-                                <span className="text-sm text-muted-foreground">ر.س/شهر</span>
-                              </div>
-                              {selectedCycle === "yearly" && (
-                                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
-                                  ✓ {staticPricing?.yearlyNote} — وفّر 20%
-                                </p>
-                              )}
-                              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                                {staticPricing?.enterpriseNote}
-                              </p>
-                            </div>
+                          {false ? (
+                            <div />
                           ) : (
                             <div>
                               <div className="flex items-baseline gap-1">

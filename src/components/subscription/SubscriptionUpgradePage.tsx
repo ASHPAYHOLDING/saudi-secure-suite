@@ -102,10 +102,6 @@ const SubscriptionUpgradePage = () => {
 
   const handleUpgrade = async () => {
     if (!subscription || !user || !tenantId || !plan) return;
-    if (plan.slug === "enterprise") {
-      toast({ title: "تواصل معنا", description: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات" });
-      return;
-    }
     setUpgrading(true);
     const idempotencyKey = `${tenantId}-${plan.id}-${selectedCycle}-${Date.now()}`;
 
