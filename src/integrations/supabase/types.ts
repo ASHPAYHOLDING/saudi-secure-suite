@@ -12736,6 +12736,7 @@ export type Database = {
       }
       tenant_notifications: {
         Row: {
+          archived_at: string | null
           created_at: string
           entity_id: string | null
           entity_type: string | null
@@ -12752,6 +12753,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
@@ -12768,6 +12770,7 @@ export type Database = {
           type: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
@@ -13275,6 +13278,7 @@ export type Database = {
       }
       user_notifications: {
         Row: {
+          archived_at: string | null
           body: string
           created_at: string
           event_key: string | null
@@ -13289,6 +13293,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           body?: string
           created_at?: string
           event_key?: string | null
@@ -13303,6 +13308,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           body?: string
           created_at?: string
           event_key?: string | null
