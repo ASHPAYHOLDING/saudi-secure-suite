@@ -29,6 +29,30 @@ const TYPE_SENDER: Record<string, string> = {
   integration_activation: "no-reply",
   financial_notification: "billing",
   admin_alert: "no-reply",
+  // HR
+  member_invitation: "no-reply",
+  hr_document_expiring: "no-reply",
+  hr_contract_expiring: "no-reply",
+  hr_payroll_ready: "no-reply",
+  hr_leave_request: "no-reply",
+  hr_employee_onboarding: "no-reply",
+  // Approvals
+  approval_requested: "no-reply",
+  approval_approved: "no-reply",
+  approval_rejected: "no-reply",
+  // Budget
+  budget_alert: "billing",
+  budget_exceeded: "billing",
+  // Contracts
+  contract_expiring: "no-reply",
+  contract_renewed: "no-reply",
+  // Inventory
+  inventory_low_stock: "no-reply",
+  inventory_reorder: "no-reply",
+  // Quotations
+  quotation_created: "billing",
+  quotation_accepted: "billing",
+  quotation_expired: "billing",
   // Affiliate
   affiliate_application_received: "no-reply",
   affiliate_application_approved: "no-reply",
@@ -268,6 +292,369 @@ function getEmailTemplate(
           "تفعيل الحساب",
           `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.user_name || ""}</strong>،</p>
            <p style="color:#4a5568;font-size:15px;line-height:1.9;">تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول والبدء في استخدام المنصة.</p>`
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // MEMBER INVITATION
+    // ═══════════════════════════════════════
+    case "member_invitation":
+      return {
+        subject: `دعوة للانضمام إلى ${d.company_name || "المنشأة"} – Numaxio`,
+        html: generalWrap(
+          "دعوة للانضمام إلى فريق العمل",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.user_name || d.email || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">تمت دعوتك للانضمام إلى <strong>${d.company_name || "المنشأة"}</strong> بصفتك <strong>${d.role_label || d.role || "عضو"}</strong>.</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:18px;font-weight:700;color:#166534;">🎉 تمت الدعوة بنجاح</p>
+             <p style="margin:4px 0 0;color:#15803d;font-size:13px;">تم تفعيل حسابك تلقائياً</p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">المنشأة:</td><td style="text-align:left;font-weight:600;">${d.company_name || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">الدور:</td><td style="text-align:left;font-weight:600;">${d.role_label || d.role || "عضو"}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">تمت الدعوة بواسطة:</td><td style="text-align:left;font-weight:600;">${d.invited_by || ""}</td></tr>
+             </table>
+           </div>
+           ${d.is_new_user ? `<p style="color:#4a5568;font-size:14px;line-height:1.8;">تم إنشاء حساب جديد لك. يرجى تسجيل الدخول وتعيين كلمة مرور جديدة عبر خيار "نسيت كلمة المرور".</p>` : ''}
+           <p style="text-align:center;"><a href="${d.login_url || '#'}" style="display:inline-block;background:#10B981;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">تسجيل الدخول الآن</a></p>`
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // HR EMAILS
+    // ═══════════════════════════════════════
+    case "hr_document_expiring":
+      return {
+        subject: `📋 وثائق قاربت على الانتهاء – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تنبيه: وثائق قاربت على الانتهاء",
+          `<p>يوجد وثائق تحتاج إلى تجديد قريباً:</p>
+          <table class="data-table">
+            <tr><td>اسم الموظف</td><td>${d.employee_name || ""}</td></tr>
+            <tr><td>نوع الوثيقة</td><td>${d.document_type || ""}</td></tr>
+            <tr><td>تاريخ الانتهاء</td><td class="num">${d.expiry_date || ""}</td></tr>
+            <tr><td>الأيام المتبقية</td><td class="num">${d.days_remaining || ""} يوم</td></tr>
+          </table>
+          <div class="warning-box">
+            <p class="amount">${d.days_remaining || ""} يوم</p>
+            <p class="label">متبقي على الانتهاء</p>
+          </div>
+          <p>يرجى اتخاذ الإجراء اللازم لتجديد الوثيقة قبل انتهائها.</p>`,
+          d.company_name as string
+        ),
+      };
+
+    case "hr_contract_expiring":
+      return {
+        subject: `📄 عقد عمل قارب على الانتهاء – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تنبيه: عقد عمل قارب على الانتهاء",
+          `<p>عقد عمل يحتاج إلى مراجعة وتجديد:</p>
+          <table class="data-table">
+            <tr><td>اسم الموظف</td><td>${d.employee_name || ""}</td></tr>
+            <tr><td>نوع العقد</td><td>${d.contract_type || ""}</td></tr>
+            <tr><td>تاريخ الانتهاء</td><td class="num">${d.expiry_date || ""}</td></tr>
+          </table>
+          <div class="warning-box">
+            <p class="amount">${d.days_remaining || ""} يوم</p>
+            <p class="label">متبقي على انتهاء العقد</p>
+          </div>`,
+          d.company_name as string
+        ),
+      };
+
+    case "hr_payroll_ready":
+      return {
+        subject: `💰 كشف الرواتب جاهز – ${d.company_name || ""}`,
+        html: formalWrap(
+          "كشف الرواتب جاهز للمراجعة",
+          `<p>تم إعداد كشف الرواتب للفترة التالية:</p>
+          <table class="data-table">
+            <tr><td>الشهر</td><td>${d.period || ""}</td></tr>
+            <tr><td>عدد الموظفين</td><td class="num">${d.employee_count || 0}</td></tr>
+            <tr><td>إجمالي الرواتب</td><td class="num">${d.total_amount || 0} ${d.currency || "ر.س"}</td></tr>
+          </table>
+          <div class="amount-box">
+            <p class="amount num">${d.total_amount || 0} ${d.currency || "ر.س"}</p>
+            <p class="label">إجمالي المبلغ المطلوب</p>
+          </div>
+          <p>يرجى المراجعة والاعتماد.</p>`,
+          d.company_name as string
+        ),
+      };
+
+    case "hr_leave_request":
+      return {
+        subject: `🗓️ طلب إجازة جديد – ${d.company_name || ""}`,
+        html: generalWrap(
+          "طلب إجازة جديد",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">تم تقديم طلب إجازة جديد:</p>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">الموظف:</td><td style="text-align:left;font-weight:600;">${d.employee_name || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">نوع الإجازة:</td><td style="text-align:left;font-weight:600;">${d.leave_type || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">من:</td><td style="text-align:left;font-weight:600;">${d.start_date || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">إلى:</td><td style="text-align:left;font-weight:600;">${d.end_date || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">عدد الأيام:</td><td style="text-align:left;font-weight:600;">${d.days_count || ""}</td></tr>
+             </table>
+           </div>`
+        ),
+      };
+
+    case "hr_employee_onboarding":
+      return {
+        subject: `👋 مرحباً بك في ${d.company_name || "الفريق"} – Numaxio`,
+        html: generalWrap(
+          "مرحباً بك في الفريق!",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.employee_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">يسعدنا انضمامك إلى <strong>${d.company_name || ""}</strong>! تم إعداد حسابك بنجاح.</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:18px;font-weight:700;color:#166534;">🎉 أهلاً وسهلاً</p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">القسم:</td><td style="text-align:left;font-weight:600;">${d.department || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">المسمى الوظيفي:</td><td style="text-align:left;font-weight:600;">${d.job_title || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">تاريخ الالتحاق:</td><td style="text-align:left;font-weight:600;">${d.start_date || ""}</td></tr>
+             </table>
+           </div>`
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // APPROVAL EMAILS
+    // ═══════════════════════════════════════
+    case "approval_requested":
+      return {
+        subject: `✅ طلب موافقة جديد – ${d.company_name || ""}`,
+        html: generalWrap(
+          "طلب موافقة جديد",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.user_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">تم تقديم طلب موافقة جديد يحتاج مراجعتك:</p>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">نوع المستند:</td><td style="text-align:left;font-weight:600;">${d.document_type || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">رقم المستند:</td><td style="text-align:left;font-weight:600;">${d.document_number || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">المبلغ:</td><td style="text-align:left;font-weight:600;">${d.amount || ""} ${d.currency || "ر.س"}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">مقدم الطلب:</td><td style="text-align:left;font-weight:600;">${d.requester_name || ""}</td></tr>
+             </table>
+           </div>`
+        ),
+      };
+
+    case "approval_approved":
+      return {
+        subject: `✅ تمت الموافقة – ${d.document_number || ""} – ${d.company_name || ""}`,
+        html: generalWrap(
+          "تمت الموافقة على طلبك",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.user_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">تمت الموافقة على طلبك بنجاح.</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:18px;font-weight:700;color:#166534;">✓ تمت الموافقة</p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">نوع المستند:</td><td style="text-align:left;font-weight:600;">${d.document_type || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">رقم المستند:</td><td style="text-align:left;font-weight:600;">${d.document_number || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">تمت الموافقة بواسطة:</td><td style="text-align:left;font-weight:600;">${d.approver_name || ""}</td></tr>
+             </table>
+           </div>`
+        ),
+      };
+
+    case "approval_rejected":
+      return {
+        subject: `❌ تم رفض الطلب – ${d.document_number || ""} – ${d.company_name || ""}`,
+        html: generalWrap(
+          "تم رفض طلبك",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">مرحباً <strong>${d.user_name || ""}</strong>،</p>
+           <p style="color:#4a5568;font-size:15px;line-height:1.9;">للأسف تم رفض طلبك.</p>
+           <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:18px;font-weight:700;color:#991b1b;">✗ تم الرفض</p>
+           </div>
+           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+             <table style="width:100%;font-size:14px;color:#374151;">
+               <tr><td style="padding:6px 0;color:#6b7280;">نوع المستند:</td><td style="text-align:left;font-weight:600;">${d.document_type || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">رقم المستند:</td><td style="text-align:left;font-weight:600;">${d.document_number || ""}</td></tr>
+               <tr><td style="padding:6px 0;color:#6b7280;">سبب الرفض:</td><td style="text-align:left;font-weight:600;">${d.rejection_reason || "—"}</td></tr>
+             </table>
+           </div>`
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // BUDGET EMAILS
+    // ═══════════════════════════════════════
+    case "budget_alert":
+      return {
+        subject: `⚠️ تنبيه ميزانية – ${d.budget_name || ""} – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تنبيه: اقتراب من حد الميزانية",
+          `<p>تم تجاوز نسبة الإنفاق المحددة للميزانية:</p>
+          <div class="warning-box">
+            <p class="amount">${d.percent_used || 0}%</p>
+            <p class="label">نسبة الاستهلاك</p>
+          </div>
+          <table class="data-table">
+            <tr><td>اسم الميزانية</td><td>${d.budget_name || ""}</td></tr>
+            <tr><td>البند</td><td>${d.line_description || "—"}</td></tr>
+            <tr><td>المبلغ المخطط</td><td class="num">${d.planned_amount || 0} ${d.currency || "ر.س"}</td></tr>
+            <tr><td>المبلغ الفعلي</td><td class="num">${d.actual_amount || 0} ${d.currency || "ر.س"}</td></tr>
+          </table>
+          <p>يرجى مراجعة الإنفاق واتخاذ الإجراءات المناسبة.</p>`,
+          d.company_name as string
+        ),
+      };
+
+    case "budget_exceeded":
+      return {
+        subject: `🚨 تجاوز الميزانية – ${d.budget_name || ""} – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تحذير: تجاوز حد الميزانية",
+          `<p>تم تجاوز الميزانية المحددة:</p>
+          <div class="error-box">
+            <p class="amount">${d.percent_used || 0}%</p>
+            <p class="label">تم التجاوز!</p>
+          </div>
+          <table class="data-table">
+            <tr><td>اسم الميزانية</td><td>${d.budget_name || ""}</td></tr>
+            <tr><td>المبلغ المخطط</td><td class="num">${d.planned_amount || 0} ${d.currency || "ر.س"}</td></tr>
+            <tr><td>المبلغ الفعلي</td><td class="num">${d.actual_amount || 0} ${d.currency || "ر.س"}</td></tr>
+            <tr><td>مبلغ التجاوز</td><td class="num">${d.exceeded_amount || 0} ${d.currency || "ر.س"}</td></tr>
+          </table>`,
+          d.company_name as string
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // CONTRACT EMAILS
+    // ═══════════════════════════════════════
+    case "contract_expiring":
+      return {
+        subject: `📄 عقد قارب على الانتهاء – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تنبيه: عقد قارب على الانتهاء",
+          `<p>عقد يحتاج إلى مراجعة وتجديد:</p>
+          <table class="data-table">
+            <tr><td>العميل</td><td>${d.customer_name || ""}</td></tr>
+            <tr><td>نوع العقد</td><td>${d.contract_type || ""}</td></tr>
+            <tr><td>تاريخ الانتهاء</td><td class="num">${d.expiry_date || ""}</td></tr>
+            <tr><td>الأيام المتبقية</td><td class="num">${d.days_remaining || ""} يوم</td></tr>
+          </table>
+          <div class="warning-box">
+            <p class="amount">${d.days_remaining || ""} يوم</p>
+            <p class="label">متبقي على الانتهاء</p>
+          </div>`,
+          d.company_name as string
+        ),
+      };
+
+    case "contract_renewed":
+      return {
+        subject: `✅ تم تجديد العقد – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تم تجديد العقد بنجاح",
+          `<p>تم تجديد العقد التالي:</p>
+          <div class="success-box">
+            <p class="amount">✓ تم التجديد</p>
+            <p class="label">العقد نشط الآن</p>
+          </div>
+          <table class="data-table">
+            <tr><td>العميل</td><td>${d.customer_name || ""}</td></tr>
+            <tr><td>تاريخ التجديد</td><td class="num">${d.renewal_date || ""}</td></tr>
+            <tr><td>تاريخ الانتهاء الجديد</td><td class="num">${d.new_expiry_date || ""}</td></tr>
+          </table>`,
+          d.company_name as string
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // INVENTORY EMAILS
+    // ═══════════════════════════════════════
+    case "inventory_low_stock":
+      return {
+        subject: `⚠️ مخزون منخفض – ${d.product_name || ""} – ${d.company_name || ""}`,
+        html: formalWrap(
+          "تنبيه: مخزون منخفض",
+          `<p>المنتج التالي وصل لمستوى مخزون منخفض:</p>
+          <div class="warning-box">
+            <p class="amount">${d.current_qty || 0} وحدة</p>
+            <p class="label">الكمية الحالية</p>
+          </div>
+          <table class="data-table">
+            <tr><td>المنتج</td><td>${d.product_name || ""}</td></tr>
+            <tr><td>الكمية الحالية</td><td class="num">${d.current_qty || 0}</td></tr>
+            <tr><td>حد إعادة الطلب</td><td class="num">${d.reorder_level || 0}</td></tr>
+            <tr><td>المستودع</td><td>${d.warehouse_name || "—"}</td></tr>
+          </table>
+          <p>يرجى إعادة الطلب لتجنب نفاد المخزون.</p>`,
+          d.company_name as string
+        ),
+      };
+
+    case "inventory_reorder":
+      return {
+        subject: `📦 طلب إعادة تعبئة مخزون – ${d.company_name || ""}`,
+        html: formalWrap(
+          "طلب إعادة تعبئة مخزون",
+          `<p>تم إنشاء طلب إعادة تعبئة تلقائي:</p>
+          <table class="data-table">
+            <tr><td>المنتج</td><td>${d.product_name || ""}</td></tr>
+            <tr><td>الكمية المطلوبة</td><td class="num">${d.order_qty || 0}</td></tr>
+            <tr><td>المورد</td><td>${d.supplier_name || "—"}</td></tr>
+          </table>`,
+          d.company_name as string
+        ),
+      };
+
+    // ═══════════════════════════════════════
+    // QUOTATION EMAILS
+    // ═══════════════════════════════════════
+    case "quotation_created":
+      return {
+        subject: `عرض سعر رقم ${d.quotation_number || ""} – ${d.company_name || ""}`,
+        html: formalWrap(
+          "عرض سعر جديد",
+          `<p>السيد/ة <strong>${d.customer_name || "العميل"}</strong> المحترم/ة،</p>
+          <p>نرفق لكم عرض السعر التالي:</p>
+          <table class="data-table">
+            <tr><td>رقم العرض</td><td class="num">${d.quotation_number || ""}</td></tr>
+            <tr><td>التاريخ</td><td class="num">${d.date || ""}</td></tr>
+            <tr><td>صالح حتى</td><td class="num">${d.valid_until || ""}</td></tr>
+          </table>
+          <div class="amount-box">
+            <p class="amount num">${d.total || 0} ${d.currency || "ر.س"}</p>
+            <p class="label">إجمالي العرض (شامل الضريبة)</p>
+          </div>`,
+          d.company_name as string,
+          d.vat_number as string
+        ),
+      };
+
+    case "quotation_accepted":
+      return {
+        subject: `✅ تم قبول عرض السعر ${d.quotation_number || ""} – ${d.company_name || ""}`,
+        html: generalWrap(
+          "تم قبول عرض السعر",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">تم قبول عرض السعر رقم <strong>${d.quotation_number || ""}</strong> من العميل <strong>${d.customer_name || ""}</strong>.</p>
+           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:24px;font-weight:700;color:#166534;">${d.total || 0} ${d.currency || "ر.س"}</p>
+             <p style="margin:4px 0 0;color:#15803d;font-size:13px;">✓ تم القبول</p>
+           </div>`
+        ),
+      };
+
+    case "quotation_expired":
+      return {
+        subject: `⏰ انتهاء صلاحية عرض السعر ${d.quotation_number || ""} – ${d.company_name || ""}`,
+        html: generalWrap(
+          "انتهاء صلاحية عرض سعر",
+          `<p style="color:#4a5568;font-size:15px;line-height:1.9;">انتهت صلاحية عرض السعر رقم <strong>${d.quotation_number || ""}</strong> المقدم للعميل <strong>${d.customer_name || ""}</strong>.</p>
+           <div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+             <p style="margin:0;font-size:16px;font-weight:600;color:#92400e;">انتهت الصلاحية</p>
+           </div>
+           <p style="color:#6b7280;font-size:14px;">يمكنك إنشاء عرض سعر جديد أو تمديد الصلاحية.</p>`
         ),
       };
 
