@@ -344,10 +344,6 @@ const SubscriptionPage = () => {
   const progressPct = totalDays > 0 ? Math.round(((totalDays - daysRemaining) / totalDays) * 100) : 0;
 
   const navigateToUpgrade = (plan: Plan) => {
-    if (plan.slug === "enterprise") {
-      toast({ title: "تواصل معنا", description: "باقة المؤسسي تتطلب التواصل مع فريق المبيعات. لا يمكن شراؤها مباشرة.", variant: "default" });
-      return;
-    }
     navigate(`/dashboard/subscription/upgrade?plan_id=${plan.id}`);
   };
 
