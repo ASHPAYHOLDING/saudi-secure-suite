@@ -1,7 +1,8 @@
 /**
  * SMTP Settings Management — Owner-only
- * Actions: get, upsert, test, delete
+ * Actions: get, upsert, test, delete, toggle
  * All SMTP passwords are encrypted with AES-GCM before storage.
+ * Test action: rate limited to 3 per 10 minutes per tenant.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encryptSecret, decryptSecret } from "../_shared/aes-gcm.ts";
@@ -17,6 +18,13 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTEGRATION_SECRET_KEY = Deno.env.get("INTEGRATION_SECRET_KEY")!;
 
+function jsonResponse(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,40 +34,25 @@ Deno.serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Rate limit
+  // General rate limit
   const blocked = await checkRateLimit(req, admin, "general", corsHeaders);
   if (blocked) return blocked;
 
   try {
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (authErr || !user) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
     const { action, tenant_id } = body;
 
-    if (!tenant_id) {
-      return new Response(JSON.stringify({ error: "tenant_id required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!tenant_id) return jsonResponse({ error: "tenant_id required" }, 400);
 
     // Verify user is owner of this tenant
     const { data: membership } = await admin
@@ -70,10 +63,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!membership || membership.role !== "owner") {
-      return new Response(JSON.stringify({ error: "Only owners can manage SMTP settings" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Only owners can manage SMTP settings" }, 403);
     }
 
     // ── GET ──
@@ -85,9 +75,7 @@ Deno.serve(async (req) => {
         .eq("scope", "tenant")
         .maybeSingle();
 
-      return new Response(JSON.stringify({ provider: provider || null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ provider: provider || null });
     }
 
     // ── UPSERT ──
@@ -95,10 +83,7 @@ Deno.serve(async (req) => {
       const { smtp_host, smtp_port, smtp_secure, smtp_username, smtp_password, from_name_ar, from_name_en, from_email, reply_to } = body;
 
       if (!smtp_host || !smtp_username || !from_email) {
-        return new Response(JSON.stringify({ error: "smtp_host, smtp_username, and from_email are required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "smtp_host, smtp_username, and from_email are required" }, 400);
       }
 
       // Encrypt password
@@ -140,27 +125,63 @@ Deno.serve(async (req) => {
           .from("email_providers")
           .update(providerData)
           .eq("id", existing.id);
-
         if (error) throw error;
       } else {
         if (!smtp_password) {
-          return new Response(JSON.stringify({ error: "Password required for new SMTP setup" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return jsonResponse({ error: "Password required for new SMTP setup" }, 400);
         }
         providerData.smtp_password_encrypted = encryptedPassword;
         const { error } = await admin.from("email_providers").insert(providerData);
         if (error) throw error;
       }
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true });
     }
 
-    // ── TEST ──
+    // ── TOGGLE ──
+    if (action === "toggle") {
+      const { is_active } = body;
+      const { data: existing } = await admin
+        .from("email_providers")
+        .select("id")
+        .eq("tenant_id", tenant_id)
+        .eq("scope", "tenant")
+        .maybeSingle();
+
+      if (!existing) return jsonResponse({ error: "No SMTP configured" }, 404);
+
+      const { error } = await admin
+        .from("email_providers")
+        .update({ is_active: !!is_active, updated_at: new Date().toISOString() })
+        .eq("id", existing.id);
+      if (error) throw error;
+
+      return jsonResponse({ success: true });
+    }
+
+    // ── TEST (rate limited: 3 per 10 min per tenant) ──
     if (action === "test") {
+      // Custom rate limit for test: 3 per 10 min
+      const tenantKey = `smtp_test:${tenant_id}`;
+      const { data: recentTests } = await admin
+        .from("rate_limits")
+        .select("id, created_at")
+        .eq("key", tenantKey)
+        .gte("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString())
+        .order("created_at", { ascending: false });
+
+      if (recentTests && recentTests.length >= 3) {
+        return jsonResponse({ error: "Rate limit exceeded. Max 3 tests per 10 minutes." }, 429);
+      }
+
+      // Record this test attempt
+      await admin.from("rate_limits").insert({ key: tenantKey, created_at: new Date().toISOString() }).maybeSingle();
+
+      const { recipient_email } = body;
+      if (!recipient_email) {
+        return jsonResponse({ error: "recipient_email required" }, 400);
+      }
+
       const { data: provider } = await admin
         .from("email_providers")
         .select("*")
@@ -168,19 +189,14 @@ Deno.serve(async (req) => {
         .eq("scope", "tenant")
         .single();
 
-      if (!provider) {
-        return new Response(JSON.stringify({ error: "No SMTP configured" }), {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      if (!provider) return jsonResponse({ error: "No SMTP configured" }, 404);
 
       let testSuccess = false;
       let testError = "";
 
       try {
         const password = await decryptSecret(provider.smtp_password_encrypted, INTEGRATION_SECRET_KEY);
-        
+
         const conn = await Deno.connect({
           hostname: provider.smtp_host,
           port: provider.smtp_port,
@@ -207,9 +223,31 @@ Deno.serve(async (req) => {
         const authResp = await send(btoa(password));
 
         if (authResp.startsWith("235")) {
-          testSuccess = true;
+          // Auth success — send a test email
+          const fromName = provider.from_name_en || provider.from_name_ar || "Numaxio";
+          await send(`MAIL FROM:<${provider.from_email}>`);
+          await send(`RCPT TO:<${recipient_email}>`);
+          await send("DATA");
+          const emailBody = [
+            `From: "${fromName}" <${provider.from_email}>`,
+            `To: <${recipient_email}>`,
+            `Subject: SMTP Test — Numaxio`,
+            `Content-Type: text/plain; charset=UTF-8`,
+            ``,
+            `This is a test email from your Numaxio SMTP configuration.`,
+            `If you received this, your SMTP settings are working correctly.`,
+            ``,
+            `— Numaxio Platform`,
+          ].join("\r\n");
+          const dataResp = await send(emailBody + "\r\n.");
+
+          if (dataResp.startsWith("250")) {
+            testSuccess = true;
+          } else {
+            testError = "Email send failed: " + dataResp.trim();
+          }
         } else {
-          testError = "فشل المصادقة: " + authResp.trim();
+          testError = "Authentication failed";
         }
 
         await send("QUIT");
@@ -225,11 +263,9 @@ Deno.serve(async (req) => {
         last_error: testSuccess ? null : testError,
       }).eq("id", provider.id);
 
-      return new Response(JSON.stringify({
+      return jsonResponse({
         success: testSuccess,
         error: testSuccess ? null : testError,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -241,20 +277,12 @@ Deno.serve(async (req) => {
         .eq("tenant_id", tenant_id)
         .eq("scope", "tenant");
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown action" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Unknown action" }, 400);
   } catch (err) {
     console.error("SMTP settings error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "An internal error occurred" }, 500);
   }
 });
