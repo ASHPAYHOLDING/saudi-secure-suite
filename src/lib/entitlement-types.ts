@@ -49,6 +49,7 @@ export const FEATURE_KEYS = {
   HR_CORE: "hr_core",
   HR_PAYROLL: "hr_payroll",
   HR_DOCUMENTS: "hr_documents",
+  HR_DOC_ALERTS: "hr_doc_alerts",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
