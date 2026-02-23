@@ -1,124 +1,95 @@
-import { memo, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { memo } from "react";
+import { useTranslation } from "react-i18next";
 
-interface ComplianceItem {
-  label: string;
-  description: string;
+/* ── Minimal SVG icons for integrations ── */
+const ZatcaIcon = () => (
+  <svg viewBox="0 0 80 80" className="h-8 w-auto" aria-hidden="true">
+    <rect x="8" y="20" width="64" height="40" rx="6" fill="none" stroke="currentColor" strokeWidth="2.5" />
+    <path d="M22 34h36M22 44h24M22 54h28" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="58" cy="50" r="8" fill="currentColor" opacity="0.12" />
+    <path d="M55 50l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const VatIcon = () => (
+  <svg viewBox="0 0 80 80" className="h-8 w-auto" aria-hidden="true">
+    <rect x="12" y="18" width="56" height="44" rx="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+    <text x="40" y="46" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="700" fontFamily="system-ui">VAT</text>
+  </svg>
+);
+
+const CloudIcon = () => (
+  <svg viewBox="0 0 80 80" className="h-8 w-auto" aria-hidden="true">
+    <path d="M20 52a14 14 0 0 1 2-27.8A18 18 0 0 1 56 28a12 12 0 0 1 4 23.3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M32 48l8 8 8-8M40 56V38" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ShieldIcon = () => (
+  <svg viewBox="0 0 80 80" className="h-8 w-auto" aria-hidden="true">
+    <path d="M40 12L14 26v18c0 16 11 28 26 32 15-4 26-16 26-32V26L40 12z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+    <path d="M30 42l7 7 13-13" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+interface IntegrationItem {
   icon: React.ReactNode;
+  label: string;
+  desc: string;
 }
 
-const ZatcaIcon = () => (
-  <svg viewBox="0 0 120 120" className="h-10 md:h-12 w-auto" aria-hidden="true">
-    <rect x="10" y="30" width="100" height="60" rx="8" fill="none" stroke="hsl(168 76% 42%)" strokeWidth="3" />
-    <path d="M30 50h60M30 65h40M30 80h50" stroke="hsl(168 76% 42%)" strokeWidth="2.5" strokeLinecap="round" />
-    <circle cx="90" cy="75" r="12" fill="hsl(168 76% 42%)" opacity="0.15" />
-    <path d="M86 75l3 3 6-6" stroke="hsl(168 76% 42%)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const MocIcon = () => (
-  <svg viewBox="0 0 120 120" className="h-10 md:h-12 w-auto" aria-hidden="true">
-    <path d="M60 15L20 40v5h80v-5L60 15z" fill="none" stroke="hsl(168 76% 42%)" strokeWidth="3" strokeLinejoin="round" />
-    <rect x="30" y="50" width="12" height="35" rx="2" fill="hsl(168 76% 42%)" opacity="0.2" stroke="hsl(168 76% 42%)" strokeWidth="2" />
-    <rect x="54" y="50" width="12" height="35" rx="2" fill="hsl(168 76% 42%)" opacity="0.2" stroke="hsl(168 76% 42%)" strokeWidth="2" />
-    <rect x="78" y="50" width="12" height="35" rx="2" fill="hsl(168 76% 42%)" opacity="0.2" stroke="hsl(168 76% 42%)" strokeWidth="2" />
-    <rect x="18" y="88" width="84" height="8" rx="3" fill="none" stroke="hsl(168 76% 42%)" strokeWidth="2.5" />
-  </svg>
-);
-
-const MaroofIcon = () => (
-  <svg viewBox="0 0 120 120" className="h-10 md:h-12 w-auto" aria-hidden="true">
-    <circle cx="60" cy="55" r="30" fill="none" stroke="hsl(168 76% 42%)" strokeWidth="3" />
-    <path d="M48 55l8 8 16-16" stroke="hsl(168 76% 42%)" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M60 88v15M45 100h30" stroke="hsl(168 76% 42%)" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
-);
-
-const RegulationsIcon = () => (
-  <svg viewBox="0 0 120 120" className="h-10 md:h-12 w-auto" aria-hidden="true">
-    <rect x="25" y="15" width="55" height="75" rx="5" fill="none" stroke="hsl(168 76% 42%)" strokeWidth="3" />
-    <path d="M38 35h30M38 48h25M38 61h20" stroke="hsl(168 76% 42%)" strokeWidth="2.5" strokeLinecap="round" />
-    <circle cx="82" cy="78" r="20" fill="hsl(220 30% 10%)" stroke="hsl(168 76% 42%)" strokeWidth="3" />
-    <path d="M76 78l4 4 8-8" stroke="hsl(168 76% 42%)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const items: ComplianceItem[] = [
-  {
-    label: "ZATCA Phase 2",
-    description: "متوافق مع متطلبات ZATCA Phase 2",
-    icon: <ZatcaIcon />,
-  },
-  {
-    label: "وزارة التجارة",
-    description: "مسجّل كشركة سعودية",
-    icon: <MocIcon />,
-  },
-  {
-    label: "معروف",
-    description: "حساب معروف موثّق",
-    icon: <MaroofIcon />,
-  },
-  {
-    label: "الأنظمة التجارية",
-    description: "يعمل وفق الأنظمة التجارية السعودية",
-    icon: <RegulationsIcon />,
-  },
-];
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.12, duration: 0.5, ease: "easeOut" as const },
-  }),
-};
-
 const ComplianceTrustSection = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ar");
+
+  const items: IntegrationItem[] = [
+    {
+      icon: <ZatcaIcon />,
+      label: "ZATCA Phase 2",
+      desc: isRTL ? "متوافق مع الفوترة الإلكترونية" : "E-invoicing compatible",
+    },
+    {
+      icon: <VatIcon />,
+      label: isRTL ? "ضريبة القيمة المضافة" : "VAT Returns",
+      desc: isRTL ? "يدعم الإقرار الضريبي" : "Supports tax filing",
+    },
+    {
+      icon: <CloudIcon />,
+      label: isRTL ? "استضافة سعودية" : "Saudi Hosting",
+      desc: isRTL ? "بيانات داخل المملكة" : "Data hosted in KSA",
+    },
+    {
+      icon: <ShieldIcon />,
+      label: isRTL ? "تشفير AES-256" : "AES-256 Encryption",
+      desc: isRTL ? "حماية متقدمة للبيانات" : "Advanced data protection",
+    },
+  ];
 
   return (
-    <div ref={ref} className="mt-14 mb-2">
-      {/* Title */}
-      <motion.h3
-        initial={{ opacity: 0, y: 16 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5 }}
-        className="text-center text-sm md:text-base font-bold mb-8"
-        style={{ color: "hsl(210 20% 90%)" }}
+    <div className="mt-10 pt-8 border-t" style={{ borderColor: "hsl(220 20% 18%)" }}>
+      <h3
+        className="text-center text-xs font-semibold uppercase tracking-wider mb-6"
+        style={{ color: "hsl(210 20% 55%)" }}
       >
-        ملتزم بالأنظمة السعودية الرسمية
-      </motion.h3>
+        {t("landing.footer.integrationsTitle")}
+      </h3>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {items.map((item, i) => (
-          <motion.div
+      <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-10">
+        {items.map((item) => (
+          <div
             key={item.label}
-            custom={i}
-            initial="hidden"
-            animate={inView ? "visible" : "hidden"}
-            variants={cardVariants}
-            className="group flex flex-col items-center text-center rounded-xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_8px_30px_-12px_hsl(168_76%_42%/0.15)] hover:border-accent/25"
+            className="flex items-center gap-2.5 text-[hsl(210_20%_60%)] transition-colors hover:text-accent"
           >
-            <div className="mb-4 transition-transform duration-300 group-hover:scale-105">
-              {item.icon}
+            {item.icon}
+            <div className="min-w-0">
+              <span className="block text-xs font-semibold leading-tight" style={{ color: "inherit" }}>
+                {item.label}
+              </span>
+              <span className="block text-[10px] leading-tight" style={{ color: "hsl(210 20% 50%)" }}>
+                {item.desc}
+              </span>
             </div>
-            <span
-              className="text-xs font-bold tracking-wide mb-1.5"
-              style={{ color: "hsl(168 76% 52%)" }}
-            >
-              {item.label}
-            </span>
-            <span
-              className="text-[11px] leading-relaxed"
-              style={{ color: "hsl(210 20% 75%)" }}
-            >
-              {item.description}
-            </span>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
