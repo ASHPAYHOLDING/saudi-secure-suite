@@ -4396,6 +4396,7 @@ export type Database = {
           file_path: string
           file_size_bytes: number | null
           id: string
+          is_required: boolean
           issued_date: string | null
           mime_type: string
           notes: string | null
@@ -4414,6 +4415,7 @@ export type Database = {
           file_path: string
           file_size_bytes?: number | null
           id?: string
+          is_required?: boolean
           issued_date?: string | null
           mime_type?: string
           notes?: string | null
@@ -4432,6 +4434,7 @@ export type Database = {
           file_path?: string
           file_size_bytes?: number | null
           id?: string
+          is_required?: boolean
           issued_date?: string | null
           mime_type?: string
           notes?: string | null
@@ -5494,6 +5497,71 @@ export type Database = {
           },
           {
             foreignKeyName: "hr_contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_document_alerts: {
+        Row: {
+          alert_type: Database["public"]["Enums"]["hr_alert_type"]
+          created_at: string
+          document_id: string
+          employee_id: string
+          id: string
+          last_sent_at: string
+          sent_email: boolean
+          sent_in_app: boolean
+          tenant_id: string
+        }
+        Insert: {
+          alert_type: Database["public"]["Enums"]["hr_alert_type"]
+          created_at?: string
+          document_id: string
+          employee_id: string
+          id?: string
+          last_sent_at?: string
+          sent_email?: boolean
+          sent_in_app?: boolean
+          tenant_id: string
+        }
+        Update: {
+          alert_type?: Database["public"]["Enums"]["hr_alert_type"]
+          created_at?: string
+          document_id?: string
+          employee_id?: string
+          id?: string
+          last_sent_at?: string
+          sent_email?: boolean
+          sent_in_app?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_document_alerts_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_alerts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_alerts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_document_alerts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -12914,6 +12982,53 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          read_at: string | null
+          tenant_id: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          read_at?: string | null
+          tenant_id: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          read_at?: string | null
+          tenant_id?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_receipts: {
         Row: {
           id: string
@@ -15839,11 +15954,13 @@ export type Database = {
         | "training_certificate"
         | "bank_letter"
         | "other"
+        | "national_id_or_iqama"
       governance_policy_type:
         | "approval_limit"
         | "segregation_of_duties"
         | "transaction_limit"
         | "restricted_access"
+      hr_alert_type: "expiring_30" | "expiring_14" | "expiring_7" | "expired"
       hr_attendance_source: "manual" | "csv_import" | "biometric" | "system"
       hr_contract_type:
         | "full_time"
@@ -16041,6 +16158,7 @@ export const Constants = {
         "training_certificate",
         "bank_letter",
         "other",
+        "national_id_or_iqama",
       ],
       governance_policy_type: [
         "approval_limit",
@@ -16048,6 +16166,7 @@ export const Constants = {
         "transaction_limit",
         "restricted_access",
       ],
+      hr_alert_type: ["expiring_30", "expiring_14", "expiring_7", "expired"],
       hr_attendance_source: ["manual", "csv_import", "biometric", "system"],
       hr_contract_type: [
         "full_time",
