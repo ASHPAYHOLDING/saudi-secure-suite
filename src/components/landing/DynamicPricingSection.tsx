@@ -115,7 +115,7 @@ const DynamicPricingSection = () => {
             const Icon = PLAN_ICON[plan.slug] || User;
             const tagline = PLAN_TAGLINE[plan.slug] || "";
             const limits = PLAN_LIMITS[plan.slug];
-            const price = isEnterprise ? 999 : plan.price_monthly;
+            const price = plan.price_monthly;
 
             return (
               <div
