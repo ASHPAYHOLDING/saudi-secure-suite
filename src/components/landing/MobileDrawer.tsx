@@ -97,21 +97,22 @@ const MobileDrawer = ({
         aria-hidden="true"
       />
 
-      {/* Drawer panel — always slides from right */}
+      {/* Drawer panel — slides from inline-end */}
       <div
         ref={drawerRef}
-        dir="rtl"
+        dir={currentLang === "ar" ? "rtl" : "ltr"}
         role="dialog"
         aria-modal="true"
-        aria-label="القائمة الرئيسية"
+        aria-label={currentLang === "ar" ? "القائمة الرئيسية" : "Main menu"}
         onKeyDown={handleKeyDown}
         className={cn(
-          "fixed top-0 right-0 bottom-0 z-50 flex flex-col",
+          "fixed top-0 bottom-0 z-50 flex flex-col",
           "w-[min(360px,90vw)] bg-background border-s border-border shadow-2xl",
           "transition-transform duration-300 ease-out",
-          open ? "translate-x-0" : "translate-x-full"
+          currentLang === "ar"
+            ? cn("left-0", open ? "translate-x-0" : "-translate-x-full")
+            : cn("right-0", open ? "translate-x-0" : "translate-x-full")
         )}
-        style={{ left: "auto" }}
       >
         {/* ── Header ── */}
         <div className="flex items-center justify-between h-16 px-5 border-b border-border shrink-0">
