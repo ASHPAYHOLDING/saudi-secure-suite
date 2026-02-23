@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
 import {
   FileText, BarChart3, Wallet, Users, Package, Shield,
@@ -7,41 +6,25 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-interface ShowcaseItem {
-  id: string;
-  icon: any;
-  title: string;
-  subtitle: string;
-  highlights: string[];
-  gradient: string;
-  mockContent: React.ReactNode;
-}
-
+/* ── Mock components (static, no motion) ── */
 const DashboardMock = () => (
   <div className="space-y-4">
     <div className="grid grid-cols-4 gap-3">
       {[
-        { label: "الإيرادات", value: "٢٤٥,٠٠٠ ﷼", color: "bg-emerald-500/20 text-emerald-600" },
-        { label: "المصروفات", value: "٨٢,٤٠٠ ﷼", color: "bg-red-500/20 text-red-600" },
-        { label: "صافي الربح", value: "١٦٢,٦٠٠ ﷼", color: "bg-blue-500/20 text-blue-600" },
-        { label: "الضريبة المستحقة", value: "٣٦,٧٥٠ ﷼", color: "bg-amber-500/20 text-amber-600" },
+        { label: "الإيرادات", value: "٢٤٥,٠٠٠ ﷼", color: "text-emerald-600" },
+        { label: "المصروفات", value: "٨٢,٤٠٠ ﷼", color: "text-red-600" },
+        { label: "صافي الربح", value: "١٦٢,٦٠٠ ﷼", color: "text-blue-600" },
+        { label: "الضريبة المستحقة", value: "٣٦,٧٥٠ ﷼", color: "text-amber-600" },
       ].map((stat) => (
         <div key={stat.label} className="rounded-xl bg-white/60 dark:bg-white/5 p-3 border border-border/50">
           <p className="text-[10px] text-muted-foreground mb-1">{stat.label}</p>
-          <p className={`text-sm font-bold ${stat.color.split(" ")[1]}`}>{stat.value}</p>
+          <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
         </div>
       ))}
     </div>
     <div className="rounded-xl bg-white/60 dark:bg-white/5 p-4 border border-border/50 h-32 flex items-end gap-1.5">
       {[40, 65, 50, 80, 60, 90, 75, 85, 70, 95, 82, 88].map((h, i) => (
-        <motion.div
-          key={i}
-          initial={{ height: 0 }}
-          whileInView={{ height: `${h}%` }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.05, duration: 0.5 }}
-          className="flex-1 rounded-t-md bg-accent/70"
-        />
+        <div key={i} className="flex-1 rounded-t-md bg-accent/70" style={{ height: `${h}%` }} />
       ))}
     </div>
     <div className="space-y-2">
@@ -116,13 +99,21 @@ const WalletMock = () => (
   </div>
 );
 
+interface ShowcaseItem {
+  id: string;
+  icon: any;
+  title: string;
+  subtitle: string;
+  highlights: string[];
+  mockContent: React.ReactNode;
+}
+
 const showcaseItems: ShowcaseItem[] = [
   {
     id: "dashboard",
     icon: BarChart3,
     title: "لوحة تحكم ذكية",
     subtitle: "تحليلات مالية فورية مع رسوم بيانية تفاعلية",
-    gradient: "from-emerald-500/20 to-teal-500/20",
     highlights: ["KPIs مالية في الوقت الفعلي", "رسوم بيانية تفاعلية Recharts", "حكمة يومية محاسبية", "تحديث فوري Realtime"],
     mockContent: <DashboardMock />,
   },
@@ -131,7 +122,6 @@ const showcaseItems: ShowcaseItem[] = [
     icon: FileText,
     title: "فواتير ZATCA احترافية",
     subtitle: "متوافقة مع المرحلة الثانية للفوترة الإلكترونية",
-    gradient: "from-blue-500/20 to-indigo-500/20",
     highlights: ["QR Code بتشفير TLV", "ختم إلكتروني تلقائي", "إرسال عبر البريد/WhatsApp", "قوالب متعددة قابلة للتخصيص"],
     mockContent: <InvoiceMock />,
   },
@@ -140,7 +130,6 @@ const showcaseItems: ShowcaseItem[] = [
     icon: Wallet,
     title: "محفظة رقمية Numaxio Pay",
     subtitle: "نظام مالي متكامل مع تشفير 256-bit",
-    gradient: "from-violet-500/20 to-purple-500/20",
     highlights: ["شحن رصيد بنكي/بطاقة", "تحليلات مالية لحظية", "تصدير كشوف CSV", "أمان بنكي متقدم"],
     mockContent: <WalletMock />,
   },
@@ -151,42 +140,32 @@ const PlatformShowcase = () => {
   const active = showcaseItems.find((s) => s.id === activeItem) || showcaseItems[0];
 
   return (
-    <section className="py-24 md:py-32 bg-secondary/30" dir="rtl">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
-          >
+    <section className="py-16 sm:py-20 md:py-24 bg-secondary/30" dir="rtl">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="mb-14 text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2">
             <Shield size={14} className="text-accent" />
             <span className="text-sm font-semibold text-accent">نظرة داخل المنصة</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center"
-          >
+          </div>
+          <h2 className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center">
             شاهد المنصة <span className="text-gradient">أثناء العمل</span>
-          </motion.h2>
+          </h2>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-10 items-start max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
           {/* Left: tabs + info */}
           <div className="space-y-6">
             {showcaseItems.map((item) => (
-              <motion.button
+              <button
                 key={item.id}
                 onClick={() => setActiveItem(item.id)}
-              className={`w-full text-start flex gap-4 p-5 rounded-2xl border transition-all duration-300 ${
+                className={`w-full text-start flex gap-4 p-5 rounded-2xl border transition-all duration-200 min-h-[48px] ${
                   activeItem === item.id
                     ? "border-accent/30 bg-accent/5 shadow-lg"
                     : "border-border bg-card hover:border-accent/20"
                 }`}
               >
-                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-colors duration-200 ${
                   activeItem === item.id
                     ? "gradient-accent text-accent-foreground shadow-accent-glow"
                     : "bg-muted text-muted-foreground"
@@ -197,42 +176,29 @@ const PlatformShowcase = () => {
                   <h3 className="font-bold text-foreground mb-1">{item.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{item.subtitle}</p>
                   {activeItem === item.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="space-y-1.5"
-                    >
+                    <div className="space-y-1.5">
                       {item.highlights.map((h) => (
                         <div key={h} className="flex items-center gap-2 text-xs text-foreground/70">
                           <CheckCircle2 size={12} className="text-accent shrink-0" />
                           {h}
                         </div>
                       ))}
-                    </motion.div>
+                    </div>
                   )}
                 </div>
-              </motion.button>
+              </button>
             ))}
 
             <Link to="/auth" className="block">
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Button size="lg" className="w-full gradient-accent text-accent-foreground shadow-accent-glow py-6">
-                  جرّب المنصة مجاناً
-                  <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
-                </Button>
-              </motion.div>
+              <Button size="lg" className="w-full gradient-accent text-accent-foreground shadow-accent-glow py-6 min-h-[48px]">
+                جرّب المنصة مجاناً
+                <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
+              </Button>
             </Link>
           </div>
 
           {/* Right: mock preview */}
-          <motion.div
-            key={activeItem}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="relative rounded-3xl border border-border bg-card p-6 shadow-elevated overflow-hidden"
-          >
-            {/* Window chrome */}
+          <div className="relative rounded-3xl border border-border bg-card p-6 shadow-elevated overflow-hidden">
             <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -245,12 +211,8 @@ const PlatformShowcase = () => {
                 </span>
               </div>
             </div>
-
             {active.mockContent}
-
-            {/* Decorative gradient */}
-            <div className={`absolute -bottom-20 -end-20 w-60 h-60 rounded-full bg-gradient-to-br ${active.gradient} blur-3xl opacity-30`} />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

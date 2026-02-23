@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Play, Shield, Bot, Building2, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -28,12 +27,9 @@ const DashboardMock = () => (
     </div>
 
     <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
-      {kpis.map((kpi, i) => (
-        <motion.div
+      {kpis.map((kpi) => (
+        <div
           key={kpi.labelKey}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 + i * 0.1 }}
           className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-2.5 lg:p-3"
         >
           <p className="text-[10px] text-white/60 mb-1">{kpi.labelKey}</p>
@@ -41,7 +37,7 @@ const DashboardMock = () => (
             <span className="font-bold text-white/90 text-xs lg:text-sm">{kpi.value}</span>
             <span className="text-[10px] font-semibold text-accent">{kpi.trend}</span>
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
 
@@ -87,25 +83,18 @@ const BadgeCarousel = () => {
         <span className="text-accent text-xs font-bold">⚡</span>
       </div>
       <div className="h-5 overflow-hidden relative flex-1 min-w-0">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.35 }}
-            className="absolute inset-0 text-sm text-white/90 font-medium text-start truncate"
-          >
-            {items[index]}
-          </motion.span>
-        </AnimatePresence>
+        <span
+          key={index}
+          className="absolute inset-0 text-sm text-white/90 font-medium text-start truncate animate-fade-in"
+        >
+          {items[index]}
+        </span>
       </div>
-      {/* Dots indicator */}
       <div className="flex gap-1.5 shrink-0">
         {items.map((_, i) => (
           <span
             key={i}
-            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+            className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
               i === index ? "bg-accent" : "bg-white/20"
             }`}
           />
@@ -126,7 +115,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <section id="home" className="relative gradient-hero overflow-hidden min-h-[70vh] lg:min-h-screen">
+    <section id="home" className="relative gradient-hero overflow-hidden" style={{ minHeight: "max(70vh, 560px)" }}>
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.5'%3E%3Cpath d='M0 0h60v60H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }} />
@@ -141,11 +130,7 @@ const HeroSection = () => {
       <div className="max-w-6xl relative mx-auto flex items-center px-4 sm:px-6 lg:px-8 pt-24 pb-16 z-20 min-h-[inherit]">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
           <div className="space-y-6 md:space-y-8 min-w-0">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div>
               <div className="inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 backdrop-blur-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
@@ -155,36 +140,25 @@ const HeroSection = () => {
                   {t("landing.hero.badge")}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+            <h1
               className="font-bold text-white"
               style={{ fontSize: "clamp(24px, 4vw, 52px)", lineHeight: 1.3, overflowWrap: "anywhere" }}
             >
               <span className="text-accent">{t("landing.hero.title1")}</span>
               <br />
               <span>{t("landing.hero.title2")}</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+            <p
               className="max-w-lg text-white/90"
               style={{ fontSize: "clamp(14px, 1.5vw, 18px)", lineHeight: 1.8 }}
             >
               {t("landing.hero.subtitle")}
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col gap-4 sm:flex-row"
-            >
+            <div className="flex flex-col gap-4 sm:flex-row">
               <Link to="/auth">
                 <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-8 sm:px-10 min-h-[48px] text-base font-bold rounded-xl w-full sm:w-auto">
                   {t("landing.hero.cta")}
@@ -197,40 +171,24 @@ const HeroSection = () => {
                   {t("landing.hero.ctaDemo")}
                 </Button>
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-3 sm:gap-4 pt-2"
-            >
+            <div className="flex flex-wrap gap-3 sm:gap-4 pt-2">
               {trustBadges.map((item) => (
                 <div key={item.label} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-3 py-2 min-h-[44px]">
                   <item.icon size={14} className="text-accent shrink-0" />
                   <span className="text-xs text-white font-medium whitespace-nowrap">{item.label}</span>
                 </div>
               ))}
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              <BadgeCarousel />
-            </motion.div>
+            <BadgeCarousel />
           </div>
 
           {/* Dashboard Preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="hidden md:block"
-          >
+          <div className="hidden md:block">
             <DashboardMock />
-          </motion.div>
+          </div>
         </div>
       </div>
 

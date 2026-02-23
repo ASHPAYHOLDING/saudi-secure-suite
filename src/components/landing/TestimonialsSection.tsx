@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 
 const testimonials = [
@@ -24,41 +23,26 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section id="testimonials" className="py-28 bg-background" dir="rtl">
-      <div className="container mx-auto px-4">
-        <div className="mb-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
-          >
+    <section id="testimonials" className="py-16 sm:py-20 md:py-24 bg-background" dir="rtl">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="mb-14 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2">
             <Star size={14} className="text-accent fill-accent" />
             <span className="text-sm font-semibold text-accent">آراء عملائنا</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center"
-          >
+          </div>
+          <h2 className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center">
             ماذا يقول عملاؤنا
-          </motion.h2>
+          </h2>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-          {testimonials.map((t, i) => (
-            <motion.div
+        <div className="grid gap-6 md:grid-cols-3">
+          {testimonials.map((t) => (
+            <div
               key={t.name}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.5 }}
-              whileHover={{ y: -6 }}
-              className="relative rounded-2xl border border-border bg-card p-8 shadow-card transition-shadow hover:shadow-elevated"
+              className="relative rounded-2xl border border-border bg-card p-8 shadow-card transition-shadow duration-200 hover:shadow-elevated"
             >
               <Quote size={32} className="text-accent/20 mb-4" />
-              
+
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} size={16} className="text-amber-400 fill-amber-400" />
@@ -80,7 +64,7 @@ const TestimonialsSection = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

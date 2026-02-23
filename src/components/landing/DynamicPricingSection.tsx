@@ -1,18 +1,7 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
-  Check,
-  Minus,
-  Sparkles,
-  User,
-  Briefcase,
-  Building2,
-  Crown,
-  ChevronDown,
-  FileText,
-  HardDrive,
-  Users,
-  Layers,
+  Check, Minus, Sparkles, User, Briefcase, Building2, Crown, ChevronDown,
+  FileText, HardDrive, Users, Layers,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,130 +9,76 @@ import { supabase } from "@/integrations/supabase/client";
 
 /* ─── Types ─── */
 interface Plan {
-  id: string;
-  name_ar: string;
-  slug: string;
-  price_monthly: number;
-  max_users: number | null;
-  max_invoices: number | null;
-  max_storage_gb: number | null;
-  features: any;
-  sort_order: number;
+  id: string; name_ar: string; slug: string; price_monthly: number;
+  max_users: number | null; max_invoices: number | null; max_storage_gb: number | null;
+  features: any; sort_order: number;
 }
 
-/* ─── Helpers ─── */
 const toAr = (n: number) => {
   const ar = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
   return n.toLocaleString("en-US").replace(/\d/g, (d) => ar[+d]);
 };
 
-const PLAN_ICON: Record<string, React.ElementType> = {
-  starter: User,
-  business: Briefcase,
-  enterprise: Building2,
-};
-
-const PLAN_TAGLINE: Record<string, string> = {
-  starter: "انطلق بثقة مع الأدوات الأساسية",
-  business: "كل ما تحتاجه لنمو أعمالك",
-  enterprise: "مرونة كاملة وتحكم مطلق",
-};
-
+const PLAN_ICON: Record<string, React.ElementType> = { starter: User, business: Briefcase, enterprise: Building2 };
+const PLAN_TAGLINE: Record<string, string> = { starter: "انطلق بثقة مع الأدوات الأساسية", business: "كل ما تحتاجه لنمو أعمالك", enterprise: "مرونة كاملة وتحكم مطلق" };
 const PLAN_LIMITS: Record<string, { users: string; invoices: string; storage: string; entities: string }> = {
   starter: { users: "٢", invoices: "١٠٠ / شهر", storage: "٥ GB", entities: "١" },
   business: { users: "١٥", invoices: "غير محدود", storage: "١٠٠ GB", entities: "٥" },
   enterprise: { users: "غير محدود", invoices: "غير محدود", storage: "غير محدود", entities: "غير محدود" },
 };
 
-/* ─── Comparison Data ─── */
-interface FeatureRow {
-  label: string;
-  starter: boolean;
-  business: boolean;
-  enterprise: boolean;
-}
-
-interface FeatureGroup {
-  title: string;
-  rows: FeatureRow[];
-}
+interface FeatureRow { label: string; starter: boolean; business: boolean; enterprise: boolean; }
+interface FeatureGroup { title: string; rows: FeatureRow[]; }
 
 const COMPARISON: FeatureGroup[] = [
-  {
-    title: "الفوترة والضرائب",
-    rows: [
-      { label: "فواتير إلكترونية", starter: true, business: true, enterprise: true },
-      { label: "QR متوافق مع ZATCA Phase 1", starter: true, business: true, enterprise: true },
-      { label: "ZATCA Phase 2 كامل", starter: false, business: true, enterprise: true },
-      { label: "إقرار ضريبي آلي", starter: false, business: true, enterprise: true },
-      { label: "فواتير غير محدودة", starter: false, business: true, enterprise: true },
-    ],
-  },
-  {
-    title: "العملاء والموردون",
-    rows: [
-      { label: "إدارة العملاء", starter: true, business: true, enterprise: true },
-      { label: "إدارة العقود", starter: false, business: true, enterprise: true },
-      { label: "بوابات دفع متعددة", starter: false, business: true, enterprise: true },
-      { label: "جميع بوابات الدفع", starter: false, business: false, enterprise: true },
-    ],
-  },
-  {
-    title: "القيود والتقارير",
-    rows: [
-      { label: "تقارير أساسية", starter: true, business: true, enterprise: true },
-      { label: "تقارير متقدمة + تحليلات", starter: false, business: true, enterprise: true },
-      { label: "شجرة حسابات مخصصة", starter: false, business: false, enterprise: true },
-    ],
-  },
-  {
-    title: "الحوكمة والصلاحيات",
-    rows: [
-      { label: "سجل مراجعة", starter: false, business: true, enterprise: true },
-      { label: "نظام موافقات", starter: false, business: true, enterprise: true },
-      { label: "ختم إلكتروني", starter: false, business: true, enterprise: true },
-      { label: "سير عمل مخصص", starter: false, business: false, enterprise: true },
-      { label: "هيكل مؤسسي", starter: false, business: false, enterprise: true },
-    ],
-  },
-  {
-    title: "الذكاء المحاسبي",
-    rows: [
-      { label: "AI محاسبي أساسي", starter: false, business: true, enterprise: true },
-      { label: "AI محاسبي متقدم", starter: false, business: false, enterprise: true },
-    ],
-  },
-  {
-    title: "التكاملات والدعم",
-    rows: [
-      { label: "دعم عبر البريد", starter: true, business: true, enterprise: true },
-      { label: "مدير حساب مخصص", starter: false, business: false, enterprise: true },
-      { label: "API كامل", starter: false, business: false, enterprise: true },
-      { label: "SLA 99.9%", starter: false, business: false, enterprise: true },
-    ],
-  },
+  { title: "الفوترة والضرائب", rows: [
+    { label: "فواتير إلكترونية", starter: true, business: true, enterprise: true },
+    { label: "QR متوافق مع ZATCA Phase 1", starter: true, business: true, enterprise: true },
+    { label: "ZATCA Phase 2 كامل", starter: false, business: true, enterprise: true },
+    { label: "إقرار ضريبي آلي", starter: false, business: true, enterprise: true },
+    { label: "فواتير غير محدودة", starter: false, business: true, enterprise: true },
+  ]},
+  { title: "العملاء والموردون", rows: [
+    { label: "إدارة العملاء", starter: true, business: true, enterprise: true },
+    { label: "إدارة العقود", starter: false, business: true, enterprise: true },
+    { label: "بوابات دفع متعددة", starter: false, business: true, enterprise: true },
+    { label: "جميع بوابات الدفع", starter: false, business: false, enterprise: true },
+  ]},
+  { title: "القيود والتقارير", rows: [
+    { label: "تقارير أساسية", starter: true, business: true, enterprise: true },
+    { label: "تقارير متقدمة + تحليلات", starter: false, business: true, enterprise: true },
+    { label: "شجرة حسابات مخصصة", starter: false, business: false, enterprise: true },
+  ]},
+  { title: "الحوكمة والصلاحيات", rows: [
+    { label: "سجل مراجعة", starter: false, business: true, enterprise: true },
+    { label: "نظام موافقات", starter: false, business: true, enterprise: true },
+    { label: "ختم إلكتروني", starter: false, business: true, enterprise: true },
+    { label: "سير عمل مخصص", starter: false, business: false, enterprise: true },
+    { label: "هيكل مؤسسي", starter: false, business: false, enterprise: true },
+  ]},
+  { title: "الذكاء المحاسبي", rows: [
+    { label: "AI محاسبي أساسي", starter: false, business: true, enterprise: true },
+    { label: "AI محاسبي متقدم", starter: false, business: false, enterprise: true },
+  ]},
+  { title: "التكاملات والدعم", rows: [
+    { label: "دعم عبر البريد", starter: true, business: true, enterprise: true },
+    { label: "مدير حساب مخصص", starter: false, business: false, enterprise: true },
+    { label: "API كامل", starter: false, business: false, enterprise: true },
+    { label: "SLA 99.9%", starter: false, business: false, enterprise: true },
+  ]},
 ];
 
-/* ─── Component ─── */
 const DynamicPricingSection = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    supabase
-      .from("subscription_plans")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order")
-      .then(({ data }) => {
-        if (data) setPlans(data as Plan[]);
-        setLoading(false);
-      });
+    supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order")
+      .then(({ data }) => { if (data) setPlans(data as Plan[]); setLoading(false); });
   }, []);
 
-  const toggleGroup = (i: number) =>
-    setOpenGroups((prev) => ({ ...prev, [i]: !prev[i] }));
+  const toggleGroup = (i: number) => setOpenGroups((prev) => ({ ...prev, [i]: !prev[i] }));
 
   if (loading) {
     return (
@@ -156,10 +91,10 @@ const DynamicPricingSection = () => {
   }
 
   return (
-    <section id="pricing" className="py-16 sm:py-20 md:py-28 bg-secondary/30">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* ─── Header ─── */}
-        <div className="mb-10 sm:mb-14 md:mb-16 text-center">
+    <section id="pricing" className="py-16 sm:py-20 md:py-24 bg-secondary/30">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Header */}
+        <div className="mb-12 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2">
             <Sparkles size={14} className="text-accent" />
             <span className="text-xs sm:text-sm font-semibold text-accent">الأسعار</span>
@@ -172,7 +107,7 @@ const DynamicPricingSection = () => {
           </p>
         </div>
 
-        {/* ─── Cards ─── */}
+        {/* Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6 mx-auto max-w-sm sm:max-w-none">
           {plans.map((plan) => {
             const isPopular = plan.slug === "business";
@@ -183,19 +118,14 @@ const DynamicPricingSection = () => {
             const price = isEnterprise ? 999 : plan.price_monthly;
 
             return (
-              <motion.div
+              <div
                 key={plan.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.4, delay: plan.sort_order * 0.1 }}
-                className={`relative flex flex-col rounded-2xl transition-all ${
+                className={`relative flex flex-col rounded-2xl transition-shadow duration-200 ${
                   isPopular
                     ? "border-2 border-accent bg-card shadow-elevated lg:scale-[1.04] z-10"
                     : "border border-border bg-card shadow-card"
                 }`}
               >
-                {/* Popular Badge */}
                 {isPopular && (
                   <div className="absolute -top-3.5 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 rounded-full gradient-accent px-5 py-1.5 text-[11px] font-bold text-accent-foreground shadow-accent-glow whitespace-nowrap">
                     <Crown size={12} className="inline me-1 -mt-0.5" />
@@ -204,7 +134,6 @@ const DynamicPricingSection = () => {
                 )}
 
                 <div className="p-5 sm:p-6 lg:p-8 flex flex-col flex-1">
-                  {/* Plan Name */}
                   <div className={`${isPopular ? "pt-2" : ""} mb-5`}>
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${isPopular ? "bg-accent/20" : "bg-accent/10"}`}>
@@ -215,12 +144,9 @@ const DynamicPricingSection = () => {
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{tagline}</p>
                   </div>
 
-                  {/* Price */}
                   <div className="mb-5">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl sm:text-4xl font-bold text-foreground tabular-nums">
-                        {toAr(price)}
-                      </span>
+                      <span className="text-3xl sm:text-4xl font-bold text-foreground tabular-nums">{toAr(price)}</span>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-muted-foreground">ر.س</span>
                         <span className="text-[11px] text-muted-foreground">/ شهرياً</span>
@@ -228,7 +154,6 @@ const DynamicPricingSection = () => {
                     </div>
                   </div>
 
-                  {/* Limits Chips */}
                   {limits && (
                     <div className="flex flex-wrap gap-1.5 mb-5">
                       <Chip icon={Users} label={`${limits.users} مستخدم`} />
@@ -238,26 +163,19 @@ const DynamicPricingSection = () => {
                     </div>
                   )}
 
-                  {/* CTA */}
                   <Link to="/auth" className="block mb-3">
-                    <Button
-                      className={`w-full h-12 text-sm font-semibold transition-shadow ${
-                        isPopular || isEnterprise
-                          ? "gradient-accent text-accent-foreground shadow-accent-glow hover:shadow-lg"
-                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                      }`}
-                    >
+                    <Button className={`w-full h-12 text-sm font-semibold min-h-[48px] ${
+                      isPopular || isEnterprise
+                        ? "gradient-accent text-accent-foreground shadow-accent-glow"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}>
                       {isEnterprise ? "ابدأ الآن" : "ابدأ تجربتك المجانية"}
                     </Button>
                   </Link>
-                  <a
-                    href="#pricing-comparison"
-                    className="block text-center text-xs text-accent hover:text-accent/80 transition-colors mb-4"
-                  >
+                  <a href="#pricing-comparison" className="block text-center text-xs text-accent hover:text-accent/80 transition-colors duration-150 mb-4">
                     مقارنة الباقات
                   </a>
 
-                  {/* Features */}
                   <div className="mt-auto border-t border-border/40 pt-4 space-y-0">
                     {(Array.isArray(plan.features) ? plan.features as string[] : [])
                       .filter((f) => !f.startsWith("كل مميزات"))
@@ -272,39 +190,34 @@ const DynamicPricingSection = () => {
                       ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
 
-        {/* VAT Note */}
         <p className="text-center text-[11px] sm:text-xs text-muted-foreground mt-6 sm:mt-8">
           الأسعار لا تشمل ضريبة القيمة المضافة إن وجدت.
         </p>
 
-        {/* ─── Comparison Table ─── */}
+        {/* Comparison Table */}
         <div id="pricing-comparison" className="mt-16 sm:mt-20 md:mt-24 scroll-mt-20">
           <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground text-center mb-8 sm:mb-10">
             مقارنة تفصيلية بين الباقات
           </h3>
 
-          {/* Desktop Table */}
+          {/* Desktop */}
           <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-card shadow-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
                   <th className="text-start p-4 font-semibold text-foreground w-2/5">الميزة</th>
                   {["أساسي", "الأعمال", "المؤسسي"].map((name) => (
-                    <th key={name} className="p-4 text-center font-semibold text-foreground">
-                      {name}
-                    </th>
+                    <th key={name} className="p-4 text-center font-semibold text-foreground">{name}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {COMPARISON.map((group, gi) => (
-                  <GroupRows key={gi} group={group} />
-                ))}
+                {COMPARISON.map((group, gi) => <GroupRows key={gi} group={group} />)}
               </tbody>
             </table>
           </div>
@@ -317,12 +230,10 @@ const DynamicPricingSection = () => {
                 <div key={gi} className="rounded-xl border border-border bg-card overflow-hidden">
                   <button
                     onClick={() => toggleGroup(gi)}
-                    className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground"
+                    className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground min-h-[48px]"
                   >
                     <span>{group.title}</span>
-                    <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                      <ChevronDown size={16} className="text-muted-foreground" />
-                    </motion.div>
+                    <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
                   </button>
                   {isOpen && (
                     <div className="px-4 pb-4 space-y-3">
@@ -344,7 +255,6 @@ const DynamicPricingSection = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="text-center mt-8 sm:mt-10">
           <p className="text-[11px] sm:text-xs text-muted-foreground">
             تشفير SSL · نسخ احتياطي يومي · دعم ZATCA · تحديثات مجانية
@@ -356,33 +266,23 @@ const DynamicPricingSection = () => {
 };
 
 /* ─── Small components ─── */
-
 const Chip = ({ icon: Icon, label }: { icon: React.ElementType; label: string }) => (
   <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-    <Icon size={11} className="shrink-0" />
-    {label}
+    <Icon size={11} className="shrink-0" />{label}
   </span>
 );
 
 const GroupRows = ({ group }: { group: FeatureGroup }) => (
   <>
     <tr className="bg-muted/20">
-      <td colSpan={4} className="px-4 py-2.5 text-xs font-bold text-accent">
-        {group.title}
-      </td>
+      <td colSpan={4} className="px-4 py-2.5 text-xs font-bold text-accent">{group.title}</td>
     </tr>
     {group.rows.map((row, i) => (
       <tr key={i} className="border-b border-border/30 last:border-b-0">
         <td className="px-4 py-3 text-foreground">{row.label}</td>
-        <td className="px-4 py-3 text-center">
-          <CellIcon has={row.starter} />
-        </td>
-        <td className="px-4 py-3 text-center">
-          <CellIcon has={row.business} />
-        </td>
-        <td className="px-4 py-3 text-center">
-          <CellIcon has={row.enterprise} />
-        </td>
+        <td className="px-4 py-3 text-center"><CellIcon has={row.starter} /></td>
+        <td className="px-4 py-3 text-center"><CellIcon has={row.business} /></td>
+        <td className="px-4 py-3 text-center"><CellIcon has={row.enterprise} /></td>
       </tr>
     ))}
   </>

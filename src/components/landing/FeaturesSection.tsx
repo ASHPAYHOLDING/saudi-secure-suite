@@ -1,4 +1,3 @@
-import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import {
   FileText, Calculator, Shield, BarChart3, Stamp, Users,
@@ -15,7 +14,6 @@ interface FeatureCategory {
   id: string;
   label: string;
   icon: any;
-  color: string;
   features: { icon: any; title: string; description: string }[];
 }
 
@@ -24,7 +22,6 @@ const categories: FeatureCategory[] = [
     id: "invoicing",
     label: "الفوترة الإلكترونية",
     icon: FileText,
-    color: "from-emerald-500 to-teal-500",
     features: [
       { icon: FileText, title: "فواتير ZATCA المرحلة الثانية", description: "إصدار فواتير ضريبية متوافقة مع هيئة الزكاة والدخل مع QR Code بتشفير TLV وتكامل مباشر." },
       { icon: Calculator, title: "حساب ضريبة تلقائي 15%", description: "حساب ضريبة القيمة المضافة تلقائياً على كل بند مع تفصيل كامل للمبالغ والخصومات." },
@@ -38,7 +35,6 @@ const categories: FeatureCategory[] = [
     id: "sales",
     label: "المبيعات والمشتريات",
     icon: ShoppingCart,
-    color: "from-blue-500 to-indigo-500",
     features: [
       { icon: ClipboardList, title: "عروض الأسعار", description: "إنشاء عروض أسعار احترافية وتحويلها لفواتير بنقرة واحدة." },
       { icon: ShoppingCart, title: "أوامر البيع", description: "إدارة كاملة لأوامر البيع من الإنشاء حتى التسليم والفوترة." },
@@ -52,7 +48,6 @@ const categories: FeatureCategory[] = [
     id: "finance",
     label: "المالية والمحاسبة",
     icon: PieChart,
-    color: "from-violet-500 to-purple-500",
     features: [
       { icon: CreditCard, title: "إدارة المصروفات", description: "تتبع وتصنيف المصروفات مع رفع الإيصالات وسير اعتماد المصروفات." },
       { icon: Wallet, title: "محفظة رقمية Numaxio Pay", description: "محفظة رقمية متكاملة مع شحن رصيد وتحليلات مالية وتشفير 256-bit." },
@@ -66,7 +61,6 @@ const categories: FeatureCategory[] = [
     id: "operations",
     label: "العمليات والإدارة",
     icon: Building2,
-    color: "from-amber-500 to-orange-500",
     features: [
       { icon: Package, title: "إدارة المخزون", description: "تتبع المنتجات والمخزون مع تنبيهات نفاد الكمية وحركة المواد." },
       { icon: Workflow, title: "سير عمل الاعتمادات", description: "تصميم سير عمل اعتماد مخصص للفواتير والمصروفات متعدد المراحل." },
@@ -80,7 +74,6 @@ const categories: FeatureCategory[] = [
     id: "security",
     label: "الأمان والامتثال",
     icon: Shield,
-    color: "from-rose-500 to-pink-500",
     features: [
       { icon: ShieldCheck, title: "امتثال ZATCA كامل", description: "توافق تام مع المرحلة الأولى والثانية من الفوترة الإلكترونية السعودية." },
       { icon: Lock, title: "تشفير وأمان مؤسسي", description: "تشفير 256-bit كامل للبيانات مع عزل تام بين المنشآت." },
@@ -93,62 +86,35 @@ const categories: FeatureCategory[] = [
 ];
 
 const FeaturesSection = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
   const [activeCategory, setActiveCategory] = useState("invoicing");
-
   const activeCat = categories.find((c) => c.id === activeCategory) || categories[0];
 
   return (
-    <section id="features" className="py-24 md:py-32 bg-background" dir="rtl">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
+    <section id="features" className="py-16 sm:py-20 md:py-24 bg-background" dir="rtl">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2"
-          >
+        <div className="mb-14 text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent/10 px-5 py-2">
             <Sparkles size={14} className="text-accent" />
             <span className="text-sm font-semibold text-accent">+30 ميزة متكاملة</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center"
-          >
+          </div>
+          <h2 className="mb-5 text-3xl font-bold text-foreground md:text-5xl text-center">
             منصة محاسبية شاملة
             <br />
             <span className="text-gradient">صُممت للمنشآت السعودية</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="mx-auto max-w-2xl text-lg text-muted-foreground text-center"
-          >
+          </h2>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground text-center">
             من الفواتير الإلكترونية إلى المحفظة الرقمية — كل ما تحتاجه لإدارة أعمالك في مكان واحد
-          </motion.p>
+          </p>
         </div>
 
         {/* Category tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-3 mb-14"
-        >
+        <div className="flex flex-wrap justify-center gap-3 mb-14">
           {categories.map((cat) => (
-            <motion.button
+            <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 min-h-[48px] ${
                 activeCategory === cat.id
                   ? "bg-accent text-accent-foreground shadow-accent-glow"
                   : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-accent/30"
@@ -156,58 +122,37 @@ const FeaturesSection = () => {
             >
               <cat.icon size={16} />
               {cat.label}
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Features grid with AnimatePresence-like transitions */}
-        <motion.div
-          key={activeCategory}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
-        >
-          {activeCat.features.map((feature, i) => (
-            <motion.div
+        {/* Features grid */}
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {activeCat.features.map((feature) => (
+            <div
               key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.06, duration: 0.4 }}
-              whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="group relative rounded-2xl border border-border bg-card p-7 shadow-card transition-all duration-300 hover:shadow-elevated hover:border-accent/20 overflow-hidden"
+              className="group relative rounded-2xl border border-border bg-card p-7 shadow-card transition-shadow duration-200 hover:shadow-elevated hover:border-accent/20 overflow-hidden"
             >
-              {/* Hover gradient */}
-              <div className={`absolute -top-16 -end-16 w-40 h-40 rounded-full bg-gradient-to-br ${activeCat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-3xl`} />
-              
               <div className="relative text-center flex flex-col items-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-all duration-300 group-hover:bg-accent group-hover:text-accent-foreground group-hover:shadow-accent-glow group-hover:scale-110">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-foreground">
                   <feature.icon size={22} />
                 </div>
                 <h3 className="mb-2 text-base font-bold text-foreground">{feature.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Feature count badge */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-14 text-center"
-        >
+        {/* CTA */}
+        <div className="mt-14 text-center">
           <Link to="/auth">
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6">
-                جرّب جميع المميزات مجاناً
-                <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
-              </Button>
-            </motion.div>
+            <Button size="lg" className="gradient-accent text-accent-foreground shadow-accent-glow px-10 py-6 min-h-[48px]">
+              جرّب جميع المميزات مجاناً
+              <ArrowLeft className="ms-2 h-5 w-5 rtl:scale-x-[-1]" />
+            </Button>
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
