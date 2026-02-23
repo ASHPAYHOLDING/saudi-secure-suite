@@ -135,14 +135,7 @@ Deno.serve(withRequestTimeout(async (req) => {
           return jsonResponse({ error: "Plan not found" }, 400);
         }
 
-        // Block enterprise direct purchase
-        if (plan.slug === "enterprise") {
-          await supabase
-            .from("subscription_upgrade_requests")
-            .update({ status: "failed", notes: "لا يمكن شراء باقة المؤسسي مباشرة" })
-            .eq("id", upgradeReq.id);
-          return jsonResponse({ error: "Enterprise cannot be purchased directly" }, 400);
-        }
+        // Enterprise plan is now available for direct purchase like other plans
 
         // Get current subscription
         const { data: currentSub } = await supabase
