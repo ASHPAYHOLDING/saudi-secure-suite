@@ -5,7 +5,8 @@ import {
   ArrowUpRight, ArrowDownRight, Receipt, Wallet, BarChart3,
   Plus, Eye, Clock, CheckCircle2, AlertTriangle, Zap,
   Target, Sparkles, Activity, RefreshCw, ShieldAlert, 
-  Banknote, CircleDollarSign, CalendarClock, ArrowRight
+  Banknote, CircleDollarSign, CalendarClock, ArrowRight,
+  ShoppingCart, Package
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -258,20 +259,49 @@ const actionLabel = (action: string, entityType: string, t: any) => {
     cancel: t("dashboard.actionCancel"), mark_paid: t("dashboard.actionMarkPaid"),
     approve: "اعتماد", reject: "رفض", send: "إرسال",
     lock: "قفل", unlock: "فتح قفل",
+    confirm: "تأكيد", fulfill: "تنفيذ", convert_to_invoice: "تحويل لفاتورة",
+    reserve_stock: "حجز مخزون", release_stock: "تحرير مخزون",
+    post: "ترحيل", void: "إلغاء", close: "إغلاق",
+    receive: "استلام", ship: "شحن", refund: "استرداد",
+    adjust: "تعديل", reconcile: "مطابقة",
   };
   const entityMap: Record<string, string> = {
-    invoice: t("dashboard.entityInvoice"), contract: t("dashboard.entityContract"),
-    customer: t("dashboard.entityCustomer"), expense: t("dashboard.entityExpense") || "مصروف",
-    journal_entry: "قيد يومية", payment: "دفعة", quotation: "عرض سعر",
-    purchase_order: "أمر شراء", budget: "ميزانية",
+    invoice: t("dashboard.entityInvoice"), invoices: t("dashboard.entityInvoice"),
+    contract: t("dashboard.entityContract"), contracts: t("dashboard.entityContract"),
+    customer: t("dashboard.entityCustomer"), customers: t("dashboard.entityCustomer"),
+    expense: t("dashboard.entityExpense") || "مصروف", expenses: "مصروف",
+    journal_entry: "قيد يومية", journal_entries: "قيد يومية",
+    payment: "دفعة", payments: "دفعة",
+    quotation: "عرض سعر", quotations: "عرض سعر",
+    purchase_order: "أمر شراء", purchase_orders: "أوامر شراء",
+    budget: "ميزانية", budgets: "ميزانيات",
+    sales_order: "أمر بيع", sales_orders: "أوامر بيع",
+    credit_note: "إشعار دائن", credit_notes: "إشعارات دائنة",
+    product: "منتج", products: "منتجات",
+    stock_movement: "حركة مخزون", stock_movements: "حركات مخزون",
+    employee: "موظف", employees: "موظفين",
+    branch: "فرع", branches: "فروع",
+    vendor: "مورد", vendors: "موردين",
+    wallet: "محفظة", wallet_transaction: "عملية محفظة",
+    subscription: "اشتراك", subscriptions: "اشتراكات",
+    discount_code: "كود خصم", discount_codes: "أكواد خصم",
   };
   return `${actionMap[action] || action} ${entityMap[entityType] || entityType}`;
 };
 
 const actionIcon = (entityType: string) => {
   const icons: Record<string, any> = {
-    invoice: CreditCard, contract: FileSignature, customer: Users,
-    expense: Receipt, payment: CreditCard, journal_entry: FileText,
+    invoice: CreditCard, invoices: CreditCard,
+    contract: FileSignature, contracts: FileSignature,
+    customer: Users, customers: Users,
+    expense: Receipt, expenses: Receipt,
+    payment: CreditCard, payments: CreditCard,
+    journal_entry: FileText, journal_entries: FileText,
+    sales_order: ShoppingCart, sales_orders: ShoppingCart,
+    quotation: FileText, quotations: FileText,
+    purchase_order: FileText, purchase_orders: FileText,
+    credit_note: FileText, credit_notes: FileText,
+    product: Package, products: Package,
   };
   return icons[entityType] || FileText;
 };
