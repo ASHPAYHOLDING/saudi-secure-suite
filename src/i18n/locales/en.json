@@ -754,9 +754,11 @@
     "footer": {
       "about": "A fully integrated Saudi enterprise ERP system for financial management, compliance, and governance.",
       "product": "Product",
+      "solutions": "Solutions",
       "compliance": "Compliance",
       "resources": "Resources",
       "company": "Company",
+      "support": "Support",
       "helpCenter": "Help Center",
       "faq": "FAQ",
       "privacy": "Privacy Policy",
@@ -766,7 +768,15 @@
       "freeTrialNote": "14-day free trial — no credit card required",
       "startFree": "Start Free Now",
       "copyright": "Numaxio. All rights reserved. Made with ❤️ in Saudi Arabia",
-      "backToTop": "Back to Top"
+      "backToTop": "Back to Top",
+      "integrationsTitle": "Integrations & Supported Platforms",
+      "solutionInvoicing": "E-Invoicing",
+      "solutionAccounting": "General Accounting",
+      "solutionPayroll": "Payroll & HR",
+      "solutionInventory": "Inventory & Warehousing",
+      "contactUs": "Contact Us",
+      "docs": "Documentation",
+      "updates": "Updates"
     },
     "security": {
       "hosting": "Hosted in Saudi Arabia",
