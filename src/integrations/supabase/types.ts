@@ -8050,41 +8050,73 @@ export type Database = {
       notification_event_templates: {
         Row: {
           body: string
+          body_html: string | null
+          body_text: string | null
           channel: string
           created_at: string
+          design_tokens: Json
           event_key: string
           id: string
           is_active: boolean
           is_platform_default: boolean
           lang: string
+          scope: string
           subject: string | null
+          tenant_id: string | null
+          title: string | null
+          updated_at: string
+          variables_schema: Json
           version: number
         }
         Insert: {
           body: string
+          body_html?: string | null
+          body_text?: string | null
           channel: string
           created_at?: string
+          design_tokens?: Json
           event_key: string
           id?: string
           is_active?: boolean
           is_platform_default?: boolean
           lang: string
+          scope?: string
           subject?: string | null
+          tenant_id?: string | null
+          title?: string | null
+          updated_at?: string
+          variables_schema?: Json
           version?: number
         }
         Update: {
           body?: string
+          body_html?: string | null
+          body_text?: string | null
           channel?: string
           created_at?: string
+          design_tokens?: Json
           event_key?: string
           id?: string
           is_active?: boolean
           is_platform_default?: boolean
           lang?: string
+          scope?: string
           subject?: string | null
+          tenant_id?: string | null
+          title?: string | null
+          updated_at?: string
+          variables_schema?: Json
           version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_event_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_events: {
         Row: {
@@ -16623,6 +16655,15 @@ export type Database = {
       }
       resolve_notification_plan: {
         Args: { p_event_key: string; p_lang?: string; p_tenant_id: string }
+        Returns: Json
+      }
+      resolve_template: {
+        Args: {
+          p_channel: string
+          p_event_key: string
+          p_lang: string
+          p_tenant_id?: string
+        }
         Returns: Json
       }
       reverse_payment: {
