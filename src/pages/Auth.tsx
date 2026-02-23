@@ -363,9 +363,9 @@ const Auth = () => {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200 }}
-                    className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-6"
+                    className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6 shadow-sm"
                   >
-                    <KeyRound size={36} className="text-accent" />
+                    <KeyRound size={32} className="text-accent" strokeWidth={1.8} />
                   </motion.div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">أدخل رمز التحقق</h2>
                   <p className="text-sm text-muted-foreground mb-1">تم إرسال رمز مكون من 6 أرقام إلى</p>
