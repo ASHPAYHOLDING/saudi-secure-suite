@@ -1,7 +1,8 @@
 /**
  * send-whatsapp-template
  * Sends a WhatsApp template message via Meta Cloud API.
- * Decrypts token server-side, never exposes it.
+ * Supports Platform mode (Option A) and Tenant mode (Option B).
+ * Checks opt-in compliance before sending.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -47,9 +48,8 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: claimsData, error: claimsErr } = await anonClient.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await anonClient.auth.getClaims(token);
     if (claimsErr || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -64,6 +64,7 @@ Deno.serve(async (req) => {
       language_code = "ar",
       components = [],
       template_key = "manual_send",
+      skip_optin_check = false,
     } = await req.json();
 
     if (!tenant_id || !to_phone || !template_name) {
@@ -73,34 +74,110 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch WhatsApp account
-    const { data: waAccount } = await admin
+    const normalizedPhone = to_phone.replace(/[^0-9+]/g, "").replace(/^\+/, "");
+
+    // ── Opt-in compliance check ──
+    if (!skip_optin_check) {
+      const { data: optinRecord } = await admin
+        .from("whatsapp_optins")
+        .select("opted_in")
+        .eq("tenant_id", tenant_id)
+        .eq("phone_e164", normalizedPhone)
+        .maybeSingle();
+
+      if (!optinRecord?.opted_in) {
+        // Check with + prefix too
+        const { data: optinAlt } = await admin
+          .from("whatsapp_optins")
+          .select("opted_in")
+          .eq("tenant_id", tenant_id)
+          .eq("phone_e164", `+${normalizedPhone}`)
+          .maybeSingle();
+
+        if (!optinAlt?.opted_in) {
+          await admin.from("notification_outbox").insert({
+            tenant_id,
+            channel: "whatsapp",
+            template_key,
+            recipient: to_phone,
+            payload_json: { template_name, language_code, components },
+            status: "blocked",
+            block_reason: "no_optin",
+            error: "Recipient has not opted in to WhatsApp notifications",
+          });
+
+          // Log to message log too
+          await admin.from("whatsapp_message_log").insert({
+            tenant_id,
+            to_phone: normalizedPhone,
+            template_key,
+            template_name,
+            language_code,
+            status: "failed",
+            error_code: "NO_OPTIN",
+            error_message: "Recipient has not opted in",
+          });
+
+          return new Response(
+            JSON.stringify({ error: "Recipient not opted in", status: "blocked", reason: "no_optin" }),
+            { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
+    // ── Determine WhatsApp config: Platform (A) or Tenant (B) ──
+    let wabaId: string;
+    let phoneNumberId: string;
+    let accessToken: string;
+    let mode = "platform";
+
+    // First check tenant-specific account
+    const { data: tenantWa } = await admin
       .from("tenant_whatsapp_accounts")
       .select("*")
       .eq("tenant_id", tenant_id)
       .eq("status", "active")
       .maybeSingle();
 
-    if (!waAccount) {
-      // Log blocked
-      await admin.from("notification_outbox").insert({
-        tenant_id,
-        channel: "whatsapp",
-        template_key,
-        recipient: to_phone,
-        payload_json: { template_name, language_code, components },
-        status: "blocked",
-        block_reason: "whatsapp_not_configured",
-        error: "No active WhatsApp account",
-      });
+    if (tenantWa) {
+      mode = "tenant";
+      wabaId = tenantWa.waba_id;
+      phoneNumberId = tenantWa.phone_number_id;
+      accessToken = decryptToken(tenantWa.access_token_encrypted);
+    } else {
+      // Fallback to platform config (Option A)
+      const { data: platformConfig } = await admin
+        .from("platform_whatsapp_config")
+        .select("*")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
 
-      return new Response(
-        JSON.stringify({ error: "WhatsApp not configured or inactive", status: "blocked" }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (!platformConfig) {
+        await admin.from("notification_outbox").insert({
+          tenant_id,
+          channel: "whatsapp",
+          template_key,
+          recipient: to_phone,
+          payload_json: { template_name, language_code, components },
+          status: "blocked",
+          block_reason: "whatsapp_not_configured",
+          error: "No WhatsApp configuration available",
+        });
+
+        return new Response(
+          JSON.stringify({ error: "WhatsApp not configured", status: "blocked" }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      wabaId = platformConfig.waba_id;
+      phoneNumberId = platformConfig.phone_number_id;
+      accessToken = decryptToken(platformConfig.access_token_encrypted);
     }
 
-    // Check rate limits
+    // ── Rate limit check ──
     const { data: rateLimit } = await admin
       .from("notification_rate_limits")
       .select("*")
@@ -114,12 +191,8 @@ Deno.serve(async (req) => {
       let dailyCount = rateLimit.daily_count;
       let monthlyCount = rateLimit.monthly_count;
 
-      if (rateLimit.last_reset_daily !== today) {
-        dailyCount = 0;
-      }
-      if (rateLimit.last_reset_monthly.substring(0, 7) !== thisMonth) {
-        monthlyCount = 0;
-      }
+      if (rateLimit.last_reset_daily !== today) dailyCount = 0;
+      if (rateLimit.last_reset_monthly?.substring(0, 7) !== thisMonth) monthlyCount = 0;
 
       if (dailyCount >= rateLimit.daily_limit || monthlyCount >= rateLimit.monthly_limit) {
         await admin.from("notification_outbox").insert({
@@ -140,13 +213,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Decrypt token
-    const token = decryptToken(waAccount.access_token_encrypted);
-
-    // Send via Meta Cloud API
+    // ── Send via Meta Cloud API ──
     const metaPayload = {
       messaging_product: "whatsapp",
-      to: to_phone.replace(/[^0-9]/g, ""),
+      to: normalizedPhone,
       type: "template",
       template: {
         name: template_name,
@@ -156,11 +226,11 @@ Deno.serve(async (req) => {
     };
 
     const metaRes = await fetch(
-      `https://graph.facebook.com/v21.0/${waAccount.phone_number_id}/messages`,
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(metaPayload),
@@ -181,27 +251,41 @@ Deno.serve(async (req) => {
       error = metaData.error?.message || JSON.stringify(metaData);
     }
 
-    // Log to outbox
-    await admin.from("notification_outbox").insert({
+    // ── Log to outbox ──
+    const { data: outboxRow } = await admin.from("notification_outbox").insert({
       tenant_id,
       channel: "whatsapp",
       template_key,
       recipient: to_phone,
-      payload_json: { template_name, language_code, components },
+      payload_json: { template_name, language_code, components, mode },
       status,
       provider_message_id: providerMsgId,
       error,
       sent_at: status === "sent" ? new Date().toISOString() : null,
+    }).select("id").maybeSingle();
+
+    // ── Log to whatsapp_message_log ──
+    await admin.from("whatsapp_message_log").insert({
+      tenant_id,
+      to_phone: normalizedPhone,
+      provider_message_id: providerMsgId,
+      template_key,
+      template_name,
+      language_code,
+      status,
+      error_code: status === "failed" ? (metaData.error?.code?.toString() || "UNKNOWN") : null,
+      error_message: error,
+      sent_at: status === "sent" ? new Date().toISOString() : null,
+      outbox_id: outboxRow?.id || null,
     });
 
-    // Update rate limits
+    // ── Update rate limits ──
     if (status === "sent" && rateLimit) {
       const today = new Date().toISOString().split("T")[0];
       await admin.rpc("increment_notification_rate_limit" as any, {
         p_tenant_id: tenant_id,
         p_channel: "whatsapp",
       }).catch(() => {
-        // Fallback: manual update
         admin.from("notification_rate_limits")
           .update({
             daily_count: (rateLimit.last_reset_daily === today ? rateLimit.daily_count : 0) + 1,
@@ -218,6 +302,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: status === "sent",
         status,
+        mode,
         provider_message_id: providerMsgId,
         error,
       }),

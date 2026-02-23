@@ -22,6 +22,7 @@ import {
   Tag,
   Crown,
   MonitorDot,
+  MessageSquare,
   ClipboardCheck,
   Copy,
   Zap,
@@ -70,6 +71,7 @@ const menuItems = [
   { icon: Megaphone, label: "إدارة التحديثات", path: "/admin/updates" },
   { icon: Bell, label: "كتالوج الإشعارات", path: "/admin/notifications" },
   { icon: LayoutTemplate, label: "استوديو القوالب", path: "/admin/template-studio" },
+  { icon: MessageSquare, label: "مركز واتساب", path: "/admin/whatsapp" },
 ];
 
 interface AdminSidebarProps {
