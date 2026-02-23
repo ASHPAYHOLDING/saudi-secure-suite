@@ -34,6 +34,7 @@ const MobileDrawer = ({
 }: MobileDrawerProps) => {
   const drawerRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const isRTL = currentLang === "ar";
 
   // Body scroll lock
   useEffect(() => {
@@ -97,26 +98,33 @@ const MobileDrawer = ({
         aria-hidden="true"
       />
 
-      {/* Drawer panel — slides from inline-end */}
+      {/* Drawer panel — slides from inline-start in RTL, inline-end in LTR */}
       <div
         ref={drawerRef}
-        dir={currentLang === "ar" ? "rtl" : "ltr"}
+        dir={isRTL ? "rtl" : "ltr"}
         role="dialog"
         aria-modal="true"
-        aria-label={currentLang === "ar" ? "القائمة الرئيسية" : "Main menu"}
+        aria-label={isRTL ? "القائمة الرئيسية" : "Main menu"}
         onKeyDown={handleKeyDown}
         className={cn(
           "fixed top-0 bottom-0 z-50 flex flex-col",
-          "w-[min(360px,90vw)] bg-background border-s border-border shadow-2xl",
+          "w-[min(360px,90vw)] bg-background border-border shadow-2xl border-s",
           "transition-transform duration-300 ease-out",
-          currentLang === "ar"
-            ? cn("left-0", open ? "translate-x-0" : "-translate-x-full")
-            : cn("right-0", open ? "translate-x-0" : "translate-x-full")
+          isRTL
+            ? "inset-inline-start-0"
+            : "inset-inline-end-0"
         )}
+        style={{
+          transform: open
+            ? "translateX(0)"
+            : isRTL
+              ? "translateX(-100%)"
+              : "translateX(100%)",
+        }}
       >
         {/* ── Header ── */}
         <div className="flex items-center justify-between h-16 px-5 border-b border-border shrink-0">
-          {/* Brand — right side (RTL start) */}
+          {/* Brand — inline-start */}
           <span
             className="text-xl font-semibold tracking-[0.05em] leading-none select-none shrink-0 text-foreground"
             aria-label="Numaxio"
@@ -124,7 +132,7 @@ const MobileDrawer = ({
             NUMA<span className="text-[#2EC4B6]">XIO</span>
           </span>
 
-          {/* Close — left side (RTL end) */}
+          {/* Close — inline-end */}
           <button
             onClick={onClose}
             className="w-11 h-11 inline-flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground transition-colors"
@@ -145,7 +153,7 @@ const MobileDrawer = ({
                 href={link.href}
                 onClick={(e) => onNavClick(e, link.href)}
                 className={cn(
-                  "flex items-center text-sm font-medium min-h-[48px] px-4 rounded-lg transition-colors text-right",
+                  "flex items-center text-sm font-medium min-h-[48px] px-4 rounded-lg transition-colors text-start",
                   isActive
                     ? "text-primary bg-primary/10 font-semibold"
                     : "text-foreground hover:bg-muted"
@@ -168,7 +176,7 @@ const MobileDrawer = ({
             className="flex items-center gap-3 w-full min-h-[48px] px-4 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
           >
             <Globe size={16} />
-            {currentLang === "ar" ? "English" : "العربية"}
+            {isRTL ? "English" : "العربية"}
           </button>
 
           {/* Login */}
