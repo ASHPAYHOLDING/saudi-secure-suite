@@ -144,19 +144,13 @@
     "hrAttendance": "الحضور والانصراف",
     "hrApprovals": "موافقات HR",
     "hrReports": "تقارير HR",
-    "hrPayroll": "الرواتب",
-    "collections": "التحصيل",
-    "notifications": "التنبيهات",
     "group": {
-      "home": "الرئيسية",
       "sales": "المبيعات",
       "purchasing": "المشتريات",
       "finance": "المالية",
-      "hr": "الموارد البشرية",
       "reports": "التقارير",
       "management": "الإدارة",
-      "enterprise_finance": "المحاسبة المؤسسية",
-      "governance": "الحوكمة المؤسسية"
+      "enterprise_finance": "المحاسبة المؤسسية"
     }
   },
   "landing": {

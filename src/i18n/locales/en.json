@@ -144,19 +144,13 @@
     "hrAttendance": "Attendance",
     "hrApprovals": "HR Approvals",
     "hrReports": "HR Reports",
-    "hrPayroll": "Payroll",
-    "collections": "Collections",
-    "notifications": "Notifications",
     "group": {
-      "home": "Home",
       "sales": "Sales",
       "purchasing": "Purchasing",
       "finance": "Finance",
-      "hr": "Human Resources",
       "reports": "Reports",
       "management": "Management",
-      "enterprise_finance": "Enterprise Accounting",
-      "governance": "Enterprise Governance"
+      "enterprise_finance": "Enterprise Accounting"
     }
   },
   "landing": {

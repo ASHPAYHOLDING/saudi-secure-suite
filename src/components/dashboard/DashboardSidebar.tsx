@@ -43,52 +43,46 @@ interface NavGroup {
 
 const topItems: NavItemDef[] = [
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
-  { icon: Zap, key: "nav.productivity", path: "/dashboard/productivity", module: "dashboard" },
-  { icon: Bell, key: "nav.notifications", path: "/dashboard/notifications", module: "dashboard" },
 ];
 
 const navGroups: NavGroup[] = [
-  // ── 1. المبيعات (Sales) ──
+  // ── المبيعات (6) ──
   {
     labelKey: "nav.group.sales",
     items: [
-      { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
       { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
-      { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
-      { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
-      { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
+      { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
       { icon: FileText, key: "nav.creditNotes", path: "/dashboard/credit-notes", module: "billing" },
-      { icon: Target, key: "nav.collections", path: "/dashboard/payment-reminders", module: "payment-reminders" },
+      { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
+      { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
+      { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
     ],
   },
-  // ── 2. المشتريات (Purchasing) ──
+  // ── المشتريات (4) ──
   {
     labelKey: "nav.group.purchasing",
     items: [
       { icon: Package, key: "nav.purchaseOrders", path: "/dashboard/purchase-orders", module: "purchase-orders" },
-      { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
-      { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
       { icon: Truck, key: "nav.deliveryNotes", path: "/dashboard/delivery-notes", module: "delivery-notes" },
+      { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
       { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
     ],
   },
-  // ── 3. المالية (Finance) ──
+  // ── المالية (8 core + 6 enterprise sub-group) ──
   {
     labelKey: "nav.group.finance",
     items: [
+      { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
       { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
       { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
-      { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
-      { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
-      { icon: Wallet, key: "nav.wallet", path: "/dashboard/wallet", module: "finance" },
       { icon: Lock, key: "nav.periodLock", path: "/dashboard/period-lock", module: "journal-entries" },
-      { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
-      { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
-      { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
-      { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
+      { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
+      { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
+      { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
+      { icon: Shield, key: "nav.collectionsIntelligence", path: "/dashboard/finance/collections-intelligence", module: "finance" },
       { icon: Activity, key: "nav.cashflowRadar", path: "/dashboard/finance/cashflow-radar", module: "finance" },
-      { icon: PieChart, key: "nav.financialHealth", path: "/dashboard/analytics/financial-health", module: "analytics" },
       { icon: BarChart3, key: "nav.executiveBoard", path: "/dashboard/executive", module: "finance", requiredPermission: "finance.view_executive_board" as any },
+      { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
     ],
     subGroup: {
       labelKey: "nav.group.enterprise_finance",
@@ -100,51 +94,59 @@ const navGroups: NavGroup[] = [
         { icon: CalendarClock, key: "nav.periodClose", path: "/dashboard/finance/period-close", module: "enterprise", featureKey: "enterprise_mode" as any },
         { icon: BarChart3, key: "nav.financialStatements", path: "/dashboard/finance/statements", module: "enterprise", featureKey: "enterprise_mode" as any },
         { icon: Shield, key: "nav.journalApprovals", path: "/dashboard/enterprise/approvals/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: Wrench, key: "nav.financeRepair", path: "/dashboard/enterprise/finance-repair", module: "enterprise", featureKey: "enterprise_mode" as any },
       ],
     },
   },
-  // ── 4. الموارد البشرية (HR) ──
+  // ── التقارير (3) ──
   {
-    labelKey: "nav.group.hr",
+    labelKey: "nav.group.reports",
     items: [
-      { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: Users, key: "nav.hrEmployees", path: "/dashboard/hr/employees", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: FileSignature, key: "nav.hrContracts", path: "/dashboard/hr/contracts", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: Building2, key: "nav.hrOrg", path: "/dashboard/hr/org", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: CalendarClock, key: "nav.hrLeave", path: "/dashboard/hr/leave", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: Activity, key: "nav.hrAttendance", path: "/dashboard/hr/attendance", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: Wallet, key: "nav.hrPayroll", path: "/dashboard/hr/payroll", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      { icon: GitBranch, key: "nav.hrApprovals", path: "/dashboard/hr/approvals", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: FileText, key: "nav.reports", path: "/dashboard/reports", module: "reports" },
+      { icon: BarChart3, key: "nav.analytics", path: "/dashboard/analytics", module: "analytics" },
+      { icon: TrendingUp, key: "nav.forecasting", path: "/dashboard/forecasting", module: "analytics" },
+      { icon: PieChart, key: "nav.financialHealth", path: "/dashboard/analytics/financial-health", module: "analytics" },
     ],
   },
-  // ── 5. الإعدادات (Settings) ──
+  // ── الإدارة ──
+  {
+    labelKey: "nav.group.management",
+    items: [
+      { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
+      { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
+      { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
+      { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
+      { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+    ],
+    subGroup: {
+      labelKey: "nav.hr",
+      items: [
+        { icon: Users, key: "nav.hrEmployees", path: "/dashboard/hr/employees", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: FileSignature, key: "nav.hrContracts", path: "/dashboard/hr/contracts", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: Building2, key: "nav.hrOrg", path: "/dashboard/hr/org", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: CalendarClock, key: "nav.hrLeave", path: "/dashboard/hr/leave", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: Activity, key: "nav.hrAttendance", path: "/dashboard/hr/attendance", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: GitBranch, key: "nav.hrApprovals", path: "/dashboard/hr/approvals", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+        { icon: BarChart3, key: "nav.hrReports", path: "/dashboard/hr/reports", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      ],
+    },
+  },
+  // ── الإعدادات (10) — includes integrations + subscription now ──
   {
     labelKey: "nav.settingsSection",
     items: [
       { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
       { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
-      { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
-      { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
-      { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
-      { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
       { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
       { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
       { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
-      { icon: Shield, key: "nav.ssoSettings", path: "/dashboard/sso-settings", module: "company" },
-      { icon: KeyRound, key: "nav.apiKeys", path: "/dashboard/api-keys", module: "integrations" },
-      { icon: CreditCard, key: "nav.numaxioPay", path: "/dashboard/numaxio-pay", module: "finance" },
       { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
+      { icon: Building2, key: "nav.governanceCenter", path: "/dashboard/governance-center", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: Shield, key: "nav.complianceScore", path: "/dashboard/enterprise/compliance-score", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
+      { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
+      { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
       { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
     ],
-    subGroup: {
-      labelKey: "nav.group.governance",
-      badge: "Enterprise",
-      items: [
-        { icon: Building2, key: "nav.governanceCenter", path: "/dashboard/governance-center", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: Shield, key: "nav.complianceScore", path: "/dashboard/enterprise/compliance-score", module: "enterprise", featureKey: "enterprise_mode" as any },
-      ],
-    },
   },
 ];
 
@@ -390,7 +392,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       className={cn(
         "fixed top-0 z-40 flex h-screen flex-col border-sidebar-border bg-sidebar transition-all duration-300",
         "inset-inline-start-0 border-e",
-        collapsed ? "w-[68px]" : "w-[260px]",
+        collapsed ? "w-[68px]" : "w-64",
         "max-md:hidden",
         mobileOpen && "max-md:!flex"
       )}
