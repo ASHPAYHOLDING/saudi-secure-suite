@@ -16612,6 +16612,10 @@ export type Database = {
         Args: { p_perm: string; p_tenant_id: string; p_user_id: string }
         Returns: boolean
       }
+      has_permission: {
+        Args: { _permission_key: string; _tenant_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
