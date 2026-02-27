@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import {
   FileText, Search, Plus, Lock, Unlock, Eye, Pencil, Trash2,
   Copy, Check, X, LayoutTemplate, Mail, Bell, FileSignature,
@@ -480,7 +481,7 @@ const AdminTemplates = () => {
                 <div
                   className="prose prose-sm max-w-none"
                   dir="rtl"
-                  dangerouslySetInnerHTML={{ __html: selectedTemplate.body_html || "<p class='text-muted-foreground'>لا يوجد محتوى</p>" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedTemplate.body_html || "<p class='text-muted-foreground'>لا يوجد محتوى</p>") }}
                 />
               </div>
             </div>

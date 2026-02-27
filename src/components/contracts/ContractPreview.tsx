@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { motion } from "framer-motion";
 import { ArrowRight, Printer, Download, Lock, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,7 @@ const ContractPreview = ({ onBack, bodyHtml, contractId }: ContractPreviewProps)
             <div
               className="px-6 sm:px-8 py-6 text-sm leading-relaxed text-foreground contract-body"
               style={{ minHeight: "600px", fontSize: "13px", lineHeight: "1.9" }}
-              dangerouslySetInnerHTML={{ __html: html }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
             />
 
             {/* Stamp Area */}

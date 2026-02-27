@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import {
   Mail, Search, Plus, Eye, Pencil, Copy, Trash2, History,
   RotateCcw, Power, PowerOff, Shield, ChevronDown, Variable,
@@ -570,11 +571,11 @@ const AdminEmailTemplates = () => {
                     <div
                       className="bg-white rounded-lg shadow-sm"
                       dangerouslySetInnerHTML={{
-                        __html: wrapForPreview(
+                        __html: sanitizeHtml(wrapForPreview(
                           replaceVariables(form.body_html, SAMPLE_DATA),
                           SAMPLE_DATA.company_name,
                           SAMPLE_DATA.vat_number
-                        )
+                        ))
                       }}
                     />
                   </div>
@@ -650,11 +651,11 @@ const AdminEmailTemplates = () => {
                 <div
                   className="bg-white"
                   dangerouslySetInnerHTML={{
-                    __html: wrapForPreview(
+                    __html: sanitizeHtml(wrapForPreview(
                       replaceVariables(selected.body_html, SAMPLE_DATA),
                       SAMPLE_DATA.company_name,
                       SAMPLE_DATA.vat_number
-                    )
+                    ))
                   }}
                 />
               </div>

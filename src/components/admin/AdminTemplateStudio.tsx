@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import {
   LayoutTemplate, Eye, Pencil, Plus, Search, Loader2, Copy,
   Send, Monitor, Smartphone, Globe, Variable, FileText,
@@ -523,9 +524,9 @@ const AdminTemplateStudio = () => {
                       className="bg-background shadow-sm"
                       style={{ width: previewMode === "mobile" ? 375 : 600, minHeight: 300, borderRadius: 8, overflow: "hidden" }}
                       dangerouslySetInnerHTML={{
-                        __html: form.body_html
+                        __html: sanitizeHtml(form.body_html
                           ? replaceVars(form.body_html, previewVars, currentSchema)
-                          : `<div style="padding:24px;font-size:14px;direction:${form.lang === "ar" ? "rtl" : "ltr"}">${replaceVars(form.body, previewVars, currentSchema)}</div>`,
+                          : `<div style="padding:24px;font-size:14px;direction:${form.lang === "ar" ? "rtl" : "ltr"}">${replaceVars(form.body, previewVars, currentSchema)}</div>`),
                       }}
                     />
                   </div>

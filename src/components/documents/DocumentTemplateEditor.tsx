@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -382,7 +383,7 @@ const DocumentTemplateEditor = () => {
                     <div
                       className="mx-auto bg-white shadow-sm"
                       style={{ maxWidth: "210mm", minHeight: "297mm" }}
-                      dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(getPreviewHtml()) }}
                     />
                   </div>
                 </TabsContent>
