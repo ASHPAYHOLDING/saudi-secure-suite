@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Shield } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Shield, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
 interface RoleSummary {
@@ -78,10 +79,25 @@ export default function DebugRlsVerify() {
           <Shield className="h-7 w-7 text-primary" />
           <h1 className="text-2xl font-bold text-foreground">تحقق توزيع الصلاحيات (RLS Verify)</h1>
         </div>
-        <Button onClick={fetchReport} disabled={loading} variant="outline" size="sm">
-          <RefreshCw className={`h-4 w-4 ml-2 ${loading ? "animate-spin" : ""}`} />
-          تحديث
-        </Button>
+        <div className="flex items-center gap-2">
+          {data && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+                toast.success("تم نسخ التقرير");
+              }}
+            >
+              <Copy className="h-4 w-4 ml-2" />
+              نسخ JSON
+            </Button>
+          )}
+          <Button onClick={fetchReport} disabled={loading} variant="outline" size="sm">
+            <RefreshCw className={`h-4 w-4 ml-2 ${loading ? "animate-spin" : ""}`} />
+            تحديث التقرير
+          </Button>
+        </div>
       </div>
 
       {error && (
