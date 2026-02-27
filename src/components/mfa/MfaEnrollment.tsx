@@ -33,7 +33,8 @@ const MfaEnrollment = ({ onSuccess, onCancel }: MfaEnrollmentProps) => {
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: "تطبيق المصادقة",
+        issuer: "Numaxio",
+        friendlyName: "Numaxio",
       });
       if (error) throw error;
       setFactorId(data.id);
