@@ -258,8 +258,8 @@ Deno.serve(async (req) => {
     }
 
     // 7. Execute with service_role + timeout guard
+    const timeoutMs = SLOW_RPCS.has(fn) ? SLOW_RPC_TIMEOUT_MS : RPC_TIMEOUT_MS;
     try {
-      const timeoutMs = SLOW_RPCS.has(fn) ? SLOW_RPC_TIMEOUT_MS : RPC_TIMEOUT_MS;
       const { data, error } = await withTimeout(
         () => serviceClient.rpc(fn, castParams),
         timeoutMs,
