@@ -17,7 +17,7 @@
  * [NOBUG-01] ✅ لا أخطاء Console
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { isPasswordLeaked } from "@/lib/check-leaked-password";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { SsoLoginButton } from "@/components/sso/SsoLoginButton";
+import MfaChallenge from "@/components/mfa/MfaChallenge";
 
 /* ───── Animation presets (≤150ms, no bounce) ───── */
 const fadeIn = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.15 } };
@@ -43,7 +44,8 @@ const slideUp = (delay = 0) => ({
 });
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp" | "mfa">("login");
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -207,7 +209,7 @@ const Auth = () => {
       } else {
         const guardCheck = await supabase.functions.invoke("login-guard", { body: { email, success: false, ip_address: null, user_agent: navigator.userAgent } });
         if (guardCheck.data?.locked) throw new Error(guardCheck.data.message || "تم قفل الحساب مؤقتاً. يرجى المحاولة لاحقاً.");
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           await supabase.functions.invoke("login-guard", { body: { email, success: false, ip_address: null, user_agent: navigator.userAgent } });
           if (error.message.includes("Invalid login credentials")) throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
@@ -224,6 +226,16 @@ const Auth = () => {
           throw error;
         }
         await supabase.functions.invoke("login-guard", { body: { email, success: true, ip_address: null, user_agent: navigator.userAgent } });
+
+        // Check for MFA factors
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const verifiedFactor = factors?.totp?.find((f) => f.status === "verified");
+        if (verifiedFactor) {
+          setMfaFactorId(verifiedFactor.id);
+          setMode("mfa");
+          return;
+        }
+
         navigate("/dashboard");
       }
     } catch (err: any) {
@@ -299,8 +311,21 @@ const Auth = () => {
           <div className="w-full max-w-[420px]">
             <AnimatePresence mode="wait">
 
-              {/* ═══ OTP ═══ */}
-              {mode === "otp" ? (
+              {/* ═══ MFA Challenge ═══ */}
+              {mode === "mfa" && mfaFactorId ? (
+                <motion.div key="mfa" {...fadeIn}>
+                  <MfaChallenge
+                    factorId={mfaFactorId}
+                    onSuccess={() => navigate("/dashboard")}
+                    onBack={() => {
+                      supabase.auth.signOut();
+                      setMfaFactorId(null);
+                      setMode("login");
+                    }}
+                  />
+                </motion.div>
+
+              ) : mode === "otp" ? (
                 <motion.div key="otp" {...fadeIn} className="text-center">
                   {/* [OTP-01] أيقونة 20px داخل دائرة h-10 w-10 */}
                   <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-5">
