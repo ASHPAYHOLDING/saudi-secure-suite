@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import "./i18n";
 import App from "./App.tsx";
 import "./index.css";
+import { auditSecurityHeaders } from "./lib/security-headers";
+
+auditSecurityHeaders();
 
 // Global safety net: prevent unhandled promise rejections from crashing the app.
 // This is especially important for fetch calls to edge functions that return non-2xx

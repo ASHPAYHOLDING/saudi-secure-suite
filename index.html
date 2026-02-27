@@ -15,9 +15,11 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Numaxio" />
     <meta name="twitter:image" content="/numaxio-logo.png">
-    
-  
-  
+
+    <!-- ═══ Security Headers (meta-level) ═══ -->
+    <!-- CSP: Report-Only first (48h), then switch http-equiv to "Content-Security-Policy" -->
+    <meta http-equiv="Content-Security-Policy-Report-Only" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; media-src 'self' blob: https:; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
   
   <meta property="og:title" content="نيوماكسيو - Numaxio">
   <meta name="twitter:title" content="نيوماكسيو - Numaxio">
