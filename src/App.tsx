@@ -13,6 +13,7 @@ import ScrollToTop from "./components/routing/ScrollToTop";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { lazy, Suspense, createElement, useEffect } from "react";
 import GatedRoute from "./routes/GatedRoute";
+import RequireMfaForPrivileged from "./routes/RequireMfaForPrivileged";
 import { DASHBOARD_ROUTES, DashboardIndexElement } from "./routes/dashboard-routes";
 import { prefetchRoute } from "./lib/perf";
 
@@ -124,7 +125,9 @@ const AppRoutes = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <PageSuspense><Dashboard /></PageSuspense>
+              <RequireMfaForPrivileged>
+                <PageSuspense><Dashboard /></PageSuspense>
+              </RequireMfaForPrivileged>
             </ProtectedRoute>
           }
         >
