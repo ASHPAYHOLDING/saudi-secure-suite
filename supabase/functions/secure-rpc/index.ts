@@ -182,9 +182,9 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await anonClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } =
+      await anonClient.auth.getUser(token);
+    if (userError || !user) {
       await logger.flush(401, "Invalid token");
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     logger.setUser(userId);
 
     // 2. Parse request
