@@ -18,11 +18,17 @@ serve(async (req) => {
   }
 
   try {
-    // Rate limiting
-    const rlAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const blocked = await checkRateLimit(req, rlAdmin, "auth", corsHeaders);
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Rate limiting + parse body in parallel
+    const bodyPromise = req.clone().json();
+    const rlPromise = checkRateLimit(req, supabaseAdmin, "auth", corsHeaders);
+    const [body, blocked] = await Promise.all([bodyPromise, rlPromise]);
     if (blocked) return blocked;
-    const { email, type, redirectTo, otp } = await req.json();
+
+    const { email, type, redirectTo, otp } = body;
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {
@@ -30,10 +36,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
 
     // --- Verify OTP ---
     if (type === "verify_otp") {
