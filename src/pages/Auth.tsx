@@ -189,14 +189,14 @@ const Auth = () => {
       } else if (mode === "signup") {
         const leaked = await isPasswordLeaked(password);
         if (leaked) {
-          toast({ title: "كلمة مرور غير مسموح بها", description: "اختر كلمة مرور أقوى — هذه الكلمة غير مسموح بها لأسباب أمنية.", variant: "destructive" });
+          toast({ title: "كلمة مرور غير آمنة", description: "هذه الكلمة ظهرت ضمن تسريبات معروفة. اختر كلمة جديدة قوية وفريدة.", variant: "destructive" });
           setLoading(false);
           return;
         }
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, tenant_type: tenantType }, emailRedirectTo: window.location.origin } });
         if (error) {
           if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
-            throw new Error("اختر كلمة مرور أقوى — هذه الكلمة غير مسموح بها لأسباب أمنية.");
+            throw new Error("هذه الكلمة ظهرت ضمن تسريبات معروفة. اختر كلمة جديدة قوية وفريدة.");
           }
           throw error;
         }
