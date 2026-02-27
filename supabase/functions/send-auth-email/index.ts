@@ -155,17 +155,31 @@ serve(async (req) => {
     // --- Recovery (password reset) ---
     if (type === "recovery") {
       const redirect = redirectTo || "https://numaxio.com";
-      const { data: linkData, error: linkError } =
-        await supabaseAdmin.auth.admin.generateLink({
+      
+      // Retry up to 2 times for transient SSL/network errors
+      let linkData, linkError;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const result = await supabaseAdmin.auth.admin.generateLink({
           type: "recovery",
           email,
           options: { redirectTo: redirect },
         });
+        linkData = result.data;
+        linkError = result.error;
+        if (!linkError) break;
+        const errMsg = linkError.message || "";
+        if (errMsg.includes("DOCTYPE") || errMsg.includes("SSL") || errMsg.includes("handshake") || errMsg.includes("not valid JSON")) {
+          console.warn(`Recovery generateLink attempt ${attempt + 1} failed (transient), retrying...`);
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        break; // Non-transient error, don't retry
+      }
 
       if (linkError) {
         console.error("Generate link error:", linkError);
-        return new Response(JSON.stringify({ error: linkError.message }), {
-          status: 400,
+        return new Response(JSON.stringify({ error: "حدث خطأ مؤقت، يرجى المحاولة مرة أخرى" }), {
+          status: 503,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
