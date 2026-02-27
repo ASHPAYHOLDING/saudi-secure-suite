@@ -185,9 +185,23 @@ const Auth = () => {
     setLoading(true);
     try {
       if (mode === "forgot") {
-        const { error: fnError } = await supabase.functions.invoke("send-auth-email", { body: { email, type: "recovery", redirectTo: `${window.location.origin}/reset-password` } });
-        if (fnError) throw fnError;
-        setResetSent(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        try {
+          const { data, error: fnError } = await supabase.functions.invoke("send-auth-email", { 
+            body: { email, type: "recovery", redirectTo: `${window.location.origin}/reset-password` },
+          });
+          clearTimeout(timeoutId);
+          if (fnError) throw fnError;
+          if (data?.error) throw new Error(data.error);
+          setResetSent(true);
+        } catch (fetchErr: any) {
+          clearTimeout(timeoutId);
+          if (fetchErr.name === 'AbortError') {
+            throw new Error("انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.");
+          }
+          throw fetchErr;
+        }
       } else if (mode === "signup") {
         const leaked = await isPasswordLeaked(password);
         if (leaked) {
