@@ -72,8 +72,8 @@ const ResetPassword = () => {
       const leaked = await isPasswordLeaked(password);
       if (leaked) {
         toast({
-          title: "كلمة مرور مسرّبة",
-          description: "كلمة المرور هذه ظهرت في تسريبات بيانات سابقة. يرجى اختيار كلمة مرور مختلفة وأكثر أماناً.",
+          title: "كلمة مرور غير مسموح بها",
+          description: "اختر كلمة مرور أقوى — هذه الكلمة غير مسموح بها لأسباب أمنية.",
           variant: "destructive",
         });
         setLoading(false);
@@ -81,7 +81,12 @@ const ResetPassword = () => {
       }
 
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
+          throw new Error("اختر كلمة مرور أقوى — هذه الكلمة غير مسموح بها لأسباب أمنية.");
+        }
+        throw error;
+      }
       setSuccess(true);
       toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
       setTimeout(() => navigate("/dashboard"), 2000);
