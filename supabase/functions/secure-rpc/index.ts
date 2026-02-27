@@ -9,7 +9,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-correlation-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const RPC_TIMEOUT_MS = 5000;
+const RPC_TIMEOUT_MS = 8000;
+
+// Heavier RPCs that may need more time (e.g. multi-table integrity checks)
+const SLOW_RPC_TIMEOUT_MS = 20000;
+const SLOW_RPCS = new Set([
+  "check_subscription_integrity",
+  "auto_activate_enterprise_integrations",
+]);
 
 // ── Enterprise tenant cache (5-min TTL) ────────────────────────
 const enterpriseCache = new Map<string, { value: boolean; expiresAt: number }>();
@@ -252,9 +259,10 @@ Deno.serve(async (req) => {
 
     // 7. Execute with service_role + timeout guard
     try {
+      const timeoutMs = SLOW_RPCS.has(fn) ? SLOW_RPC_TIMEOUT_MS : RPC_TIMEOUT_MS;
       const { data, error } = await withTimeout(
         () => serviceClient.rpc(fn, castParams),
-        RPC_TIMEOUT_MS,
+        timeoutMs,
         `rpc:${fn}`
       );
 
@@ -276,7 +284,7 @@ Deno.serve(async (req) => {
       });
     } catch (timeoutErr) {
       if (timeoutErr instanceof TimeoutError) {
-        console.error(`[secure-rpc] ${fn} timed out after ${RPC_TIMEOUT_MS}ms`);
+        console.error(`[secure-rpc] ${fn} timed out after ${timeoutMs}ms`);
         await logger.flush(504, `Timeout: ${fn}`);
         return new Response(
           JSON.stringify({ error: "انتهت مهلة العملية", code: "TIMEOUT" }),
