@@ -15768,6 +15768,65 @@ export type Database = {
           },
         ]
       }
+      profiles_safe: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          full_name_en: string | null
+          id: string | null
+          is_active: boolean | null
+          job_title: string | null
+          language: string | null
+          last_login_at: string | null
+          phone: string | null
+          tenant_id: string | null
+          timezone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: never
+          full_name?: string | null
+          full_name_en?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          job_title?: string | null
+          language?: string | null
+          last_login_at?: string | null
+          phone?: never
+          tenant_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: never
+          full_name?: string | null
+          full_name_en?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          job_title?: string | null
+          language?: string | null
+          last_login_at?: string | null
+          phone?: never
+          tenant_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profit_loss_view: {
         Row: {
           branch_id: string | null
@@ -16687,6 +16746,10 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { p_tenant_id: string; p_user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      is_tenant_owner_or_admin: {
+        Args: { _tenant_id: string }
+        Returns: boolean
+      }
       list_notification_events_for_tenant: {
         Args: { p_tenant_id: string }
         Returns: Json
