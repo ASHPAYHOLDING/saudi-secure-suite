@@ -3034,6 +3034,39 @@ export type Database = {
           },
         ]
       }
+      csp_reports: {
+        Row: {
+          blocked_uri: string | null
+          created_at: string
+          document_uri: string | null
+          id: string
+          line_number: number | null
+          source_file: string | null
+          status_code: number | null
+          violated_directive: string
+        }
+        Insert: {
+          blocked_uri?: string | null
+          created_at?: string
+          document_uri?: string | null
+          id?: string
+          line_number?: number | null
+          source_file?: string | null
+          status_code?: number | null
+          violated_directive: string
+        }
+        Update: {
+          blocked_uri?: string | null
+          created_at?: string
+          document_uri?: string | null
+          id?: string
+          line_number?: number | null
+          source_file?: string | null
+          status_code?: number | null
+          violated_directive?: string
+        }
+        Relationships: []
+      }
       currencies: {
         Row: {
           code: string

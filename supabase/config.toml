@@ -122,3 +122,6 @@ verify_jwt = false
 
 [functions.whatsapp-webhook]
 verify_jwt = false
+
+[functions.csp-report]
+verify_jwt = false
