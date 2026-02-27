@@ -42,6 +42,7 @@ const DebugWorkflows = lazy(() => import("./pages/DebugWorkflows"));
 const DebugAccessMap = lazy(() => import("./pages/DebugAccessMap"));
 const DebugRlsCheck = lazy(() => import("./pages/DebugRlsCheck"));
 const DebugSystemAudit = lazy(() => import("./pages/DebugSystemAudit"));
+const DebugRlsVerify = lazy(() => import("./pages/DebugRlsVerify"));
 
 const queryClient = new QueryClient();
 
@@ -169,6 +170,7 @@ const AppRoutes = () => {
             <Route path="/debug/webhook-test" element={<PageSuspense><PlatformAdminRoute><DebugWebhookTest /></PlatformAdminRoute></PageSuspense>} />
             <Route path="/debug/workflows" element={<PageSuspense><PlatformAdminRoute><DebugWorkflows /></PlatformAdminRoute></PageSuspense>} />
             <Route path="/debug/system-audit" element={<PageSuspense><PlatformAdminRoute><DebugSystemAudit /></PlatformAdminRoute></PageSuspense>} />
+            <Route path="/debug/rls-verify" element={<PageSuspense><PlatformAdminRoute><DebugRlsVerify /></PlatformAdminRoute></PageSuspense>} />
           </>
         )}
 

@@ -17022,6 +17022,7 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      verify_permissions_seed: { Args: never; Returns: Json }
     }
     Enums: {
       account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
