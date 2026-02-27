@@ -68,6 +68,7 @@ const menuItems = [
   { icon: HardDrive, label: "تقرير التخزين", path: "/admin/system/storage" },
   { icon: Database, label: "لوحة الترحيلات", path: "/admin/system/migrations" },
   { icon: Server, label: "البنية التحتية للنظام", path: "/admin/system/infrastructure" },
+  { icon: Shield, label: "تحقق الصلاحيات (RLS)", path: "/admin/system/rls-verify" },
   { icon: Megaphone, label: "إدارة التحديثات", path: "/admin/updates" },
   { icon: Bell, label: "كتالوج الإشعارات", path: "/admin/notifications" },
   { icon: LayoutTemplate, label: "استوديو القوالب", path: "/admin/template-studio" },
