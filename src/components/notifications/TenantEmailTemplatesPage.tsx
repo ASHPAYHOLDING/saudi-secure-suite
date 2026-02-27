@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import {
   Mail, Search, Eye, Copy, Pencil, History, Check, X,
   Loader2, Shield, Variable, LayoutTemplate, Globe, FileText
@@ -427,7 +428,7 @@ const TenantEmailTemplatesPage = () => {
                   <div className="p-4">
                     <div
                       className="max-w-[600px] mx-auto"
-                      dangerouslySetInnerHTML={{ __html: replaceVariables(form.html_body, SAMPLE_DATA) }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(replaceVariables(form.html_body, SAMPLE_DATA)) }}
                     />
                   </div>
                 </div>
@@ -484,7 +485,7 @@ const TenantEmailTemplatesPage = () => {
           <div className="border rounded-lg overflow-hidden bg-[#F6F7F9]">
             <div
               className="max-w-[600px] mx-auto p-4"
-              dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(getPreviewHtml()) }}
             />
           </div>
         </DialogContent>

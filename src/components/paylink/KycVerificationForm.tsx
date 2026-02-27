@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -706,7 +707,7 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Agreement text */}
-            <div className="bg-muted/60 border border-border rounded-lg p-4 max-h-64 overflow-y-auto text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: AGREEMENT_HTML }} />
+            <div className="bg-muted/60 border border-border rounded-lg p-4 max-h-64 overflow-y-auto text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(AGREEMENT_HTML) }} />
 
             <div className="flex items-start gap-3 p-3 rounded-lg bg-warning/5 border border-warning/20">
               <AlertTriangle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
