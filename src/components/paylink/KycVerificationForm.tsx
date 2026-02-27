@@ -148,7 +148,7 @@ const KycVerificationForm = ({ onActivated }: KycVerificationFormProps) => {
     setUploadingDoc(true);
     try {
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `${tenantId}/${Date.now()}-${sanitizedName}`;
+      const path = `${tenantId}/${user.id}/${Date.now()}-${sanitizedName}`;
       const { error: uploadError } = await supabase.storage
         .from("kyc-documents")
         .upload(path, file, {
