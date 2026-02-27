@@ -106,6 +106,7 @@ const SmtpSettingsPage = lazy(() => import("@/components/notifications/SmtpSetti
 const TenantEmailTemplatesPage = lazy(() => import("@/components/notifications/TenantEmailTemplatesPage"));
 const NotificationSettingsPage = lazy(() => import("@/components/notifications/NotificationSettingsPage"));
 const NotificationMappingPage = lazy(() => import("@/components/notifications/NotificationMappingPage"));
+const UserSecurityPage = lazy(() => import("@/components/mfa/UserSecurityPage"));
 
 // ── HR ──
 const HrOverviewPage = lazy(() => import("@/components/hr/HrOverviewPage"));
@@ -265,6 +266,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   // ── Phase A: system/storage, system/migrations, system/infrastructure moved to /admin/system/* ──
   // Deprecation redirects are in App.tsx
   { path: "document-templates", element: DocumentTemplateEditor, gateSegment: "document-templates", module: "enterprise", permissionKey: "templates.manage" },
+  { path: "settings/security", element: UserSecurityPage, isOpenRoute: true },
   { path: "settings", element: SettingsPage, gateSegment: "settings", permissionKey: "settings.view" },
   { path: "notifications", element: NotificationCenterPage, isOpenRoute: true },
   { path: "settings/email", element: SmtpSettingsPage, gateSegment: "company", permissionKey: "company.view" },

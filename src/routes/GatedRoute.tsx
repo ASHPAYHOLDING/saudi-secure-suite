@@ -4,6 +4,14 @@ import { isModuleAllowed, type Module } from "@/lib/tenant-modules";
 import { ROUTE_FEATURE_MAP } from "@/lib/feature-route-map";
 import RouteGuard from "@/components/guards/RouteGuard";
 import AccessDenied from "@/components/guards/AccessDenied";
+import MfaEnforcementGuard from "@/components/mfa/MfaEnforcementGuard";
+
+/** Segments that require MFA when tenant enforcement is on */
+const MFA_SENSITIVE_SEGMENTS = new Set([
+  "permissions", "wallet", "hr-payroll", "hr-payroll-settings",
+  "hr-payroll-reports", "audit", "enterprise", "security",
+  "sso-settings", "api-keys",
+]);
 
 type Props = {
   segment: string;
@@ -49,8 +57,8 @@ export default function GatedRoute({ segment, module, permissionKey, deniedReaso
     return <AccessDenied reason="route_not_gated" featureLabel={featureLabel} />;
   }
 
-  // 4) Normal: guard by feature + permission
-  return (
+  // 4) Normal: guard by feature + permission + MFA enforcement for sensitive routes
+  const content = (
     <RouteGuard
       featureKey={featureKey}
       permissionKey={resolvedPermissionKey}
@@ -60,4 +68,11 @@ export default function GatedRoute({ segment, module, permissionKey, deniedReaso
       {children}
     </RouteGuard>
   );
+
+  // 5) Wrap sensitive segments with MFA enforcement
+  if (MFA_SENSITIVE_SEGMENTS.has(segment)) {
+    return <MfaEnforcementGuard>{content}</MfaEnforcementGuard>;
+  }
+
+  return content;
 }
