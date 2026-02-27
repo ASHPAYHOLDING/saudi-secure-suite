@@ -91,12 +91,12 @@ const TeamMembersPage = () => {
 
     // Fetch profiles for each member
     const memberIds = (data || []).map((m) => m.user_id);
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await (supabase as any)
+      .from("profiles_safe")
       .select("id, full_name, email, avatar_url, job_title")
-      .in("id", memberIds);
+      .in("id", memberIds) as { data: any[] | null };
 
-    const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
+    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
 
     const enriched: TeamMember[] = (data || []).map((m) => ({
       ...m,
