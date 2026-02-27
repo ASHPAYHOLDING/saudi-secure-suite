@@ -66,14 +66,14 @@ const EntityComments = ({ entityType, entityId }: EntityCommentsProps) => {
           .eq("entity_type", entityType)
           .eq("entity_id", entityId)
           .order("created_at", { ascending: true }),
-        supabase
-          .from("profiles")
+        (supabase as any)
+          .from("profiles_safe")
           .select("id, full_name, email")
           .eq("tenant_id", tenantId),
-      ]);
+      ]) as [any, any];
 
       const memberMap = new Map(
-        (membersRes.data ?? []).map((m) => [m.id, m.full_name])
+        ((membersRes.data ?? []) as any[]).map((m: any) => [m.id, m.full_name])
       );
       const enriched = (commentsRes.data ?? []).map((c: any) => ({
         ...c,
@@ -81,7 +81,7 @@ const EntityComments = ({ entityType, entityId }: EntityCommentsProps) => {
         user_name: memberMap.get(c.user_id) ?? "Unknown",
       }));
       setComments(enriched);
-      setMembers(membersRes.data ?? []);
+      setMembers((membersRes.data ?? []) as any[]);
     };
     fetchData();
 

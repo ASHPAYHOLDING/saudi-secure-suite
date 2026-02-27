@@ -78,7 +78,7 @@ const ChatPage = () => {
           .eq("tenant_id", tenantId)
           .order("is_default", { ascending: false })
           .order("name"),
-        supabase.from("profiles").select("id, full_name, email").eq("tenant_id", tenantId),
+        (supabase as any).from("profiles_safe").select("id, full_name, email").eq("tenant_id", tenantId),
       ]);
       const ch = (channelsRes.data ?? []) as Channel[];
       setChannels(ch);

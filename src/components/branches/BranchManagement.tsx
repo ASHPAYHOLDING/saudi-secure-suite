@@ -92,8 +92,8 @@ const BranchManagement = () => {
     
     if (data && data.length > 0) {
       const userIds = data.map((m: any) => m.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
+      const { data: profiles } = await (supabase as any)
+        .from("profiles_safe")
         .select("id, full_name, email")
         .in("id", userIds);
       
@@ -113,8 +113,8 @@ const BranchManagement = () => {
     
     if (team) {
       const teamIds = team.map((t: any) => t.user_id);
-      const { data: teamProfiles } = await supabase
-        .from("profiles")
+      const { data: teamProfiles } = await (supabase as any)
+        .from("profiles_safe")
         .select("id, full_name, email")
         .in("id", teamIds);
       const merged = (teamProfiles || []).map((p: any) => ({
