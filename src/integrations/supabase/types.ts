@@ -16667,6 +16667,10 @@ export type Database = {
         Args: { p_tenant_id: string; p_violation_data: Json }
         Returns: string
       }
+      has_finance_permission_by_path: {
+        Args: { file_path: string }
+        Returns: boolean
+      }
       has_hr_permission: {
         Args: { p_perm: string; p_tenant_id: string; p_user_id: string }
         Returns: boolean
@@ -16681,6 +16685,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_supplier_permission_by_path: {
+        Args: { file_path: string }
         Returns: boolean
       }
       hr_invite_member: {
@@ -16732,6 +16740,10 @@ export type Database = {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: boolean
       }
+      is_hr_or_owner_admin_by_path: {
+        Args: { file_path: string }
+        Returns: boolean
+      }
       is_manager_of: {
         Args: { p_employee_id: string; p_user_id: string }
         Returns: boolean
@@ -16745,9 +16757,17 @@ export type Database = {
       is_tenant_member:
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { p_tenant_id: string; p_user_id: string }; Returns: boolean }
+      is_tenant_member_by_path: {
+        Args: { file_path: string }
+        Returns: boolean
+      }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_owner_or_admin: {
         Args: { _tenant_id: string }
+        Returns: boolean
+      }
+      is_tenant_owner_or_admin_by_path: {
+        Args: { file_path: string }
         Returns: boolean
       }
       list_notification_events_for_tenant: {
