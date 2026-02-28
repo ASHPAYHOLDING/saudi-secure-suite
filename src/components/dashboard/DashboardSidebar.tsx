@@ -243,15 +243,19 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       <Link
         to={path}
         className={cn(
-          "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 min-h-[44px]",
+          "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 min-h-[44px] group",
           isActive
-            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
+            ? "bg-sidebar-accent text-sidebar-primary font-bold"
             : isLocked
-              ? "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
-              : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary"
+              ? "text-sidebar-foreground/40 hover:bg-sidebar-accent/50"
+              : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         )}
       >
-        <Icon size={18} className="shrink-0" />
+        {/* RTL active indicator bar on the right */}
+        {isActive && (
+          <span className="absolute inset-y-1 end-0 w-[3px] rounded-full bg-sidebar-primary" />
+        )}
+        <Icon size={18} className={cn("shrink-0", isActive ? "text-sidebar-primary" : "text-muted-foreground group-hover:text-sidebar-foreground")} />
         {!collapsed && (
           <span className="flex-1 flex items-center gap-2">
             {label}
@@ -301,20 +305,22 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
 
     return (
       <div>
+        {/* Group separator */}
+        <div className="mx-3 my-2 h-px bg-sidebar-border" />
         <button
           onClick={() => toggleGroup(group.labelKey)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+            "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors",
             hasActiveItem
               ? "text-sidebar-primary"
-              : "text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              : "text-sidebar-foreground/50 hover:text-sidebar-foreground/70"
           )}
         >
           <span>{t(group.labelKey)}</span>
           <ChevronDown
             size={14}
             className={cn(
-              "transition-transform duration-200",
+              "transition-transform duration-200 text-sidebar-foreground/40",
               isOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
             )}
           />
@@ -378,7 +384,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
     <aside
       dir={isRTL ? "rtl" : "ltr"}
       className={cn(
-        "fixed top-0 z-40 flex h-screen flex-col border-sidebar-border bg-sidebar transition-all duration-300",
+        "fixed top-0 z-40 flex h-screen flex-col bg-sidebar border-sidebar-border transition-all duration-300 shadow-[1px_0_8px_-2px_hsl(220_13%_80%/0.3)]",
         "inset-inline-start-0 border-e",
         collapsed ? "w-[68px]" : "w-64",
         "max-md:hidden",
@@ -396,7 +402,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         )}
         <button
           onClick={onToggle}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
         >
           <CollapseIcon size={16} className="transition-transform" />
         </button>

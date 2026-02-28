@@ -197,14 +197,14 @@
 
     --radius: 0.625rem;
 
-    /* Sidebar */
-    --sidebar-background: 220 30% 12%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 172 66% 44%;
+    /* Sidebar — Light theme */
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 220 15% 30%;
+    --sidebar-primary: 172 66% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 18%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 20% 20%;
+    --sidebar-accent: 220 14% 95%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 220 13% 91%;
     --sidebar-ring: 172 66% 44%;
 
     /* Custom tokens */
