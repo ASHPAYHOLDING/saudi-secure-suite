@@ -13978,6 +13978,41 @@ export type Database = {
           },
         ]
       }
+      user_dashboard_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          layout: Json
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          layout?: Json
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          layout?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_dashboard_layouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_favorites: {
         Row: {
           created_at: string

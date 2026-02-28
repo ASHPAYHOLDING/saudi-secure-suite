@@ -2,7 +2,7 @@ import { lazy } from "react";
 import type { Module } from "@/lib/tenant-modules";
 
 // --- Lazy-loaded pages ---
-const DashboardHome = lazy(() => import("@/components/dashboard/DashboardHome"));
+const DashboardHome = lazy(() => import("@/components/dashboard-builder/DashboardBuilder"));
 const InvoicesPage = lazy(() => import("@/components/invoices/InvoicesPage"));
 const ContractsPage = lazy(() => import("@/components/contracts/ContractsPage"));
 const StampManagement = lazy(() => import("@/components/stamp/StampManagement"));
