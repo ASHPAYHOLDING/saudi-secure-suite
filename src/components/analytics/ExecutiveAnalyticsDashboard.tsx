@@ -39,7 +39,7 @@ const PRESET_RANGES: Record<string, { from: string; to: string; label: string; l
   },
 };
 
-const ExecutiveAnalyticsDashboard = () => {
+const ExecutiveAnalyticsDashboard = ({ embedded = false }: { embedded?: boolean }) => {
   const { tenantId } = useAuth();
   const { isRTL } = useLanguage();
 
@@ -213,76 +213,75 @@ const ExecutiveAnalyticsDashboard = () => {
   ];
 
   return (
-    <div dir="rtl" className="space-y-6 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
-            <BarChart3 className="h-6 w-6 text-primary" />
-            {isRTL ? "لوحة التحليلات التنفيذية" : "Executive Analytics"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isRTL ? "مؤشرات مالية سريعة من البيانات المجمّعة — بدون أحمال ثقيلة" : "Fast financial KPIs from pre-aggregated data"}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={refetchAll} className="gap-2">
-          <RefreshCw className="h-3.5 w-3.5" />
-          {isRTL ? "تحديث" : "Refresh"}
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            {/* Presets */}
-            <div className="space-y-1">
-              <Label className="text-xs">{isRTL ? "فترة سريعة" : "Quick range"}</Label>
-              <div className="flex gap-1.5">
-                {Object.entries(PRESET_RANGES).map(([key, r]) => (
-                  <Button
-                    key={key}
-                    variant={preset === key ? "default" : "outline"}
-                    size="sm"
-                    className="text-xs h-8"
-                    onClick={() => handlePreset(key)}
-                  >
-                    {isRTL ? r.label : r.labelEn}
-                  </Button>
-                ))}
-              </div>
+    <div dir="rtl" className={embedded ? "space-y-6" : "space-y-6 p-4 md:p-6"}>
+      {!embedded && (
+        <>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
+                <BarChart3 className="h-6 w-6 text-primary" />
+                {isRTL ? "لوحة التحليلات التنفيذية" : "Executive Analytics"}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {isRTL ? "مؤشرات مالية سريعة من البيانات المجمّعة — بدون أحمال ثقيلة" : "Fast financial KPIs from pre-aggregated data"}
+              </p>
             </div>
-
-            {/* Custom dates */}
-            <div className="space-y-1">
-              <Label className="text-xs">{isRTL ? "من" : "From"}</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset(""); }} className="h-8 w-36 text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">{isRTL ? "إلى" : "To"}</Label>
-              <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset(""); }} className="h-8 w-36 text-xs" />
-            </div>
-
-            {/* Branch */}
-            {branches && branches.length > 1 && (
-              <div className="space-y-1">
-                <Label className="text-xs flex items-center gap-1"><GitBranch className="h-3 w-3" />{isRTL ? "الفرع" : "Branch"}</Label>
-                <Select value={branchFilter} onValueChange={setBranchFilter}>
-                  <SelectTrigger className="h-8 w-40 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{isRTL ? "جميع الفروع" : "All branches"}</SelectItem>
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <Button variant="outline" size="sm" onClick={refetchAll} className="gap-2">
+              <RefreshCw className="h-3.5 w-3.5" />
+              {isRTL ? "تحديث" : "Refresh"}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap gap-3 items-end">
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "فترة سريعة" : "Quick range"}</Label>
+                  <div className="flex gap-1.5">
+                    {Object.entries(PRESET_RANGES).map(([key, r]) => (
+                      <Button
+                        key={key}
+                        variant={preset === key ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs h-8"
+                        onClick={() => handlePreset(key)}
+                      >
+                        {isRTL ? r.label : r.labelEn}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "من" : "From"}</Label>
+                  <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset(""); }} className="h-8 w-36 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">{isRTL ? "إلى" : "To"}</Label>
+                  <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset(""); }} className="h-8 w-36 text-xs" />
+                </div>
+                {branches && branches.length > 1 && (
+                  <div className="space-y-1">
+                    <Label className="text-xs flex items-center gap-1"><GitBranch className="h-3 w-3" />{isRTL ? "الفرع" : "Branch"}</Label>
+                    <Select value={branchFilter} onValueChange={setBranchFilter}>
+                      <SelectTrigger className="h-8 w-40 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{isRTL ? "جميع الفروع" : "All branches"}</SelectItem>
+                        {branches.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* KPI Cards */}
       {isLoading ? (

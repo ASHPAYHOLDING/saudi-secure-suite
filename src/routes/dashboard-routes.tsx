@@ -93,6 +93,7 @@ const FinanceRepairPage = lazy(() => import("@/components/enterprise/FinanceRepa
 const IntegrationHealthDashboard = lazy(() => import("@/components/integrations/IntegrationHealthDashboard"));
 const ExecutiveAnalyticsDashboard = lazy(() => import("@/components/analytics/ExecutiveAnalyticsDashboard"));
 const FinancialHealthPage = lazy(() => import("@/components/analytics/FinancialHealthPage"));
+const AnalyticsUnifiedPage = lazy(() => import("@/components/analytics/AnalyticsUnifiedPage"));
 const CollectionsIntelligencePage = lazy(() => import("@/components/finance/CollectionsIntelligencePage"));
 const CashflowRadarPage = lazy(() => import("@/components/finance/CashflowRadarPage"));
 const ExecutiveIntelligencePage = lazy(() => import("@/components/executive/ExecutiveIntelligencePage"));
@@ -190,9 +191,9 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "vat-return", element: VatReturnGenerator, gateSegment: "vat-return", module: "reports" },
   { path: "report-builder", element: ReportsPage, gateSegment: "reports", module: "reports" },
   { path: "scheduled-reports", element: ReportsPage, gateSegment: "reports", module: "reports" },
-  { path: "analytics/executive", element: ExecutiveAnalyticsDashboard, gateSegment: "analytics", module: "analytics" },
-  { path: "analytics/financial-health", element: FinancialHealthPage, gateSegment: "financial-health", module: "analytics", permissionKey: "finance.view_analytics" },
-  { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
+  { path: "analytics/executive", element: AnalyticsUnifiedPage, gateSegment: "analytics", module: "analytics" },
+  { path: "analytics/financial-health", element: AnalyticsUnifiedPage, gateSegment: "financial-health", module: "analytics", permissionKey: "finance.view_analytics" },
+  { path: "analytics", element: AnalyticsUnifiedPage, gateSegment: "analytics", module: "analytics" },
   { path: "forecasting", element: ForecastingPage, gateSegment: "analytics", module: "analytics" },
   { path: "smart-query", element: NaturalLanguageQuery, gateSegment: "smart-query", module: "analytics" },
 

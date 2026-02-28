@@ -65,7 +65,7 @@ const METRIC_META: Record<string, { label: string; icon: React.ElementType }> = 
 };
 
 /* ─── Page ─── */
-export default function FinancialHealthPage() {
+export default function FinancialHealthPage({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { tenantId } = useAuth();
   const { t } = useLanguage();
@@ -128,15 +128,19 @@ export default function FinancialHealthPage() {
   const loading = isLoading || isRecalculating;
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-12 print:max-w-none print:px-8">
+    <div className={`space-y-8 pb-12 print:max-w-none print:px-8 ${embedded ? "" : "max-w-4xl mx-auto"}`}>
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <HealthScoreCircle score={score} loading={loading} />
         <div className="text-center sm:text-start space-y-2 flex-1">
-          <h1 className="text-2xl font-bold text-foreground">الصحة المالية</h1>
-          <p className="text-muted-foreground text-sm max-w-md">
-            تقييم شامل للوضع المالي بناءً على 7 مؤشرات أداء رئيسية.
-          </p>
+          {!embedded && (
+            <>
+              <h1 className="text-2xl font-bold text-foreground">الصحة المالية</h1>
+              <p className="text-muted-foreground text-sm max-w-md">
+                تقييم شامل للوضع المالي بناءً على 7 مؤشرات أداء رئيسية.
+              </p>
+            </>
+          )}
           {data?.last_calculated_at && (
             <p className="text-xs text-muted-foreground">
               آخر تحديث: {new Date(data.last_calculated_at).toLocaleDateString("ar-SA")}

@@ -97,7 +97,7 @@ interface Filters {
   customerId: string;
 }
 
-const AnalyticsPage = () => {
+const AnalyticsPage = ({ embedded = false }: { embedded?: boolean }) => {
   const { tenantId, user } = useAuth();
   const { isRTL, t, currentLang } = useLanguage();
   // Branch filter handled via filters state
@@ -398,85 +398,85 @@ const AnalyticsPage = () => {
   const profitPct = pctChange(totals.profit, totals.prevProfit);
 
   return (
-    <div className="space-y-5 p-4 md:p-6">
-      {/* ── Header + Filters ── */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Activity size={22} className="text-accent" />
-              {isRTL ? "التحليلات المؤسسية" : "Enterprise Analytics"}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {isRTL ? "رؤية شاملة لأداء منشأتك المالي والتشغيلي" : "Complete view of financial and operational performance"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="gap-1.5">
-              <Filter size={14} />
-              {isRTL ? "فلتر" : "Filter"}
-              {(filters.branchId !== "all" || filters.customerId !== "all") && (
-                <Badge variant="default" className="h-4 w-4 p-0 text-[10px] flex items-center justify-center rounded-full">!</Badge>
-              )}
-            </Button>
-            <Select value={filters.period} onValueChange={(v) => setFilters(f => ({ ...f, period: v }))}>
-              <SelectTrigger className="w-36 h-8 text-xs">
-                <Calendar size={12} className="me-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">{isRTL ? "3 أشهر" : "3 months"}</SelectItem>
-                <SelectItem value="6">{isRTL ? "6 أشهر" : "6 months"}</SelectItem>
-                <SelectItem value="12">{isRTL ? "12 شهر" : "12 months"}</SelectItem>
-                <SelectItem value="24">{isRTL ? "24 شهر" : "24 months"}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => fetchData()}>
-              <RefreshCw size={14} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Collapsible filters */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex flex-wrap gap-3 p-3 rounded-lg border bg-muted/30">
-                <Select value={filters.branchId} onValueChange={(v) => setFilters(f => ({ ...f, branchId: v }))}>
-                  <SelectTrigger className="w-44 h-8 text-xs">
-                    <Building2 size={12} className="me-1.5" />
-                    <SelectValue placeholder={isRTL ? "كل الفروع" : "All branches"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{isRTL ? "كل الفروع" : "All branches"}</SelectItem>
-                    {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={filters.customerId} onValueChange={(v) => setFilters(f => ({ ...f, customerId: v }))}>
-                  <SelectTrigger className="w-44 h-8 text-xs">
-                    <Users size={12} className="me-1.5" />
-                    <SelectValue placeholder={isRTL ? "كل العملاء" : "All customers"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{isRTL ? "كل العملاء" : "All customers"}</SelectItem>
-                    {customers.slice(0, 50).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+    <div className={embedded ? "space-y-5" : "space-y-5 p-4 md:p-6"}>
+      {!embedded && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Activity size={22} className="text-accent" />
+                {isRTL ? "التحليلات المؤسسية" : "Enterprise Analytics"}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {isRTL ? "رؤية شاملة لأداء منشأتك المالي والتشغيلي" : "Complete view of financial and operational performance"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="gap-1.5">
+                <Filter size={14} />
+                {isRTL ? "فلتر" : "Filter"}
                 {(filters.branchId !== "all" || filters.customerId !== "all") && (
-                  <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => setFilters(f => ({ ...f, branchId: "all", customerId: "all" }))}>
-                    <X size={12} />{isRTL ? "مسح" : "Clear"}
-                  </Button>
+                  <Badge variant="default" className="h-4 w-4 p-0 text-[10px] flex items-center justify-center rounded-full">!</Badge>
                 )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </Button>
+              <Select value={filters.period} onValueChange={(v) => setFilters(f => ({ ...f, period: v }))}>
+                <SelectTrigger className="w-36 h-8 text-xs">
+                  <Calendar size={12} className="me-1.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">{isRTL ? "3 أشهر" : "3 months"}</SelectItem>
+                  <SelectItem value="6">{isRTL ? "6 أشهر" : "6 months"}</SelectItem>
+                  <SelectItem value="12">{isRTL ? "12 شهر" : "12 months"}</SelectItem>
+                  <SelectItem value="24">{isRTL ? "24 شهر" : "24 months"}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => fetchData()}>
+                <RefreshCw size={14} />
+              </Button>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-wrap gap-3 p-3 rounded-lg border bg-muted/30">
+                  <Select value={filters.branchId} onValueChange={(v) => setFilters(f => ({ ...f, branchId: v }))}>
+                    <SelectTrigger className="w-44 h-8 text-xs">
+                      <Building2 size={12} className="me-1.5" />
+                      <SelectValue placeholder={isRTL ? "كل الفروع" : "All branches"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{isRTL ? "كل الفروع" : "All branches"}</SelectItem>
+                      {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filters.customerId} onValueChange={(v) => setFilters(f => ({ ...f, customerId: v }))}>
+                    <SelectTrigger className="w-44 h-8 text-xs">
+                      <Users size={12} className="me-1.5" />
+                      <SelectValue placeholder={isRTL ? "كل العملاء" : "All customers"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{isRTL ? "كل العملاء" : "All customers"}</SelectItem>
+                      {customers.slice(0, 50).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {(filters.branchId !== "all" || filters.customerId !== "all") && (
+                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => setFilters(f => ({ ...f, branchId: "all", customerId: "all" }))}>
+                      <X size={12} />{isRTL ? "مسح" : "Clear"}
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* ── Main Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
