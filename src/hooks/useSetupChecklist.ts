@@ -71,7 +71,7 @@ export function useSetupChecklist() {
   const paymentDone = !!(onboarding?.completed_steps as number[] | null)?.includes(5);
 
   const items: ChecklistItem[] = [
-    { key: "company", label: "أكمل بيانات الشركة", done: companyDone, href: "/dashboard/settings/company" },
+    { key: "company", label: "أكمل بيانات الشركة", done: companyDone, href: "/dashboard/company" },
     { key: "customer", label: "أضف أول عميل", done: hasCust, href: "/dashboard/customers" },
     { key: "invoice", label: "أنشئ أول فاتورة", done: hasInv, href: "/dashboard/invoices/new" },
     { key: "team", label: "دعوة عضو فريق", done: hasTeam, href: "/dashboard/settings/team" },
