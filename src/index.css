@@ -197,6 +197,14 @@
 
     --radius: 0.625rem;
 
+    /* Section Card Accent Gradients */
+    --card-accent-sales: linear-gradient(to bottom right, hsl(160 55% 42%), hsl(160 60% 36%));
+    --card-accent-customers: linear-gradient(to bottom right, hsl(210 80% 55%), hsl(210 85% 48%));
+    --card-accent-finance: linear-gradient(to bottom right, hsl(262 60% 55%), hsl(262 65% 48%));
+    --card-accent-expenses: linear-gradient(to bottom right, hsl(38 90% 55%), hsl(25 90% 55%));
+    --card-accent-hr: linear-gradient(to bottom right, hsl(230 60% 55%), hsl(230 65% 48%));
+    --card-accent-analytics: linear-gradient(to bottom right, hsl(345 70% 55%), hsl(330 70% 55%));
+
     /* Sidebar — Light theme */
     --sidebar-background: 0 0% 99%;
     --sidebar-foreground: 220 15% 30%;
