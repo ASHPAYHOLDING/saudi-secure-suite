@@ -8,14 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   CircleDollarSign, Receipt, CalendarClock, ShieldAlert,
   TrendingUp, Users, Banknote, Bell, Activity,
-  ArrowUpRight, ArrowDownRight, Plus, LucideIcon,
+  ArrowUpRight, ArrowDownRight, Minus, Plus, LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtCurrency, fmtNumber } from "@/lib/formatters";
 import { useNavigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ChartsSection = lazy(() => import("@/components/dashboard/DashboardCharts"));
@@ -68,12 +74,74 @@ const WidgetEmptyState = ({
 };
 
 /* ═══════════════════════════════════════════════
-   KPI Widget (shared renderer)
+   Trend helper — computes % change between two periods
+   Returns { direction, percent, tooltip } or null
+   ═══════════════════════════════════════════════ */
+interface TrendInfo {
+  direction: "up" | "down" | "flat";
+  percent: string;
+  tooltip: string;
+}
+
+function computeTrend(
+  current: number,
+  previous: number | null | undefined,
+  currentLabel: string,
+  previousLabel: string,
+  isCurrency = false,
+): TrendInfo | null {
+  if (previous == null || previous === 0) {
+    if (current > 0) return { direction: "up", percent: "—", tooltip: `${currentLabel}: ${isCurrency ? fmtCurrency(current) : fmtNumber(current)} · لا توجد بيانات للفترة السابقة` };
+    return null;
+  }
+  const change = ((current - previous) / previous) * 100;
+  const absChange = Math.abs(change).toFixed(1);
+  const direction: TrendInfo["direction"] = change > 0.5 ? "up" : change < -0.5 ? "down" : "flat";
+  const tooltip = `${currentLabel}: ${isCurrency ? fmtCurrency(current) : fmtNumber(current)} · ${previousLabel}: ${isCurrency ? fmtCurrency(previous) : fmtNumber(previous)} · التغيّر: ${change >= 0 ? "+" : ""}${absChange}%`;
+  return { direction, percent: `${absChange}%`, tooltip };
+}
+
+/* ═══════════════════════════════════════════════
+   KPI Widget (shared renderer) — with trend indicator + tooltip
    ═══════════════════════════════════════════════ */
 const KpiWidget = ({
-  label, value, isCurrency, sub, icon: Icon, iconBg, iconColor, trend, trendLabel, path,
-}: any) => {
+  label, value, isCurrency, sub, icon: Icon, iconBg, iconColor, trendInfo, path,
+}: {
+  label: string;
+  value: number;
+  isCurrency?: boolean;
+  sub?: string;
+  icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
+  trendInfo?: TrendInfo | null;
+  path: string;
+}) => {
   const navigate = useNavigate();
+
+  const TrendBadge = trendInfo ? (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={cn(
+            "inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-default",
+            trendInfo.direction === "up" && "bg-success/10 text-success",
+            trendInfo.direction === "down" && "bg-destructive/10 text-destructive",
+            trendInfo.direction === "flat" && "bg-muted text-muted-foreground",
+          )}>
+            {trendInfo.direction === "up" && <ArrowUpRight className="w-3 h-3" />}
+            {trendInfo.direction === "down" && <ArrowDownRight className="w-3 h-3" />}
+            {trendInfo.direction === "flat" && <Minus className="w-3 h-3" />}
+            {trendInfo.percent}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-[11px] max-w-[260px] text-center leading-relaxed">
+          {trendInfo.tooltip}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  ) : null;
+
   return (
     <Card
       className="h-full border-border/40 shadow-sm hover:shadow-md hover:border-accent/20 transition-all cursor-pointer group relative overflow-hidden"
@@ -85,15 +153,7 @@ const KpiWidget = ({
           <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg)}>
             <Icon className={cn("w-5 h-5", iconColor)} />
           </div>
-          {trend && (
-            <span className={cn(
-              "inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full",
-              trend === "up" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-            )}>
-              {trend === "up" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-              {trendLabel}
-            </span>
-          )}
+          {TrendBadge}
         </div>
         <div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight tabular-nums">
@@ -111,7 +171,7 @@ const KpiWidget = ({
    Widget Renderers
    ═══════════════════════════════════════════════ */
 
-export const RevenueWidget = ({ stats }: WidgetProps) => {
+export const RevenueWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   if (stats.totalRevenue === 0 && stats.paidInvoices === 0) {
     return (
       <WidgetEmptyState
@@ -123,18 +183,21 @@ export const RevenueWidget = ({ stats }: WidgetProps) => {
       />
     );
   }
+  const currentRev = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 1]?.revenue : undefined;
+  const prevRev = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 2]?.revenue : undefined;
+  const trend = computeTrend(currentRev ?? stats.totalRevenue, prevRev, "هذا الشهر", "الشهر السابق", true);
   return (
     <KpiWidget
       label="إجمالي الإيرادات" value={stats.totalRevenue} isCurrency
       sub={`${stats.paidInvoices} فاتورة محصّلة`}
       icon={CircleDollarSign} iconBg="bg-accent/10" iconColor="text-accent"
-      trend={stats.totalRevenue > 0 ? "up" : null} trendLabel="محصّل"
+      trendInfo={trend}
       path="/dashboard/finance"
     />
   );
 };
 
-export const ExpensesWidget = ({ stats }: WidgetProps) => {
+export const ExpensesWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   if (stats.totalExpenses === 0) {
     return (
       <WidgetEmptyState
@@ -148,12 +211,17 @@ export const ExpensesWidget = ({ stats }: WidgetProps) => {
   }
   const net = stats.totalRevenue - stats.totalExpenses;
   const margin = stats.totalRevenue > 0 ? ((net / stats.totalRevenue) * 100).toFixed(0) : 0;
+  const currentExp = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 1]?.expenses : undefined;
+  const prevExp = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 2]?.expenses : undefined;
+  // For expenses, "down" is good — invert the direction display
+  const rawTrend = computeTrend(currentExp ?? stats.totalExpenses, prevExp, "هذا الشهر", "الشهر السابق", true);
+  const trend = rawTrend ? { ...rawTrend, direction: rawTrend.direction === "up" ? "down" as const : rawTrend.direction === "down" ? "up" as const : "flat" as const } : null;
   return (
     <KpiWidget
       label="المصروفات" value={stats.totalExpenses} isCurrency
       sub={`هامش الربح: ${margin}%`}
       icon={Receipt} iconBg="bg-warning/10" iconColor="text-warning"
-      trend={net >= 0 ? "up" : "down"} trendLabel={net >= 0 ? "ربح" : "خسارة"}
+      trendInfo={trend}
       path="/dashboard/expenses"
     />
   );
@@ -171,6 +239,9 @@ export const OverdueWidget = ({ stats }: WidgetProps) => {
       />
     );
   }
+  const trend: TrendInfo = stats.overdueInvoices > 0
+    ? { direction: "down", percent: `${stats.overdueInvoices}`, tooltip: `${stats.overdueInvoices} فاتورة متأخرة من أصل ${stats.totalInvoices}` }
+    : { direction: "up", percent: "0", tooltip: "لا توجد فواتير متأخرة — ممتاز!" };
   return (
     <KpiWidget
       label="فواتير متأخرة" value={stats.overdueInvoices}
@@ -178,8 +249,7 @@ export const OverdueWidget = ({ stats }: WidgetProps) => {
       icon={CalendarClock}
       iconBg={stats.overdueInvoices > 0 ? "bg-destructive/10" : "bg-success/10"}
       iconColor={stats.overdueInvoices > 0 ? "text-destructive" : "text-success"}
-      trend={stats.overdueInvoices > 0 ? "down" : "up"}
-      trendLabel={stats.overdueInvoices > 0 ? "متأخر" : "ممتاز"}
+      trendInfo={trend}
       path="/dashboard/billing"
     />
   );
@@ -202,7 +272,6 @@ export const VatWidget = ({ stats }: WidgetProps) => {
       label="ضريبة القيمة المضافة" value={stats.totalVat} isCurrency
       sub="VAT 15% — مستحق للهيئة"
       icon={ShieldAlert} iconBg="bg-info/10" iconColor="text-info"
-      trend={null} trendLabel="ZATCA"
       path="/dashboard/vat-return"
     />
   );
@@ -259,7 +328,6 @@ export const CustomersWidget = ({ stats }: WidgetProps) => {
       label="العملاء" value={stats.totalCustomers}
       sub={`${stats.activeContracts} عقد نشط`}
       icon={Users} iconBg="bg-primary/10" iconColor="text-primary"
-      trend={null} trendLabel=""
       path="/dashboard/customers"
     />
   );
