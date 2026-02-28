@@ -12,6 +12,7 @@ import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { useEntitlements } from "@/hooks/useEntitlements";
+import OnboardingGuard from "@/components/onboarding/OnboardingGuard";
 import { cn } from "@/lib/utils";
 
 const AIAccountantChat = lazy(() => import("@/components/ai/AIAccountantChat"));
@@ -38,6 +39,7 @@ const DashboardLayout = memo(() => {
   return (
     <BrandingProvider>
       <BranchProvider>
+        <OnboardingGuard>
         <SubscriptionGuard>
           <div className={cn("min-h-screen bg-background", isEnterprise && "enterprise-mode")} dir={isRTL ? "rtl" : "ltr"}>
             {mobileSidebarOpen && (
@@ -75,6 +77,7 @@ const DashboardLayout = memo(() => {
             </div>
           </div>
         </SubscriptionGuard>
+        </OnboardingGuard>
       </BranchProvider>
     </BrandingProvider>
   );

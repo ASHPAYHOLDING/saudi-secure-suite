@@ -119,6 +119,9 @@ const HrApprovalsPage = lazy(() => import("@/components/hr/HrApprovalsPage"));
 const HrReportsPage = lazy(() => import("@/components/hr/HrReportsPage"));
 const HrPayrollPage = lazy(() => import("@/components/hr/HrPayrollPage"));
 
+// ── Onboarding ──
+const OnboardingWizard = lazy(() => import("@/components/onboarding/OnboardingWizard"));
+
 export interface DashboardRouteConfig {
   /** URL path segment(s) relative to /dashboard/. Supports "*" for catch-all. */
   path: string;
@@ -145,6 +148,9 @@ export interface DashboardRouteConfig {
  * Order matters: more specific paths must come before wildcards.
  */
 export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
+  // ── Onboarding (open, no gate) ──
+  { path: "onboarding", element: OnboardingWizard, isOpenRoute: true },
+
   // ── Core ──
   { path: "billing", element: InvoicesPage, gateSegment: "billing", module: "billing" },
   // invoices → redirect to billing (Phase B consolidation, see App.tsx)

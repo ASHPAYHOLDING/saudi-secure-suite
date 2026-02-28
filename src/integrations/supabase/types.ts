@@ -8450,6 +8450,50 @@ export type Database = {
           },
         ]
       }
+      onboarding_state: {
+        Row: {
+          completed_at: string | null
+          completed_steps: Json
+          created_at: string
+          current_step: number
+          id: string
+          step_data: Json
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_steps?: Json
+          created_at?: string
+          current_step?: number
+          id?: string
+          step_data?: Json
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_steps?: Json
+          created_at?: string
+          current_step?: number
+          id?: string
+          step_data?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_departments: {
         Row: {
           code: string | null
