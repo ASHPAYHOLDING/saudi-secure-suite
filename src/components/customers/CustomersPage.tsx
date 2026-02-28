@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -545,7 +546,7 @@ const CustomersPage = () => {
               <Button variant="ghost" size="sm" className="h-9 gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-primary-foreground backdrop-blur-sm text-xs cursor-pointer" asChild>
                 <span><Upload size={13} /> استيراد</span>
               </Button>
-              <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+              <input id="customer-import-input" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
             </label>
             <motion.div whileTap={{ scale: 0.95 }}>
               <Button
@@ -749,25 +750,26 @@ const CustomersPage = () => {
           <p className="text-sm text-muted-foreground animate-pulse">جاري تحميل بيانات العملاء...</p>
         </motion.div>
       ) : filtered.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl border border-dashed border-border bg-card p-16 text-center"
-        >
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Users size={48} className="mx-auto text-muted-foreground/20 mb-4" />
+        customers.length === 0 ? (
+          <SmartEmptyState
+            icon={Users}
+            title="لا يوجد عملاء بعد"
+            description="أضف عملاءك لإدارة الفواتير والمبيعات وتتبع المستحقات بسهولة"
+            tips={[
+              "أدخل بيانات العميل الأساسية: الاسم، النوع، ومعلومات التواصل",
+              "أضف الرقم الضريبي والسجل التجاري للعملاء التجاريين",
+              "ابدأ بإنشاء فواتير مرتبطة بالعميل مباشرة",
+            ]}
+            actionLabel="إضافة أول عميل"
+            onAction={openCreate}
+            secondaryLabel="استيراد من ملف Excel"
+            onSecondary={() => document.getElementById("customer-import-input")?.click()}
+          />
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-12 text-center text-muted-foreground">
+            لا توجد نتائج مطابقة — حاول تغيير معايير البحث
           </motion.div>
-          <p className="text-base font-medium text-muted-foreground mb-1">{search || hasFilters ? "لا توجد نتائج مطابقة" : "لا يوجد عملاء بعد"}</p>
-          <p className="text-sm text-muted-foreground/60 mb-4">{search || hasFilters ? "حاول تغيير معايير البحث" : "أضف أول عميل للبدء!"}</p>
-          {!search && !hasFilters && (
-            <Button onClick={openCreate} size="sm" className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl">
-              <Plus size={14} /> إضافة عميل
-            </Button>
-          )}
-        </motion.div>
+        )
       ) : (
         <>
           {/* Desktop Table */}
