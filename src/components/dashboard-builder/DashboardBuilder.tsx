@@ -115,9 +115,9 @@ const staggerItem = {
 };
 
 const heroEntry = {
-  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  hidden: { opacity: 0, y: 30, scale: 0.97 },
   show: {
-    opacity: 1, y: 0, filter: "blur(0px)",
+    opacity: 1, y: 0, scale: 1,
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
   },
 };
@@ -402,8 +402,8 @@ const DashboardBuilder = () => {
             {/* Left: Greeting + dates */}
             <div className="space-y-2">
               <motion.div
-                initial={prefersReduced ? {} : { opacity: 0, x: 30, filter: "blur(4px)" }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                initial={prefersReduced ? {} : { opacity: 0, x: 30, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
                 transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               >
                 <p className="text-sm text-white/50 font-medium">{timeOfDay} 👋</p>
@@ -429,8 +429,8 @@ const DashboardBuilder = () => {
 
             {/* Right: Live Clock */}
             <motion.div
-              initial={prefersReduced ? {} : { opacity: 0, scale: 0.9, filter: "blur(6px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              initial={prefersReduced ? {} : { opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3.5 sm:px-7 sm:py-4 border border-white/10 flex items-center gap-3"
             >
