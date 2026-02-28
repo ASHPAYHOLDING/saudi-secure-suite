@@ -2,13 +2,10 @@
  * DashboardBuilder — replaces the default /dashboard home.
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
-import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from "react";
-// @ts-ignore — WidthProvider exists at runtime but types package is outdated
-import { Responsive, WidthProvider } from "react-grid-layout";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
+import { ResponsiveGridLayout, useContainerWidth, verticalCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 import { motion } from "framer-motion";
 import {
   Settings2, RotateCcw, Grip, X, Activity, Zap, BarChart3,
@@ -108,7 +105,7 @@ const DashboardBuilder = () => {
   const { layout, saveLayout, resetLayout, saving } = useDashboardLayout();
   const [editMode, setEditMode] = useState(false);
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { width, containerRef } = useContainerWidth();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -290,17 +287,17 @@ const DashboardBuilder = () => {
           ))}
         </div>
       ) : (
-        <div ref={containerRef}>
+        <div ref={containerRef as any}>
           <ResponsiveGridLayout
             className="layout"
+            width={width || 1200}
             layouts={{ lg: gridLayout, md: gridLayout, sm: gridLayout }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={60}
-            isDraggable={editMode}
-            isResizable={editMode}
-            draggableHandle=".widget-drag-handle"
-            compactType="vertical"
+            dragConfig={{ enabled: editMode, handle: ".widget-drag-handle" }}
+            resizeConfig={{ enabled: editMode, handles: ["se"] }}
+            compactor={verticalCompactor}
             onLayoutChange={(l: any) => onLayoutChange(l)}
             margin={[12, 12] as [number, number]}
           >

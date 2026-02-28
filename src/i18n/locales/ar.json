@@ -148,8 +148,10 @@
     "group": {
       "sales": "المبيعات",
       "purchasing": "المشتريات",
+      "business": "الأعمال",
       "finance": "المالية",
-      "reports": "التقارير",
+      "reports": "التقارير والتحليلات",
+      "hr": "الموارد البشرية",
       "management": "الإدارة",
       "enterprise_finance": "المحاسبة المؤسسية"
     }
