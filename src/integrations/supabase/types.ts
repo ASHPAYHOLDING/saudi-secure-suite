@@ -13764,6 +13764,8 @@ export type Database = {
           stamp_vat_number: string | null
           status: string
           tenant_type: Database["public"]["Enums"]["tenant_type"]
+          trial_ends_at: string | null
+          trial_status: string
           updated_at: string
           vat_number: string | null
           vat_percentage: number
@@ -13811,6 +13813,8 @@ export type Database = {
           stamp_vat_number?: string | null
           status?: string
           tenant_type?: Database["public"]["Enums"]["tenant_type"]
+          trial_ends_at?: string | null
+          trial_status?: string
           updated_at?: string
           vat_number?: string | null
           vat_percentage?: number
@@ -13858,6 +13862,8 @@ export type Database = {
           stamp_vat_number?: string | null
           status?: string
           tenant_type?: Database["public"]["Enums"]["tenant_type"]
+          trial_ends_at?: string | null
+          trial_status?: string
           updated_at?: string
           vat_number?: string | null
           vat_percentage?: number
@@ -16546,6 +16552,7 @@ export type Database = {
         Args: { p_context: Json; p_rules: Json }
         Returns: boolean
       }
+      expire_stale_trials: { Args: never; Returns: number }
       fail_job: {
         Args: { p_error?: string; p_job_id: string }
         Returns: undefined
