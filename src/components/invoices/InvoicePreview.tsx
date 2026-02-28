@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency, formatDateAr, formatNumber } from "@/lib/invoice-utils";
 import { printDocument, INVOICE_PRINT_STYLES } from "@/lib/pdf-utils";
+import { exportInvoicePdf } from "@/lib/export-invoice-pdf";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
 import ZatcaQRCode from "@/components/invoices/ZatcaQRCode";
 import ZatcaPhase2Status from "@/components/invoices/ZatcaPhase2Status";
@@ -51,6 +52,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [gatewayOpen, setGatewayOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const loadInvoice = useCallback(async () => {
     if (!invoiceId || !tenantId) { setLoading(false); return; }
@@ -91,6 +93,19 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
       extraStyles: INVOICE_PRINT_STYLES,
       brandFont: fontFamily,
     });
+  };
+
+
+
+  const handleDownloadPdf = async () => {
+    const content = printRef.current;
+    if (!content || exporting) return;
+    setExporting(true);
+    try {
+      await exportInvoicePdf(content, `فاتورة-${invoice?.invoice_number || "invoice"}`);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const renderCellValue = (col: ColumnConfig, item: any, index: number) => {
@@ -193,7 +208,7 @@ const InvoicePreview = ({ invoiceId, onBack }: InvoicePreviewProps) => {
             </>
           )}
           <Button variant="outline" className="gap-2" onClick={handlePrint}><Printer size={16} />طباعة</Button>
-          <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePrint}><Download size={16} />تصدير PDF</Button>
+          <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleDownloadPdf} disabled={exporting}>{exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}{exporting ? 'جارٍ التصدير...' : 'تصدير PDF'}</Button>
         </div>
       </div>
 
