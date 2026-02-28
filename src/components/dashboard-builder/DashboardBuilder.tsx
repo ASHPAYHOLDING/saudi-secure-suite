@@ -5,7 +5,6 @@
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
 import { motion } from "framer-motion";
 import {
   Settings2, RotateCcw, Grip, X, Activity, Zap, BarChart3,
