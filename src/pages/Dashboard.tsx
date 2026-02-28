@@ -9,6 +9,7 @@ import UpgradeBanner from "@/components/subscription/UpgradeBanner";
 import UsageLimitAlert from "@/components/subscription/UsageLimitAlert";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
+import SetupChecklist from "@/components/onboarding/SetupChecklist";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { BranchProvider } from "@/contexts/BranchContext";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -67,6 +68,7 @@ const DashboardLayout = memo(() => {
               <div className="px-6 space-y-3">
                 <UsageLimitAlert />
               </div>
+              <SetupChecklist />
               <DashboardBreadcrumbs />
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Outlet />
