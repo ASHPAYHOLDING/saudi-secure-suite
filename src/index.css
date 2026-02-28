@@ -669,3 +669,39 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.5px); }
 }
+
+/* ═══════════════════════════════════════════════
+   PDF Export Mode — stabilise layout for html2canvas
+   ═══════════════════════════════════════════════ */
+.pdf-export-mode {
+  background: #ffffff !important;
+}
+
+.pdf-export-mode * {
+  box-shadow: none !important;
+  filter: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.pdf-export-mode .invoice-page {
+  width: 210mm !important;
+  min-height: 297mm !important;
+  margin: 0 auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+
+.pdf-export-mode .pdf-export-target {
+  width: 186mm !important;
+  margin: 0 auto !important;
+  padding: 12mm !important;
+  background: #ffffff !important;
+}
+
+.pdf-export-mode .invoice-page,
+.pdf-export-mode .invoice-page * {
+  transform: none !important;
+}
