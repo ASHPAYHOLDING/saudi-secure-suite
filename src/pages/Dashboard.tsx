@@ -5,7 +5,9 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBreadcrumbs from "@/components/dashboard/DashboardBreadcrumbs";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
+import TrialExpiredWall from "@/components/subscription/TrialExpiredWall";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
+import TrialBanner from "@/components/subscription/TrialBanner";
 import UsageLimitAlert from "@/components/subscription/UsageLimitAlert";
 import CommandPalette from "@/components/productivity/CommandPalette";
 import PageLoadingSkeleton from "@/components/ui/PageLoadingSkeleton";
@@ -42,6 +44,7 @@ const DashboardLayout = memo(() => {
       <BranchProvider>
         <OnboardingGuard>
         <SubscriptionGuard>
+        <TrialExpiredWall>
           <div className={cn("min-h-screen bg-background", isEnterprise && "enterprise-mode")} dir={isRTL ? "rtl" : "ltr"}>
             {mobileSidebarOpen && (
               <div
@@ -65,6 +68,7 @@ const DashboardLayout = memo(() => {
               <DashboardTopbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
               <CommandPalette />
               <UpgradeBanner />
+              <TrialBanner />
               <div className="px-6 space-y-3">
                 <UsageLimitAlert />
               </div>
@@ -78,6 +82,7 @@ const DashboardLayout = memo(() => {
               </Suspense>
             </div>
           </div>
+        </TrialExpiredWall>
         </SubscriptionGuard>
         </OnboardingGuard>
       </BranchProvider>

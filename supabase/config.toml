@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.payment-link-public]
 verify_jwt = false
+
+[functions.schedule-trial-nudges]
+verify_jwt = false
