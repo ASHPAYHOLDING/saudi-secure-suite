@@ -28,7 +28,7 @@
     text-align: left;
   }
 
-  /* ── Text alignment ── */
+  /* ── Text alignment (block-level elements only — NO span override) ── */
   html[dir="rtl"] h1:not(.text-center),
   html[dir="rtl"] h2:not(.text-center),
   html[dir="rtl"] h3:not(.text-center),
@@ -37,7 +37,6 @@
   html[dir="rtl"] h6:not(.text-center),
   html[dir="rtl"] p:not(.text-center),
   html[dir="rtl"] label,
-  html[dir="rtl"] span:not(.text-center),
   html[dir="rtl"] li {
     text-align: right;
   }
@@ -425,10 +424,28 @@
 @layer utilities {
   .font-arabic {
     font-family: 'IBM Plex Sans Arabic', sans-serif;
+    line-height: 1.75;
   }
 
   .font-english {
     font-family: 'Inter', sans-serif;
+  }
+
+  /* ── Tabular numerals — aligned columns in tables & KPIs ── */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Auto-apply tabular-nums to all table cells & KPI values */
+  table td,
+  table th,
+  [data-kpi-value],
+  .kpi-value,
+  .stat-card [class*="font-bold"],
+  .stat-card [class*="font-semibold"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
   /* RTL-aware spacing utilities */
