@@ -41,7 +41,7 @@ interface WorkflowStep {
   step_name_en: string;
 }
 
-const ApprovalWorkflowsPage = () => {
+const ApprovalWorkflowsPage = ({ embedded }: { embedded?: boolean }) => {
   const { user, tenantId } = useAuth();
   const { t, isRTL } = useLanguage();
   const queryClient = useQueryClient();
@@ -268,17 +268,22 @@ const ApprovalWorkflowsPage = () => {
   const pendingRequests = approvalRequests.filter((r: any) => r.status === "pending");
 
   return (
-    <div className="p-6 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+    <div className={cn(embedded ? "space-y-6" : "p-6 space-y-6")} dir={isRTL ? "rtl" : "ltr"}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isRTL ? "تسلسل الموافقات" : "Approval Workflows"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {isRTL ? "إدارة قواعد الموافقات متعددة المستويات للمستندات المالية" : "Manage multi-level approval rules for financial documents"}
-          </p>
+      {!embedded && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {isRTL ? "تسلسل الموافقات" : "Approval Workflows"}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              {isRTL ? "إدارة قواعد الموافقات متعددة المستويات للمستندات المالية" : "Manage multi-level approval rules for financial documents"}
+            </p>
+          </div>
         </div>
+      )}
+
+      <div className="flex justify-end">
         <Dialog open={showCreate} onOpenChange={setShowCreate}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 me-2" />{isRTL ? "إضافة سلسلة" : "Add Workflow"}</Button>

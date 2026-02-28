@@ -35,6 +35,7 @@ const JournalEntriesPage = lazy(() => import("@/components/journal/JournalEntrie
 const AccountantDashboard = lazy(() => import("@/components/productivity/AccountantDashboard"));
 const SupplierInboxPage = lazy(() => import("@/components/supplier-inbox/SupplierInboxPage"));
 const PaymentRemindersPage = lazy(() => import("@/components/reminders/PaymentRemindersPage"));
+const ApprovalsUnifiedPage = lazy(() => import("@/components/approvals/ApprovalsUnifiedPage"));
 const ApprovalWorkflowsPage = lazy(() => import("@/components/approvals/ApprovalWorkflowsPage"));
 const MyApprovalsPage = lazy(() => import("@/components/approvals/MyApprovalsPage"));
 const WorkflowDesignerPage = lazy(() => import("@/components/workflows/WorkflowDesignerPage"));
@@ -224,8 +225,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
 
   // ── Operations ──
   { path: "supplier-inbox", element: SupplierInboxPage, gateSegment: "supplier-inbox", module: "supplier-inbox" },
-  { path: "approvals", element: ApprovalWorkflowsPage, gateSegment: "approvals", module: "billing" },
-  { path: "my-approvals", element: MyApprovalsPage, gateSegment: "my-approvals", module: "billing" },
+  { path: "approvals", element: ApprovalsUnifiedPage, gateSegment: "approvals", module: "billing" },
+  { path: "my-approvals", element: ApprovalsUnifiedPage, gateSegment: "my-approvals", module: "billing" },
   { path: "workflows/designer", element: WorkflowDesignerPage, gateSegment: "workflows-designer", module: "billing" },
 
   // ── Team & Organization ──
