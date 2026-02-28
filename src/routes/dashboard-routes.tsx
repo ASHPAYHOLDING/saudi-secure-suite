@@ -188,8 +188,8 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   // ── Reports & Analytics ──
   { path: "reports", element: ReportsPage, gateSegment: "reports", module: "reports" },
   { path: "vat-return", element: VatReturnGenerator, gateSegment: "vat-return", module: "reports" },
-  { path: "report-builder", element: CustomReportBuilder, gateSegment: "reports", module: "reports" },
-  { path: "scheduled-reports", element: ScheduledReportsPage, gateSegment: "reports", module: "reports" },
+  { path: "report-builder", element: ReportsPage, gateSegment: "reports", module: "reports" },
+  { path: "scheduled-reports", element: ReportsPage, gateSegment: "reports", module: "reports" },
   { path: "analytics/executive", element: ExecutiveAnalyticsDashboard, gateSegment: "analytics", module: "analytics" },
   { path: "analytics/financial-health", element: FinancialHealthPage, gateSegment: "financial-health", module: "analytics", permissionKey: "finance.view_analytics" },
   { path: "analytics", element: AnalyticsPage, gateSegment: "analytics", module: "analytics" },
