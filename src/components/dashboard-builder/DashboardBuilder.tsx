@@ -332,6 +332,14 @@ const DashboardBuilder = () => {
             }
             .edit-mode-grid .widget-inner > div[class] {
               height: 100%;
+              display: flex;
+              flex-direction: column;
+            }
+            /* Prevent icon/empty-state containers from stretching */
+            .edit-mode-grid .widget-inner [class*="rounded-xl"][class*="items-center"][class*="justify-center"],
+            .edit-mode-grid .widget-inner [class*="rounded-2xl"][class*="items-center"][class*="justify-center"] {
+              flex: none !important;
+              flex-shrink: 0 !important;
             }
             .edit-mode-grid .react-resizable-handle {
               z-index: 20;
