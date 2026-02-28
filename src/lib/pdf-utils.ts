@@ -1,6 +1,6 @@
 /**
  * Robust PDF generation utility for Arabic RTL documents.
- * Handles font preloading, pixel-perfect layout, and mobile-friendly printing.
+ * Uses A4 mm-based layout for cross-browser print consistency.
  */
 
 const PDF_STYLES = `
@@ -22,37 +22,51 @@ body {
   direction: rtl;
   color: #1a1a2e;
   background: white;
-  line-height: 1.7;
-  font-size: 13px;
+  line-height: 1.6;
+  font-size: 12px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Page setup */
+/* A4 page setup — consistent across all browsers */
 @page {
   size: A4;
-  margin: 12mm 15mm 15mm 15mm;
+  margin: 12mm;
 }
 
-/* Force color printing */
+/* Print rules */
 @media print {
   html, body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    background: white !important;
   }
-  body {
-    padding: 0;
+  body { padding: 0 !important; margin: 0 !important; }
+
+  .invoice-page {
+    width: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  .invoice-content {
+    padding: 0 !important;
+    max-width: none !important;
   }
 }
 
-/* Screen preview padding */
+/* Screen preview */
 @media screen {
   body {
-    padding: 24px;
-    max-width: 210mm;
-    margin: 0 auto;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -67,7 +81,6 @@ body {
 p, td, th, span, li, div {
   word-break: keep-all;
   overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 /* Tables */
@@ -76,53 +89,30 @@ table {
   border-collapse: collapse;
   page-break-inside: auto;
 }
-
-tr {
-  page-break-inside: avoid;
-  page-break-after: auto;
-}
-
+tr { page-break-inside: avoid; }
 th, td {
   text-align: right;
-  padding: 10px 14px;
-  font-size: 12px;
+  padding: 9px 14px;
+  font-size: 11px;
   vertical-align: middle;
 }
 
-/* Headings shouldn't orphan */
-h1, h2, h3, h4 {
-  page-break-after: avoid;
-  page-break-inside: avoid;
-}
+/* Page-break safety */
+h1, h2, h3, h4 { page-break-after: avoid; page-break-inside: avoid; }
+.break-avoid { break-inside: avoid; page-break-inside: avoid; }
 
-/* Signature blocks stay together */
-.signature-block, .stamp-area {
-  page-break-inside: avoid;
-}
-
-/* Image handling */
-img {
-  max-width: 100%;
-  height: auto;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
+img { max-width: 100%; height: auto; }
 `;
 
 interface PrintDocumentOptions {
-  /** Document title for the print window */
   title: string;
-  /** Additional CSS to inject */
   extraStyles?: string;
-  /** Custom Arabic font family name */
   brandFont?: string;
-  /** Callback after print dialog closes */
   onAfterPrint?: () => void;
 }
 
 /**
  * Opens a print-optimized window with proper Arabic font rendering.
- * Waits for fonts to load before triggering print.
  */
 export const printDocument = (
   contentEl: HTMLElement,
@@ -130,14 +120,12 @@ export const printDocument = (
 ): void => {
   const { title, extraStyles = "", brandFont, onAfterPrint } = options;
   const fontFamily = brandFont || "IBM Plex Sans Arabic";
-  // Clone content to avoid modifying the original
   const clonedContent = contentEl.cloneNode(true) as HTMLElement;
 
-  // Resolve ALL computed styles (colors + layout) so they survive the print window
+  // Resolve computed styles so they survive the print window
   const resolveStyles = (el: HTMLElement) => {
     const computed = window.getComputedStyle(el);
 
-    // Colors
     const color = computed.color;
     const bgColor = computed.backgroundColor;
     const borderColor = computed.borderColor;
@@ -145,7 +133,6 @@ export const printDocument = (
     if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') el.style.backgroundColor = bgColor;
     if (borderColor && borderColor !== 'rgba(0, 0, 0, 0)') el.style.borderColor = borderColor;
 
-    // Layout properties that Tailwind generates
     const layoutProps = [
       'display', 'flexDirection', 'flexWrap', 'alignItems', 'justifyContent',
       'gap', 'rowGap', 'columnGap',
@@ -169,11 +156,9 @@ export const printDocument = (
       }
     }
 
-    // Preserve display even for flex/grid
     const display = computed.display;
     if (display) el.style.display = display;
 
-    // Process children
     Array.from(el.children).forEach((child) => {
       if (child instanceof HTMLElement) resolveStyles(child);
     });
@@ -181,7 +166,7 @@ export const printDocument = (
 
   resolveStyles(clonedContent);
 
-  // Remove Tailwind classes (they won't resolve in print window)
+  // Strip Tailwind classes
   const stripClasses = (el: HTMLElement) => {
     el.removeAttribute('class');
     Array.from(el.children).forEach((child) => {
@@ -190,7 +175,6 @@ export const printDocument = (
   };
   stripClasses(clonedContent);
 
-  // Build the HTML
   const htmlContent = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -207,7 +191,6 @@ export const printDocument = (
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
-    // Fallback: try iframe approach for mobile / popup blockers
     printViaIframe(htmlContent, onAfterPrint);
     return;
   }
@@ -215,7 +198,6 @@ export const printDocument = (
   printWindow.document.write(htmlContent);
   printWindow.document.close();
 
-  // Wait for fonts + images to fully load
   const triggerPrint = () => {
     printWindow.focus();
     printWindow.print();
@@ -224,20 +206,13 @@ export const printDocument = (
     }
   };
 
-  // Use document.fonts API if available, fallback to timeout
   if (printWindow.document.fonts) {
-    printWindow.document.fonts.ready.then(() => {
-      // Additional delay for images
-      setTimeout(triggerPrint, 300);
-    });
+    printWindow.document.fonts.ready.then(() => setTimeout(triggerPrint, 300));
   } else {
     setTimeout(triggerPrint, 1200);
   }
 };
 
-/**
- * Fallback: print via hidden iframe (for mobile / popup-blocked browsers)
- */
 const printViaIframe = (htmlContent: string, onAfterPrint?: () => void): void => {
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
@@ -271,12 +246,9 @@ const printViaIframe = (htmlContent: string, onAfterPrint?: () => void): void =>
   }
 };
 
-/**
- * Extra styles for invoice documents
- */
 export const INVOICE_PRINT_STYLES = `
-/* Enterprise Invoice — A4 print optimized */
-@page { size: A4; margin: 12mm 0; }
+/* Stripe-style minimal invoice — A4 print */
+@page { size: A4; margin: 12mm; }
 
 body {
   padding: 0 !important;
@@ -285,40 +257,32 @@ body {
   line-height: 1.6;
 }
 
-/* Tables */
-.inv-table, table { width: 100%; border-collapse: collapse; }
-.inv-table th, .inv-table td, table th, table td {
-  padding: 10px 14px;
-  text-align: right;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.inv-table th, table th {
-  font-weight: 700;
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-weight: 600;
   font-size: 10px;
-  letter-spacing: 0.04em;
-  background: #f8f9fa !important;
-  color: #1a1f36 !important;
-  border-bottom: 2px solid #1a1f36;
+  letter-spacing: 0.03em;
+  background: rgba(15, 23, 42, 0.03) !important;
+  color: #374151 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 9px 14px;
 }
-.inv-table td, table td { border-bottom: 1px solid #f0f0f0; }
-.inv-table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
-.inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; font-variant-numeric: tabular-nums; }
+td {
+  padding: 9px 14px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+tbody tr:last-child td { border-bottom: none; }
 
-/* Media */
-img { max-width: 100%; height: auto; }
-svg { max-width: 100%; height: auto; }
+img, svg { max-width: 100%; height: auto; }
 
-/* Print color fidelity */
+.break-avoid { break-inside: avoid; page-break-inside: avoid; }
+
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { -webkit-print-color-adjust: exact !important; }
 }
 `;
 
-/**
- * Extra styles for contract documents
- */
 export const CONTRACT_PRINT_STYLES = `
 .contract-body h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
 .contract-body h3 { font-size: 14px; font-weight: 600; margin-top: 18px; margin-bottom: 6px; }
