@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-export default function HrApprovalsPage() {
+export default function HrApprovalsPage({ embedded }: { embedded?: boolean } = {}) {
   const { tenantId } = useAuth();
   const qc = useQueryClient();
 
@@ -38,17 +38,19 @@ export default function HrApprovalsPage() {
   });
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
+    <div className={embedded ? "space-y-6" : "p-4 sm:p-6 space-y-6"}>
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <UserCheck className="h-5 w-5 text-primary" />
+      {!embedded && (
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <UserCheck className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">اعتماد الطلبات</h1>
+            <p className="text-xs text-muted-foreground">Leave Approvals</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">اعتماد الطلبات</h1>
-          <p className="text-xs text-muted-foreground">Leave Approvals</p>
-        </div>
-      </div>
+      )}
 
       {/* KPI */}
       <Card className="border-border/50"><CardContent className="p-3 sm:p-4">

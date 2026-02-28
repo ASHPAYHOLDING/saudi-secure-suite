@@ -30,7 +30,7 @@ const entityTypeLabels: Record<string, { label: string; icon: any }> = {
   purchase_order: { label: "أمر شراء", icon: Package },
 };
 
-const MyApprovalsPage = () => {
+const MyApprovalsPage = ({ embedded }: { embedded?: boolean }) => {
   const { tenantId, user } = useAuth();
   const { toast } = useToast();
   const [items, setItems] = useState<PendingItem[]>([]);
@@ -150,11 +150,13 @@ const MyApprovalsPage = () => {
   };
 
   return (
-    <div dir="rtl" className="space-y-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">موافقاتي</h1>
-        <p className="text-sm text-muted-foreground mt-1">المستندات التي تحتاج موافقتك</p>
-      </div>
+    <div dir="rtl" className={embedded ? "space-y-6" : "space-y-6 p-4 sm:p-6"}>
+      {!embedded && (
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">موافقاتي</h1>
+          <p className="text-sm text-muted-foreground mt-1">المستندات التي تحتاج موافقتك</p>
+        </div>
+      )}
 
       {/* Dual Approval Queue */}
       <DualApprovalQueue />

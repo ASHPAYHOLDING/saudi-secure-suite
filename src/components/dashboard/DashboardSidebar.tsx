@@ -127,7 +127,6 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
-      { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
     ],
   },
