@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Users, UserPlus, AlertTriangle, ArrowRight } from "lucide-react";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { useEntitlementsContext } from "@/contexts/EntitlementsContext";
 import { FEATURE_KEYS } from "@/lib/entitlement-types";
 import { Progress } from "@/components/ui/progress";
@@ -269,15 +270,19 @@ export default function HrEmployeesPage() {
                 </TableRow>
               ) : employees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-16">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="p-4 rounded-full bg-muted"><Users className="h-8 w-8 text-muted-foreground/50" /></div>
-                      <p className="text-sm font-medium text-foreground">لا يوجد موظفون حالياً</p>
-                      <p className="text-xs text-muted-foreground">No employees found</p>
-                      <Button size="sm" variant="outline" className="mt-2 gap-1.5" onClick={() => setDrawerOpen(true)}>
-                        <UserPlus className="h-3.5 w-3.5" />إضافة أول موظف
-                      </Button>
-                    </div>
+                  <TableCell colSpan={5} className="p-0">
+                    <SmartEmptyState
+                      icon={Users}
+                      title="لا يوجد موظفون بعد"
+                      description="أضف بيانات موظفيك لإدارة الحضور والرواتب والعقود من مكان واحد"
+                      tips={[
+                        "أدخل الاسم والرقم الوظيفي والبريد الإلكتروني",
+                        "حدّد القسم والحالة الوظيفية",
+                        "أرفق العقود والمستندات لاحقاً من ملف الموظف",
+                      ]}
+                      actionLabel="إضافة أول موظف"
+                      onAction={() => setDrawerOpen(true)}
+                    />
                   </TableCell>
                 </TableRow>
               ) : employees.map((emp: any) => (

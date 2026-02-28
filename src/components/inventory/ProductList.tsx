@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Search, Package, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SmartEmptyState from "@/components/ui/smart-empty-state";
 
 interface ProductForm {
   name: string;
@@ -234,7 +235,18 @@ const ProductList = () => {
         {isLoading ? (
           <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">لا توجد منتجات بعد</p>
+          <SmartEmptyState
+            icon={Package}
+            title="لا توجد منتجات أو خدمات بعد"
+            description="أضف منتجاتك وخدماتك لتضمينها في الفواتير وتتبع المخزون تلقائياً"
+            tips={[
+              "أدخل اسم المنتج والسعر ورمز SKU",
+              "فعّل تتبع المخزون للمنتجات المادية",
+              "استخدم نوع «خدمة» للبنود غير المخزنية",
+            ]}
+            actionLabel="إضافة أول منتج"
+            onAction={() => setDialogOpen(true)}
+          />
         ) : (
           <div className="overflow-x-auto">
             <Table>
