@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,8 +35,7 @@ interface CollectionsSummary {
   total_customers: number;
 }
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", minimumFractionDigits: 0 }).format(amount);
+const formatCurrency = (amount: number) => fmtCurrency(amount, { decimals: 0 });
 
 const CollectionsIntelligencePage = () => {
   const { tenantId } = useAuth();

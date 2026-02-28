@@ -13,6 +13,7 @@ import {
   ArrowUpRight, ArrowDownRight, Plus, LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fmtCurrency, fmtNumber } from "@/lib/formatters";
 import { useNavigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,8 +25,6 @@ interface WidgetProps {
   activities?: any[];
   monthlyData?: any[];
 }
-
-const fmt = (n: number) => n.toLocaleString("ar-SA");
 
 /* ═══════════════════════════════════════════════
    Widget Empty State — compact, fits inside widget cards
@@ -98,8 +97,7 @@ const KpiWidget = ({
         </div>
         <div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight tabular-nums">
-            {fmt(value)}
-            {isCurrency && <span className="text-xs font-normal text-muted-foreground ms-1">ر.س</span>}
+            {isCurrency ? fmtCurrency(value) : fmtNumber(value)}
           </p>
           <p className="text-[11px] text-muted-foreground mt-1 font-medium">{label}</p>
           {sub && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{sub}</p>}

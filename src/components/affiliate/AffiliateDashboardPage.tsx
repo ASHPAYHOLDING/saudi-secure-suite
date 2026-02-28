@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { fmtCurrency, fmtNumber } from "@/lib/formatters";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { secureRpc } from "@/lib/secure-rpc";
@@ -111,7 +112,7 @@ const TIER_LABELS: Record<string, { label: string; labelEn: string; icon: string
   platinum: { label: "بلاتيني", labelEn: "Platinum", icon: "💎", rate: "25%" },
 };
 
-const formatAmount = (n: number) => n.toLocaleString("ar-SA");
+const formatAmount = (n: number) => fmtNumber(n);
 
 // ── Animated KPI Card ──
 const KPICard = ({ icon: Icon, title, value, suffix, trend, trendLabel, delay = 0, masked = false, onToggleMask, gradient }: {
@@ -726,11 +727,11 @@ const AffiliateDashboardPage = () => {
         {/* ═══ DASHBOARD ═══ */}
         <TabsContent value="dashboard" className="space-y-6 mt-0">
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <KPICard icon={DollarSign} title={isRTL ? "إجمالي الأرباح" : "Total Earnings"} value={stats?.totalEarnings || 0} suffix={isRTL ? "ر.س" : "SAR"} delay={0} masked={masked} onToggleMask={() => setMasked(!masked)} />
-            <KPICard icon={TrendingUp} title={isRTL ? "MRR (عمولة متكررة)" : "MRR"} value={stats?.mrr || 0} suffix={isRTL ? "ر.س" : "SAR"} trend={stats?.trend} trendLabel={isRTL ? "مقارنة بالشهر السابق" : "vs last month"} delay={0.05} masked={masked} gradient="bg-gradient-to-br from-accent/5 to-transparent" />
-            <KPICard icon={Target} title={isRTL ? "LTV (قيمة العميل)" : "LTV"} value={stats?.ltv || 0} suffix={isRTL ? "ر.س" : "SAR"} delay={0.1} masked={masked} gradient="bg-gradient-to-br from-primary/5 to-transparent" />
-            <KPICard icon={Clock} title={isRTL ? "عمولات معلقة" : "Pending"} value={stats?.pendingAmount || 0} suffix={isRTL ? "ر.س" : "SAR"} delay={0.15} masked={masked} />
-            <KPICard icon={Zap} title={isRTL ? "أرباح هذا الشهر" : "This Month"} value={stats?.thisMonthEarnings || 0} suffix={isRTL ? "ر.س" : "SAR"} delay={0.2} masked={masked} />
+            <KPICard icon={DollarSign} title={isRTL ? "إجمالي الأرباح" : "Total Earnings"} value={stats?.totalEarnings || 0} suffix="ر.س" delay={0} masked={masked} onToggleMask={() => setMasked(!masked)} />
+            <KPICard icon={TrendingUp} title={isRTL ? "MRR (عمولة متكررة)" : "MRR"} value={stats?.mrr || 0} suffix="ر.س" trend={stats?.trend} trendLabel={isRTL ? "مقارنة بالشهر السابق" : "vs last month"} delay={0.05} masked={masked} gradient="bg-gradient-to-br from-accent/5 to-transparent" />
+            <KPICard icon={Target} title={isRTL ? "LTV (قيمة العميل)" : "LTV"} value={stats?.ltv || 0} suffix="ر.س" delay={0.1} masked={masked} gradient="bg-gradient-to-br from-primary/5 to-transparent" />
+            <KPICard icon={Clock} title={isRTL ? "عمولات معلقة" : "Pending"} value={stats?.pendingAmount || 0} suffix="ر.س" delay={0.15} masked={masked} />
+            <KPICard icon={Zap} title={isRTL ? "أرباح هذا الشهر" : "This Month"} value={stats?.thisMonthEarnings || 0} suffix="ر.س" delay={0.2} masked={masked} />
             <KPICard icon={Users} title={isRTL ? "العملاء المحالين" : "Referrals"} value={stats?.referralCount || 0} delay={0.25} />
             <KPICard icon={Target} title={isRTL ? "معدل التحويل" : "Conversion Rate"} value={stats?.conversionRate || 0} suffix="%" delay={0.3} />
             <KPICard icon={BarChart3} title={isRTL ? "التوقع الشهري" : "Forecast"} value={stats?.forecast || 0} suffix={isRTL ? "ر.س" : "SAR"} delay={0.35} masked={masked} />

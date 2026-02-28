@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,7 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
     } else {
       setShowWithdrawDialog(false);
       setWithdrawAmount("");
-      toast.success(`✅ تم طلب سحب ${amount.toLocaleString("ar-SA")} ر.س بنجاح.`);
+      toast.success(`✅ تم طلب سحب ${fmtCurrency(amount)} بنجاح.`);
       refetch();
     }
   };
@@ -97,8 +98,7 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
     (t) => filterType === "all" || t.transaction_type === filterType
   );
 
-  const formatCurrency = (n: number) =>
-    n.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ر.س";
+  const formatCurrency = (n: number) => fmtCurrency(n);
 
   if (checkingStatus || featureLoading) {
     return (

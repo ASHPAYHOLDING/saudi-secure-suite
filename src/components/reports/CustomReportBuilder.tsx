@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { fmtNumber } from "@/lib/formatters";
 import {
   ArrowLeft, Plus, Trash2, Download, Save, Loader2, Play,
   Columns3, Filter, Group, Calendar, SortAsc, SortDesc,
@@ -354,7 +355,7 @@ const CustomReportBuilder = () => {
   // Format cell
   const formatCell = (value: any, type: string) => {
     if (value === null || value === undefined) return "—";
-    if (type === "number") return Number(value).toLocaleString("ar-SA", { minimumFractionDigits: 2 });
+    if (type === "number") return fmtNumber(Number(value), 2);
     if (type === "date") return String(value);
     return String(value);
   };
@@ -635,7 +636,7 @@ const CustomReportBuilder = () => {
                             const total = data.reduce((s: number, r: any) => s + (Number(r[key]) || 0), 0);
                             return (
                               <TableCell key={key} className="text-xs font-bold whitespace-nowrap">
-                                {total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
+                                {fmtNumber(total, 2)}
                               </TableCell>
                             );
                           }

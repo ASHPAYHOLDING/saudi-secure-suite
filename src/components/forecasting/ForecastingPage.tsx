@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import {
   TrendingUp, TrendingDown, Loader2, Printer, FileSpreadsheet,
   ArrowUpRight, ArrowDownRight, Minus, BarChart3, Calendar,
@@ -81,7 +82,7 @@ function addMonths(dateStr: string, months: number): string {
   return d.toISOString().slice(0, 7);
 }
 
-const fmt = (v: number) => v.toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmt = (v: number) => fmtCurrency(v, { decimals: 0 });
 
 const ForecastingPage = () => {
   const { tenantId } = useAuth();

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -125,7 +126,7 @@ const TOPUP_STATUS: Record<string, { label: string; color: string }> = {
 
 const BANK_INFO = { iban: "SA5345000000262359391004", bankName: "Alawwal Bank", beneficiary: "شركة علي صالح الشهري القابضة" };
 const TOPUP_AMOUNTS = [100, 250, 500, 1000, 2500, 5000];
-const formatAmount = (n: number) => n.toLocaleString("ar-SA");
+const formatAmount = (n: number) => fmtCurrency(n);
 
 const WalletPage = () => {
   const { user, tenantId } = useAuth();
