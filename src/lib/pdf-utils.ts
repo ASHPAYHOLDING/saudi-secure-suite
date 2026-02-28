@@ -133,31 +133,62 @@ export const printDocument = (
   // Clone content to avoid modifying the original
   const clonedContent = contentEl.cloneNode(true) as HTMLElement;
 
-  // Remove any Tailwind classes that reference CSS variables (they won't resolve in print window)
-  // Replace semantic color classes with inline styles
-  const resolveColors = (el: HTMLElement) => {
+  // Resolve ALL computed styles (colors + layout) so they survive the print window
+  const resolveStyles = (el: HTMLElement) => {
     const computed = window.getComputedStyle(el);
+
+    // Colors
     const color = computed.color;
     const bgColor = computed.backgroundColor;
     const borderColor = computed.borderColor;
-    
-    if (color && color !== 'rgba(0, 0, 0, 0)') {
-      el.style.color = color;
+    if (color && color !== 'rgba(0, 0, 0, 0)') el.style.color = color;
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') el.style.backgroundColor = bgColor;
+    if (borderColor && borderColor !== 'rgba(0, 0, 0, 0)') el.style.borderColor = borderColor;
+
+    // Layout properties that Tailwind generates
+    const layoutProps = [
+      'display', 'flexDirection', 'flexWrap', 'alignItems', 'justifyContent',
+      'gap', 'rowGap', 'columnGap',
+      'gridTemplateColumns', 'gridTemplateRows', 'gridColumn', 'gridRow',
+      'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+      'width', 'maxWidth', 'minWidth', 'height', 'maxHeight', 'minHeight',
+      'borderRadius', 'borderWidth', 'borderStyle',
+      'overflow', 'textAlign', 'fontSize', 'fontWeight', 'lineHeight',
+      'letterSpacing', 'opacity', 'position',
+      'flex', 'flexGrow', 'flexShrink', 'flexBasis',
+      'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
+      'borderTopStyle', 'borderBottomStyle', 'borderLeftStyle', 'borderRightStyle',
+      'borderTopColor', 'borderBottomColor', 'borderLeftColor', 'borderRightColor',
+    ] as const;
+
+    for (const prop of layoutProps) {
+      const val = computed[prop as any];
+      if (val && val !== '' && val !== 'normal' && val !== 'none' && val !== 'auto' && val !== '0px') {
+        (el.style as any)[prop] = val;
+      }
     }
-    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
-      el.style.backgroundColor = bgColor;
-    }
-    if (borderColor && borderColor !== 'rgba(0, 0, 0, 0)') {
-      el.style.borderColor = borderColor;
-    }
-    
+
+    // Preserve display even for flex/grid
+    const display = computed.display;
+    if (display) el.style.display = display;
+
     // Process children
     Array.from(el.children).forEach((child) => {
-      if (child instanceof HTMLElement) resolveColors(child);
+      if (child instanceof HTMLElement) resolveStyles(child);
     });
   };
 
-  resolveColors(clonedContent);
+  resolveStyles(clonedContent);
+
+  // Remove Tailwind classes (they won't resolve in print window)
+  const stripClasses = (el: HTMLElement) => {
+    el.removeAttribute('class');
+    Array.from(el.children).forEach((child) => {
+      if (child instanceof HTMLElement) stripClasses(child);
+    });
+  };
+  stripClasses(clonedContent);
 
   // Build the HTML
   const htmlContent = `<!DOCTYPE html>
@@ -244,14 +275,25 @@ const printViaIframe = (htmlContent: string, onAfterPrint?: () => void): void =>
  * Extra styles for invoice documents
  */
 export const INVOICE_PRINT_STYLES = `
-.inv-table { width: 100%; border-collapse: collapse; }
-.inv-table th, .inv-table td { padding: 10px 14px; text-align: right; font-size: 12px; }
-.inv-table th { background: #1a1f36; color: white; font-weight: 600; font-size: 11px; }
-.inv-table td { border-bottom: 1px solid #e5e7eb; }
-.inv-table tbody tr:last-child td { border-bottom: none; }
+/* Base table */
+.inv-table, table { width: 100%; border-collapse: collapse; }
+.inv-table th, .inv-table td, table th, table td { padding: 10px 14px; text-align: right; font-size: 12px; }
+.inv-table th, table th { font-weight: 600; font-size: 11px; }
+.inv-table td, table td { border-bottom: 1px solid #e5e7eb; }
+.inv-table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
 .inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; }
 .summary-row td { padding: 6px 14px; font-size: 12px; }
-.total-row td { background: #1a1f36; color: white; font-weight: 700; font-size: 14px; padding: 12px 14px; }
+.total-row td { font-weight: 700; font-size: 14px; padding: 12px 14px; }
+
+/* Print-specific overrides */
+body { padding: 0 !important; margin: 0 !important; }
+img { max-width: 100%; height: auto; }
+svg { max-width: 100%; height: auto; }
+
+/* Page breaks */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
 `;
 
 /**
