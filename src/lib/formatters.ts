@@ -1,55 +1,62 @@
 /**
  * Unified formatting utilities for currency, numbers, and dates.
- * All formatters are locale-aware (ar-SA default) and produce
- * consistent output across the platform.
+ * All formatters are locale-aware (ar-SA) and produce consistent output.
+ *
+ * RULE: Currency always shows "ر.س" in Arabic — never "SAR".
+ *       Numbers use tabular-nums via CSS; this file handles value formatting.
  */
 
 // ─── Currency ───
 
-const currencyFormatter = new Intl.NumberFormat("ar-SA", {
-  style: "currency",
-  currency: "SAR",
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  SAR: "ر.س", USD: "$", EUR: "€", GBP: "£", AED: "د.إ",
+  KWD: "د.ك", BHD: "د.ب", QAR: "ر.ق", OMR: "ر.ع",
+  EGP: "ج.م", JOD: "د.أ", TRY: "₺", INR: "₹", CNY: "¥",
+};
+
+const numFmt2 = new Intl.NumberFormat("ar-SA", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-const currencyFormatterCompact = new Intl.NumberFormat("ar-SA", {
-  style: "currency",
-  currency: "SAR",
+const numFmt0 = new Intl.NumberFormat("ar-SA", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const numFmtCompact = new Intl.NumberFormat("ar-SA", {
   notation: "compact",
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 });
 
 /**
- * Format a number as SAR currency: ١٬٢٣٤٫٥٦ ر.س
- * Use `compact` for KPI cards: ١٫٢ ألف ر.س
+ * Format a number as currency: ١٬٢٣٤٫٥٦ ر.س
+ *
+ * Options:
+ * - `compact` — short form for KPI cards: ١٫٢ ألف ر.س
+ * - `currency` — override code (default SAR)
+ * - `decimals` — 0 or 2 (default 2)
+ * - `symbolOnly` — return just the number without symbol
  */
 export function fmtCurrency(
   amount: number,
-  opts?: { compact?: boolean; currency?: string }
+  opts?: { compact?: boolean; currency?: string; decimals?: number; symbolOnly?: boolean }
 ): string {
+  const code = opts?.currency || "SAR";
+  const symbol = CURRENCY_SYMBOLS[code] || code;
+
+  let formatted: string;
   if (opts?.compact) {
-    if (opts?.currency && opts.currency !== "SAR") {
-      return new Intl.NumberFormat("ar-SA", {
-        style: "currency",
-        currency: opts.currency,
-        notation: "compact",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1,
-      }).format(amount);
-    }
-    return currencyFormatterCompact.format(amount);
+    formatted = numFmtCompact.format(amount);
+  } else if (opts?.decimals === 0) {
+    formatted = numFmt0.format(amount);
+  } else {
+    formatted = numFmt2.format(amount);
   }
-  if (opts?.currency && opts.currency !== "SAR") {
-    return new Intl.NumberFormat("ar-SA", {
-      style: "currency",
-      currency: opts.currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  }
-  return currencyFormatter.format(amount);
+
+  if (opts?.symbolOnly) return formatted;
+  return `${formatted} ${symbol}`;
 }
 
 // ─── Numbers ───

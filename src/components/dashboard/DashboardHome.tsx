@@ -52,6 +52,8 @@ interface AuditEntry {
 }
 
 // ─── Animated counter ───
+import { fmtNumber, fmtCurrency } from "@/lib/formatters";
+
 const AnimatedCounter = ({ value, duration = 1.2 }: { value: number; duration?: number }) => {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
@@ -67,7 +69,7 @@ const AnimatedCounter = ({ value, duration = 1.2 }: { value: number; duration?: 
     }, stepTime);
     return () => clearInterval(timer);
   }, [value, duration]);
-  return <>{display.toLocaleString("ar-SA")}</>;
+  return <>{fmtNumber(display)}</>;
 };
 
 // ─── Skeleton ───
@@ -123,7 +125,7 @@ const VatAlertBanner = ({ totalVat, totalRevenue }: { totalVat: number; totalRev
             {isUrgent ? "⚠️ موعد تقديم إقرار ضريبة القيمة المضافة قريب" : "تنبيه ضريبة القيمة المضافة"}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            إجمالي الضريبة المستحقة: <span className="font-semibold text-foreground">{totalVat.toLocaleString("ar-SA")} ر.س</span>
+            إجمالي الضريبة المستحقة: <span className="font-semibold text-foreground tabular-nums">{fmtCurrency(totalVat)}</span>
             {" · "}
             متبقي {daysUntilEnd} يوم على نهاية الفترة
           </p>
@@ -160,7 +162,7 @@ const CashflowAlert = ({ revenue, expenses }: { revenue: number; expenses: numbe
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {isNegative
-              ? `العجز: ${Math.abs(net).toLocaleString("ar-SA")} ر.س — المصروفات تتجاوز الإيرادات`
+              ? `العجز: ${fmtCurrency(Math.abs(net))} — المصروفات تتجاوز الإيرادات`
               : `المصروفات تشكل ${ratio.toFixed(0)}% من الإيرادات — ينصح بمراجعة الإنفاق`
             }
           </p>
@@ -487,11 +489,11 @@ const DashboardHome = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-2xl sm:text-3xl font-bold text-foreground font-arabic tracking-tight">
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground font-arabic tracking-tight tabular-nums">
                       {kpi.isCurrency ? (
                         <>
                           <AnimatedCounter value={kpi.value} />
-                          <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
+                          <span className="text-xs font-normal text-muted-foreground ms-1">ر.س</span>
                         </>
                       ) : (
                         <AnimatedCounter value={kpi.value} />
@@ -524,7 +526,7 @@ const DashboardHome = () => {
                   </div>
                   <span className="text-[11px] font-medium text-muted-foreground">نسبة التحصيل</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground font-arabic">
+                <p className="text-2xl font-bold text-foreground font-arabic tabular-nums">
                   <AnimatedCounter value={collectionRate} /><span className="text-sm">%</span>
                 </p>
                 <Progress value={collectionRate} className="mt-2.5 h-1.5" />
@@ -543,9 +545,9 @@ const DashboardHome = () => {
                   </div>
                   <span className="text-[11px] font-medium text-muted-foreground">صافي الربح</span>
                 </div>
-                <p className={cn("text-2xl font-bold font-arabic", netProfit >= 0 ? "text-success" : "text-destructive")}>
+                <p className={cn("text-2xl font-bold font-arabic tabular-nums", netProfit >= 0 ? "text-success" : "text-destructive")}>
                   <AnimatedCounter value={Math.abs(netProfit)} />
-                  <span className="text-xs font-normal text-muted-foreground ms-1">{sar}</span>
+                  <span className="text-xs font-normal text-muted-foreground ms-1">ر.س</span>
                 </p>
                 <div className="flex items-center gap-1 mt-1.5">
                   {netProfit >= 0 ? <ArrowUpRight className="w-3 h-3 text-success" /> : <ArrowDownRight className="w-3 h-3 text-destructive" />}
@@ -563,7 +565,7 @@ const DashboardHome = () => {
                   </div>
                   <span className="text-[11px] font-medium text-muted-foreground">العقود النشطة</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground font-arabic">
+                <p className="text-2xl font-bold text-foreground font-arabic tabular-nums">
                   <AnimatedCounter value={s.activeContracts} />
                 </p>
                 <p className="text-[10px] text-muted-foreground/60 mt-1.5">
@@ -581,7 +583,7 @@ const DashboardHome = () => {
                   </div>
                   <span className="text-[11px] font-medium text-muted-foreground">إجمالي العملاء</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground font-arabic">
+                <p className="text-2xl font-bold text-foreground font-arabic tabular-nums">
                   <AnimatedCounter value={s.totalCustomers} />
                 </p>
                 <p className="text-[10px] text-muted-foreground/60 mt-1.5">

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,8 +165,7 @@ const AdminPaylinkManagement = () => {
     setDetailTransactions(allTransactions.filter((tx) => tx.tenant_id === tenant.id));
   };
 
-  const formatCurrency = (n: number) =>
-    n.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ر.س";
+  const formatCurrency = (n: number) => fmtCurrency(n);
 
   const enabledTenants = tenants.filter((t) => t.paylink_enabled);
   const totalPlatformSales = enabledTenants.reduce((s, t) => s + t.totalSales, 0);

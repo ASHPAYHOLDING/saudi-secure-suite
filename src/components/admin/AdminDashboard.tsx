@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import {
   Building2, Users, CreditCard, FileText, Activity, Shield, Server,
   TrendingUp, ArrowUpRight, ArrowDownRight, Zap, Globe, BarChart3,
@@ -221,8 +222,7 @@ const AdminDashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const formatCurrency = (n: number) =>
-    new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(n);
+  const formatCurrency = (n: number) => fmtCurrency(n, { decimals: 0 });
 
   const timeAgo = (date: string) => {
     const diff = Date.now() - new Date(date).getTime();

@@ -1,4 +1,6 @@
 // Arabic number formatting utilities
+// Re-exports fmtCurrency/fmtNumber/fmtDate from formatters for backward compat
+import { fmtCurrency, fmtNumber, fmtDate, fmtDateShort } from "@/lib/formatters";
 
 /** Currency symbol map for common currencies */
 export const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -10,42 +12,27 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
 export const getCurrencySymbol = (code: string): string =>
   CURRENCY_SYMBOLS[code] || code;
 
-export const formatCurrency = (amount: number, currencyCode?: string): string => {
-  const formatted = new Intl.NumberFormat('ar-SA', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-  return formatted;
+/**
+ * Format currency number only (no symbol): ١٬٢٣٤٫٥٦
+ * For display with symbol use fmtCurrency from @/lib/formatters
+ */
+export const formatCurrency = (amount: number, _currencyCode?: string): string => {
+  return fmtCurrency(amount, { symbolOnly: true });
 };
 
 export const formatCurrencyWithSymbol = (amount: number, currencyCode: string = 'SAR'): string => {
-  return `${formatCurrency(amount)} ${getCurrencySymbol(currencyCode)}`;
+  return fmtCurrency(amount, { currency: currencyCode });
 };
 
 export const formatNumber = (num: number, decimals = 0): string => {
-  return new Intl.NumberFormat('ar-SA', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(num);
+  return fmtNumber(num, decimals);
 };
 
 export const formatDateAr = (date: string | Date): string => {
-  const d = new Date(date);
-  return new Intl.DateTimeFormat('ar-SA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(d);
+  return fmtDate(date);
 };
 
-export const formatDateShort = (date: string | Date): string => {
-  const d = new Date(date);
-  return new Intl.DateTimeFormat('ar-SA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
-};
+export { fmtDateShort as formatDateShort };
 
 export const generateInvoiceNumber = (): string => {
   const now = new Date();

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { fmtCurrency } from "@/lib/formatters";
 import { motion } from "framer-motion";
 import {
   DollarSign, TrendingUp, TrendingDown, AlertTriangle,
@@ -140,7 +141,7 @@ const FinancialOverview = () => {
 
   const s = stats!;
   const profitPositive = s.netProfit >= 0;
-  const fmt = (n: number) => n.toLocaleString("ar-SA");
+  const fmt = (n: number) => fmtCurrency(n);
 
   const kpiCards = [
     {
@@ -173,7 +174,7 @@ const FinancialOverview = () => {
       icon: AlertTriangle,
       color: s.overdueCount > 0 ? "text-destructive" : "text-warning",
       bg: s.overdueCount > 0 ? "bg-destructive/10" : "bg-warning/10",
-      sub: `${fmt(s.outstandingAmount)} ر.س · ${s.overdueCount} متأخرة`,
+      sub: `${fmt(s.outstandingAmount)} · ${s.overdueCount} متأخرة`,
     },
   ];
 

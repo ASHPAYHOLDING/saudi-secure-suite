@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { fmtNumber, fmtCurrency } from "@/lib/formatters";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
@@ -62,7 +63,7 @@ const SEGMENT_CONFIG: Record<string, { label: string; icon: React.ElementType; c
 // ─── Animated Counter Card ───────────────────────────────────────────────────
 const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
   const count = useCountUp(value, 1000);
-  return <span>{count.toLocaleString("ar-SA")}{suffix}</span>;
+  return <span className="tabular-nums">{fmtNumber(count)}{suffix}</span>;
 };
 
 const StatCard = ({
@@ -563,9 +564,9 @@ const CustomersPage = () => {
         {/* Mini stats row in header */}
         <div className="relative z-10 grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/15">
           {[
-            { label: "إجمالي العملاء", value: stats.total.toLocaleString("ar-SA"), icon: Users },
-            { label: "إجمالي المبيعات", value: `${(totalSales / 1000).toFixed(0)}K ر.س`, icon: BarChart3 },
-            { label: "المستحقات", value: `${(totalOutstanding / 1000).toFixed(0)}K ر.س`, icon: DollarSign },
+            { label: "إجمالي العملاء", value: fmtNumber(stats.total), icon: Users },
+            { label: "إجمالي المبيعات", value: fmtCurrency(totalSales, { compact: true }), icon: BarChart3 },
+            { label: "المستحقات", value: fmtCurrency(totalOutstanding, { compact: true }), icon: DollarSign },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -872,16 +873,14 @@ const CustomersPage = () => {
                         <td className="px-4 py-3.5 hidden xl:table-cell">
                           {inv?.total_sales ? (
                             <div>
-                              <p className="text-sm font-semibold text-foreground">{inv.total_sales.toLocaleString("ar-SA")}</p>
-                              <p className="text-[10px] text-muted-foreground">ر.س</p>
+                              <p className="text-sm font-semibold text-foreground tabular-nums">{fmtCurrency(inv.total_sales)}</p>
                             </div>
                           ) : <span className="text-muted-foreground/30 text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3.5 hidden xl:table-cell">
                           {inv?.outstanding ? (
                             <div>
-                              <p className={`text-sm font-semibold ${creditExceeded ? "text-destructive" : "text-foreground"}`}>{inv.outstanding.toLocaleString("ar-SA")}</p>
-                              <p className="text-[10px] text-muted-foreground">ر.س</p>
+                              <p className={`text-sm font-semibold tabular-nums ${creditExceeded ? "text-destructive" : "text-foreground"}`}>{fmtCurrency(inv.outstanding)}</p>
                             </div>
                           ) : <span className="text-muted-foreground/30 text-xs">—</span>}
                         </td>
