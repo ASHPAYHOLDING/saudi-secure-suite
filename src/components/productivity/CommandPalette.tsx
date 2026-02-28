@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CommandDialog,
@@ -11,27 +12,48 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  CommandShortcut,
 } from "@/components/ui/command";
 import {
   CreditCard, FileText, Receipt, Users, Package, ShoppingCart,
   FileSignature, Truck, BookOpen, BarChart3, Settings, Search,
-  Plus, ArrowRight, Wallet, MessageCircle, Shield,
+  Plus, ArrowRight, Wallet, MessageCircle, Shield, UserCheck,
+  Building2, Loader2,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface SearchResult {
-  type: string;
+  type: "customer" | "invoice" | "contract" | "supplier" | "employee";
   id: string;
   label: string;
   sublabel?: string;
 }
 
+type ResultGroup = {
+  key: SearchResult["type"];
+  heading: string;
+  icon: any;
+  items: SearchResult[];
+  path: string;
+};
+
+const TYPE_META: Record<SearchResult["type"], { heading: string; icon: any; path: string; permission: string }> = {
+  customer: { heading: "العملاء", icon: Users, path: "/dashboard/customers", permission: "customers.view" },
+  invoice: { heading: "الفواتير", icon: CreditCard, path: "/dashboard/billing", permission: "invoices.view" },
+  contract: { heading: "العقود", icon: FileSignature, path: "/dashboard/contracts", permission: "contracts.view" },
+  supplier: { heading: "الموردون", icon: Building2, path: "/dashboard/suppliers", permission: "suppliers.view" },
+  employee: { heading: "الموظفون", icon: UserCheck, path: "/dashboard/hr/employees", permission: "hr.view" },
+};
+
 const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
-  const { t, currentLang } = useLanguage();
+  const { currentLang } = useLanguage();
   const { tenantId } = useAuth();
+  const { can } = useGranularPermissions();
   const isRTL = currentLang === "ar";
 
   // ⌘K / Ctrl+K shortcut
@@ -46,78 +68,132 @@ const CommandPalette = () => {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  // Search across entities
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+      setSearchResults([]);
+    }
+  }, [open]);
+
+  // RBAC-aware search across entities
   const doSearch = useCallback(
     async (query: string) => {
       if (!query || query.length < 2 || !tenantId) {
         setSearchResults([]);
         return;
       }
+      setSearching(true);
       const results: SearchResult[] = [];
+      const promises: Promise<void>[] = [];
 
-      const [invoices, customers, quotations, expenses] = await Promise.all([
-        supabase
-          .from("invoices")
-          .select("id, invoice_number, grand_total, status")
-          .eq("tenant_id", tenantId)
-          .ilike("invoice_number", `%${query}%`)
-          .limit(5),
-        supabase
-          .from("customers")
-          .select("id, name, name_en, email")
-          .eq("tenant_id", tenantId)
-          .or(`name.ilike.%${query}%,name_en.ilike.%${query}%,email.ilike.%${query}%`)
-          .limit(5),
-        supabase
-          .from("quotations")
-          .select("id, quotation_number, grand_total, status")
-          .eq("tenant_id", tenantId)
-          .ilike("quotation_number", `%${query}%`)
-          .limit(5),
-        supabase
-          .from("expenses")
-          .select("id, expense_number, title, total_amount, status")
-          .eq("tenant_id", tenantId)
-          .or(`expense_number.ilike.%${query}%,title.ilike.%${query}%`)
-          .limit(5),
-      ]);
+      // Customers
+      if (can("customers.view")) {
+        promises.push((async () => {
+          const { data } = await supabase
+            .from("customers")
+            .select("id, name, name_en, email")
+            .eq("tenant_id", tenantId)
+            .or(`name.ilike.%${query}%,name_en.ilike.%${query}%,email.ilike.%${query}%`)
+            .limit(10);
+          data?.forEach((c) =>
+            results.push({
+              type: "customer",
+              id: c.id,
+              label: isRTL ? c.name : (c.name_en || c.name),
+              sublabel: c.email || undefined,
+            })
+          );
+        })());
+      }
 
-      invoices.data?.forEach((inv) =>
-        results.push({
-          type: "invoice",
-          id: inv.id,
-          label: inv.invoice_number,
-          sublabel: `${inv.grand_total} SAR · ${inv.status}`,
-        })
-      );
-      customers.data?.forEach((c) =>
-        results.push({
-          type: "customer",
-          id: c.id,
-          label: isRTL ? c.name : (c.name_en || c.name),
-          sublabel: c.email || "",
-        })
-      );
-      quotations.data?.forEach((q) =>
-        results.push({
-          type: "quotation",
-          id: q.id,
-          label: q.quotation_number,
-          sublabel: `${q.grand_total} SAR · ${q.status}`,
-        })
-      );
-      expenses.data?.forEach((e) =>
-        results.push({
-          type: "expense",
-          id: e.id,
-          label: e.expense_number,
-          sublabel: e.title || `${e.total_amount} SAR`,
-        })
-      );
+      // Invoices
+      if (can("invoices.view")) {
+        promises.push((async () => {
+          const { data } = await supabase
+            .from("invoices")
+            .select("id, invoice_number, grand_total, status")
+            .eq("tenant_id", tenantId)
+            .ilike("invoice_number", `%${query}%`)
+            .limit(10);
+          data?.forEach((inv) =>
+            results.push({
+              type: "invoice",
+              id: inv.id,
+              label: inv.invoice_number,
+              sublabel: `${inv.grand_total} SAR · ${inv.status}`,
+            })
+          );
+        })());
+      }
 
+      // Contracts
+      if (can("contracts.view")) {
+        promises.push((async () => {
+          const { data } = await supabase
+            .from("contracts")
+            .select("id, contract_number, title, status")
+            .eq("tenant_id", tenantId)
+            .or(`contract_number.ilike.%${query}%,title.ilike.%${query}%`)
+            .limit(10);
+          data?.forEach((c) =>
+            results.push({
+              type: "contract",
+              id: c.id,
+              label: c.contract_number,
+              sublabel: c.title,
+            })
+          );
+        })());
+      }
+
+      // Suppliers
+      if (can("suppliers.view")) {
+        promises.push((async () => {
+          const { data } = await supabase
+            .from("suppliers")
+            .select("id, name, name_en, email")
+            .eq("tenant_id", tenantId)
+            .or(`name.ilike.%${query}%,name_en.ilike.%${query}%`)
+            .limit(10);
+          data?.forEach((s) =>
+            results.push({
+              type: "supplier",
+              id: s.id,
+              label: isRTL ? s.name : (s.name_en || s.name),
+              sublabel: s.email || undefined,
+            })
+          );
+        })());
+      }
+
+      // HR Employees
+      if (can("hr.view")) {
+        promises.push((async () => {
+          const { data } = await supabase
+            .from("hr_employees")
+            .select("id, employee_number, first_name, last_name, first_name_en, last_name_en, email")
+            .eq("tenant_id", tenantId)
+            .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,employee_number.ilike.%${query}%,first_name_en.ilike.%${query}%,last_name_en.ilike.%${query}%`)
+            .limit(10);
+          data?.forEach((e) =>
+            results.push({
+              type: "employee",
+              id: e.id,
+              label: isRTL
+                ? `${e.first_name} ${e.last_name}`
+                : `${e.first_name_en || e.first_name} ${e.last_name_en || e.last_name}`,
+              sublabel: e.employee_number,
+            })
+          );
+        })());
+      }
+
+      await Promise.all(promises);
       setSearchResults(results);
+      setSearching(false);
     },
-    [tenantId, isRTL]
+    [tenantId, isRTL, can]
   );
 
   useEffect(() => {
@@ -130,90 +206,141 @@ const CommandPalette = () => {
     navigate(path);
   };
 
-  const createActions = [
-    { icon: CreditCard, label: isRTL ? "فاتورة جديدة" : "New Invoice", path: "/dashboard/billing" },
-    { icon: Receipt, label: isRTL ? "مصروف جديد" : "New Expense", path: "/dashboard/expenses" },
-    { icon: FileText, label: isRTL ? "عرض سعر جديد" : "New Quotation", path: "/dashboard/quotations" },
-    { icon: ShoppingCart, label: isRTL ? "أمر بيع جديد" : "New Sales Order", path: "/dashboard/sales-orders" },
-    { icon: Package, label: isRTL ? "أمر شراء جديد" : "New Purchase Order", path: "/dashboard/purchase-orders" },
-    { icon: Truck, label: isRTL ? "إشعار تسليم" : "New Delivery Note", path: "/dashboard/delivery-notes" },
-    { icon: FileSignature, label: isRTL ? "عقد جديد" : "New Contract", path: "/dashboard/contracts" },
-    { icon: Users, label: isRTL ? "عميل جديد" : "New Customer", path: "/dashboard/customers" },
-  ];
+  // Group results by type
+  const grouped: ResultGroup[] = useMemo(() => {
+    const groups: ResultGroup[] = [];
+    const types = Object.keys(TYPE_META) as SearchResult["type"][];
+    for (const type of types) {
+      const items = searchResults.filter((r) => r.type === type);
+      if (items.length > 0) {
+        const meta = TYPE_META[type];
+        groups.push({ key: type, heading: meta.heading, icon: meta.icon, items, path: meta.path });
+      }
+    }
+    return groups;
+  }, [searchResults]);
 
-  const navActions = [
-    { icon: CreditCard, label: isRTL ? "الفواتير" : "Invoices", path: "/dashboard/billing" },
-    { icon: Users, label: isRTL ? "العملاء" : "Customers", path: "/dashboard/customers" },
-    { icon: Receipt, label: isRTL ? "المصروفات" : "Expenses", path: "/dashboard/expenses" },
-    { icon: FileText, label: isRTL ? "عروض الأسعار" : "Quotations", path: "/dashboard/quotations" },
-    { icon: Wallet, label: isRTL ? "النظرة المالية" : "Financial Overview", path: "/dashboard/finance" },
-    { icon: BookOpen, label: isRTL ? "قيود اليومية" : "Journal Entries", path: "/dashboard/journal-entries" },
-    { icon: BarChart3, label: isRTL ? "التحليلات" : "Analytics", path: "/dashboard/analytics" },
-    { icon: Shield, label: isRTL ? "الإقرار الضريبي" : "VAT Return", path: "/dashboard/vat-return" },
-    { icon: MessageCircle, label: isRTL ? "المحادثات" : "Chat", path: "/dashboard/chat" },
-    { icon: Settings, label: isRTL ? "الإعدادات" : "Settings", path: "/dashboard/settings" },
-  ];
+  // Quick create actions (RBAC-filtered)
+  const createActions = useMemo(() => {
+    const all = [
+      { icon: CreditCard, label: "فاتورة جديدة", path: "/dashboard/billing", perm: "invoices.create" },
+      { icon: Users, label: "عميل جديد", path: "/dashboard/customers", perm: "customers.create" },
+      { icon: Receipt, label: "مصروف جديد", path: "/dashboard/expenses", perm: "expenses.create" },
+      { icon: FileText, label: "عرض سعر جديد", path: "/dashboard/quotations", perm: "quotations.create" },
+      { icon: ShoppingCart, label: "أمر بيع جديد", path: "/dashboard/sales-orders", perm: "invoices.create" },
+      { icon: Package, label: "أمر شراء جديد", path: "/dashboard/purchase-orders", perm: "suppliers.view" },
+      { icon: Truck, label: "إشعار تسليم", path: "/dashboard/delivery-notes", perm: "invoices.create" },
+      { icon: FileSignature, label: "عقد جديد", path: "/dashboard/contracts", perm: "contracts.view" },
+    ];
+    return all.filter((a) => can(a.perm));
+  }, [can]);
 
-  const resultIcons: Record<string, any> = {
-    invoice: CreditCard,
-    customer: Users,
-    quotation: FileText,
-    expense: Receipt,
-  };
+  // Navigation actions
+  const navActions = useMemo(() => {
+    const all = [
+      { icon: CreditCard, label: "الفواتير", path: "/dashboard/billing", perm: "invoices.view" },
+      { icon: Users, label: "العملاء", path: "/dashboard/customers", perm: "customers.view" },
+      { icon: Receipt, label: "المصروفات", path: "/dashboard/expenses", perm: "expenses.view" },
+      { icon: Building2, label: "الموردون", path: "/dashboard/suppliers", perm: "suppliers.view" },
+      { icon: FileSignature, label: "العقود", path: "/dashboard/contracts", perm: "contracts.view" },
+      { icon: UserCheck, label: "الموظفون", path: "/dashboard/hr/employees", perm: "hr.view" },
+      { icon: Wallet, label: "النظرة المالية", path: "/dashboard/finance", perm: "finance.view" },
+      { icon: BookOpen, label: "قيود اليومية", path: "/dashboard/journal-entries", perm: "journal_entries.view" },
+      { icon: BarChart3, label: "التحليلات", path: "/dashboard/analytics", perm: "analytics.view" },
+      { icon: Shield, label: "الإقرار الضريبي", path: "/dashboard/vat-return", perm: "vat.view" },
+      { icon: MessageCircle, label: "المحادثات", path: "/dashboard/chat", perm: "chat.view" },
+      { icon: Settings, label: "الإعدادات", path: "/dashboard/settings", perm: "company.view" },
+    ];
+    return all.filter((a) => can(a.perm));
+  }, [can]);
+
+  const hasQuery = searchQuery.length >= 2;
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput
-        placeholder={isRTL ? "اكتب أمراً أو ابحث..." : "Type a command or search..."}
-        value={searchQuery}
-        onValueChange={setSearchQuery}
-      />
-      <CommandList>
-        <CommandEmpty>{isRTL ? "لا توجد نتائج" : "No results found."}</CommandEmpty>
+      <div className="flex items-center border-b px-3">
+        <Search className="me-2 h-4 w-4 shrink-0 opacity-50" />
+        <input
+          className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="اكتب للبحث أو اختر أمراً..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          autoFocus
+        />
+        {searching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+        <Badge variant="outline" className="ms-2 shrink-0 text-[10px] px-1.5 py-0.5 font-mono">
+          ⌘K
+        </Badge>
+      </div>
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <CommandGroup heading={isRTL ? "نتائج البحث" : "Search Results"}>
-            {searchResults.map((r) => {
-              const Icon = resultIcons[r.type] || Search;
-              return (
+      <CommandList className="max-h-[400px]">
+        <CommandEmpty>
+          {searching ? "جاري البحث..." : hasQuery ? "لا توجد نتائج مطابقة" : "اكتب حرفين على الأقل للبحث"}
+        </CommandEmpty>
+
+        {/* Grouped Search Results */}
+        {grouped.map((group) => {
+          const GroupIcon = group.icon;
+          return (
+            <CommandGroup
+              key={group.key}
+              heading={
+                <span className="flex items-center gap-1.5">
+                  <GroupIcon className="h-3.5 w-3.5" />
+                  {group.heading}
+                  <Badge variant="secondary" className="ms-1 text-[10px] px-1 py-0 h-4">
+                    {group.items.length}
+                  </Badge>
+                </span>
+              }
+            >
+              {group.items.map((r) => (
                 <CommandItem
                   key={`${r.type}-${r.id}`}
-                  onSelect={() => go(`/dashboard/${r.type === "invoice" ? "billing" : r.type + "s"}`)}
+                  value={`${r.label} ${r.sublabel || ""}`}
+                  onSelect={() => go(group.path)}
+                  className="gap-2"
                 >
-                  <Icon className="mr-2 h-4 w-4 shrink-0" />
-                  <span>{r.label}</span>
+                  <GroupIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate font-medium">{r.label}</span>
                   {r.sublabel && (
-                    <span className="ml-2 text-xs text-muted-foreground">{r.sublabel}</span>
+                    <span className="ms-auto truncate text-xs text-muted-foreground max-w-[180px]">
+                      {r.sublabel}
+                    </span>
                   )}
                 </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        )}
+              ))}
+            </CommandGroup>
+          );
+        })}
 
         {/* Quick Create */}
-        <CommandGroup heading={isRTL ? "إنشاء سريع" : "Quick Create"}>
-          {createActions.map((a) => (
-            <CommandItem key={a.path + "-create"} onSelect={() => go(a.path)}>
-              <Plus className="mr-2 h-4 w-4 shrink-0" />
-              <span>{a.label}</span>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
-        <CommandSeparator />
+        {!hasQuery && createActions.length > 0 && (
+          <>
+            <CommandGroup heading="⚡ إنشاء سريع">
+              {createActions.map((a) => (
+                <CommandItem key={a.path + "-create"} onSelect={() => go(a.path)} className="gap-2">
+                  <Plus className="h-4 w-4 shrink-0 text-primary" />
+                  <span>{a.label}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
 
         {/* Navigation */}
-        <CommandGroup heading={isRTL ? "انتقل إلى" : "Go to"}>
-          {navActions.map((a) => (
-            <CommandItem key={a.path + "-nav"} onSelect={() => go(a.path)}>
-              <a.icon className="mr-2 h-4 w-4 shrink-0" />
-              <span>{a.label}</span>
-              <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground" />
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        {!hasQuery && navActions.length > 0 && (
+          <CommandGroup heading="الانتقال إلى">
+            {navActions.map((a) => (
+              <CommandItem key={a.path + "-nav"} onSelect={() => go(a.path)} className="gap-2">
+                <a.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span>{a.label}</span>
+                <ArrowRight className="ms-auto h-3 w-3 text-muted-foreground rtl:rotate-180" />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
