@@ -6,10 +6,11 @@ import { Loader2 } from "lucide-react";
 /**
  * Wraps the Dashboard layout.
  * If onboarding is incomplete (required steps not done), redirects to /dashboard/onboarding.
+ * Members/managers/hr/accountant skip onboarding entirely.
  * The onboarding route itself is excluded to avoid infinite redirects.
  */
 export default function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { user, tenantId, loading: authLoading } = useAuth();
+  const { user, tenantId, loading: authLoading, userRole } = useAuth();
   const { needsOnboarding, isLoading } = useOnboardingState();
   const location = useLocation();
 
@@ -19,6 +20,7 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
   const isSubscriptionPath = location.pathname.startsWith("/dashboard/subscription");
   const isHelpPath = location.pathname.startsWith("/dashboard/help") || location.pathname.startsWith("/dashboard/support");
 
+  // Wait for both auth and onboarding state to load
   if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -27,11 +29,12 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
     );
   }
 
-  // Skip guard for excluded paths or if no tenant
+  // Skip guard for excluded paths or if no tenant/user
   if (!user || !tenantId || isOnboardingPath || isSettingsPath || isSubscriptionPath || isHelpPath) {
     return <>{children}</>;
   }
 
+  // needsOnboarding already accounts for role (member = false)
   if (needsOnboarding) {
     return <Navigate to="/dashboard/onboarding" replace />;
   }
