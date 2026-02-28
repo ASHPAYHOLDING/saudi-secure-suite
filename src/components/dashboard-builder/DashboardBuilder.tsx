@@ -330,11 +330,8 @@ const DashboardBuilder = () => {
             .edit-mode-grid .widget-inner {
               height: 100%;
             }
-            /* Only the top-level Card should fill height, not its descendants */
             .edit-mode-grid .widget-inner > div[class] {
               height: 100%;
-              display: flex;
-              flex-direction: column;
             }
             .edit-mode-grid .react-resizable-handle {
               z-index: 20;

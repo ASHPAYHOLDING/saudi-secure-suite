@@ -33,7 +33,7 @@ const SmartEmptyState = ({
     <motion.div
       animate={{ y: [0, -6, 0] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-5"
+      className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-5 flex-none shrink-0"
     >
       <Icon size={28} className="text-primary" />
     </motion.div>
