@@ -322,7 +322,19 @@ const DashboardBuilder = () => {
         </div>
       ) : editMode ? (
         /* ── Editable Grid Mode ── */
-        <div ref={containerRef as any}>
+        <div ref={containerRef as any} className="edit-mode-grid">
+          <style>{`
+            .edit-mode-grid .react-grid-item > div {
+              height: 100%;
+            }
+            .edit-mode-grid .react-grid-item .widget-inner,
+            .edit-mode-grid .react-grid-item .widget-inner > * {
+              height: 100%;
+            }
+            .edit-mode-grid .react-resizable-handle {
+              z-index: 20;
+            }
+          `}</style>
           <ResponsiveGridLayout
             className="layout"
             width={width || 1200}
@@ -330,8 +342,8 @@ const DashboardBuilder = () => {
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={60}
-            dragConfig={{ enabled: editMode && !isMobile, handle: ".widget-drag-handle" }}
-            resizeConfig={{ enabled: editMode && !isMobile, handles: ["se"] }}
+            dragConfig={{ enabled: !isMobile, handle: ".widget-drag-handle" }}
+            resizeConfig={{ enabled: !isMobile, handles: ["se"] }}
             compactor={verticalCompactor}
             onLayoutChange={(l: any) => onLayoutChange(l)}
             margin={[14, 14] as [number, number]}
@@ -341,39 +353,34 @@ const DashboardBuilder = () => {
               const def = WIDGET_REGISTRY.find((w) => w.id === item.i);
               if (!Comp) return null;
               return (
-                <div key={item.i} className="relative group">
+                <div key={item.i} className="relative group h-full">
                   {/* Edit overlay frame */}
-                  <div className="absolute inset-0 rounded-xl border-2 border-dashed border-accent/25 group-hover:border-accent/50 transition-colors pointer-events-none z-[5]" />
+                  <div className="absolute inset-0 rounded-xl border-2 border-dashed border-accent/20 group-hover:border-accent/50 transition-colors pointer-events-none z-[5]" />
                   
                   {/* Widget label badge */}
-                  <div className="absolute top-2 start-10 z-10 pointer-events-none">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent bg-accent/10 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                  <div className="absolute -top-2.5 inset-x-0 z-10 pointer-events-none flex justify-center">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent-foreground bg-accent px-2.5 py-0.5 rounded-full shadow-sm">
                       {def?.icon && <def.icon className="w-3 h-3" />}
                       {def?.labelAr}
                     </span>
                   </div>
 
                   {/* Drag handle */}
-                  <div className="widget-drag-handle absolute top-2 start-2 z-10 cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-card/90 border border-border/50 shadow-sm opacity-60 group-hover:opacity-100 transition-all hover:bg-accent/10">
+                  <div className="widget-drag-handle absolute top-2 start-2 z-10 cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-card border border-border/50 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                     <Grip className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
 
                   {/* Remove button */}
                   <button
                     onClick={() => handleRemoveWidget(item.i)}
-                    className="absolute top-2 end-2 z-10 p-1.5 rounded-lg bg-card/90 border border-destructive/20 text-destructive opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/10 hover:border-destructive/40 shadow-sm"
+                    className="absolute top-2 end-2 z-10 p-1.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 shadow-sm"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Resize hint */}
-                  <div className="absolute bottom-1.5 end-1.5 z-10 opacity-0 group-hover:opacity-60 transition-opacity pointer-events-none">
-                    <svg width="12" height="12" viewBox="0 0 12 12" className="text-muted-foreground">
-                      <path d="M10 2L2 10M10 6L6 10M10 10L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
+                  <div className="widget-inner overflow-hidden rounded-xl">
+                    <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
                   </div>
-
-                  <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
                 </div>
               );
             })}
