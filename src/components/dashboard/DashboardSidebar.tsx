@@ -383,6 +383,7 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   return (
     <aside
       dir={isRTL ? "rtl" : "ltr"}
+      data-sidebar-theme="light"
       className={cn(
         "fixed top-0 z-40 flex h-screen flex-col bg-sidebar border-sidebar-border transition-all duration-300 shadow-[1px_0_8px_-2px_hsl(220_13%_80%/0.3)]",
         "inset-inline-start-0 border-e",
