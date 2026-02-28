@@ -1,6 +1,10 @@
 /**
  * Redesigned widget renderers for the Dashboard Builder.
- * Clean, consistent card design with proper visual hierarchy.
+ * All widgets use a consistent shell:
+ *   Card  → flex flex-col h-full
+ *   Header → flex-none
+ *   Content → flex-1 min-h-0 overflow-auto
+ *   Icons → fixed size, flex-none shrink-0
  */
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +37,7 @@ interface WidgetProps {
 }
 
 /* ═══════════════════════════════════════════════
-   Widget Empty State
+   Widget Empty State — fixed-size icon, centered
    ═══════════════════════════════════════════════ */
 const WidgetEmptyState = ({
   icon: Icon,
@@ -50,8 +54,8 @@ const WidgetEmptyState = ({
 }) => {
   const navigate = useNavigate();
   return (
-     <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-      <CardContent className="p-5 flex-1 flex flex-col items-center justify-center text-center gap-3 min-h-[140px]">
+    <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
+      <CardContent className="flex-1 min-h-0 p-5 flex flex-col items-center justify-center text-center gap-3">
         <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
           <Icon className="w-5 h-5 text-muted-foreground" />
         </div>
@@ -101,7 +105,7 @@ function computeTrend(
 }
 
 /* ═══════════════════════════════════════════════
-   KPI Widget — clean, consistent design
+   KPI Widget
    ═══════════════════════════════════════════════ */
 const KpiWidget = ({
   label, value, isCurrency, sub, icon: Icon, iconBg, iconColor, trendInfo, path,
@@ -123,7 +127,7 @@ const KpiWidget = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <span className={cn(
-            "inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md cursor-default tabular-nums",
+            "inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md cursor-default tabular-nums flex-none",
             trendInfo.direction === "up" && "bg-success/10 text-success",
             trendInfo.direction === "down" && "bg-destructive/10 text-destructive",
             trendInfo.direction === "flat" && "bg-muted text-muted-foreground",
@@ -143,11 +147,11 @@ const KpiWidget = ({
 
   return (
     <Card
-      className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden"
+      className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden"
       onClick={() => navigate(path)}
     >
       <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/30" />
-      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-h-[140px]">
+      <CardContent className="p-4 sm:p-5 flex-1 min-h-0 flex flex-col justify-between">
         <div className="flex items-start justify-between flex-none">
           <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-none", iconBg)}>
             <Icon className={cn("w-5 h-5", iconColor)} />
@@ -286,8 +290,8 @@ export const CollectionWidget = ({ stats }: WidgetProps) => {
   }
   const rate = stats.totalInvoices > 0 ? Math.round((stats.paidInvoices / stats.totalInvoices) * 100) : 0;
   return (
-    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-h-[140px]">
+    <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
+      <CardContent className="p-4 sm:p-5 flex-1 min-h-0 flex flex-col justify-between">
         <div className="flex items-center gap-2.5 flex-none">
           <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center flex-none shrink-0">
             <TrendingUp className="w-5 h-5 text-success" />
@@ -329,8 +333,8 @@ export const CustomersWidget = ({ stats }: WidgetProps) => {
 };
 
 export const PayrollWidget = ({ stats }: WidgetProps) => (
-  <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
-    <CardContent className="p-5 flex-1 flex flex-col justify-between">
+  <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)]">
+    <CardContent className="p-5 flex-1 min-h-0 flex flex-col justify-between">
       <div className="flex items-center gap-2.5 flex-none">
         <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-none shrink-0">
           <Banknote className="w-5 h-5 text-accent" />
@@ -356,12 +360,12 @@ export const AlertsWidget = ({ stats }: WidgetProps) => {
 
   if (alerts.length === 0) {
     return (
-      <Card className="h-full border-success/20 bg-success/[0.03] shadow-[var(--shadow-sm)]">
+      <Card className="h-full flex flex-col border-success/20 bg-success/[0.03] shadow-[var(--shadow-sm)]">
         <CardContent className="p-4 sm:p-5 flex items-center gap-3 flex-none">
           <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0 flex-none">
             <CheckCircle2 className="w-5 h-5 text-success" />
           </div>
-          <div>
+          <div className="flex-none">
             <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Bell className="w-3.5 h-3.5 text-success" />
               التنبيهات
@@ -374,9 +378,9 @@ export const AlertsWidget = ({ stats }: WidgetProps) => {
   }
 
   return (
-    <Card className="h-full border-warning/20 bg-warning/[0.02] shadow-[var(--shadow-sm)]">
-      <CardContent className="p-4 sm:p-5">
-        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+    <Card className="h-full flex flex-col border-warning/20 bg-warning/[0.02] shadow-[var(--shadow-sm)]">
+      <CardContent className="p-4 sm:p-5 flex-1 min-h-0 overflow-auto">
+        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3 flex-none">
           <Bell className="w-4 h-4 text-warning" />
           التنبيهات
           <Badge variant="outline" className="text-[10px] ms-1 border-warning/30 text-warning">{alerts.length}</Badge>
@@ -391,7 +395,7 @@ export const AlertsWidget = ({ stats }: WidgetProps) => {
                 a.severity === "warning" && "bg-warning/8 text-warning border border-warning/10",
                 a.severity === "info" && "bg-muted text-muted-foreground border border-border/50",
               )}>
-                <AlertIcon className="w-3.5 h-3.5 shrink-0" />
+                <AlertIcon className="w-3.5 h-3.5 shrink-0 flex-none" />
                 {a.msg}
               </div>
             );
@@ -415,14 +419,14 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
 
   if (activities.length === 0) {
     return (
-      <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
-        <CardHeader className="pb-2 px-5 pt-5">
+      <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)]">
+        <CardHeader className="pb-2 px-5 pt-5 flex-none">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="w-4 h-4 text-primary" />
+            <Activity className="w-4 h-4 text-primary flex-none shrink-0" />
             آخر الأنشطة
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-5 pb-5 flex flex-col items-center justify-center text-center gap-3 py-8 flex-1">
+        <CardContent className="px-5 pb-5 flex-1 min-h-0 flex flex-col items-center justify-center text-center gap-3">
           <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
             <Activity className="w-5 h-5 text-muted-foreground" />
           </div>
@@ -431,7 +435,7 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
             <p className="text-[11px] text-muted-foreground mt-0.5">ابدأ بإنشاء فاتورة أو إضافة عميل</p>
           </div>
           <Button
-            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg"
+            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg flex-none"
             onClick={() => navigate("/dashboard/billing")}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -443,33 +447,35 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
   }
 
   return (
-    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
-      <CardHeader className="pb-2 px-5 pt-5">
+    <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
+      <CardHeader className="pb-2 px-5 pt-5 flex-none">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Activity className="w-4 h-4 text-primary" />
+          <Activity className="w-4 h-4 text-primary flex-none shrink-0" />
           آخر الأنشطة
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-5 pb-5 space-y-1 overflow-y-auto max-h-[250px]">
-        {activities.map((a: any, idx: number) => (
-          <div key={a.id} className={cn(
-            "flex items-center gap-2.5 text-xs py-2.5 rounded-lg px-2 -mx-2 hover:bg-muted/40 transition-colors",
-            idx < activities.length - 1 && "border-b border-border/30"
-          )}>
-            <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
-              <Activity className="w-3 h-3 text-primary/60" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-foreground font-medium">
-                {actionLabels[a.action] || a.action} {entityLabels[a.entity_type] || a.entity_type}
+      <CardContent className="px-5 pb-5 flex-1 min-h-0 overflow-y-auto">
+        <div className="space-y-0">
+          {activities.map((a: any, idx: number) => (
+            <div key={a.id} className={cn(
+              "flex items-center gap-2.5 text-xs py-2.5 rounded-lg px-2 -mx-2 hover:bg-muted/40 transition-colors",
+              idx < activities.length - 1 && "border-b border-border/30"
+            )}>
+              <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center shrink-0 flex-none">
+                <Activity className="w-3 h-3 text-primary/60" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-foreground font-medium">
+                  {actionLabels[a.action] || a.action} {entityLabels[a.entity_type] || a.entity_type}
+                </span>
+                {a.entity_label && <span className="text-muted-foreground truncate"> — {a.entity_label}</span>}
+              </div>
+              <span className="text-[10px] text-muted-foreground/60 shrink-0 flex-none tabular-nums">
+                {new Date(a.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short" })}
               </span>
-              {a.entity_label && <span className="text-muted-foreground truncate"> — {a.entity_label}</span>}
             </div>
-            <span className="text-[10px] text-muted-foreground/60 shrink-0 tabular-nums">
-              {new Date(a.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short" })}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
@@ -481,8 +487,8 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
 
   if (!hasData) {
     return (
-       <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
-        <CardContent className="p-5 flex-1 flex flex-col items-center justify-center text-center gap-3 min-h-[280px]">
+      <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)]">
+        <CardContent className="p-5 flex-1 min-h-0 flex flex-col items-center justify-center text-center gap-3">
           <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
           </div>
@@ -503,8 +509,8 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   }
 
   return (
-    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
-      <CardContent className="p-3 sm:p-4 h-full min-h-[300px]">
+    <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
+      <CardContent className="p-3 sm:p-4 flex-1 min-h-0">
         <Suspense fallback={<Skeleton className="w-full h-full rounded-lg" />}>
           <ChartsSection
             monthlyData={monthlyData}

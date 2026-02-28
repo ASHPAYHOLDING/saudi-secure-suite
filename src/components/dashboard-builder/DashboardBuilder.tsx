@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings2, RotateCcw, Grip, X, Zap, BarChart3,
   Save, CheckCircle2, Plus, CalendarDays, Building2,
+  Move,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,54 @@ async function fetchStats(tenantId: string) {
     monthlyData,
   };
 }
+
+/* ═══════════════════════════════════════════════
+   Edit-mode Widget Shell
+   Wraps each widget in a properly-structured container
+   that fills grid cell height without stretching internals.
+   ═══════════════════════════════════════════════ */
+const EditWidgetShell = ({
+  widgetId,
+  def,
+  onRemove,
+  children,
+}: {
+  widgetId: string;
+  def: (typeof WIDGET_REGISTRY)[number] | undefined;
+  onRemove: (id: string) => void;
+  children: React.ReactNode;
+}) => (
+  <div className="relative group h-full flex flex-col">
+    {/* Dashed edit frame */}
+    <div className="absolute inset-0 rounded-xl border-2 border-dashed border-accent/20 group-hover:border-accent/40 transition-colors pointer-events-none z-[5]" />
+
+    {/* Floating label */}
+    <div className="absolute -top-2.5 inset-x-0 z-10 pointer-events-none flex justify-center">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent-foreground bg-accent px-2.5 py-0.5 rounded-full shadow-sm">
+        {def?.icon && <def.icon className="w-3 h-3" />}
+        {def?.labelAr}
+      </span>
+    </div>
+
+    {/* Drag handle */}
+    <div className="widget-drag-handle absolute top-2 start-2 z-10 cursor-grab active:cursor-grabbing p-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border/50 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+      <Move className="w-3.5 h-3.5 text-muted-foreground" />
+    </div>
+
+    {/* Remove button */}
+    <button
+      onClick={() => onRemove(widgetId)}
+      className="absolute top-2 end-2 z-10 p-1 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
+    >
+      <X className="w-3.5 h-3.5" />
+    </button>
+
+    {/* Widget content — fills remaining space, clips overflow */}
+    <div className="flex-1 min-h-0 overflow-hidden rounded-xl">
+      {children}
+    </div>
+  </div>
+);
 
 const DashboardBuilder = () => {
   const { tenantId, profile } = useAuth();
@@ -241,7 +290,7 @@ const DashboardBuilder = () => {
           >
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center flex-none shrink-0">
                   <Settings2 className="w-4.5 h-4.5 text-accent" />
                 </div>
                 <div>
@@ -324,22 +373,11 @@ const DashboardBuilder = () => {
         /* ── Editable Grid Mode ── */
         <div ref={containerRef as any} className="edit-mode-grid">
           <style>{`
+            .edit-mode-grid .react-grid-item {
+              transition: all 200ms ease;
+            }
             .edit-mode-grid .react-grid-item > div {
               height: 100%;
-            }
-            .edit-mode-grid .widget-inner {
-              height: 100%;
-            }
-            .edit-mode-grid .widget-inner > div[class] {
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-            }
-            /* Prevent icon/empty-state containers from stretching */
-            .edit-mode-grid .widget-inner [class*="rounded-xl"][class*="items-center"][class*="justify-center"],
-            .edit-mode-grid .widget-inner [class*="rounded-2xl"][class*="items-center"][class*="justify-center"] {
-              flex: none !important;
-              flex-shrink: 0 !important;
             }
             .edit-mode-grid .react-resizable-handle {
               z-index: 20;
@@ -363,34 +401,14 @@ const DashboardBuilder = () => {
               const def = WIDGET_REGISTRY.find((w) => w.id === item.i);
               if (!Comp) return null;
               return (
-                <div key={item.i} className="relative group h-full">
-                  {/* Edit overlay frame */}
-                  <div className="absolute inset-0 rounded-xl border-2 border-dashed border-accent/20 group-hover:border-accent/50 transition-colors pointer-events-none z-[5]" />
-                  
-                  {/* Widget label badge */}
-                  <div className="absolute -top-2.5 inset-x-0 z-10 pointer-events-none flex justify-center">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent-foreground bg-accent px-2.5 py-0.5 rounded-full shadow-sm">
-                      {def?.icon && <def.icon className="w-3 h-3" />}
-                      {def?.labelAr}
-                    </span>
-                  </div>
-
-                  {/* Drag handle */}
-                  <div className="widget-drag-handle absolute top-2 start-2 z-10 cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-card border border-border/50 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Grip className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-
-                  {/* Remove button */}
-                  <button
-                    onClick={() => handleRemoveWidget(item.i)}
-                    className="absolute top-2 end-2 z-10 p-1.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 shadow-sm"
+                <div key={item.i}>
+                  <EditWidgetShell
+                    widgetId={item.i}
+                    def={def}
+                    onRemove={handleRemoveWidget}
                   >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-
-                  <div className="widget-inner overflow-hidden rounded-xl">
                     <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
-                  </div>
+                  </EditWidgetShell>
                 </div>
               );
             })}
