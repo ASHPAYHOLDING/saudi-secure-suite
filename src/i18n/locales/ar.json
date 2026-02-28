@@ -265,7 +265,13 @@
     "entityInvoice": "فاتورة",
     "entityContract": "عقد",
     "entityCustomer": "عميل",
-    "entityStamp": "ختم"
+    "entityStamp": "ختم",
+    "quickInvoice": "فاتورة سريعة",
+    "newInvoice": "فاتورة جديدة",
+    "newCustomer": "عميل جديد",
+    "newExpense": "مصروف جديد",
+    "newJournal": "قيد يومي",
+    "paymentLink": "رابط دفع"
   },
   "invoices": {
     "title": "الفواتير",

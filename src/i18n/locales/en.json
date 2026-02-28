@@ -265,7 +265,13 @@
     "entityInvoice": "invoice",
     "entityContract": "contract",
     "entityCustomer": "customer",
-    "entityStamp": "stamp"
+    "entityStamp": "stamp",
+    "quickInvoice": "Quick Invoice",
+    "newInvoice": "New Invoice",
+    "newCustomer": "New Customer",
+    "newExpense": "New Expense",
+    "newJournal": "Journal Entry",
+    "paymentLink": "Payment Link"
   },
   "invoices": {
     "title": "Invoices",
