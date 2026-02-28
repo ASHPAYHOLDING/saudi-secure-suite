@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export interface OnboardingState {
   id: string;
@@ -17,11 +17,15 @@ const ONBOARDING_KEY = "onboarding-state";
 const REQUIRED_STEPS = [1, 2, 4]; // company + finance + first customer
 const TOTAL_STEPS = 5;
 
-export function useOnboardingState() {
-  const { user, tenantId } = useAuth();
-  const qc = useQueryClient();
+/** Roles that must go through onboarding wizard */
+const ONBOARDING_ROLES = new Set(["owner", "admin"]);
 
-  const { data: state, isLoading } = useQuery({
+export function useOnboardingState() {
+  const { user, tenantId, userRole } = useAuth();
+  const qc = useQueryClient();
+  const initAttempted = useRef(false);
+
+  const { data: state, isLoading, isError } = useQuery({
     queryKey: [ONBOARDING_KEY, tenantId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,6 +39,7 @@ export function useOnboardingState() {
     },
     enabled: !!user && !!tenantId,
     staleTime: 60_000,
+    retry: 2,
   });
 
   const upsertMutation = useMutation({
@@ -93,18 +98,63 @@ export function useOnboardingState() {
 
   const isCompleted = !!state?.completed_at;
   const requiredDone = REQUIRED_STEPS.every((s) => state?.completed_steps?.includes(s));
-  // needsOnboarding: true if state exists and is incomplete
-  const needsOnboarding = !isLoading && !!state && !isCompleted && !requiredDone;
 
-  /** Call once after signup to create initial onboarding state row */
+  /** Should this role go through onboarding? */
+  const isOnboardingRole = !!userRole && ONBOARDING_ROLES.has(userRole);
+
+  /**
+   * needsOnboarding logic:
+   * - member/manager/hr/accountant → never needs onboarding (skip wizard)
+   * - owner/admin with no state row → needs onboarding
+   * - owner/admin with state but incomplete required steps → needs onboarding
+   * - query error (safeguard) → treat as needs onboarding for owner/admin
+   */
+  const needsOnboarding =
+    !isLoading &&
+    isOnboardingRole &&
+    (
+      isError ||           // DB error → safeguard: block access
+      !state ||            // no row = new user → needs onboarding
+      (!isCompleted && !requiredDone) // row exists but incomplete
+    );
+
+  /** Create initial onboarding state row (upsert = no duplicates) */
   const initOnboarding = useCallback(async () => {
-    if (state || !user || !tenantId) return;
+    if (!user || !tenantId) return;
     await upsertMutation.mutateAsync({
       current_step: 1,
       completed_steps: [],
       step_data: {},
     });
-  }, [state, user, tenantId, upsertMutation]);
+  }, [user, tenantId, upsertMutation]);
+
+  /**
+   * Auto-init: if auth is ready, state is null (not loading, no error),
+   * and user is owner/admin → auto-create the onboarding row.
+   * Uses a ref to prevent double-init.
+   */
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !isError &&
+      state === null &&
+      isOnboardingRole &&
+      user &&
+      tenantId &&
+      !initAttempted.current &&
+      !upsertMutation.isPending
+    ) {
+      initAttempted.current = true;
+      initOnboarding().catch((err) => {
+        console.error("[Onboarding] auto-init failed:", err);
+      });
+    }
+  }, [isLoading, isError, state, isOnboardingRole, user, tenantId, initOnboarding, upsertMutation.isPending]);
+
+  // Reset the init flag when user/tenant changes
+  useEffect(() => {
+    initAttempted.current = false;
+  }, [user?.id, tenantId]);
 
   return {
     state,
