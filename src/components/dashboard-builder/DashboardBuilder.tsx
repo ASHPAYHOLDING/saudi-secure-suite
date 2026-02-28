@@ -3,6 +3,7 @@
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveGridLayout, useContainerWidth, verticalCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -106,6 +107,12 @@ const DashboardBuilder = () => {
   const [editMode, setEditMode] = useState(false);
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
   const { width, containerRef } = useContainerWidth();
+  const isMobile = useIsMobile();
+
+  // Force exit edit mode on mobile
+  useEffect(() => {
+    if (isMobile && editMode) setEditMode(false);
+  }, [isMobile, editMode]);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -234,35 +241,37 @@ const DashboardBuilder = () => {
             <span className="hidden sm:inline">التقارير</span>
           </Button>
 
-          {/* Builder controls */}
-          <div className="border-s border-border/50 ps-2 ms-1 flex items-center gap-1.5">
-            <WidgetCatalog
-              layout={layout}
-              onToggleWidget={handleToggleWidget}
-              hasPermission={hasPermission}
-            />
-            <Button
-              variant={editMode ? "default" : "outline"}
-              size="sm"
-              className="gap-1.5"
-              onClick={() => setEditMode(!editMode)}
-            >
-              {editMode ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {editMode ? "تم" : "تخصيص"}
-            </Button>
-            {editMode && (
-              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={resetLayout}>
-                <RotateCcw className="w-3.5 h-3.5" />
-                إعادة ضبط
+          {/* Builder controls — hidden on mobile */}
+          {!isMobile && (
+            <div className="border-s border-border/50 ps-2 ms-1 flex items-center gap-1.5">
+              <WidgetCatalog
+                layout={layout}
+                onToggleWidget={handleToggleWidget}
+                hasPermission={hasPermission}
+              />
+              <Button
+                variant={editMode ? "default" : "outline"}
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setEditMode(!editMode)}
+              >
+                {editMode ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+                {editMode ? "تم" : "تخصيص"}
               </Button>
-            )}
-            {saving && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
-                <Save className="w-3 h-3 me-1" />
-                حفظ...
-              </Badge>
-            )}
-          </div>
+              {editMode && (
+                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={resetLayout}>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  إعادة ضبط
+                </Button>
+              )}
+              {saving && (
+                <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
+                  <Save className="w-3 h-3 me-1" />
+                  حفظ...
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -295,8 +304,8 @@ const DashboardBuilder = () => {
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={60}
-            dragConfig={{ enabled: editMode, handle: ".widget-drag-handle" }}
-            resizeConfig={{ enabled: editMode, handles: ["se"] }}
+            dragConfig={{ enabled: editMode && !isMobile, handle: ".widget-drag-handle" }}
+            resizeConfig={{ enabled: editMode && !isMobile, handles: ["se"] }}
             compactor={verticalCompactor}
             onLayoutChange={(l: any) => onLayoutChange(l)}
             margin={[12, 12] as [number, number]}
