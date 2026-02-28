@@ -225,7 +225,7 @@ const CustomerProfile = ({ customerId, onBack }: CustomerProfileProps) => {
           {customer.name_en && <p className="text-sm text-muted-foreground">{customer.name_en}</p>}
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => window.open(`/dashboard/invoices/new?customer=${customerId}`, "_self")}>
+          <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => window.open(`/dashboard/billing?customer=${customerId}`, "_self")}>
             <Receipt size={13} /> فاتورة جديدة
           </Button>
           <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => window.open(`/dashboard/quotations/new?customer=${customerId}`, "_self")}>

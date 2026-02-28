@@ -73,8 +73,8 @@ export function useSetupChecklist() {
   const items: ChecklistItem[] = [
     { key: "company", label: "أكمل بيانات الشركة", done: companyDone, href: "/dashboard/company" },
     { key: "customer", label: "أضف أول عميل", done: hasCust, href: "/dashboard/customers" },
-    { key: "invoice", label: "أنشئ أول فاتورة", done: hasInv, href: "/dashboard/invoices/new" },
-    { key: "team", label: "دعوة عضو فريق", done: hasTeam, href: "/dashboard/settings/team" },
+    { key: "invoice", label: "أنشئ أول فاتورة", done: hasInv, href: "/dashboard/billing" },
+    { key: "team", label: "دعوة عضو فريق", done: hasTeam, href: "/dashboard/team" },
     { key: "payment", label: "تفعيل بوابة الدفع", done: paymentDone, href: "/dashboard/integrations", optional: true },
   ];
 
