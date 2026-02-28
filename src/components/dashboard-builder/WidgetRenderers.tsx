@@ -409,12 +409,36 @@ export const AlertsWidget = ({ stats }: WidgetProps) => {
 export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
   const navigate = useNavigate();
   const actionLabels: Record<string, string> = {
-    create: "إنشاء", update: "تعديل", delete: "حذف", approve: "اعتماد",
+    create: "إنشاء", insert: "إضافة", update: "تعديل", delete: "حذف", approve: "اعتماد",
     reject: "رفض", send: "إرسال", mark_paid: "تحصيل", cancel: "إلغاء",
+    login: "تسجيل دخول", logout: "تسجيل خروج", signup: "تسجيل",
+    upload: "رفع", download: "تحميل", export: "تصدير", import: "استيراد",
+    archive: "أرشفة", restore: "استعادة", assign: "تعيين", close: "إغلاق",
+    open: "فتح", submit: "إرسال", review: "مراجعة", verify: "تحقق",
+    activate: "تفعيل", deactivate: "تعطيل", lock: "قفل", unlock: "فتح قفل",
+    pay: "دفع", refund: "استرداد", void: "إلغاء", post: "ترحيل",
+    sign: "توقيع", renew: "تجديد", suspend: "تعليق", complete: "إكمال",
   };
   const entityLabels: Record<string, string> = {
-    invoice: "فاتورة", invoices: "فاتورة", contract: "عقد", customer: "عميل",
-    expense: "مصروف", journal_entry: "قيد", payment: "دفعة",
+    invoice: "فاتورة", invoices: "فاتورة", contract: "عقد", contracts: "عقد",
+    customer: "عميل", customers: "عميل", expense: "مصروف", expenses: "مصروف",
+    journal_entry: "قيد محاسبي", journal_entries: "قيد محاسبي",
+    payment: "دفعة", payments: "دفعة", user: "مستخدم", users: "مستخدم",
+    quotation: "عرض سعر", quotations: "عرض سعر",
+    credit_note: "إشعار دائن", credit_notes: "إشعار دائن",
+    purchase_order: "أمر شراء", purchase_orders: "أمر شراء",
+    sales_order: "أمر بيع", sales_orders: "أمر بيع",
+    delivery_note: "إذن تسليم", delivery_notes: "إذن تسليم",
+    product: "منتج", products: "منتج", category: "فئة",
+    employee: "موظف", employees: "موظف", department: "قسم",
+    branch: "فرع", branches: "فرع", tenant: "منشأة",
+    budget: "ميزانية", budgets: "ميزانية", report: "تقرير",
+    role: "صلاحية", permission: "إذن", setting: "إعداد", settings: "إعدادات",
+    account: "حساب", accounts: "حساب", vendor: "مورد", suppliers: "مورد",
+    approval: "موافقة", workflow: "سير عمل", notification: "إشعار",
+    file: "ملف", document: "مستند", template: "قالب",
+    payroll: "مسير رواتب", attendance: "حضور", leave: "إجازة",
+    subscription: "اشتراك", plan: "خطة",
   };
 
   if (activities.length === 0) {
@@ -466,7 +490,7 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-foreground font-medium">
-                  {actionLabels[a.action] || a.action} {entityLabels[a.entity_type] || a.entity_type}
+                  {actionLabels[a.action] || "عملية"} {entityLabels[a.entity_type] || "عنصر"}
                 </span>
                 {a.entity_label && <span className="text-muted-foreground truncate"> — {a.entity_label}</span>}
               </div>
