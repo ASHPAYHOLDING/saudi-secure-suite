@@ -3,10 +3,7 @@
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
-// @ts-ignore — react-grid-layout uses CJS; named re-exports for ESM compat
-import ReactGridLayout from "react-grid-layout";
-const Responsive = (ReactGridLayout as any).Responsive ?? ReactGridLayout;
-const WidthProvider = (ReactGridLayout as any).WidthProvider;
+import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { motion } from "framer-motion";
@@ -297,7 +294,7 @@ const DashboardBuilder = () => {
           rowHeight={60}
           isDraggable={editMode}
           isResizable={editMode}
-          onLayoutChange={(l) => onLayoutChange(l)}
+          onLayoutChange={(l: any[]) => onLayoutChange(l)}
           draggableHandle=".widget-drag-handle"
           compactType="vertical"
           margin={[12, 12]}
