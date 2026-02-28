@@ -50,19 +50,19 @@ const WidgetEmptyState = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-      <CardContent className="p-5 h-full flex flex-col items-center justify-center text-center gap-3 min-h-[140px]">
-        <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
+     <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
+      <CardContent className="p-5 flex-1 flex flex-col items-center justify-center text-center gap-3 min-h-[140px]">
+        <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
           <Icon className="w-5 h-5 text-muted-foreground" />
         </div>
-        <div>
+        <div className="flex-none">
           <p className="text-sm font-semibold text-foreground">{title}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[200px] leading-relaxed">{description}</p>
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="gap-1.5 text-xs h-8 rounded-lg"
+          className="gap-1.5 text-xs h-8 rounded-lg flex-none"
           onClick={() => navigate(actionPath)}
         >
           <Plus className="w-3.5 h-3.5" />
@@ -147,14 +147,14 @@ const KpiWidget = ({
       onClick={() => navigate(path)}
     >
       <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/30" />
-      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between min-h-[140px]">
-        <div className="flex items-start justify-between">
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-h-[140px]">
+        <div className="flex items-start justify-between flex-none">
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-none", iconBg)}>
             <Icon className={cn("w-5 h-5", iconColor)} />
           </div>
           {TrendBadge}
         </div>
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-3 flex-none">
           <p className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight tabular-nums leading-none">
             {isCurrency ? fmtCurrency(value) : fmtNumber(value)}
           </p>
@@ -287,14 +287,14 @@ export const CollectionWidget = ({ stats }: WidgetProps) => {
   const rate = stats.totalInvoices > 0 ? Math.round((stats.paidInvoices / stats.totalInvoices) * 100) : 0;
   return (
     <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between min-h-[140px]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between min-h-[140px]">
+        <div className="flex items-center gap-2.5 flex-none">
+          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center flex-none shrink-0">
             <TrendingUp className="w-5 h-5 text-success" />
           </div>
           <span className="text-xs font-semibold text-foreground">معدل التحصيل</span>
         </div>
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-3 flex-none">
           <p className="text-[28px] font-bold text-foreground tabular-nums leading-none">{rate}%</p>
           <Progress value={rate} className="mt-2.5 h-1.5 rounded-full" />
           <p className="text-[10px] text-muted-foreground mt-1.5 tabular-nums">
@@ -330,14 +330,14 @@ export const CustomersWidget = ({ stats }: WidgetProps) => {
 
 export const PayrollWidget = ({ stats }: WidgetProps) => (
   <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
-    <CardContent className="p-5 h-full flex flex-col justify-between">
-      <div className="flex items-center gap-2.5">
-        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+    <CardContent className="p-5 flex-1 flex flex-col justify-between">
+      <div className="flex items-center gap-2.5 flex-none">
+        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-none shrink-0">
           <Banknote className="w-5 h-5 text-accent" />
         </div>
         <span className="text-sm font-semibold text-foreground">الرواتب</span>
       </div>
-      <div className="mt-3">
+      <div className="mt-3 flex-none">
         <p className="text-sm text-muted-foreground">يتم عرض بيانات الرواتب من وحدة HR</p>
         <Badge className="mt-2 bg-accent/10 text-accent border-0">Enterprise</Badge>
       </div>
@@ -357,8 +357,8 @@ export const AlertsWidget = ({ stats }: WidgetProps) => {
   if (alerts.length === 0) {
     return (
       <Card className="h-full border-success/20 bg-success/[0.03] shadow-[var(--shadow-sm)]">
-        <CardContent className="p-4 sm:p-5 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+        <CardContent className="p-4 sm:p-5 flex items-center gap-3 flex-none">
+          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0 flex-none">
             <CheckCircle2 className="w-5 h-5 text-success" />
           </div>
           <div>
@@ -422,11 +422,11 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
             آخر الأنشطة
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-5 pb-5 flex flex-col items-center justify-center text-center gap-3 py-8">
-          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
+        <CardContent className="px-5 pb-5 flex flex-col items-center justify-center text-center gap-3 py-8 flex-1">
+          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
             <Activity className="w-5 h-5 text-muted-foreground" />
           </div>
-          <div>
+          <div className="flex-none">
             <p className="text-sm font-semibold text-foreground">لا توجد أنشطة حديثة</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">ابدأ بإنشاء فاتورة أو إضافة عميل</p>
           </div>
@@ -481,17 +481,17 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
 
   if (!hasData) {
     return (
-      <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
-        <CardContent className="p-5 h-full flex flex-col items-center justify-center text-center gap-3 min-h-[280px]">
-          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
+       <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
+        <CardContent className="p-5 flex-1 flex flex-col items-center justify-center text-center gap-3 min-h-[280px]">
+          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center flex-none shrink-0">
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
           </div>
-          <div>
+          <div className="flex-none">
             <p className="text-sm font-semibold text-foreground">لا توجد بيانات للرسم البياني</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">أنشئ فواتير ومصروفات لعرض التحليلات</p>
           </div>
           <Button
-            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg"
+            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg flex-none"
             onClick={() => navigate("/dashboard/billing")}
           >
             <Plus className="w-3.5 h-3.5" />
