@@ -2,7 +2,7 @@
  * DashboardBuilder — Premium enterprise dashboard with live clock,
  * scroll-reveal animations, and fully responsive RTL layout.
  */
-import { lazy, Suspense, useMemo, useState, useRef } from "react";
+import { lazy, Suspense, useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
   CalendarDays, Zap, BarChart3, TrendingUp,
@@ -11,6 +11,7 @@ import {
   FileSignature, Target, BookOpen, UserCircle,
   ChevronLeft, Sparkles, Activity, PieChart,
   ArrowRight, Clock, Bell, Plus, BookOpenCheck,
+  ArrowLeft, Star, History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -151,7 +152,19 @@ const ScrollReveal = ({ children, className }: { children: React.ReactNode; clas
 };
 
 /* ═══════════════════════════════════════════════
-   Section Navigation Card
+   localStorage helpers for last-visited section
+   ═══════════════════════════════════════════════ */
+const LAST_SECTION_KEY = "dashboard_last_section";
+
+function getLastSection(): string | null {
+  try { return localStorage.getItem(LAST_SECTION_KEY); } catch { return null; }
+}
+function setLastSection(path: string) {
+  try { localStorage.setItem(LAST_SECTION_KEY, path); } catch { /* noop */ }
+}
+
+/* ═══════════════════════════════════════════════
+   Section Navigation Card — Enhanced with CTA + glow border
    ═══════════════════════════════════════════════ */
 interface SectionCardProps {
   icon: any;
@@ -161,20 +174,38 @@ interface SectionCardProps {
   gradient: string;
   iconColor: string;
   count?: number;
+  isLastVisited?: boolean;
+  isHighlighted?: boolean;
 }
 
-const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor, count }: SectionCardProps) => {
+const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor, count, isLastVisited, isHighlighted }: SectionCardProps) => {
   const navigate = useNavigate();
+
+  const handleClick = () => {
+    setLastSection(path);
+    navigate(path);
+  };
+
   return (
     <motion.div variants={staggerItem}>
       <Card
-        className="group cursor-pointer border-border/40 bg-card/80 backdrop-blur-sm hover:border-accent/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-500 overflow-hidden relative h-full"
-        onClick={() => navigate(path)}
+        className={cn(
+          "group cursor-pointer bg-card/80 backdrop-blur-sm transition-all duration-500 overflow-hidden relative h-full",
+          "border-border/40 hover:shadow-xl hover:shadow-accent/10 hover:-translate-y-1",
+          // Glow border on hover
+          "hover:border-accent/50",
+          isHighlighted && "ring-2 ring-accent/20 border-accent/30",
+          isLastVisited && "border-primary/30 bg-primary/[0.02]",
+        )}
+        onClick={handleClick}
       >
+        {/* Top gradient bar */}
         <div className={cn("absolute top-0 inset-x-0 h-1 transition-all duration-500 opacity-0 group-hover:opacity-100", gradient)} />
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <CardContent className="p-4 sm:p-5 relative z-10">
-          <div className="flex items-start gap-3">
+        {/* Hover glow overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        <CardContent className="p-4 sm:p-5 relative z-10 flex flex-col h-full">
+          <div className="flex items-start gap-3 flex-1">
             <motion.div
               whileHover={{ scale: 1.1, rotate: -5 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -183,17 +214,36 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
               <Icon className="w-5 h-5 text-white" />
             </motion.div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <h3 className="text-sm font-bold text-foreground group-hover:text-accent transition-colors duration-300">{title}</h3>
-                <ChevronLeft className="w-4 h-4 text-muted-foreground/30 group-hover:text-accent transition-all duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1 flex-none" />
+                {isLastVisited && (
+                  <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-primary/30 text-primary flex-none">
+                    <History className="w-2.5 h-2.5 me-0.5" />
+                    آخر زيارة
+                  </Badge>
+                )}
               </div>
               <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">{description}</p>
               {count !== undefined && count > 0 && (
-                <Badge variant="secondary" className="mt-2 text-[10px] h-5 px-2 bg-muted/60">
+                <Badge variant="secondary" className="mt-2 text-[10px] h-5 px-2 bg-muted/60 tabular-nums">
                   {fmtNumber(count)}
                 </Badge>
               )}
             </div>
+          </div>
+
+          {/* CTA button */}
+          <div className="flex items-center justify-end mt-3 pt-2 border-t border-border/30">
+            <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-accent transition-colors duration-300 flex items-center gap-1">
+              فتح
+              <motion.span
+                className="inline-block"
+                initial={{ x: 0 }}
+                whileHover={{ x: -3 }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
+              </motion.span>
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -258,12 +308,13 @@ const DashboardSkeleton = () => (
    Main Dashboard
    ═══════════════════════════════════════════════ */
 const DashboardBuilder = () => {
-  const { tenantId, profile } = useAuth();
+  const { tenantId, profile, userRole } = useAuth();
   const { dir } = useLanguage();
   const navigate = useNavigate();
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
   const prefersReduced = useReducedMotion();
   const clock = useLiveClock();
+  const [lastSection] = useState(() => getLastSection());
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -281,16 +332,29 @@ const DashboardBuilder = () => {
     return "مساء النور";
   })();
 
+  // ── Sections with correct routes ──
   const sections = useMemo(() => [
-    { icon: CreditCard, title: "الفواتير والفوترة", description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات", path: "/dashboard/billing", gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600", iconColor: "text-white", count: data?.stats?.totalInvoices },
-    { icon: Users, title: "العملاء", description: "إدارة بيانات العملاء والعلاقات التجارية", path: "/dashboard/customers", gradient: "bg-gradient-to-br from-blue-500 to-blue-600", iconColor: "text-white", count: data?.stats?.totalCustomers },
-    { icon: Wallet, title: "المالية", description: "التدفقات النقدية، الحسابات، التقارير المالية", path: "/dashboard/finance", gradient: "bg-gradient-to-br from-violet-500 to-violet-600", iconColor: "text-white" },
-    { icon: Receipt, title: "المصروفات", description: "تسجيل ومتابعة وإدارة المصروفات", path: "/dashboard/expenses", gradient: "bg-gradient-to-br from-amber-500 to-orange-500", iconColor: "text-white" },
-    { icon: FileSignature, title: "العقود", description: "إدارة العقود والاتفاقيات التجارية", path: "/dashboard/contracts", gradient: "bg-gradient-to-br from-teal-500 to-teal-600", iconColor: "text-white", count: data?.stats?.totalContracts },
-    { icon: BarChart3, title: "التقارير والتحليلات", description: "تقارير شاملة ولوحات تحليلية ذكية", path: "/dashboard/reports", gradient: "bg-gradient-to-br from-rose-500 to-pink-500", iconColor: "text-white" },
-    { icon: Target, title: "الميزانيات", description: "التخطيط المالي ومتابعة الميزانيات", path: "/dashboard/budgets", gradient: "bg-gradient-to-br from-cyan-500 to-cyan-600", iconColor: "text-white" },
-    { icon: Briefcase, title: "الموارد البشرية", description: "إدارة الموظفين، الرواتب، الحضور والانصراف", path: "/dashboard/hr", gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600", iconColor: "text-white" },
+    { icon: CreditCard, title: "الفواتير والفوترة", description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات", path: "/dashboard/invoices", gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600", iconColor: "text-white", count: data?.stats?.totalInvoices, rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
+    { icon: Users, title: "العملاء", description: "إدارة بيانات العملاء والعلاقات التجارية", path: "/dashboard/customers", gradient: "bg-gradient-to-br from-blue-500 to-blue-600", iconColor: "text-white", count: data?.stats?.totalCustomers, rbacRoles: ["owner", "admin", "manager", "sales"] as string[] },
+    { icon: Wallet, title: "المالية", description: "التدفقات النقدية، الحسابات، التقارير المالية", path: "/dashboard/finance/overview", gradient: "bg-gradient-to-br from-violet-500 to-violet-600", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant"] as string[] },
+    { icon: Receipt, title: "المصروفات", description: "تسجيل ومتابعة وإدارة المصروفات", path: "/dashboard/expenses", gradient: "bg-gradient-to-br from-amber-500 to-orange-500", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
+    { icon: Briefcase, title: "الموارد البشرية", description: "إدارة الموظفين، الرواتب، الحضور والانصراف", path: "/dashboard/hr", gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600", iconColor: "text-white", rbacRoles: ["owner", "admin", "hr_manager"] as string[] },
+    { icon: BarChart3, title: "التقارير والتحليلات", description: "تقارير شاملة ولوحات تحليلية ذكية", path: "/dashboard/analytics", gradient: "bg-gradient-to-br from-rose-500 to-pink-500", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
   ], [data?.stats]);
+
+  // ── RBAC: highlight top 3 sections for the user's role ──
+  const highlightedPaths = useMemo(() => {
+    const role = userRole || "viewer";
+    // Prioritize sections where this role is listed first
+    const sorted = [...sections].sort((a, b) => {
+      const aIdx = a.rbacRoles.indexOf(role);
+      const bIdx = b.rbacRoles.indexOf(role);
+      const aRank = aIdx === -1 ? 999 : aIdx;
+      const bRank = bIdx === -1 ? 999 : bIdx;
+      return aRank - bRank;
+    });
+    return new Set(sorted.slice(0, 3).map(s => s.path));
+  }, [sections, userRole]);
 
   const quickActions = [
     { icon: Zap, label: "فاتورة سريعة", onClick: () => setQuickInvoiceOpen(true), variant: "primary" as const },
@@ -464,20 +528,47 @@ const DashboardBuilder = () => {
 
           {/* ── Section Navigation ── */}
           <ScrollReveal>
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-3 mb-4">
               <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-accent to-accent/50" />
               <h2 className="text-base sm:text-lg font-bold text-foreground">الأقسام الرئيسية</h2>
               <div className="flex-1 h-px bg-border/40" />
             </div>
+
+            {/* RBAC Shortcuts bar */}
+            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
+              <Star className="w-3.5 h-3.5 text-accent flex-none" />
+              <span className="text-[11px] text-muted-foreground font-medium flex-none">اختصاراتك:</span>
+              {sections.filter(s => highlightedPaths.has(s.path)).map(s => {
+                const SIcon = s.icon;
+                return (
+                  <Button
+                    key={s.path}
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 h-8 text-[11px] rounded-lg border-accent/30 bg-accent/5 hover:bg-accent/10 text-foreground font-semibold flex-none whitespace-nowrap"
+                    onClick={() => { setLastSection(s.path); navigate(s.path); }}
+                  >
+                    <SIcon className="w-3.5 h-3.5" />
+                    {s.title}
+                  </Button>
+                );
+              })}
+            </div>
+
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: "-40px" }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
             >
               {sections.map((section) => (
-                <SectionCard key={section.path} {...section} />
+                <SectionCard
+                  key={section.path}
+                  {...section}
+                  isLastVisited={lastSection === section.path}
+                  isHighlighted={highlightedPaths.has(section.path)}
+                />
               ))}
             </motion.div>
           </ScrollReveal>
