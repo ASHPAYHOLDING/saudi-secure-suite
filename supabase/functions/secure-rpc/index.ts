@@ -18,6 +18,20 @@ const SLOW_RPCS = new Set([
   "auto_activate_enterprise_integrations",
 ]);
 
+// RPCs that internally call auth.uid() — must run with user-scoped client
+const AUTH_CONTEXT_RPCS = new Set([
+  "atomic_start_workflow",
+  "secure_workflow_action",
+  "secure_approval_action",
+  "post_journal_entry",
+  "approve_journal_entry",
+  "reject_journal_entry",
+  "close_accounting_period",
+  "reopen_accounting_period",
+  "publish_domain_event",
+  "governance_log_violation",
+]);
+
 // ── Enterprise tenant cache (5-min TTL) ────────────────────────
 const enterpriseCache = new Map<string, { value: boolean; expiresAt: number }>();
 const ENTERPRISE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -257,11 +271,14 @@ Deno.serve(async (req) => {
       castParams[k] = v;
     }
 
-    // 7. Execute with service_role + timeout guard
+    // 7. Execute with timeout guard
+    //    Use user-scoped client for RPCs that need auth.uid() context,
+    //    otherwise use service_role to bypass RLS.
+    const rpcClient = AUTH_CONTEXT_RPCS.has(fn) ? anonClient : serviceClient;
     const timeoutMs = SLOW_RPCS.has(fn) ? SLOW_RPC_TIMEOUT_MS : RPC_TIMEOUT_MS;
     try {
       const { data, error } = await withTimeout(
-        () => serviceClient.rpc(fn, castParams),
+        () => rpcClient.rpc(fn, castParams),
         timeoutMs,
         `rpc:${fn}`
       );
