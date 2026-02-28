@@ -200,7 +200,7 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
         onClick={handleClick}
       >
         {/* Top gradient bar */}
-        <div className={cn("absolute top-0 inset-x-0 h-1 transition-all duration-500 opacity-0 group-hover:opacity-100", gradient)} />
+        <div className="absolute top-0 inset-x-0 h-1 transition-all duration-500 opacity-0 group-hover:opacity-100" style={{ background: `var(--${gradient})` }} />
         {/* Hover glow overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -209,7 +209,8 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
             <motion.div
               whileHover={{ scale: 1.1, rotate: -5 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className={cn("w-11 h-11 rounded-2xl flex items-center justify-center flex-none shrink-0 shadow-sm", gradient)}
+              className="w-11 h-11 rounded-2xl flex items-center justify-center flex-none shrink-0 shadow-sm"
+              style={{ background: `var(--${gradient})` }}
             >
               <Icon className="w-5 h-5 text-white" />
             </motion.div>
@@ -334,12 +335,12 @@ const DashboardBuilder = () => {
 
   // ── Sections with correct routes ──
   const sections = useMemo(() => [
-    { icon: CreditCard, title: "الفواتير والفوترة", description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات", path: "/dashboard/invoices", gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600", iconColor: "text-white", count: data?.stats?.totalInvoices, rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
-    { icon: Users, title: "العملاء", description: "إدارة بيانات العملاء والعلاقات التجارية", path: "/dashboard/customers", gradient: "bg-gradient-to-br from-blue-500 to-blue-600", iconColor: "text-white", count: data?.stats?.totalCustomers, rbacRoles: ["owner", "admin", "manager", "sales"] as string[] },
-    { icon: Wallet, title: "المالية", description: "التدفقات النقدية، الحسابات، التقارير المالية", path: "/dashboard/finance/overview", gradient: "bg-gradient-to-br from-violet-500 to-violet-600", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant"] as string[] },
-    { icon: Receipt, title: "المصروفات", description: "تسجيل ومتابعة وإدارة المصروفات", path: "/dashboard/expenses", gradient: "bg-gradient-to-br from-amber-500 to-orange-500", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
-    { icon: Briefcase, title: "الموارد البشرية", description: "إدارة الموظفين، الرواتب، الحضور والانصراف", path: "/dashboard/hr", gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600", iconColor: "text-white", rbacRoles: ["owner", "admin", "hr_manager"] as string[] },
-    { icon: BarChart3, title: "التقارير والتحليلات", description: "تقارير شاملة ولوحات تحليلية ذكية", path: "/dashboard/analytics", gradient: "bg-gradient-to-br from-rose-500 to-pink-500", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
+    { icon: CreditCard, title: "الفواتير والفوترة", description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات", path: "/dashboard/invoices", gradient: "card-accent-sales", iconColor: "text-white", count: data?.stats?.totalInvoices, rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
+    { icon: Users, title: "العملاء", description: "إدارة بيانات العملاء والعلاقات التجارية", path: "/dashboard/customers", gradient: "card-accent-customers", iconColor: "text-white", count: data?.stats?.totalCustomers, rbacRoles: ["owner", "admin", "manager", "sales"] as string[] },
+    { icon: Wallet, title: "المالية", description: "التدفقات النقدية، الحسابات، التقارير المالية", path: "/dashboard/finance/overview", gradient: "card-accent-finance", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant"] as string[] },
+    { icon: Receipt, title: "المصروفات", description: "تسجيل ومتابعة وإدارة المصروفات", path: "/dashboard/expenses", gradient: "card-accent-expenses", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
+    { icon: Briefcase, title: "الموارد البشرية", description: "إدارة الموظفين، الرواتب، الحضور والانصراف", path: "/dashboard/hr", gradient: "card-accent-hr", iconColor: "text-white", rbacRoles: ["owner", "admin", "hr_manager"] as string[] },
+    { icon: BarChart3, title: "التقارير والتحليلات", description: "تقارير شاملة ولوحات تحليلية ذكية", path: "/dashboard/analytics", gradient: "card-accent-analytics", iconColor: "text-white", rbacRoles: ["owner", "admin", "accountant", "manager"] as string[] },
   ], [data?.stats]);
 
   // ── RBAC: highlight top 3 sections for the user's role ──
