@@ -123,9 +123,12 @@ const KpiWidget = ({
   path: string;
 }) => {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
-  const animatedValue = useCountUp(value, 900, isInView);
+  const animatedValue = useCountUp(value ?? 0, 900, reduceMotion ? true : isInView);
+
+  const displayValue = isCurrency ? fmtCurrency(animatedValue) : fmtNumber(animatedValue);
 
   const TrendBadge = trendInfo ? (
     <TooltipProvider delayDuration={200}>
@@ -151,28 +154,37 @@ const KpiWidget = ({
   ) : null;
 
   return (
-    <Card
+    <motion.div
       ref={ref}
-      className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden"
+      role="button"
+      tabIndex={0}
       onClick={() => navigate(path)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") navigate(path);
+      }}
+      whileHover={!reduceMotion ? { y: -2 } : undefined}
+      whileTap={!reduceMotion ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.15 }}
     >
-      <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/30" />
-      <CardContent className="p-4 sm:p-5 flex-1 min-h-0 flex flex-col justify-between">
-        <div className="flex items-start justify-between flex-none">
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-none", iconBg)}>
-            <Icon className={cn("w-5 h-5", iconColor)} />
+      <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/30" />
+        <CardContent className="p-4 sm:p-5 flex-1 min-h-0 flex flex-col justify-between">
+          <div className="flex items-start justify-between flex-none">
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-none", iconBg)}>
+              <Icon className={cn("w-5 h-5", iconColor)} />
+            </div>
+            {TrendBadge}
           </div>
-          {TrendBadge}
-        </div>
-        <div className="mt-auto pt-3 flex-none">
-          <p className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight tabular-nums leading-none">
-            {isCurrency ? fmtCurrency(animatedValue) : fmtNumber(animatedValue)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1.5 font-medium">{label}</p>
-          {sub && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{sub}</p>}
-        </div>
-      </CardContent>
-    </Card>
+          <div className="mt-auto pt-3 flex-none">
+            <p className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight tabular-nums leading-none">
+              {displayValue}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1.5 font-medium">{label}</p>
+            {sub && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{sub}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
