@@ -3,8 +3,9 @@
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
-import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+import { Responsive, useContainerWidth, verticalCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import { motion } from "framer-motion";
 import {
   Settings2, RotateCcw, Grip, X, Activity, Zap, BarChart3,
@@ -30,7 +31,7 @@ import {
 import { WIDGET_COMPONENTS } from "./WidgetRenderers";
 import WidgetCatalog from "./WidgetCatalog";
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+// WidthProvider removed in v2 — use useContainerWidth hook instead
 
 const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
 
@@ -104,6 +105,7 @@ const DashboardBuilder = () => {
   const { layout, saveLayout, resetLayout, saving } = useDashboardLayout();
   const [editMode, setEditMode] = useState(false);
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
+  const { width, containerRef } = useContainerWidth();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -285,46 +287,48 @@ const DashboardBuilder = () => {
           ))}
         </div>
       ) : (
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={{ lg: gridLayout, md: gridLayout, sm: gridLayout }}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={60}
-          isDraggable={editMode}
-          isResizable={editMode}
-          onLayoutChange={(l: any[]) => onLayoutChange(l)}
-          draggableHandle=".widget-drag-handle"
-          compactType="vertical"
-          margin={[12, 12]}
-        >
-          {visibleLayout.map((item) => {
-            const Comp = WIDGET_COMPONENTS[item.i];
-            if (!Comp) return null;
-            return (
-              <div key={item.i} className="relative group">
-                {editMode && (
-                  <>
-                    <div className="widget-drag-handle absolute top-1 start-1 z-10 cursor-grab active:cursor-grabbing p-1 rounded bg-muted/80 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Grip className="w-3.5 h-3.5 text-muted-foreground" />
-                    </div>
-                    <button
-                      onClick={() => handleRemoveWidget(item.i)}
-                      className="absolute top-1 end-1 z-10 p-1 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </>
-                )}
-                <Comp
-                  stats={data?.stats || {}}
-                  activities={data?.activities}
-                  monthlyData={data?.monthlyData}
-                />
-              </div>
-            );
-          })}
-        </ResponsiveGridLayout>
+        <div ref={containerRef as any}>
+          <Responsive
+            className="layout"
+            width={width || 1200}
+            layouts={{ lg: gridLayout, md: gridLayout, sm: gridLayout }}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
+            rowHeight={60}
+            dragConfig={{ enabled: editMode, bounded: false, handle: ".widget-drag-handle", threshold: 3 }}
+            resizeConfig={{ enabled: editMode, handles: ["se"] }}
+            onLayoutChange={(l: any) => onLayoutChange(l)}
+            compactor={verticalCompactor}
+            margin={[12, 12] as [number, number]}
+          >
+            {visibleLayout.map((item) => {
+              const Comp = WIDGET_COMPONENTS[item.i];
+              if (!Comp) return null;
+              return (
+                <div key={item.i} className="relative group">
+                  {editMode && (
+                    <>
+                      <div className="widget-drag-handle absolute top-1 start-1 z-10 cursor-grab active:cursor-grabbing p-1 rounded bg-muted/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Grip className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
+                      <button
+                        onClick={() => handleRemoveWidget(item.i)}
+                        className="absolute top-1 end-1 z-10 p-1 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                  <Comp
+                    stats={data?.stats || {}}
+                    activities={data?.activities}
+                    monthlyData={data?.monthlyData}
+                  />
+                </div>
+              );
+            })}
+          </Responsive>
+        </div>
       )}
 
       {/* Quick Invoice */}
