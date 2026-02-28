@@ -258,6 +258,19 @@
   }
 }
 
+/* Force Light Sidebar regardless of global theme */
+[data-sidebar-theme="light"] {
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 220 15% 20%;
+  --sidebar-primary: 172 66% 36%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 160 40% 96%;
+  --sidebar-accent-foreground: 220 15% 20%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 172 66% 44%;
+  --sidebar-muted: 220 10% 50%;
+}
+
 @layer base {
   * {
     @apply border-border;
