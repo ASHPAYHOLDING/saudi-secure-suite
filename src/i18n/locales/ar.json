@@ -154,7 +154,9 @@
       "hr": "الموارد البشرية",
       "management": "الإدارة",
       "enterprise_finance": "المحاسبة المؤسسية"
-    }
+    },
+    "showMore": "المزيد ({{count}})",
+    "showLess": "أقل"
   },
   "landing": {
     "features": "المميزات",

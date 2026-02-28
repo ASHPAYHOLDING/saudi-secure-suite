@@ -364,8 +364,8 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
                       <MoreHorizontal size={14} className="shrink-0" />
                       <span>
                         {isOverflowExpanded || activeInOverflow
-                          ? (isRTL ? "أقل" : "Less")
-                          : (isRTL ? `المزيد (${overflowItems.length})` : `More (${overflowItems.length})`)
+                          ? t("nav.showLess")
+                          : t("nav.showMore", { count: overflowItems.length })
                         }
                       </span>
                     </button>
