@@ -4,6 +4,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBreadcrumbs from "@/components/dashboard/DashboardBreadcrumbs";
+import BottomTabBar from "@/components/dashboard/BottomTabBar";
 import SubscriptionGuard from "@/components/subscription/SubscriptionGuard";
 import TrialExpiredWall from "@/components/subscription/TrialExpiredWall";
 import UpgradeBanner from "@/components/subscription/UpgradeBanner";
@@ -80,7 +81,10 @@ const DashboardLayout = memo(() => {
               <Suspense fallback={null}>
                 <AIAccountantChat />
               </Suspense>
+              {/* Spacer for mobile bottom tab bar */}
+              <div className="h-16 md:hidden" />
             </div>
+            <BottomTabBar />
           </div>
         </TrialExpiredWall>
         </SubscriptionGuard>
