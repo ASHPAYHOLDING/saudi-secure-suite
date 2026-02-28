@@ -21,11 +21,12 @@ export async function exportInvoicePdf(
   document.body.classList.add("pdf-export-mode");
   element.classList.add("pdf-export-target");
 
-  // 2) Wait for fonts + one animation frame to settle
+  // 2) Wait for Arabic fonts + two animation frames to settle
   await document.fonts.ready;
-  await new Promise((r) => requestAnimationFrame(r));
-  // Extra tick for Safari
-  await new Promise((r) => setTimeout(r, 150));
+  // Double rAF ensures browser has fully shaped Arabic glyphs with loaded fonts
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // Extra tick for Safari font rendering
+  await new Promise((r) => setTimeout(r, 200));
 
   try {
     // 3) Capture at high resolution

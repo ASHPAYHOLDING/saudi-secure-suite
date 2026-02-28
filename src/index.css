@@ -684,6 +684,26 @@
   transition: none !important;
 }
 
+/* Arabic text fixes — prevent disconnected letters */
+.pdf-export-mode .invoice-page,
+.pdf-export-mode .invoice-page * {
+  direction: rtl !important;
+  unicode-bidi: plaintext !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  font-feature-settings: "liga" 1, "calt" 1 !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+  font-family: "IBM Plex Sans Arabic", "Tajawal", "Noto Sans Arabic", sans-serif !important;
+  transform: none !important;
+}
+
+/* Allow LTR for explicitly marked elements (numbers, codes) */
+.pdf-export-mode .invoice-page [dir="ltr"] {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+}
+
 .pdf-export-mode .invoice-page {
   width: 210mm !important;
   min-height: 297mm !important;
@@ -699,9 +719,4 @@
   margin: 0 auto !important;
   padding: 12mm !important;
   background: #ffffff !important;
-}
-
-.pdf-export-mode .invoice-page,
-.pdf-export-mode .invoice-page * {
-  transform: none !important;
 }
