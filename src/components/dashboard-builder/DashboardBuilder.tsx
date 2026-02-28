@@ -265,7 +265,7 @@ const QuickAction = ({ icon: Icon, label, onClick, variant = "secondary" }: Quic
   <motion.div
     variants={staggerItem}
     whileHover={{ y: -2, scale: 1.03 }}
-    whileTap={{ scale: 0.97 }}
+    whileTap={{ scale: 0.98 }}
     transition={{ type: "spring", stiffness: 400, damping: 20 }}
   >
     <Button

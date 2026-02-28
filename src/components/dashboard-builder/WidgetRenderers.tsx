@@ -25,8 +25,10 @@ import {
 import { cn } from "@/lib/utils";
 import { fmtCurrency, fmtNumber } from "@/lib/formatters";
 import { useNavigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCountUp } from "@/hooks/useCountUp";
 
 const ChartsSection = lazy(() => import("@/components/dashboard/DashboardCharts"));
 
@@ -121,6 +123,9 @@ const KpiWidget = ({
   path: string;
 }) => {
   const navigate = useNavigate();
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+  const animatedValue = useCountUp(value, 900, isInView);
 
   const TrendBadge = trendInfo ? (
     <TooltipProvider delayDuration={200}>
@@ -147,6 +152,7 @@ const KpiWidget = ({
 
   return (
     <Card
+      ref={ref}
       className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden"
       onClick={() => navigate(path)}
     >
@@ -160,7 +166,7 @@ const KpiWidget = ({
         </div>
         <div className="mt-auto pt-3 flex-none">
           <p className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight tabular-nums leading-none">
-            {isCurrency ? fmtCurrency(value) : fmtNumber(value)}
+            {isCurrency ? fmtCurrency(animatedValue) : fmtNumber(animatedValue)}
           </p>
           <p className="text-xs text-muted-foreground mt-1.5 font-medium">{label}</p>
           {sub && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{sub}</p>}
@@ -470,6 +476,8 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
     );
   }
 
+  const prefersReduced = useReducedMotion();
+
   return (
     <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
       <CardHeader className="pb-2 px-5 pt-5 flex-none">
@@ -481,10 +489,16 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
       <CardContent className="px-5 pb-5 flex-1 min-h-0 overflow-y-auto">
         <div className="space-y-0">
           {activities.map((a: any, idx: number) => (
-            <div key={a.id} className={cn(
-              "flex items-center gap-2.5 text-xs py-2.5 rounded-lg px-2 -mx-2 hover:bg-muted/40 transition-colors",
-              idx < activities.length - 1 && "border-b border-border/30"
-            )}>
+            <motion.div
+              key={a.id}
+              initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: prefersReduced ? 0 : idx * 0.04, duration: 0.3, ease: "easeOut" }}
+              className={cn(
+                "flex items-center gap-2.5 text-xs py-2.5 rounded-lg px-2 -mx-2 hover:bg-muted/40 transition-colors",
+                idx < activities.length - 1 && "border-b border-border/30"
+              )}
+            >
               <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center shrink-0 flex-none">
                 <Activity className="w-3 h-3 text-primary/60" />
               </div>
@@ -497,7 +511,7 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
               <span className="text-[10px] text-muted-foreground/60 shrink-0 flex-none tabular-nums">
                 {new Date(a.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short" })}
               </span>
-            </div>
+            </motion.div>
           ))}
         </div>
       </CardContent>
@@ -535,17 +549,23 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   return (
     <Card className="h-full flex flex-col border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
       <CardContent className="p-3 sm:p-4 flex-1 min-h-0">
-        <Suspense fallback={<Skeleton className="w-full h-full rounded-lg" />}>
-          <ChartsSection
-            monthlyData={monthlyData}
-            invoiceDistribution={[
-              { name: "مدفوعة", value: stats.paidInvoices, color: "hsl(var(--success))" },
-              { name: "معلّقة", value: stats.pendingInvoices, color: "hsl(var(--warning))" },
-              { name: "متأخرة", value: stats.overdueInvoices, color: "hsl(var(--destructive))" },
-              { name: "مسودة", value: stats.draftInvoices, color: "hsl(var(--muted-foreground))" },
-            ]}
-            sar="ر.س"
-          />
+        <Suspense fallback={<Skeleton className="w-full h-[300px] rounded-lg" />}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <ChartsSection
+              monthlyData={monthlyData}
+              invoiceDistribution={[
+                { name: "مدفوعة", value: stats.paidInvoices, color: "hsl(var(--success))" },
+                { name: "معلّقة", value: stats.pendingInvoices, color: "hsl(var(--warning))" },
+                { name: "متأخرة", value: stats.overdueInvoices, color: "hsl(var(--destructive))" },
+                { name: "مسودة", value: stats.draftInvoices, color: "hsl(var(--muted-foreground))" },
+              ]}
+              sar="ر.س"
+            />
+          </motion.div>
         </Suspense>
       </CardContent>
     </Card>
