@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   LayoutDashboard, Users, UsersRound, FileText, Settings, BarChart3,
   Building2, CreditCard, HelpCircle, LogOut, ChevronRight, ChevronLeft,
@@ -7,6 +7,7 @@ import {
   ShoppingCart, Receipt, Plug, Wallet, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, ChevronDown, Headphones, Lock, Target,
   TrendingUp, CalendarClock, Wrench, PieChart, Activity, UserCircle,
+  Briefcase, MoreHorizontal, X,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -27,29 +28,34 @@ interface NavItemDef {
   path: string;
   module: Module;
   featureKey?: FeatureKey;
-  /** If set, item is hidden unless user is owner or has this permission */
   requiredPermission?: string;
 }
 
 interface NavGroup {
   labelKey: string;
+  /** Max 6 items shown directly. Rest go to "More…" overflow */
   items: NavItemDef[];
-  /** Nested sub-group (e.g. Enterprise) — collapsible within parent */
-  subGroup?: {
-    labelKey: string;
-    badge?: string;
-    items: NavItemDef[];
-  };
+  /** If true, this group is collapsed by default */
+  defaultCollapsed?: boolean;
 }
+
+const MAX_VISIBLE_ITEMS = 6;
 
 const topItems: NavItemDef[] = [
   { icon: LayoutDashboard, key: "nav.home", path: "/dashboard", module: "dashboard" },
 ];
 
+/**
+ * New IA: 5 groups + Settings.
+ * Max 2 levels (Group → Item). No sub-groups.
+ * Sales + Purchasing merged into "الأعمال".
+ * HR is independent.
+ * Settings collapsed by default.
+ */
 const navGroups: NavGroup[] = [
-  // ── المبيعات (6) ──
+  // ── الأعمال (Sales + Purchasing) ──
   {
-    labelKey: "nav.group.sales",
+    labelKey: "nav.group.business",
     items: [
       { icon: Users, key: "nav.customers", path: "/dashboard/customers", module: "customers" },
       { icon: CreditCard, key: "nav.invoices", path: "/dashboard/billing", module: "billing" },
@@ -57,48 +63,39 @@ const navGroups: NavGroup[] = [
       { icon: FileText, key: "nav.quotations", path: "/dashboard/quotations", module: "quotations" },
       { icon: ShoppingCart, key: "nav.salesOrders", path: "/dashboard/sales-orders", module: "sales-orders" },
       { icon: FileSignature, key: "nav.contracts", path: "/dashboard/contracts", module: "contracts" },
-    ],
-  },
-  // ── المشتريات (4) ──
-  {
-    labelKey: "nav.group.purchasing",
-    items: [
+      // overflow →
       { icon: Package, key: "nav.purchaseOrders", path: "/dashboard/purchase-orders", module: "purchase-orders" },
       { icon: Truck, key: "nav.deliveryNotes", path: "/dashboard/delivery-notes", module: "delivery-notes" },
       { icon: Inbox, key: "nav.supplierInbox", path: "/dashboard/supplier-inbox", module: "supplier-inbox" },
       { icon: Package, key: "nav.inventory", path: "/dashboard/inventory", module: "inventory" },
     ],
   },
-  // ── المالية (8 core + 6 enterprise sub-group) ──
+  // ── المالية ──
   {
     labelKey: "nav.group.finance",
     items: [
-      { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
       { icon: Wallet, key: "nav.finance", path: "/dashboard/finance", module: "finance" },
+      { icon: Receipt, key: "nav.expenses", path: "/dashboard/expenses", module: "expenses" },
       { icon: BookOpen, key: "nav.journalEntries", path: "/dashboard/journal-entries", module: "journal-entries" },
-      { icon: Lock, key: "nav.periodLock", path: "/dashboard/period-lock", module: "journal-entries" },
-      { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
       { icon: Target, key: "nav.budgets", path: "/dashboard/budgets", module: "budgets" },
+      { icon: Building2, key: "nav.costProfitCenters", path: "/dashboard/cost-profit-centers", module: "finance" },
+      { icon: CalendarClock, key: "nav.periodLock", path: "/dashboard/period-lock", module: "journal-entries" },
+      // overflow →
       { icon: Bell, key: "nav.paymentReminders", path: "/dashboard/payment-reminders", module: "payment-reminders" },
       { icon: Shield, key: "nav.collectionsIntelligence", path: "/dashboard/finance/collections-intelligence", module: "finance" },
       { icon: Activity, key: "nav.cashflowRadar", path: "/dashboard/finance/cashflow-radar", module: "finance" },
       { icon: BarChart3, key: "nav.executiveBoard", path: "/dashboard/executive", module: "finance", requiredPermission: "finance.view_executive_board" as any },
       { icon: Shield, key: "nav.vatReturn", path: "/dashboard/vat-return", module: "reports" },
+      // Enterprise items (shown inline, gated by featureKey)
+      { icon: Building2, key: "nav.corporateStructure", path: "/dashboard/finance/corporate-structure", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: BookOpen, key: "nav.chartOfAccounts", path: "/dashboard/finance/coa", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: BookOpen, key: "nav.generalJournal", path: "/dashboard/finance/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: CalendarClock, key: "nav.periodClose", path: "/dashboard/finance/period-close", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: BarChart3, key: "nav.financialStatements", path: "/dashboard/finance/statements", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: Shield, key: "nav.journalApprovals", path: "/dashboard/enterprise/approvals/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
     ],
-    subGroup: {
-      labelKey: "nav.group.enterprise_finance",
-      badge: "Enterprise",
-      items: [
-        { icon: Building2, key: "nav.corporateStructure", path: "/dashboard/finance/corporate-structure", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: BookOpen, key: "nav.chartOfAccounts", path: "/dashboard/finance/coa", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: BookOpen, key: "nav.generalJournal", path: "/dashboard/finance/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: CalendarClock, key: "nav.periodClose", path: "/dashboard/finance/period-close", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: BarChart3, key: "nav.financialStatements", path: "/dashboard/finance/statements", module: "enterprise", featureKey: "enterprise_mode" as any },
-        { icon: Shield, key: "nav.journalApprovals", path: "/dashboard/enterprise/approvals/journal", module: "enterprise", featureKey: "enterprise_mode" as any },
-      ],
-    },
   },
-  // ── التقارير (3) ──
+  // ── التقارير والتحليلات ──
   {
     labelKey: "nav.group.reports",
     items: [
@@ -108,46 +105,50 @@ const navGroups: NavGroup[] = [
       { icon: PieChart, key: "nav.financialHealth", path: "/dashboard/analytics/financial-health", module: "analytics" },
     ],
   },
+  // ── الموارد البشرية (independent) ──
+  {
+    labelKey: "nav.group.hr",
+    items: [
+      { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: Users, key: "nav.hrEmployees", path: "/dashboard/hr/employees", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: CalendarClock, key: "nav.hrLeave", path: "/dashboard/hr/leave", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: Activity, key: "nav.hrAttendance", path: "/dashboard/hr/attendance", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: UserCircle, key: "nav.ess", path: "/dashboard/ess", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE, requiredPermission: "ess.view" },
+      // overflow →
+      { icon: FileSignature, key: "nav.hrContracts", path: "/dashboard/hr/contracts", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: Building2, key: "nav.hrOrg", path: "/dashboard/hr/org", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: GitBranch, key: "nav.hrApprovals", path: "/dashboard/hr/approvals", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+      { icon: BarChart3, key: "nav.hrReports", path: "/dashboard/hr/reports", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
+    ],
+  },
   // ── الإدارة ──
   {
     labelKey: "nav.group.management",
     items: [
+      { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: GitBranch, key: "nav.approvals", path: "/dashboard/approvals", module: "billing" },
       { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
-      { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
-      { icon: UserCircle, key: "nav.ess", path: "/dashboard/ess", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE, requiredPermission: "ess.view" },
-      { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
     ],
-    subGroup: {
-      labelKey: "nav.hr",
-      items: [
-        { icon: Users, key: "nav.hrEmployees", path: "/dashboard/hr/employees", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: FileSignature, key: "nav.hrContracts", path: "/dashboard/hr/contracts", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: Building2, key: "nav.hrOrg", path: "/dashboard/hr/org", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: CalendarClock, key: "nav.hrLeave", path: "/dashboard/hr/leave", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: Activity, key: "nav.hrAttendance", path: "/dashboard/hr/attendance", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: GitBranch, key: "nav.hrApprovals", path: "/dashboard/hr/approvals", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-        { icon: BarChart3, key: "nav.hrReports", path: "/dashboard/hr/reports", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
-      ],
-    },
   },
-  // ── الإعدادات (10) — includes integrations + subscription now ──
+  // ── الإعدادات (collapsed by default) ──
   {
     labelKey: "nav.settingsSection",
+    defaultCollapsed: true,
     items: [
       { icon: Building2, key: "nav.companySettings", path: "/dashboard/company", module: "company" },
       { icon: Building2, key: "nav.branches", path: "/dashboard/branches", module: "branches" },
       { icon: Palette, key: "nav.branding", path: "/dashboard/branding", module: "branding" },
-      { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
-      { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
-      { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
-      { icon: Building2, key: "nav.governanceCenter", path: "/dashboard/governance-center", module: "enterprise", featureKey: "enterprise_mode" as any },
-      { icon: Shield, key: "nav.complianceScore", path: "/dashboard/enterprise/compliance-score", module: "enterprise", featureKey: "enterprise_mode" as any },
       { icon: KeyRound, key: "nav.permissions", path: "/dashboard/permissions", module: "team" },
       { icon: Plug, key: "nav.integrations", path: "/dashboard/integrations", module: "integrations" },
       { icon: Crown, key: "nav.subscription", path: "/dashboard/subscription", module: "subscription" },
+      // overflow →
+      { icon: ShieldCheck, key: "nav.compliance", path: "/dashboard/compliance", module: "compliance" },
+      { icon: Stamp, key: "nav.stamp", path: "/dashboard/stamp", module: "stamp" },
+      { icon: Shield, key: "nav.auditLog", path: "/dashboard/audit", module: "audit" },
       { icon: Settings, key: "nav.settings", path: "/dashboard/settings", module: "settings" },
+      { icon: Building2, key: "nav.governanceCenter", path: "/dashboard/governance-center", module: "enterprise", featureKey: "enterprise_mode" as any },
+      { icon: Shield, key: "nav.complianceScore", path: "/dashboard/enterprise/compliance-score", module: "enterprise", featureKey: "enterprise_mode" as any },
     ],
   },
 ];
@@ -168,7 +169,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
   const { canAny } = useGranularPermissions();
   const isOwner = userRole === "owner";
 
-  // Check if a feature is entitled (backend-driven) using NAV_PATH_TO_FEATURE map
   const isPathLocked = (path: string): boolean => {
     const featureKey = NAV_PATH_TO_FEATURE[path];
     if (!featureKey) return false;
@@ -176,17 +176,28 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
     return !(ent?.allowed ?? false);
   };
 
-  // Initialize open groups based on current route
+  // Track which groups have "More…" expanded
+  const [expandedOverflows, setExpandedOverflows] = useState<Set<string>>(new Set());
+
+  const toggleOverflow = (groupKey: string) => {
+    setExpandedOverflows((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+  };
+
+  // Initialize open groups — default open if has active item, respect defaultCollapsed
   const getInitialOpenGroups = () => {
     const open = new Set<string>();
     for (const group of navGroups) {
-      const allItems = [...group.items, ...(group.subGroup?.items || [])];
-      if (allItems.some((item) => location.pathname === item.path)) {
+      const hasActiveItem = group.items.some((item) => location.pathname === item.path);
+      if (hasActiveItem) {
         open.add(group.labelKey);
-      }
-      // Auto-open enterprise sub-group if active
-      if (group.subGroup?.items.some((item) => location.pathname === item.path)) {
-        open.add(group.subGroup.labelKey);
+      } else if (!group.defaultCollapsed) {
+        // Non-defaultCollapsed groups start open
+        // Actually let's only auto-open groups with active items to keep it clean
       }
     }
     return open;
@@ -212,6 +223,16 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
       .maybeSingle()
       .then(({ data }) => setIsPlatformAdmin(!!data));
   }, [user]);
+
+  // Filter items by module/permissions
+  const filterItems = useMemo(() => {
+    return (items: NavItemDef[]) =>
+      items.filter((item) => {
+        if (!isModuleAllowed(tenantType, item.module)) return false;
+        if (item.requiredPermission && !isOwner && !canAny(item.requiredPermission as any)) return false;
+        return true;
+      });
+  }, [tenantType, isOwner, canAny]);
 
   const CollapseIcon = isRTL
     ? (collapsed ? ChevronLeft : ChevronRight)
@@ -254,83 +275,21 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
     );
   };
 
-  /** Enterprise sub-group — collapsible nested section with gold badge */
-  const EnterpriseSubGroup = ({ subGroup }: { subGroup: NonNullable<NavGroup["subGroup"]> }) => {
-    const filteredItems = subGroup.items.filter((item) => isModuleAllowed(tenantType, item.module));
+  const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
+    const filteredItems = filterItems(group.items);
     if (filteredItems.length === 0) return null;
 
-    const isOpen = openGroups.has(subGroup.labelKey);
-    const hasActiveItem = filteredItems.some((item) => location.pathname === item.path);
-
-    if (collapsed) {
-      return (
-        <div className="space-y-0.5">
-          {filteredItems.map((item) => (
-            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <div className="mt-1">
-        <button
-          onClick={() => toggleGroup(subGroup.labelKey)}
-      className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-[10px] font-semibold transition-colors",
-            hasActiveItem
-              ? "text-warning"
-              : "text-sidebar-foreground/60 hover:text-sidebar-foreground/80"
-          )}
-        >
-          <Building2 size={12} className="shrink-0" />
-          <span className="flex-1 text-start">{t(subGroup.labelKey)}</span>
-          {subGroup.badge && (
-            <span className="rounded-full bg-warning/15 px-1.5 py-0.5 text-[8px] font-bold text-warning leading-none">
-              {subGroup.badge}
-            </span>
-          )}
-          <ChevronDown
-            size={12}
-            className={cn(
-              "transition-transform duration-200",
-              isOpen ? "rotate-0" : isRTL ? "rotate-90" : "-rotate-90"
-            )}
-          />
-        </button>
-        <AnimatePresence initial={false}>
-          {isOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-0.5 pb-1 ps-2 border-s border-warning/20 ms-4">
-                {filteredItems.map((item) => (
-                  <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  const CollapsibleGroup = ({ group }: { group: NavGroup }) => {
-    const filteredItems = group.items.filter((item) => {
-      if (!isModuleAllowed(tenantType, item.module)) return false;
-      if (item.requiredPermission && !isOwner && !canAny(item.requiredPermission as any)) return false;
-      return true;
-    });
-    const hasSubGroup = group.subGroup && group.subGroup.items.some((item) => isModuleAllowed(tenantType, item.module));
-    if (filteredItems.length === 0 && !hasSubGroup) return null;
-
-    const allItems = [...group.items, ...(group.subGroup?.items || [])];
     const isOpen = openGroups.has(group.labelKey);
-    const hasActiveItem = allItems.some((item) => location.pathname === item.path);
+    const hasActiveItem = filteredItems.some((item) => location.pathname === item.path);
+    const isOverflowExpanded = expandedOverflows.has(group.labelKey);
+
+    // Split into visible (max 6) and overflow
+    const visibleItems = filteredItems.slice(0, MAX_VISIBLE_ITEMS);
+    const overflowItems = filteredItems.slice(MAX_VISIBLE_ITEMS);
+    const hasOverflow = overflowItems.length > 0;
+
+    // If active item is in overflow, show it in visible
+    const activeInOverflow = overflowItems.some((item) => location.pathname === item.path);
 
     if (collapsed) {
       return (
@@ -338,7 +297,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
           {filteredItems.map((item) => (
             <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
           ))}
-          {group.subGroup && <EnterpriseSubGroup subGroup={group.subGroup} />}
         </div>
       );
     }
@@ -373,12 +331,43 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
               className="overflow-hidden"
             >
               <div className="space-y-0.5 pb-1">
-                {filteredItems.map((item) => (
+                {visibleItems.map((item) => (
                   <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
                 ))}
+
+                {/* Overflow items */}
+                {hasOverflow && (
+                  <>
+                    <AnimatePresence initial={false}>
+                      {(isOverflowExpanded || activeInOverflow) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.15, ease: "easeInOut" }}
+                          className="overflow-hidden space-y-0.5"
+                        >
+                          {overflowItems.map((item) => (
+                            <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <button
+                      onClick={() => toggleOverflow(group.labelKey)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:bg-sidebar-accent/30 transition-colors"
+                    >
+                      <MoreHorizontal size={14} className="shrink-0" />
+                      <span>
+                        {isOverflowExpanded || activeInOverflow
+                          ? (isRTL ? "أقل" : "Less")
+                          : (isRTL ? `المزيد (${overflowItems.length})` : `More (${overflowItems.length})`)
+                        }
+                      </span>
+                    </button>
+                  </>
+                )}
               </div>
-              {/* Enterprise sub-group nested inside parent */}
-              {group.subGroup && <EnterpriseSubGroup subGroup={group.subGroup} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -388,7 +377,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
 
 
   return (
-    <>
     <aside
       dir={isRTL ? "rtl" : "ltr"}
       className={cn(
@@ -428,11 +416,9 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         {/* Favorites / Pinned Pages */}
         <FavoritesSidebarSection collapsed={collapsed} isRTL={isRTL} />
 
-        <div className="space-y-0.5 mb-3">
-          {/* spacer to separate from groups below */}
-        </div>
+        <div className="space-y-0.5 mb-3" />
 
-        {/* Collapsible groups */}
+        {/* Collapsible groups — flat, max 2 levels */}
         <div className="space-y-1">
           {navGroups.map((group) => (
             <CollapsibleGroup key={group.labelKey} group={group} />
@@ -442,7 +428,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
 
       {/* Footer: Support + Admin + Logout */}
       <div className="border-t border-sidebar-border p-3 space-y-1">
-        {/* Support & Help quick icons */}
         <div className="flex items-center gap-1 mb-1">
           <Link
             to="/dashboard/support"
@@ -480,7 +465,6 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
         </Link>
       </div>
     </aside>
-    </>
   );
 };
 
