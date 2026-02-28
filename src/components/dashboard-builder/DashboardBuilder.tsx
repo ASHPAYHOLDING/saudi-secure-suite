@@ -228,64 +228,81 @@ const DashboardBuilder = () => {
         </div>
       </motion.div>
 
-      {/* ═══ Quick Actions Bar ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex items-center gap-2 flex-wrap"
-      >
-        <Button
-          size="sm"
-          className="gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm rounded-lg h-9"
-          onClick={() => setQuickInvoiceOpen(true)}
-        >
-          <Zap className="w-3.5 h-3.5" />
-          فاتورة سريعة
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1.5 rounded-lg h-9" onClick={() => navigate("/dashboard/reports")}>
-          <BarChart3 className="w-3.5 h-3.5" />
-          التقارير
-        </Button>
-
-        {/* Builder controls — desktop only */}
-        {!isMobile && (
-          <div className="border-s border-border/50 ps-2 ms-auto flex items-center gap-1.5">
-            <WidgetCatalog layout={layout} onToggleWidget={handleToggleWidget} hasPermission={hasPermission} />
-            <Button
-              variant={editMode ? "default" : "outline"}
-              size="sm"
-              className="gap-1.5 rounded-lg h-9"
-              onClick={() => setEditMode(!editMode)}
-            >
-              {editMode ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-              {editMode ? "تم" : "تخصيص"}
-            </Button>
-            {editMode && (
-              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-9" onClick={resetLayout}>
-                <RotateCcw className="w-3.5 h-3.5" />
-              </Button>
-            )}
-            {saving && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
-                <Save className="w-3 h-3 me-1" />حفظ...
-              </Badge>
-            )}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Edit mode banner */}
-      <AnimatePresence>
-        {editMode && (
+      {/* ═══ Actions Bar ═══ */}
+      <AnimatePresence mode="wait">
+        {editMode ? (
+          /* ── Edit Mode Toolbar ── */
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5 text-xs text-accent flex items-center gap-2"
+            key="edit-toolbar"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-2xl border-2 border-dashed border-accent/40 bg-accent/[0.04] px-5 py-4"
           >
-            <Grip className="w-4 h-4" />
-            وضع التخصيص — اسحب وأفلِت لتغيير ترتيب العناصر، واسحب الزوايا لتغيير الحجم
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <Settings2 className="w-4.5 h-4.5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">وضع التخصيص</p>
+                  <p className="text-[11px] text-muted-foreground">اسحب لإعادة الترتيب · اسحب الزوايا لتغيير الحجم · اضغط ✕ للإزالة</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <WidgetCatalog layout={layout} onToggleWidget={handleToggleWidget} hasPermission={hasPermission} />
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground h-9 rounded-lg" onClick={resetLayout}>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  إعادة تعيين
+                </Button>
+                <Button size="sm" className="gap-1.5 rounded-lg h-9 bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => setEditMode(false)}>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  تم التخصيص
+                </Button>
+                {saving && (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
+                    <Save className="w-3 h-3 me-1" />حفظ...
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ── Normal Actions Bar ── */
+          <motion.div
+            key="normal-toolbar"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <Button
+              size="sm"
+              className="gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm rounded-lg h-9"
+              onClick={() => setQuickInvoiceOpen(true)}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              فاتورة سريعة
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5 rounded-lg h-9" onClick={() => navigate("/dashboard/reports")}>
+              <BarChart3 className="w-3.5 h-3.5" />
+              التقارير
+            </Button>
+
+            {/* Customize button — desktop only */}
+            {!isMobile && (
+              <div className="ms-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 rounded-lg h-9"
+                  onClick={() => setEditMode(true)}
+                >
+                  <Settings2 className="w-3.5 h-3.5" />
+                  تخصيص لوحة التحكم
+                </Button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -317,22 +334,45 @@ const DashboardBuilder = () => {
             resizeConfig={{ enabled: editMode && !isMobile, handles: ["se"] }}
             compactor={verticalCompactor}
             onLayoutChange={(l: any) => onLayoutChange(l)}
-            margin={[12, 12] as [number, number]}
+            margin={[14, 14] as [number, number]}
           >
             {visibleLayout.map((item) => {
               const Comp = WIDGET_COMPONENTS[item.i];
+              const def = WIDGET_REGISTRY.find((w) => w.id === item.i);
               if (!Comp) return null;
               return (
                 <div key={item.i} className="relative group">
-                  <div className="widget-drag-handle absolute top-1.5 start-1.5 z-10 cursor-grab active:cursor-grabbing p-1 rounded-md bg-muted/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Edit overlay frame */}
+                  <div className="absolute inset-0 rounded-xl border-2 border-dashed border-accent/25 group-hover:border-accent/50 transition-colors pointer-events-none z-[5]" />
+                  
+                  {/* Widget label badge */}
+                  <div className="absolute top-2 start-10 z-10 pointer-events-none">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent bg-accent/10 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                      {def?.icon && <def.icon className="w-3 h-3" />}
+                      {def?.labelAr}
+                    </span>
+                  </div>
+
+                  {/* Drag handle */}
+                  <div className="widget-drag-handle absolute top-2 start-2 z-10 cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-card/90 border border-border/50 shadow-sm opacity-60 group-hover:opacity-100 transition-all hover:bg-accent/10">
                     <Grip className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
+
+                  {/* Remove button */}
                   <button
                     onClick={() => handleRemoveWidget(item.i)}
-                    className="absolute top-1.5 end-1.5 z-10 p-1 rounded-md bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
+                    className="absolute top-2 end-2 z-10 p-1.5 rounded-lg bg-card/90 border border-destructive/20 text-destructive opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/10 hover:border-destructive/40 shadow-sm"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
+
+                  {/* Resize hint */}
+                  <div className="absolute bottom-1.5 end-1.5 z-10 opacity-0 group-hover:opacity-60 transition-opacity pointer-events-none">
+                    <svg width="12" height="12" viewBox="0 0 12 12" className="text-muted-foreground">
+                      <path d="M10 2L2 10M10 6L6 10M10 10L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+
                   <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
                 </div>
               );
