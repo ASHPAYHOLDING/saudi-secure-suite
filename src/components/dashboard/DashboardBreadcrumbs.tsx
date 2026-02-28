@@ -1,6 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import FavoritePageButton from "@/components/dashboard/FavoritePageButton";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -72,45 +73,54 @@ const DashboardBreadcrumbs = () => {
   const SeparatorIcon = isRTL ? ChevronLeft : ChevronRight;
 
   return (
-    <Breadcrumb className="px-6 pt-4 pb-1">
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link to="/dashboard" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-              <Home size={14} />
-              <span className="hidden sm:inline">
-                {currentLang === "ar" ? "الرئيسية" : "Home"}
+    <div className="flex items-center gap-2 px-6 pt-4 pb-1">
+      <Breadcrumb className="flex-1 min-w-0">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/dashboard" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+                <Home size={14} />
+                <span className="hidden sm:inline">
+                  {currentLang === "ar" ? "الرئيسية" : "Home"}
+                </span>
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          {segments.slice(1).map((segment, index) => {
+            const path = "/" + segments.slice(0, index + 2).join("/");
+            const isLast = index === segments.length - 2;
+            const label = segmentLabels[segment]?.[currentLang === "ar" ? "ar" : "en"] || segment;
+
+            return (
+              <span key={path} className="contents">
+                <BreadcrumbSeparator>
+                  <SeparatorIcon size={14} />
+                </BreadcrumbSeparator>
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage className="font-medium">{label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <Link to={path} className="text-muted-foreground hover:text-foreground">
+                        {label}
+                      </Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
               </span>
-            </Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
+            );
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
 
-        {segments.slice(1).map((segment, index) => {
-          const path = "/" + segments.slice(0, index + 2).join("/");
-          const isLast = index === segments.length - 2;
-          const label = segmentLabels[segment]?.[currentLang === "ar" ? "ar" : "en"] || segment;
-
-          return (
-            <span key={path} className="contents">
-              <BreadcrumbSeparator>
-                <SeparatorIcon size={14} />
-              </BreadcrumbSeparator>
-              <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage className="font-medium">{label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={path} className="text-muted-foreground hover:text-foreground">
-                      {label}
-                    </Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </span>
-          );
-        })}
-      </BreadcrumbList>
-    </Breadcrumb>
+      {/* Star/Favorite toggle for current page */}
+      {segments.length > 1 && (
+        <FavoritePageButton
+          label={segmentLabels[segments[segments.length - 1]]?.[currentLang === "ar" ? "ar" : "en"] || segments[segments.length - 1]}
+        />
+      )}
+    </div>
   );
 };
 

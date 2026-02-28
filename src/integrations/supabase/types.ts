@@ -13935,6 +13935,53 @@ export type Database = {
           },
         ]
       }
+      user_favorites: {
+        Row: {
+          created_at: string
+          icon_name: string | null
+          id: string
+          label: string
+          path: string
+          ref_id: string | null
+          sort_order: number
+          tenant_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon_name?: string | null
+          id?: string
+          label: string
+          path: string
+          ref_id?: string | null
+          sort_order?: number
+          tenant_id: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon_name?: string | null
+          id?: string
+          label?: string
+          path?: string
+          ref_id?: string | null
+          sort_order?: number
+          tenant_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notifications: {
         Row: {
           archived_at: string | null

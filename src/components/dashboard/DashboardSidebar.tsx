@@ -18,6 +18,7 @@ import { useEntitlements, FEATURE_KEYS, type FeatureKey } from "@/hooks/useEntit
 import { NAV_PATH_TO_FEATURE } from "@/lib/feature-route-map";
 import { useGranularPermissions } from "@/hooks/useGranularPermissions";
 import { motion, AnimatePresence } from "framer-motion";
+import FavoritesSidebarSection from "@/components/dashboard/FavoritesSidebarSection";
 
 
 interface NavItemDef {
@@ -421,6 +422,13 @@ const DashboardSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }: Da
           {topItems.filter((item) => isModuleAllowed(tenantType, item.module)).map((item) => (
             <NavItem key={item.path} icon={item.icon} label={t(item.key)} path={item.path} />
           ))}
+        </div>
+
+        {/* Favorites / Pinned Pages */}
+        <FavoritesSidebarSection collapsed={collapsed} isRTL={isRTL} />
+
+        <div className="space-y-0.5 mb-3">
+          {/* spacer to separate from groups below */}
         </div>
 
         {/* Collapsible groups */}
