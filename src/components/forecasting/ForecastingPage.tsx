@@ -4,6 +4,7 @@ import {
   TrendingUp, TrendingDown, Loader2, Printer, FileSpreadsheet,
   ArrowUpRight, ArrowDownRight, Minus, BarChart3, Calendar,
 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -309,42 +310,34 @@ const ForecastingPage = () => {
   return (
     <div dir="rtl" className="space-y-4 p-4 md:p-6" ref={printRef}>
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <TrendingUp className="text-primary" size={22} />
-            {isRTL ? "التوقعات المالية" : "Financial Forecasting"}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {isRTL ? "تحليل آخر 12 شهر وتوقع الفترة القادمة مع سيناريوهات النمو والانخفاض" : "Analyze last 12 months & forecast upcoming period with growth/decline scenarios"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={forecastMonths} onValueChange={(v) => setForecastMonths(v as "6" | "12")}>
-            <SelectTrigger className="w-[140px] text-xs h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="6" className="text-xs">{isRTL ? "توقع 6 أشهر" : "Forecast 6 months"}</SelectItem>
-              <SelectItem value="12" className="text-xs">{isRTL ? "توقع 12 شهر" : "Forecast 12 months"}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={runForecast} disabled={loading} className="gap-1.5 text-xs h-9">
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <BarChart3 size={14} />}
-            {isRTL ? "تحليل وتوقع" : "Analyze & Forecast"}
-          </Button>
-          {forecastData.length > 0 && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1 text-[10px] h-9">
-                <Printer size={12} /> PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1 text-[10px] h-9">
-                <FileSpreadsheet size={12} /> Excel
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title={isRTL ? "التوقعات المالية" : "Financial Forecasting"}
+        description={isRTL ? "تحليل آخر 12 شهر وتوقع الفترة القادمة مع سيناريوهات النمو والانخفاض" : "Analyze last 12 months & forecast upcoming period with growth/decline scenarios"}
+      >
+        <Select value={forecastMonths} onValueChange={(v) => setForecastMonths(v as "6" | "12")}>
+          <SelectTrigger className="w-[140px] text-xs h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="6" className="text-xs">{isRTL ? "توقع 6 أشهر" : "Forecast 6 months"}</SelectItem>
+            <SelectItem value="12" className="text-xs">{isRTL ? "توقع 12 شهر" : "Forecast 12 months"}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button onClick={runForecast} disabled={loading} className="gap-1.5 text-xs h-9">
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <BarChart3 size={14} />}
+          {isRTL ? "تحليل وتوقع" : "Analyze & Forecast"}
+        </Button>
+        {forecastData.length > 0 && (
+          <>
+            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1 text-[10px] h-9">
+              <Printer size={12} /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1 text-[10px] h-9">
+              <FileSpreadsheet size={12} /> Excel
+            </Button>
+          </>
+        )}
+      </PageHeader>
 
       {forecastData.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-20">

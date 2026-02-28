@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,31 +132,23 @@ const CashflowRadarPage = () => {
 
   return (
     <div className="space-y-6 p-6" dir={isRTL ? "rtl" : "ltr"}>
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isRTL ? "رادار التدفق النقدي" : "Cashflow Radar"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isRTL ? "توقعات السيولة والتنبيهات الذكية" : "Liquidity forecasting & smart alerts"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={showScenario ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowScenario(!showScenario)}
-          >
-            <SlidersHorizontal className="h-4 w-4 me-2" />
-            {isRTL ? "محاكاة" : "Simulate"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={cn("h-4 w-4 me-2", isFetching && "animate-spin")} />
-            {isRTL ? "تحديث" : "Refresh"}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={isRTL ? "رادار التدفق النقدي" : "Cashflow Radar"}
+        description={isRTL ? "توقعات السيولة والتنبيهات الذكية" : "Liquidity forecasting & smart alerts"}
+      >
+        <Button
+          variant={showScenario ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowScenario(!showScenario)}
+        >
+          <SlidersHorizontal className="h-4 w-4 me-2" />
+          {isRTL ? "محاكاة" : "Simulate"}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={cn("h-4 w-4 me-2", isFetching && "animate-spin")} />
+          {isRTL ? "تحديث" : "Refresh"}
+        </Button>
+      </PageHeader>
 
       {/* CFO Summary Card */}
       <Card className="border-border bg-gradient-to-br from-primary/5 to-primary/10">

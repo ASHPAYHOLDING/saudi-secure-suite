@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, History, AlertTriangle, Layers, Warehouse, ClipboardCheck, ArrowLeftRight, ClipboardList, Database, BarChart3 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import ProductList from "./ProductList";
 import StockMovements from "./StockMovements";
 import LowStockAlerts from "./LowStockAlerts";
@@ -17,12 +18,10 @@ const InventoryPage = () => {
 
   return (
     <div className="p-6 space-y-6" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">إدارة المخزون</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          إدارة المستودعات والمنتجات وتتبع المخزون والتكاليف
-        </p>
-      </div>
+      <PageHeader
+        title="إدارة المخزون"
+        description="إدارة المستودعات والمنتجات وتتبع المخزون والتكاليف"
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
         <div className="overflow-x-auto pb-1">

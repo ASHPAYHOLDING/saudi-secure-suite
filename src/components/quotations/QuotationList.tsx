@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, FileText, Eye, Pencil, Trash2 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
@@ -70,15 +71,11 @@ const QuotationList = ({ onCreateNew, onView, onEdit }: QuotationListProps) => {
 
   return (
     <div className="p-4 sm:p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">عروض الأسعار</h1>
-          <p className="text-sm text-muted-foreground mt-1">إنشاء وإدارة عروض الأسعار</p>
-        </div>
+      <PageHeader title="عروض الأسعار" description="إنشاء وإدارة عروض الأسعار">
         <Button onClick={onCreateNew} className="gap-1.5">
           <Plus size={16} /> عرض سعر جديد
         </Button>
-      </div>
+      </PageHeader>
 
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

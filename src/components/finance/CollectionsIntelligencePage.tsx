@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { fmtCurrency } from "@/lib/formatters";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -131,21 +132,15 @@ const CollectionsIntelligencePage = () => {
 
   return (
     <div className="space-y-6 p-6" dir={isRTL ? "rtl" : "ltr"}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {isRTL ? "ذكاء التحصيل" : "Collections Intelligence"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isRTL ? "تحليل مخاطر العملاء وإدارة التحصيل الذكي" : "Customer risk analysis & smart collections management"}
-          </p>
-        </div>
+      <PageHeader
+        title={isRTL ? "ذكاء التحصيل" : "Collections Intelligence"}
+        description={isRTL ? "تحليل مخاطر العملاء وإدارة التحصيل الذكي" : "Customer risk analysis & smart collections management"}
+      >
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn("h-4 w-4 me-2", isFetching && "animate-spin")} />
           {isRTL ? "تحديث" : "Refresh"}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

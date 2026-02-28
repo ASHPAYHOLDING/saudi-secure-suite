@@ -5,6 +5,7 @@ import {
   DollarSign, TrendingUp, TrendingDown, AlertTriangle,
   Users, Loader2, ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -181,13 +182,7 @@ const FinancialOverview = () => {
   return (
     <div dir="rtl" className="space-y-6 p-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <DollarSign size={24} className="text-accent" />
-          النظرة المالية
-        </h1>
-        <p className="text-sm text-muted-foreground">ملخص الأداء المالي للمنشأة في الوقت الفعلي</p>
-      </div>
+      <PageHeader title="النظرة المالية" description="ملخص الأداء المالي للمنشأة في الوقت الفعلي" />
 
       {/* KPI Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Plus, Search, FileSignature, Eye, Filter, Clock, Loader2 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
 import { getContractTypeLabel, getContractStatusLabel, getContractStatusColor } from "@/lib/contract-utils";
@@ -90,16 +91,12 @@ const ContractList = ({ onCreateNew, onViewContract }: ContractListProps) => {
   return (
     <div dir="rtl" className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
-          <p className="text-sm text-muted-foreground mt-1">إدارة العقود والاتفاقيات وفق المعايير السعودية</p>
-        </div>
+      <PageHeader title="العقود" description="إدارة العقود والاتفاقيات وفق المعايير السعودية">
         <Button onClick={onCreateNew} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
           <Plus size={18} />
           إنشاء عقد
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
