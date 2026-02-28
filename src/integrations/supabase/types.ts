@@ -9237,56 +9237,93 @@ export type Database = {
       payment_links: {
         Row: {
           amount: number
+          canceled_at: string | null
           created_at: string
           created_by: string
           currency: string
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          description: string | null
           expires_at: string | null
           gateway: string
           gateway_reference: string | null
           id: string
-          invoice_id: string
+          invoice_id: string | null
           metadata: Json | null
           paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
           payment_url: string | null
+          public_token: string
+          signature: string
           status: string
           tenant_id: string
           updated_at: string
         }
         Insert: {
           amount?: number
+          canceled_at?: string | null
           created_at?: string
           created_by: string
           currency?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          description?: string | null
           expires_at?: string | null
           gateway?: string
           gateway_reference?: string | null
           id?: string
-          invoice_id: string
+          invoice_id?: string | null
           metadata?: Json | null
           paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           payment_url?: string | null
+          public_token?: string
+          signature?: string
           status?: string
           tenant_id: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          canceled_at?: string | null
           created_at?: string
           created_by?: string
           currency?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          description?: string | null
           expires_at?: string | null
           gateway?: string
           gateway_reference?: string | null
           id?: string
-          invoice_id?: string
+          invoice_id?: string | null
           metadata?: Json | null
           paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           payment_url?: string | null
+          public_token?: string
+          signature?: string
           status?: string
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_links_invoice_id_fkey"
             columns: ["invoice_id"]
