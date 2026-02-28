@@ -154,7 +154,9 @@
       "hr": "Human Resources",
       "management": "Management",
       "enterprise_finance": "Enterprise Accounting"
-    }
+    },
+    "showMore": "More ({{count}})",
+    "showLess": "Less"
   },
   "landing": {
     "features": "Features",
