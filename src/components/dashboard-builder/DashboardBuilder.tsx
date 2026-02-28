@@ -2,10 +2,14 @@
  * DashboardBuilder — replaces the default /dashboard home.
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
-import { Responsive, useContainerWidth, verticalCompactor } from "react-grid-layout";
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from "react";
+import { Responsive } from "react-grid-layout";
+// @ts-ignore — WidthProvider is a default export in react-grid-layout
+import WidthProvider from "react-grid-layout/build/components/WidthProvider";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 import { motion } from "framer-motion";
 import {
   Settings2, RotateCcw, Grip, X, Activity, Zap, BarChart3,
@@ -31,7 +35,7 @@ import {
 import { WIDGET_COMPONENTS } from "./WidgetRenderers";
 import WidgetCatalog from "./WidgetCatalog";
 
-// WidthProvider removed in v2 — use useContainerWidth hook instead
+
 
 const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
 
@@ -105,7 +109,7 @@ const DashboardBuilder = () => {
   const { layout, saveLayout, resetLayout, saving } = useDashboardLayout();
   const [editMode, setEditMode] = useState(false);
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
-  const { width, containerRef } = useContainerWidth();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -287,18 +291,18 @@ const DashboardBuilder = () => {
           ))}
         </div>
       ) : (
-        <div ref={containerRef as any}>
-          <Responsive
+        <div ref={containerRef}>
+          <ResponsiveGridLayout
             className="layout"
-            width={width || 1200}
             layouts={{ lg: gridLayout, md: gridLayout, sm: gridLayout }}
             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
             cols={{ lg: 12, md: 8, sm: 6, xs: 4, xxs: 2 }}
             rowHeight={60}
-            dragConfig={{ enabled: editMode, bounded: false, handle: ".widget-drag-handle", threshold: 3 }}
-            resizeConfig={{ enabled: editMode, handles: ["se"] }}
+            isDraggable={editMode}
+            isResizable={editMode}
+            draggableHandle=".widget-drag-handle"
+            compactType="vertical"
             onLayoutChange={(l: any) => onLayoutChange(l)}
-            compactor={verticalCompactor}
             margin={[12, 12] as [number, number]}
           >
             {visibleLayout.map((item) => {
@@ -327,7 +331,7 @@ const DashboardBuilder = () => {
                 </div>
               );
             })}
-          </Responsive>
+          </ResponsiveGridLayout>
         </div>
       )}
 
