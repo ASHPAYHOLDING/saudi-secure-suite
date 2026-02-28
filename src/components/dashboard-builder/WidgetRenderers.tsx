@@ -1,7 +1,6 @@
 /**
- * Individual widget renderers for the Dashboard Builder.
- * Each receives dashboard stats and renders its specific content.
- * Widgets show a compact empty state when their data is zero/empty.
+ * Redesigned widget renderers for the Dashboard Builder.
+ * Clean, consistent card design with proper visual hierarchy.
  */
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,11 +16,12 @@ import {
   CircleDollarSign, Receipt, CalendarClock, ShieldAlert,
   TrendingUp, Users, Banknote, Bell, Activity,
   ArrowUpRight, ArrowDownRight, Minus, Plus, LucideIcon,
+  AlertTriangle, CheckCircle2, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtCurrency, fmtNumber } from "@/lib/formatters";
 import { useNavigate } from "react-router-dom";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ChartsSection = lazy(() => import("@/components/dashboard/DashboardCharts"));
@@ -33,7 +33,7 @@ interface WidgetProps {
 }
 
 /* ═══════════════════════════════════════════════
-   Widget Empty State — compact, fits inside widget cards
+   Widget Empty State
    ═══════════════════════════════════════════════ */
 const WidgetEmptyState = ({
   icon: Icon,
@@ -50,19 +50,19 @@ const WidgetEmptyState = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <Card className="h-full border-border/40 shadow-sm">
-      <CardContent className="p-4 sm:p-5 h-full flex flex-col items-center justify-center text-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
+      <CardContent className="p-5 h-full flex flex-col items-center justify-center text-center gap-3 min-h-[140px]">
+        <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
           <Icon className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[200px]">{description}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[200px] leading-relaxed">{description}</p>
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs h-8 rounded-lg"
           onClick={() => navigate(actionPath)}
         >
           <Plus className="w-3.5 h-3.5" />
@@ -74,8 +74,7 @@ const WidgetEmptyState = ({
 };
 
 /* ═══════════════════════════════════════════════
-   Trend helper — computes % change between two periods
-   Returns { direction, percent, tooltip } or null
+   Trend helper
    ═══════════════════════════════════════════════ */
 interface TrendInfo {
   direction: "up" | "down" | "flat";
@@ -102,7 +101,7 @@ function computeTrend(
 }
 
 /* ═══════════════════════════════════════════════
-   KPI Widget (shared renderer) — with trend indicator + tooltip
+   KPI Widget — clean, consistent design
    ═══════════════════════════════════════════════ */
 const KpiWidget = ({
   label, value, isCurrency, sub, icon: Icon, iconBg, iconColor, trendInfo, path,
@@ -124,7 +123,7 @@ const KpiWidget = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <span className={cn(
-            "inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-default",
+            "inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md cursor-default tabular-nums",
             trendInfo.direction === "up" && "bg-success/10 text-success",
             trendInfo.direction === "down" && "bg-destructive/10 text-destructive",
             trendInfo.direction === "flat" && "bg-muted text-muted-foreground",
@@ -144,23 +143,23 @@ const KpiWidget = ({
 
   return (
     <Card
-      className="h-full border-border/40 shadow-sm hover:shadow-md hover:border-accent/20 transition-all cursor-pointer group relative overflow-hidden"
+      className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all cursor-pointer group relative overflow-hidden"
       onClick={() => navigate(path)}
     >
-      <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/40" />
-      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between">
-        <div className="flex items-start justify-between mb-3">
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg)}>
+      <div className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-accent to-accent/30" />
+      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between min-h-[140px]">
+        <div className="flex items-start justify-between">
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
             <Icon className={cn("w-5 h-5", iconColor)} />
           </div>
           {TrendBadge}
         </div>
-        <div>
-          <p className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight tabular-nums">
+        <div className="mt-auto pt-3">
+          <p className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight tabular-nums leading-none">
             {isCurrency ? fmtCurrency(value) : fmtNumber(value)}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-1 font-medium">{label}</p>
-          {sub && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{sub}</p>}
+          <p className="text-xs text-muted-foreground mt-1.5 font-medium">{label}</p>
+          {sub && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{sub}</p>}
         </div>
       </CardContent>
     </Card>
@@ -191,8 +190,7 @@ export const RevenueWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
       label="إجمالي الإيرادات" value={stats.totalRevenue} isCurrency
       sub={`${stats.paidInvoices} فاتورة محصّلة`}
       icon={CircleDollarSign} iconBg="bg-accent/10" iconColor="text-accent"
-      trendInfo={trend}
-      path="/dashboard/finance"
+      trendInfo={trend} path="/dashboard/finance"
     />
   );
 };
@@ -213,7 +211,6 @@ export const ExpensesWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   const margin = stats.totalRevenue > 0 ? ((net / stats.totalRevenue) * 100).toFixed(0) : 0;
   const currentExp = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 1]?.expenses : undefined;
   const prevExp = monthlyData.length >= 2 ? monthlyData[monthlyData.length - 2]?.expenses : undefined;
-  // For expenses, "down" is good — invert the direction display
   const rawTrend = computeTrend(currentExp ?? stats.totalExpenses, prevExp, "هذا الشهر", "الشهر السابق", true);
   const trend = rawTrend ? { ...rawTrend, direction: rawTrend.direction === "up" ? "down" as const : rawTrend.direction === "down" ? "up" as const : "flat" as const } : null;
   return (
@@ -221,8 +218,7 @@ export const ExpensesWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
       label="المصروفات" value={stats.totalExpenses} isCurrency
       sub={`هامش الربح: ${margin}%`}
       icon={Receipt} iconBg="bg-warning/10" iconColor="text-warning"
-      trendInfo={trend}
-      path="/dashboard/expenses"
+      trendInfo={trend} path="/dashboard/expenses"
     />
   );
 };
@@ -249,8 +245,7 @@ export const OverdueWidget = ({ stats }: WidgetProps) => {
       icon={CalendarClock}
       iconBg={stats.overdueInvoices > 0 ? "bg-destructive/10" : "bg-success/10"}
       iconColor={stats.overdueInvoices > 0 ? "text-destructive" : "text-success"}
-      trendInfo={trend}
-      path="/dashboard/billing"
+      trendInfo={trend} path="/dashboard/billing"
     />
   );
 };
@@ -291,18 +286,18 @@ export const CollectionWidget = ({ stats }: WidgetProps) => {
   }
   const rate = stats.totalInvoices > 0 ? Math.round((stats.paidInvoices / stats.totalInvoices) * 100) : 0;
   return (
-    <Card className="h-full border-border/40 shadow-sm">
-      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-success" />
+    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
+      <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between min-h-[140px]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-success" />
           </div>
-          <span className="text-sm font-semibold text-foreground">معدل التحصيل</span>
+          <span className="text-xs font-semibold text-foreground">معدل التحصيل</span>
         </div>
-        <div>
-          <p className="text-3xl font-bold text-foreground tabular-nums">{rate}%</p>
-          <Progress value={rate} className="mt-2 h-2" />
-          <p className="text-[10px] text-muted-foreground mt-1 tabular-nums">
+        <div className="mt-auto pt-3">
+          <p className="text-[28px] font-bold text-foreground tabular-nums leading-none">{rate}%</p>
+          <Progress value={rate} className="mt-2.5 h-1.5 rounded-full" />
+          <p className="text-[10px] text-muted-foreground mt-1.5 tabular-nums">
             {stats.paidInvoices} من {stats.totalInvoices} فاتورة
           </p>
         </div>
@@ -334,70 +329,74 @@ export const CustomersWidget = ({ stats }: WidgetProps) => {
 };
 
 export const PayrollWidget = ({ stats }: WidgetProps) => (
-  <Card className="h-full border-border/40 shadow-sm">
-    <CardContent className="p-4 sm:p-5 h-full flex flex-col justify-between">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-          <Banknote className="w-4 h-4 text-accent" />
+  <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
+    <CardContent className="p-5 h-full flex flex-col justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+          <Banknote className="w-5 h-5 text-accent" />
         </div>
         <span className="text-sm font-semibold text-foreground">الرواتب</span>
       </div>
-      <div>
+      <div className="mt-3">
         <p className="text-sm text-muted-foreground">يتم عرض بيانات الرواتب من وحدة HR</p>
-        <Badge className="mt-2 bg-accent/10 text-accent">Enterprise</Badge>
+        <Badge className="mt-2 bg-accent/10 text-accent border-0">Enterprise</Badge>
       </div>
     </CardContent>
   </Card>
 );
 
 export const AlertsWidget = ({ stats }: WidgetProps) => {
-  const alerts: { msg: string; severity: "warning" | "destructive" | "info" }[] = [];
-  if (stats.overdueInvoices > 0) alerts.push({ msg: `${stats.overdueInvoices} فاتورة متأخرة`, severity: "destructive" });
+  const alerts: { msg: string; severity: "warning" | "destructive" | "info"; icon: LucideIcon }[] = [];
+  if (stats.overdueInvoices > 0) alerts.push({ msg: `${stats.overdueInvoices} فاتورة متأخرة تحتاج متابعة`, severity: "destructive", icon: AlertTriangle });
   const ratio = stats.totalRevenue > 0 ? (stats.totalExpenses / stats.totalRevenue) * 100 : 0;
-  if (ratio > 85) alerts.push({ msg: `معدل حرق مرتفع (${ratio.toFixed(0)}%)`, severity: "warning" });
+  if (ratio > 85) alerts.push({ msg: `معدل حرق مرتفع (${ratio.toFixed(0)}%)`, severity: "warning", icon: AlertTriangle });
   const now = new Date();
   const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
-  if (stats.totalVat > 0 && daysLeft <= 7) alerts.push({ msg: `إقرار VAT خلال ${daysLeft} يوم`, severity: "warning" });
+  if (stats.totalVat > 0 && daysLeft <= 7) alerts.push({ msg: `إقرار VAT خلال ${daysLeft} يوم`, severity: "warning", icon: Clock });
 
   if (alerts.length === 0) {
     return (
-      <Card className="h-full border-border/40 shadow-sm">
-        <CardHeader className="pb-2 px-4 pt-4">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="w-4 h-4 text-success" />
-            التنبيهات
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 flex flex-col items-center justify-center text-center gap-2 py-4">
-          <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center">
-            <Bell className="w-4 h-4 text-success" />
+      <Card className="h-full border-success/20 bg-success/[0.03] shadow-[var(--shadow-sm)]">
+        <CardContent className="p-4 sm:p-5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-success" />
           </div>
-          <p className="text-sm font-medium text-foreground">لا توجد تنبيهات ✅</p>
-          <p className="text-[11px] text-muted-foreground">كل شيء يسير بشكل ممتاز</p>
+          <div>
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Bell className="w-3.5 h-3.5 text-success" />
+              التنبيهات
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">كل شيء يسير بشكل ممتاز ✅</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="h-full border-border/40 shadow-sm">
-      <CardHeader className="pb-2 px-4 pt-4">
-        <CardTitle className="text-sm flex items-center gap-2">
+    <Card className="h-full border-warning/20 bg-warning/[0.02] shadow-[var(--shadow-sm)]">
+      <CardContent className="p-4 sm:p-5">
+        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
           <Bell className="w-4 h-4 text-warning" />
           التنبيهات
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4 space-y-2">
-        {alerts.map((a, i) => (
-          <div key={i} className={cn(
-            "rounded-lg px-3 py-2 text-xs font-medium",
-            a.severity === "destructive" && "bg-destructive/10 text-destructive",
-            a.severity === "warning" && "bg-warning/10 text-warning",
-            a.severity === "info" && "bg-muted text-muted-foreground",
-          )}>
-            {a.msg}
-          </div>
-        ))}
+          <Badge variant="outline" className="text-[10px] ms-1 border-warning/30 text-warning">{alerts.length}</Badge>
+        </p>
+        <div className="space-y-2">
+          {alerts.map((a, i) => {
+            const AlertIcon = a.icon;
+            return (
+              <div key={i} className={cn(
+                "rounded-lg px-3 py-2.5 text-xs font-medium flex items-center gap-2",
+                a.severity === "destructive" && "bg-destructive/8 text-destructive border border-destructive/10",
+                a.severity === "warning" && "bg-warning/8 text-warning border border-warning/10",
+                a.severity === "info" && "bg-muted text-muted-foreground border border-border/50",
+              )}>
+                <AlertIcon className="w-3.5 h-3.5 shrink-0" />
+                {a.msg}
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );
@@ -416,15 +415,15 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
 
   if (activities.length === 0) {
     return (
-      <Card className="h-full border-border/40 shadow-sm">
-        <CardHeader className="pb-2 px-4 pt-4">
+      <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
+        <CardHeader className="pb-2 px-5 pt-5">
           <CardTitle className="text-sm flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
             آخر الأنشطة
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 pb-4 flex flex-col items-center justify-center text-center gap-3 py-6">
-          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+        <CardContent className="px-5 pb-5 flex flex-col items-center justify-center text-center gap-3 py-8">
+          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
             <Activity className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>
@@ -432,9 +431,7 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
             <p className="text-[11px] text-muted-foreground mt-0.5">ابدأ بإنشاء فاتورة أو إضافة عميل</p>
           </div>
           <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs h-8"
+            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg"
             onClick={() => navigate("/dashboard/billing")}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -446,23 +443,31 @@ export const ActivityWidget = ({ activities = [] }: WidgetProps) => {
   }
 
   return (
-    <Card className="h-full border-border/40 shadow-sm overflow-hidden">
-      <CardHeader className="pb-2 px-4 pt-4">
+    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
+      <CardHeader className="pb-2 px-5 pt-5">
         <CardTitle className="text-sm flex items-center gap-2">
           <Activity className="w-4 h-4 text-primary" />
           آخر الأنشطة
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 space-y-2 overflow-y-auto max-h-[200px]">
-        {activities.map((a: any) => (
-          <div key={a.id} className="flex items-center gap-2 text-xs py-1.5 border-b border-border/30 last:border-0">
-            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <Activity className="w-3 h-3 text-muted-foreground" />
+      <CardContent className="px-5 pb-5 space-y-1 overflow-y-auto max-h-[250px]">
+        {activities.map((a: any, idx: number) => (
+          <div key={a.id} className={cn(
+            "flex items-center gap-2.5 text-xs py-2.5 rounded-lg px-2 -mx-2 hover:bg-muted/40 transition-colors",
+            idx < activities.length - 1 && "border-b border-border/30"
+          )}>
+            <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
+              <Activity className="w-3 h-3 text-primary/60" />
             </div>
-            <span className="text-foreground font-medium">
-              {actionLabels[a.action] || a.action} {entityLabels[a.entity_type] || a.entity_type}
+            <div className="flex-1 min-w-0">
+              <span className="text-foreground font-medium">
+                {actionLabels[a.action] || a.action} {entityLabels[a.entity_type] || a.entity_type}
+              </span>
+              {a.entity_label && <span className="text-muted-foreground truncate"> — {a.entity_label}</span>}
+            </div>
+            <span className="text-[10px] text-muted-foreground/60 shrink-0 tabular-nums">
+              {new Date(a.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short" })}
             </span>
-            {a.entity_label && <span className="text-muted-foreground truncate">— {a.entity_label}</span>}
           </div>
         ))}
       </CardContent>
@@ -476,9 +481,9 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
 
   if (!hasData) {
     return (
-      <Card className="h-full border-border/40 shadow-sm">
-        <CardContent className="p-4 sm:p-5 h-full flex flex-col items-center justify-center text-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+      <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)]">
+        <CardContent className="p-5 h-full flex flex-col items-center justify-center text-center gap-3 min-h-[280px]">
+          <div className="w-11 h-11 rounded-xl bg-muted/60 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>
@@ -486,9 +491,7 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
             <p className="text-[11px] text-muted-foreground mt-0.5">أنشئ فواتير ومصروفات لعرض التحليلات</p>
           </div>
           <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs h-8"
+            size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-lg"
             onClick={() => navigate("/dashboard/billing")}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -500,8 +503,8 @@ export const ChartsWidget = ({ stats, monthlyData = [] }: WidgetProps) => {
   }
 
   return (
-    <Card className="h-full border-border/40 shadow-sm overflow-hidden">
-      <CardContent className="p-2 h-full">
+    <Card className="h-full border-border/50 bg-card shadow-[var(--shadow-sm)] overflow-hidden">
+      <CardContent className="p-3 sm:p-4 h-full min-h-[300px]">
         <Suspense fallback={<Skeleton className="w-full h-full rounded-lg" />}>
           <ChartsSection
             monthlyData={monthlyData}
