@@ -1,16 +1,16 @@
 /**
- * DashboardBuilder — Premium enterprise dashboard with stunning animations.
- * Fully responsive across all devices. Professional & polished.
+ * DashboardBuilder — Premium enterprise dashboard with live clock,
+ * scroll-reveal animations, and fully responsive RTL layout.
  */
-import { lazy, Suspense, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { lazy, Suspense, useMemo, useState, useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
   CalendarDays, Zap, BarChart3, TrendingUp,
   Users, FileText, Wallet, Receipt, Shield, Building2,
   Briefcase, ArrowUpRight, CreditCard, ShoppingCart,
   FileSignature, Target, BookOpen, UserCircle,
   ChevronLeft, Sparkles, Activity, PieChart,
-  ArrowRight, Clock, Bell,
+  ArrowRight, Clock, Bell, Plus, BookOpenCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useLiveClock } from "@/hooks/useLiveClock";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,13 +95,13 @@ async function fetchStats(tenantId: string) {
 }
 
 /* ═══════════════════════════════════════════════
-   Stagger container variant
+   Animation variants — respects prefers-reduced-motion
    ═══════════════════════════════════════════════ */
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
   },
 };
 
@@ -112,16 +113,45 @@ const staggerItem = {
   },
 };
 
-const fadeSlideUp = {
-  hidden: { opacity: 0, y: 24 },
+const heroEntry = {
+  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
   show: {
-    opacity: 1, y: 0,
-    transition: { type: "spring" as const, stiffness: 260, damping: 20 },
+    opacity: 1, y: 0, filter: "blur(0px)",
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
+const reducedEntry = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.3 } },
+};
+
 /* ═══════════════════════════════════════════════
-   Section Navigation Card — Premium Design
+   ScrollReveal wrapper — uses IntersectionObserver
+   ═══════════════════════════════════════════════ */
+const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const prefersReduced = useReducedMotion();
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={prefersReduced ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.98 }}
+      animate={isInView
+        ? (prefersReduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 })
+        : undefined
+      }
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   Section Navigation Card
    ═══════════════════════════════════════════════ */
 interface SectionCardProps {
   icon: any;
@@ -138,15 +168,11 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
   return (
     <motion.div variants={staggerItem}>
       <Card
-        className="group cursor-pointer border-border/40 bg-card/80 backdrop-blur-sm hover:border-accent/30 hover:shadow-lg transition-all duration-500 overflow-hidden relative h-full"
+        className="group cursor-pointer border-border/40 bg-card/80 backdrop-blur-sm hover:border-accent/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-500 overflow-hidden relative h-full"
         onClick={() => navigate(path)}
       >
-        {/* Top gradient bar */}
         <div className={cn("absolute top-0 inset-x-0 h-1 transition-all duration-500 opacity-0 group-hover:opacity-100", gradient)} />
-        
-        {/* Hover glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
         <CardContent className="p-4 sm:p-5 relative z-10">
           <div className="flex items-start gap-3">
             <motion.div
@@ -159,13 +185,7 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground group-hover:text-accent transition-colors duration-300">{title}</h3>
-                <motion.div
-                  initial={{ x: 0 }}
-                  whileHover={{ x: -4 }}
-                  className="flex-none"
-                >
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground/30 group-hover:text-accent transition-all duration-300 rtl-flip" />
-                </motion.div>
+                <ChevronLeft className="w-4 h-4 text-muted-foreground/30 group-hover:text-accent transition-all duration-300 group-hover:-translate-x-1 rtl:group-hover:translate-x-1 flex-none" />
               </div>
               <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">{description}</p>
               {count !== undefined && count > 0 && (
@@ -182,7 +202,7 @@ const SectionCard = ({ icon: Icon, title, description, path, gradient, iconColor
 };
 
 /* ═══════════════════════════════════════════════
-   Quick Action Button — Animated
+   Quick Action Button — with hover lift + glow
    ═══════════════════════════════════════════════ */
 interface QuickActionProps {
   icon: any;
@@ -192,13 +212,20 @@ interface QuickActionProps {
 }
 
 const QuickAction = ({ icon: Icon, label, onClick, variant = "secondary" }: QuickActionProps) => (
-  <motion.div variants={staggerItem}>
+  <motion.div
+    variants={staggerItem}
+    whileHover={{ y: -2, scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+  >
     <Button
       variant={variant === "primary" ? "default" : "outline"}
       size="sm"
       className={cn(
-        "gap-2 rounded-xl h-10 text-xs font-semibold transition-all duration-300 border-border/50",
-        variant === "primary" && "bg-gradient-to-l from-accent to-accent/90 hover:from-accent/90 hover:to-accent text-accent-foreground shadow-md hover:shadow-lg hover:shadow-accent/20 border-0"
+        "gap-2 rounded-xl h-10 text-xs font-semibold transition-all duration-300 border-border/50 whitespace-nowrap",
+        variant === "primary"
+          ? "bg-gradient-to-l from-accent to-accent/90 hover:from-accent/90 hover:to-accent text-accent-foreground shadow-md hover:shadow-lg hover:shadow-accent/25 border-0"
+          : "hover:shadow-md hover:shadow-foreground/5 hover:border-accent/40"
       )}
       onClick={onClick}
     >
@@ -209,30 +236,14 @@ const QuickAction = ({ icon: Icon, label, onClick, variant = "secondary" }: Quic
 );
 
 /* ═══════════════════════════════════════════════
-   Summary Stat Pill
-   ═══════════════════════════════════════════════ */
-const StatPill = ({ label, value, icon: Icon }: { label: string; value: string; icon: any }) => (
-  <motion.div
-    variants={staggerItem}
-    className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2.5 flex items-center gap-2.5 border border-white/10"
-  >
-    <Icon className="w-4 h-4 text-white/60 flex-none" />
-    <div className="flex flex-col">
-      <span className="text-[10px] text-white/50 font-medium">{label}</span>
-      <span className="text-sm font-bold text-white tabular-nums">{value}</span>
-    </div>
-  </motion.div>
-);
-
-/* ═══════════════════════════════════════════════
-   Loading Skeleton — Premium
+   Loading Skeleton
    ═══════════════════════════════════════════════ */
 const DashboardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
-    <Skeleton className="h-[160px] rounded-2xl" />
-    <div className="flex gap-2">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-28 rounded-xl" />
+    <Skeleton className="h-[200px] rounded-2xl" />
+    <div className="flex gap-2 overflow-hidden">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Skeleton key={i} className="h-10 w-28 rounded-xl flex-none" />
       ))}
     </div>
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -240,24 +251,19 @@ const DashboardSkeleton = () => (
         <Skeleton key={i} className="h-[140px] rounded-xl" />
       ))}
     </div>
-    <Skeleton className="h-[80px] rounded-xl" />
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <Skeleton key={i} className="h-[100px] rounded-xl" />
-      ))}
-    </div>
-    <Skeleton className="h-[300px] rounded-xl" />
   </div>
 );
 
 /* ═══════════════════════════════════════════════
-   Main Dashboard — Premium Layout
+   Main Dashboard
    ═══════════════════════════════════════════════ */
 const DashboardBuilder = () => {
   const { tenantId, profile } = useAuth();
   const { dir } = useLanguage();
   const navigate = useNavigate();
   const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
+  const prefersReduced = useReducedMotion();
+  const clock = useLiveClock();
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-builder-stats", tenantId],
@@ -267,223 +273,197 @@ const DashboardBuilder = () => {
     refetchOnWindowFocus: false,
   });
 
-  const firstName = data?.tenantName || profile?.full_name?.split(" ")[0] || "";
-  const hijriDate = new Date().toLocaleDateString("ar-SA-u-ca-islamic", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const gregDate = new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" });
-
-  const sections = useMemo(() => [
-    {
-      icon: CreditCard,
-      title: "الفواتير والفوترة",
-      description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات",
-      path: "/dashboard/billing",
-      gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600",
-      iconColor: "text-white",
-      count: data?.stats?.totalInvoices,
-    },
-    {
-      icon: Users,
-      title: "العملاء",
-      description: "إدارة بيانات العملاء والعلاقات التجارية",
-      path: "/dashboard/customers",
-      gradient: "bg-gradient-to-br from-blue-500 to-blue-600",
-      iconColor: "text-white",
-      count: data?.stats?.totalCustomers,
-    },
-    {
-      icon: Wallet,
-      title: "المالية",
-      description: "التدفقات النقدية، الحسابات، التقارير المالية",
-      path: "/dashboard/finance",
-      gradient: "bg-gradient-to-br from-violet-500 to-violet-600",
-      iconColor: "text-white",
-    },
-    {
-      icon: Receipt,
-      title: "المصروفات",
-      description: "تسجيل ومتابعة وإدارة المصروفات",
-      path: "/dashboard/expenses",
-      gradient: "bg-gradient-to-br from-amber-500 to-orange-500",
-      iconColor: "text-white",
-    },
-    {
-      icon: FileSignature,
-      title: "العقود",
-      description: "إدارة العقود والاتفاقيات التجارية",
-      path: "/dashboard/contracts",
-      gradient: "bg-gradient-to-br from-teal-500 to-teal-600",
-      iconColor: "text-white",
-      count: data?.stats?.totalContracts,
-    },
-    {
-      icon: BarChart3,
-      title: "التقارير والتحليلات",
-      description: "تقارير شاملة ولوحات تحليلية ذكية",
-      path: "/dashboard/reports",
-      gradient: "bg-gradient-to-br from-rose-500 to-pink-500",
-      iconColor: "text-white",
-    },
-    {
-      icon: Target,
-      title: "الميزانيات",
-      description: "التخطيط المالي ومتابعة الميزانيات",
-      path: "/dashboard/budgets",
-      gradient: "bg-gradient-to-br from-cyan-500 to-cyan-600",
-      iconColor: "text-white",
-    },
-    {
-      icon: Briefcase,
-      title: "الموارد البشرية",
-      description: "إدارة الموظفين، الرواتب، الحضور والانصراف",
-      path: "/dashboard/hr",
-      gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600",
-      iconColor: "text-white",
-    },
-  ], [data?.stats]);
+  const tenantName = data?.tenantName || profile?.full_name?.split(" ")[0] || "";
 
   const timeOfDay = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "صباح الخير";
-    if (h < 17) return "مساء الخير";
+    if (clock.hours < 12) return "صباح الخير";
+    if (clock.hours < 17) return "مساء الخير";
     return "مساء النور";
   })();
 
+  const sections = useMemo(() => [
+    { icon: CreditCard, title: "الفواتير والفوترة", description: "إنشاء الفواتير، إشعارات الدائن، تتبع المدفوعات", path: "/dashboard/billing", gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600", iconColor: "text-white", count: data?.stats?.totalInvoices },
+    { icon: Users, title: "العملاء", description: "إدارة بيانات العملاء والعلاقات التجارية", path: "/dashboard/customers", gradient: "bg-gradient-to-br from-blue-500 to-blue-600", iconColor: "text-white", count: data?.stats?.totalCustomers },
+    { icon: Wallet, title: "المالية", description: "التدفقات النقدية، الحسابات، التقارير المالية", path: "/dashboard/finance", gradient: "bg-gradient-to-br from-violet-500 to-violet-600", iconColor: "text-white" },
+    { icon: Receipt, title: "المصروفات", description: "تسجيل ومتابعة وإدارة المصروفات", path: "/dashboard/expenses", gradient: "bg-gradient-to-br from-amber-500 to-orange-500", iconColor: "text-white" },
+    { icon: FileSignature, title: "العقود", description: "إدارة العقود والاتفاقيات التجارية", path: "/dashboard/contracts", gradient: "bg-gradient-to-br from-teal-500 to-teal-600", iconColor: "text-white", count: data?.stats?.totalContracts },
+    { icon: BarChart3, title: "التقارير والتحليلات", description: "تقارير شاملة ولوحات تحليلية ذكية", path: "/dashboard/reports", gradient: "bg-gradient-to-br from-rose-500 to-pink-500", iconColor: "text-white" },
+    { icon: Target, title: "الميزانيات", description: "التخطيط المالي ومتابعة الميزانيات", path: "/dashboard/budgets", gradient: "bg-gradient-to-br from-cyan-500 to-cyan-600", iconColor: "text-white" },
+    { icon: Briefcase, title: "الموارد البشرية", description: "إدارة الموظفين، الرواتب، الحضور والانصراف", path: "/dashboard/hr", gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600", iconColor: "text-white" },
+  ], [data?.stats]);
+
+  const quickActions = [
+    { icon: Zap, label: "فاتورة سريعة", onClick: () => setQuickInvoiceOpen(true), variant: "primary" as const },
+    { icon: Plus, label: "عميل جديد", onClick: () => navigate("/dashboard/customers"), variant: "secondary" as const },
+    { icon: Receipt, label: "إضافة مصروف", onClick: () => navigate("/dashboard/expenses"), variant: "secondary" as const },
+    { icon: BookOpenCheck, label: "قيد يومي", onClick: () => navigate("/dashboard/finance"), variant: "secondary" as const },
+    { icon: BarChart3, label: "عرض التقارير", onClick: () => navigate("/dashboard/reports"), variant: "secondary" as const },
+  ];
+
+  const heroVariant = prefersReduced ? reducedEntry : heroEntry;
+
   return (
     <div dir={dir} className="space-y-6 p-3 sm:p-5 lg:p-8 max-w-[1400px] mx-auto">
-      {/* ═══ Hero Welcome Section ═══ */}
+
+      {/* ═══════════════ HERO HEADER ═══════════════ */}
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        initial="hidden"
+        animate="show"
+        variants={heroVariant}
         className="rounded-2xl bg-gradient-to-l from-primary via-primary/95 to-primary/85 p-5 sm:p-7 lg:p-8 text-primary-foreground relative overflow-hidden"
       >
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-1/2 -end-1/4 w-[600px] h-[600px] rounded-full bg-white/[0.03]"
-          />
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-1/3 -start-1/4 w-[400px] h-[400px] rounded-full bg-white/[0.02]"
-          />
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-          }} />
-        </div>
-        
+        {/* Background decorations */}
+        {!prefersReduced && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-1/2 -end-1/4 w-[600px] h-[600px] rounded-full bg-white/[0.03]"
+            />
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+              className="absolute -bottom-1/3 -start-1/4 w-[400px] h-[400px] rounded-full bg-white/[0.02]"
+            />
+          </div>
+        )}
+        {/* Subtle dot pattern */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{
+          backgroundImage: `radial-gradient(circle at 1.5px 1.5px, currentColor 1px, transparent 0)`,
+          backgroundSize: '28px 28px',
+        }} />
+
         <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+            {/* Left: Greeting + dates */}
+            <div className="space-y-2">
               <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                initial={prefersReduced ? {} : { opacity: 0, x: 30, filter: "blur(4px)" }}
+                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                transition={{ delay: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               >
-                <p className="text-sm text-white/50 font-medium mb-1">{timeOfDay} 👋</p>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">
-                  {firstName}
+                <p className="text-sm text-white/50 font-medium">{timeOfDay} 👋</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight mt-1">
+                  {tenantName}
                 </h1>
               </motion.div>
+
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
+                initial={prefersReduced ? {} : { opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="flex items-center gap-2 mt-2.5 text-white/50 text-xs sm:text-sm"
+                transition={{ delay: 0.35, duration: 0.5 }}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/60 text-xs sm:text-sm"
               >
-                <CalendarDays className="w-3.5 h-3.5 flex-none" />
-                <span className="text-white/70">{hijriDate}</span>
-                <span className="text-white/30">·</span>
-                <span className="text-white/40 text-[11px] hidden sm:inline">{gregDate}</span>
+                <span className="flex items-center gap-1.5">
+                  <CalendarDays className="w-3.5 h-3.5 flex-none" />
+                  <span className="text-white/70 tabular-nums">{clock.dayName}، {clock.hijriDate}</span>
+                </span>
+                <span className="text-white/20 hidden sm:inline">|</span>
+                <span className="text-white/40 text-[11px] hidden sm:inline tabular-nums">{clock.gregorianDate}</span>
               </motion.div>
             </div>
 
-            {/* Summary pills */}
-            {data && (
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="show"
-                className="flex items-center gap-2 flex-wrap"
-              >
-                <StatPill icon={TrendingUp} label="الإيرادات" value={fmtCurrency(data.stats.totalRevenue)} />
-                <StatPill icon={Users} label="العملاء" value={fmtNumber(data.stats.totalCustomers)} />
-                <StatPill icon={FileText} label="الفواتير" value={fmtNumber(data.stats.totalInvoices)} />
-              </motion.div>
-            )}
+            {/* Right: Live Clock */}
+            <motion.div
+              initial={prefersReduced ? {} : { opacity: 0, scale: 0.9, filter: "blur(6px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3.5 sm:px-7 sm:py-4 border border-white/10 flex items-center gap-3"
+            >
+              <Clock className="w-5 h-5 text-white/40 flex-none" />
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums tracking-tight font-mono">
+                  {clock.timeString}
+                </span>
+                {clock.period && (
+                  <span className="text-xs text-white/50 font-medium">{clock.period}</span>
+                )}
+              </div>
+            </motion.div>
           </div>
+
+          {/* Summary pills row */}
+          {data && (
+            <motion.div
+              initial={prefersReduced ? {} : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="flex flex-wrap items-center gap-2 mt-5"
+            >
+              {[
+                { icon: TrendingUp, label: "الإيرادات", value: fmtCurrency(data.stats.totalRevenue) },
+                { icon: Users, label: "العملاء", value: fmtNumber(data.stats.totalCustomers) },
+                { icon: FileText, label: "الفواتير", value: fmtNumber(data.stats.totalInvoices) },
+              ].map((pill) => (
+                <div
+                  key={pill.label}
+                  className="bg-white/[0.08] backdrop-blur-sm rounded-xl px-3.5 py-2 flex items-center gap-2 border border-white/[0.08]"
+                >
+                  <pill.icon className="w-3.5 h-3.5 text-white/50 flex-none" />
+                  <span className="text-[10px] text-white/40">{pill.label}</span>
+                  <span className="text-xs font-bold text-white tabular-nums">{pill.value}</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
-      {/* ═══ Quick Actions ═══ */}
+      {/* ═══════════════ QUICK ACTIONS ═══════════════ */}
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="flex items-center gap-2 flex-wrap"
+        className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible"
       >
-        <QuickAction icon={Zap} label="فاتورة سريعة" onClick={() => setQuickInvoiceOpen(true)} variant="primary" />
-        <QuickAction icon={BarChart3} label="التقارير" onClick={() => navigate("/dashboard/reports")} />
-        <QuickAction icon={Users} label="العملاء" onClick={() => navigate("/dashboard/customers")} />
-        <QuickAction icon={Receipt} label="المصروفات" onClick={() => navigate("/dashboard/expenses")} />
+        {quickActions.map((action) => (
+          <QuickAction key={action.label} {...action} />
+        ))}
       </motion.div>
 
-      {/* ═══ Main Content ═══ */}
+      {/* ═══════════════ MAIN CONTENT ═══════════════ */}
       {isLoading ? (
         <DashboardSkeleton />
       ) : (
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={staggerContainer}
-          className="space-y-6"
-        >
-          {/* ── KPI Cards Row ── */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-          >
-            <motion.div variants={staggerItem}>
-              <RevenueWidget stats={data?.stats || {}} monthlyData={data?.monthlyData} />
+        <div className="space-y-6">
+
+          {/* ── KPI Cards ── */}
+          <ScrollReveal>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-40px" }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+            >
+              <motion.div variants={staggerItem}><RevenueWidget stats={data?.stats || {}} monthlyData={data?.monthlyData} /></motion.div>
+              <motion.div variants={staggerItem}><ExpensesWidget stats={data?.stats || {}} monthlyData={data?.monthlyData} /></motion.div>
+              <motion.div variants={staggerItem}><OverdueWidget stats={data?.stats || {}} /></motion.div>
+              <motion.div variants={staggerItem}><VatWidget stats={data?.stats || {}} /></motion.div>
             </motion.div>
-            <motion.div variants={staggerItem}>
-              <ExpensesWidget stats={data?.stats || {}} monthlyData={data?.monthlyData} />
-            </motion.div>
-            <motion.div variants={staggerItem}>
-              <OverdueWidget stats={data?.stats || {}} />
-            </motion.div>
-            <motion.div variants={staggerItem}>
-              <VatWidget stats={data?.stats || {}} />
-            </motion.div>
-          </motion.div>
+          </ScrollReveal>
 
           {/* ── Alerts ── */}
-          <motion.div variants={fadeSlideUp}>
+          <ScrollReveal>
             <AlertsWidget stats={data?.stats || {}} />
-          </motion.div>
+          </ScrollReveal>
 
           {/* ── Secondary KPIs ── */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-          >
-            <motion.div variants={staggerItem}>
-              <CollectionWidget stats={data?.stats || {}} />
+          <ScrollReveal>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-40px" }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+            >
+              <motion.div variants={staggerItem}><CollectionWidget stats={data?.stats || {}} /></motion.div>
+              <motion.div variants={staggerItem}><CustomersWidget stats={data?.stats || {}} /></motion.div>
             </motion.div>
-            <motion.div variants={staggerItem}>
-              <CustomersWidget stats={data?.stats || {}} />
-            </motion.div>
-          </motion.div>
+          </ScrollReveal>
 
           {/* ── Section Navigation ── */}
-          <motion.div variants={fadeSlideUp}>
+          <ScrollReveal>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-accent to-accent/50" />
               <h2 className="text-base sm:text-lg font-bold text-foreground">الأقسام الرئيسية</h2>
@@ -492,35 +472,36 @@ const DashboardBuilder = () => {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              animate="show"
+              whileInView="show"
+              viewport={{ once: true, margin: "-40px" }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
             >
               {sections.map((section) => (
                 <SectionCard key={section.path} {...section} />
               ))}
             </motion.div>
-          </motion.div>
+          </ScrollReveal>
 
           {/* ── Charts ── */}
-          <motion.div variants={fadeSlideUp}>
+          <ScrollReveal>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-primary to-primary/50" />
               <h2 className="text-base sm:text-lg font-bold text-foreground">الرسوم البيانية</h2>
               <div className="flex-1 h-px bg-border/40" />
             </div>
             <ChartsWidget stats={data?.stats || {}} monthlyData={data?.monthlyData} />
-          </motion.div>
+          </ScrollReveal>
 
           {/* ── Activity Feed ── */}
-          <motion.div variants={fadeSlideUp}>
+          <ScrollReveal>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-warning to-warning/50" />
               <h2 className="text-base sm:text-lg font-bold text-foreground">آخر الأنشطة</h2>
               <div className="flex-1 h-px bg-border/40" />
             </div>
             <ActivityWidget stats={data?.stats || {}} activities={data?.activities} />
-          </motion.div>
-        </motion.div>
+          </ScrollReveal>
+        </div>
       )}
 
       {/* Quick Invoice Dialog */}
