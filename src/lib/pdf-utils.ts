@@ -275,24 +275,44 @@ const printViaIframe = (htmlContent: string, onAfterPrint?: () => void): void =>
  * Extra styles for invoice documents
  */
 export const INVOICE_PRINT_STYLES = `
-/* Base table */
-.inv-table, table { width: 100%; border-collapse: collapse; }
-.inv-table th, .inv-table td, table th, table td { padding: 10px 14px; text-align: right; font-size: 12px; }
-.inv-table th, table th { font-weight: 600; font-size: 11px; }
-.inv-table td, table td { border-bottom: 1px solid #e5e7eb; }
-.inv-table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
-.inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; }
-.summary-row td { padding: 6px 14px; font-size: 12px; }
-.total-row td { font-weight: 700; font-size: 14px; padding: 12px 14px; }
+/* Enterprise Invoice — A4 print optimized */
+@page { size: A4; margin: 12mm 0; }
 
-/* Print-specific overrides */
-body { padding: 0 !important; margin: 0 !important; }
+body {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #fff !important;
+  line-height: 1.6;
+}
+
+/* Tables */
+.inv-table, table { width: 100%; border-collapse: collapse; }
+.inv-table th, .inv-table td, table th, table td {
+  padding: 10px 14px;
+  text-align: right;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.inv-table th, table th {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  background: #f8f9fa !important;
+  color: #1a1f36 !important;
+  border-bottom: 2px solid #1a1f36;
+}
+.inv-table td, table td { border-bottom: 1px solid #f0f0f0; }
+.inv-table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
+.inv-table .num { font-family: 'Inter', monospace; direction: ltr; text-align: left; font-variant-numeric: tabular-nums; }
+
+/* Media */
 img { max-width: 100%; height: auto; }
 svg { max-width: 100%; height: auto; }
 
-/* Page breaks */
+/* Print color fidelity */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { -webkit-print-color-adjust: exact !important; }
 }
 `;
 
