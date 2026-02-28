@@ -3,9 +3,8 @@
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
 import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from "react";
-import { Responsive } from "react-grid-layout";
-// @ts-ignore — WidthProvider is a default export in react-grid-layout
-import WidthProvider from "react-grid-layout/build/components/WidthProvider";
+// @ts-ignore — WidthProvider exists at runtime but types package is outdated
+import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
