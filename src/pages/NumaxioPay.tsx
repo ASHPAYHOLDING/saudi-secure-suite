@@ -21,6 +21,7 @@ import { usePaylinkData } from "@/hooks/usePaylinkData";
 import { supabase } from "@/integrations/supabase/client";
 import PayoutSettings from "@/components/paylink/PayoutSettings";
 import KycVerificationForm from "@/components/paylink/KycVerificationForm";
+import PaymentLinksTab from "@/components/paylink/PaymentLinksTab";
 import { useHasFeature } from "@/hooks/useSubscriptionFeature";
 
 const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
@@ -36,7 +37,7 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [filterType, setFilterType] = useState<"all" | "deposit" | "withdrawal">("all");
-  const [activeTab, setActiveTab] = useState<"overview" | "payouts">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "payouts" | "payment-links">("overview");
 
   // Check if paylink is enabled for this tenant
   const checkStatus = useCallback(async () => {
@@ -185,6 +186,7 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
             <div className="flex items-center gap-2 bg-muted rounded-lg p-0.5 w-fit">
               {([
                 { key: "overview" as const, label: "نظرة عامة", icon: Receipt },
+                { key: "payment-links" as const, label: "روابط الدفع", icon: CreditCard },
                 { key: "payouts" as const, label: "التحويلات والإعدادات", icon: Send },
               ]).map((t) => (
                 <button key={t.key} onClick={() => setActiveTab(t.key)}
@@ -197,6 +199,7 @@ const NumaxioPay = ({ embedded = false }: { embedded?: boolean }) => {
             </div>
 
             {activeTab === "payouts" && <PayoutSettings />}
+            {activeTab === "payment-links" && <PaymentLinksTab />}
 
             {activeTab === "overview" && (
               <>

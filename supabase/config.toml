@@ -125,3 +125,6 @@ verify_jwt = false
 
 [functions.csp-report]
 verify_jwt = false
+
+[functions.payment-link-public]
+verify_jwt = false

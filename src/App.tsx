@@ -27,6 +27,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsConditions = lazy(() => import("./pages/TermsConditions"));
 const SLA = lazy(() => import("./pages/SLA"));
+const PublicPaymentPage = lazy(() => import("./pages/PublicPaymentPage"));
 const UpdatesPage = lazy(() => import("./pages/UpdatesPage"));
 const StatusPage = lazy(() => import("./pages/StatusPage"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -110,6 +111,7 @@ const AppRoutes = () => {
         <Route path="/status" element={<PageSuspense><StatusPage /></PageSuspense>} />
         <Route path="/numaxio-pay" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
         <Route path="/numaxio-pay/dashboard" element={<Navigate to="/dashboard/numaxio-pay" replace />} />
+        <Route path="/pay/:token" element={<PageSuspense><PublicPaymentPage /></PageSuspense>} />
 
         {/* ── Phase B: duplicate route redirects ── */}
         <Route path="/dashboard/invoices" element={<Navigate to="/dashboard/billing" replace />} />
