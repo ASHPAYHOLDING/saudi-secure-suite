@@ -63,13 +63,31 @@ const DashboardTopbar = ({ onMobileMenuToggle }: DashboardTopbarProps) => {
           <TenantSwitcher />
           <BranchSelector />
         </div>
+
+        {/* Mobile search button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden h-9 w-9 shrink-0"
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+        >
+          <Search size={20} />
+        </Button>
+
+        {/* Desktop search input — opens command palette on focus/click */}
         <div className="relative hidden lg:block">
           <Search size={16} className="absolute inset-inline-start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
+            readOnly
             placeholder={t("dashboard.searchPlaceholder")}
-            className="h-9 w-72 rounded-lg border border-input bg-secondary/50 ps-9 pe-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="h-9 w-72 rounded-lg border border-input bg-secondary/50 ps-9 pe-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+            onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+            onFocus={(e) => { e.target.blur(); window.dispatchEvent(new Event("open-command-palette")); }}
           />
+          <kbd className="absolute inset-inline-end-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+            ⌘K
+          </kbd>
         </div>
       </div>
 

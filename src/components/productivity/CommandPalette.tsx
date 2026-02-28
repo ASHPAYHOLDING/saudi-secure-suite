@@ -68,6 +68,13 @@ const CommandPalette = () => {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  // Listen for custom open event (from topbar search button / input)
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-command-palette", handler);
+    return () => window.removeEventListener("open-command-palette", handler);
+  }, []);
+
   // Reset on close
   useEffect(() => {
     if (!open) {
@@ -258,22 +265,23 @@ const CommandPalette = () => {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
+      {/* Mobile: fullscreen overlay. Desktop: centered modal */}
       <div className="flex items-center border-b px-3">
         <Search className="me-2 h-4 w-4 shrink-0 opacity-50" />
         <input
           className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="اكتب للبحث أو اختر أمراً..."
+          placeholder={isRTL ? "اكتب للبحث أو اختر أمراً..." : "Search or pick a command..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus
         />
         {searching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-        <Badge variant="outline" className="ms-2 shrink-0 text-[10px] px-1.5 py-0.5 font-mono">
+        <Badge variant="outline" className="ms-2 shrink-0 text-[10px] px-1.5 py-0.5 font-mono hidden sm:inline-flex">
           ⌘K
         </Badge>
       </div>
 
-      <CommandList className="max-h-[400px]">
+      <CommandList className="max-h-[60vh] md:max-h-[400px]">
         <CommandEmpty>
           {searching ? "جاري البحث..." : hasQuery ? "لا توجد نتائج مطابقة" : "اكتب حرفين على الأقل للبحث"}
         </CommandEmpty>
