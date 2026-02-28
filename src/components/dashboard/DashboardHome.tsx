@@ -6,7 +6,7 @@ import {
   Plus, Eye, Clock, CheckCircle2, AlertTriangle, Zap,
   Target, Sparkles, Activity, RefreshCw, ShieldAlert, 
   Banknote, CircleDollarSign, CalendarClock, ArrowRight,
-  ShoppingCart, Package
+  ShoppingCart, Package, ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -398,12 +398,12 @@ const DashboardHome = () => {
 
   // ─── Quick Actions ───
   const quickActions = [
-    { label: "⚡ فاتورة سريعة", icon: Zap, action: () => setQuickInvoiceOpen(true), accent: true },
-    { label: "فاتورة جديدة", icon: CreditCard, action: () => navigate("/dashboard/billing") },
-    { label: "قيد يومي", icon: FileText, action: () => navigate("/dashboard/journal-entries") },
-    { label: "مصروف جديد", icon: Receipt, action: () => navigate("/dashboard/expenses") },
-    { label: "عميل جديد", icon: Users, action: () => navigate("/dashboard/customers") },
-    { label: "التقارير", icon: BarChart3, action: () => navigate("/dashboard/reports") },
+    { label: t("dashboard.quickInvoice"), icon: Zap, action: () => setQuickInvoiceOpen(true), accent: true },
+    { label: t("dashboard.newInvoice"), icon: CreditCard, action: () => navigate("/dashboard/billing") },
+    { label: t("dashboard.newCustomer"), icon: Users, action: () => navigate("/dashboard/customers") },
+    { label: t("dashboard.newExpense"), icon: Receipt, action: () => navigate("/dashboard/expenses") },
+    { label: t("dashboard.newJournal"), icon: FileText, action: () => navigate("/dashboard/journal-entries") },
+    { label: t("dashboard.paymentLink"), icon: ExternalLink, action: () => navigate("/dashboard/paylinks") },
   ];
 
   return (
