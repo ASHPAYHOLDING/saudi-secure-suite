@@ -18,4 +18,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ["react-grid-layout"],
+    esbuildOptions: {
+      mainFields: ["module", "main"],
+    },
+  },
 }));
