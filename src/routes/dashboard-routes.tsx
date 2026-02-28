@@ -115,6 +115,7 @@ const HrAttendancePage = lazy(() => import("@/components/hr/HrAttendancePage"));
 const HrApprovalsPage = lazy(() => import("@/components/hr/HrApprovalsPage"));
 const HrReportsPage = lazy(() => import("@/components/hr/HrReportsPage"));
 const HrPayrollPage = lazy(() => import("@/components/hr/HrPayrollPage"));
+const EmployeeSelfService = lazy(() => import("@/pages/EmployeeSelfService"));
 
 // ── Onboarding ──
 const OnboardingWizard = lazy(() => import("@/components/onboarding/OnboardingWizard"));
@@ -246,6 +247,7 @@ export const DASHBOARD_ROUTES: DashboardRouteConfig[] = [
   { path: "hr/payroll/settings", element: HrPayrollPage, gateSegment: "hr-payroll-settings", module: "hr", permissionKey: "hr.manage_payroll" },
   { path: "hr/payroll/reports", element: HrPayrollPage, gateSegment: "hr-payroll-reports", module: "hr", permissionKey: "hr.view_reports" },
   { path: "hr", element: HrOverviewPage, gateSegment: "hr", module: "hr", permissionKey: "hr.view" },
+  { path: "ess", element: EmployeeSelfService, gateSegment: "ess", module: "hr" as any, permissionKey: "ess.view" },
 
   // ── Settings & Admin ──
   { path: "company", element: CompanySettings, gateSegment: "company", module: "company" },

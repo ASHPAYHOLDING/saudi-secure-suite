@@ -398,6 +398,13 @@ export const ROUTE_FEATURE_MAP: Record<string, AccessMapEntry> = {
     label: "مستندات الموظفين",
     description: "إدارة ورفع مستندات الموظفين.",
   },
+  // ── Employee Self-Service ──
+  ess: {
+    featureKey: FEATURE_KEYS.HR_CORE,
+    permissionKeys: ["ess.view"],
+    label: "بوابة الموظف",
+    description: "بوابة الخدمة الذاتية للموظف: الملف الشخصي، الإجازات، الحضور، كشف الراتب.",
+  },
 
   "cost-profit-centers": {
     featureKey: FEATURE_KEYS.ACCOUNTING_ADVANCED,
@@ -525,4 +532,6 @@ export const NAV_PATH_TO_FEATURE: Record<string, FeatureKey> = {
   "/dashboard/hr/payroll": FEATURE_KEYS.HR_PAYROLL,
   "/dashboard/hr/payroll/settings": FEATURE_KEYS.HR_PAYROLL,
   "/dashboard/hr/payroll/reports": FEATURE_KEYS.HR_PAYROLL,
+  // ESS
+  "/dashboard/ess": FEATURE_KEYS.HR_CORE,
 };

@@ -6,7 +6,7 @@ import {
   Stamp, FileSignature, Shield, Palette, ShieldCheck, Crown, Package,
   ShoppingCart, Receipt, Plug, Wallet, KeyRound, MessageCircle,
   Truck, BookOpen, Zap, Inbox, Bell, GitBranch, ChevronDown, Headphones, Lock, Target,
-  TrendingUp, CalendarClock, Wrench, PieChart, Activity,
+  TrendingUp, CalendarClock, Wrench, PieChart, Activity, UserCircle,
 } from "lucide-react";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { cn } from "@/lib/utils";
@@ -116,6 +116,7 @@ const navGroups: NavGroup[] = [
       { icon: GitBranch, key: "nav.myApprovals", path: "/dashboard/my-approvals", module: "billing" },
       { icon: UsersRound, key: "nav.team", path: "/dashboard/team", module: "team" },
       { icon: MessageCircle, key: "nav.chat", path: "/dashboard/chat", module: "chat" },
+      { icon: UserCircle, key: "nav.ess", path: "/dashboard/ess", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE, requiredPermission: "ess.view" },
       { icon: Users, key: "nav.hr", path: "/dashboard/hr", module: "hr" as any, featureKey: FEATURE_KEYS.HR_CORE },
     ],
     subGroup: {
