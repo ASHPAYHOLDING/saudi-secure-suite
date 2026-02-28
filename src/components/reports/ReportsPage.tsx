@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Download, Filter, Loader2, TrendingUp, TrendingDown, CreditCard,
@@ -24,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DigitalStamp from "@/components/stamp/DigitalStamp";
+import PageHeader from "@/components/dashboard/PageHeader";
 import type { StampData } from "@/components/stamp/DigitalStamp";
 
 const LazyReportBuilder = lazy(() => import("@/components/reports/CustomReportBuilder"));
@@ -53,7 +55,19 @@ const ReportsPage = () => {
   const { isRTL } = useLanguage();
 
   // ─── State ───
-  const [reportTab, setReportTab] = useState("reports");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const validTabs = ["reports", "builder", "scheduled", "sheet"];
+  // Support deep-linking via ?tab= or legacy route paths
+  const pathTab = location.pathname.includes("report-builder") ? "builder" : location.pathname.includes("scheduled-reports") ? "scheduled" : null;
+  const paramTab = searchParams.get("tab");
+  const initialTab = pathTab || (validTabs.includes(paramTab || "") ? paramTab! : "reports");
+  const [reportTab, setReportTab] = useState(initialTab);
+
+  const handleTabChange = useCallback((tab: string) => {
+    setReportTab(tab);
+    setSearchParams(tab === "reports" ? {} : { tab }, { replace: true });
+  }, [setSearchParams]);
   const [activeCategory, setActiveCategory] = useState<ReportCategory | "all">("all");
   const [selectedReport, setSelectedReport] = useState<ReportDefinition | null>(null);
   const [search, setSearch] = useState("");
@@ -687,34 +701,29 @@ const ReportsPage = () => {
   return (
     <div dir="rtl" className="space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">{isRTL ? "التقارير المالية" : "Financial Reports"}</h1>
-          <p className="text-sm text-muted-foreground">
-            {isRTL ? `${REPORT_DEFINITIONS.length}+ تقرير مالي وتشغيلي` : `${REPORT_DEFINITIONS.length}+ financial & operational reports`}
-          </p>
+      <PageHeader
+        title={isRTL ? "التقارير المالية" : "Financial Reports"}
+        description={isRTL ? `${REPORT_DEFINITIONS.length}+ تقرير مالي وتشغيلي` : `${REPORT_DEFINITIONS.length}+ financial & operational reports`}
+      >
+        {hasCriticalIssues && (
+          <Badge variant="destructive" className="text-xs gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            {isRTL ? `${criticalCount} مشكلة حرجة` : `${criticalCount} critical`}
+          </Badge>
+        )}
+        <div className="relative">
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={isRTL ? "بحث في التقارير..." : "Search reports..."}
+            className="ps-9 w-[220px]"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          {hasCriticalIssues && (
-            <Badge variant="destructive" className="text-xs gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              {isRTL ? `${criticalCount} مشكلة حرجة` : `${criticalCount} critical`}
-            </Badge>
-          )}
-          <div className="relative">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={isRTL ? "بحث في التقارير..." : "Search reports..."}
-              className="ps-9 w-[220px]"
-            />
-          </div>
-        </div>
-      </div>
+      </PageHeader>
 
-      {/* ── Tabs: التقارير | منشئ التقارير | التقارير المجدولة | عرض جدولي ── */}
-      <Tabs value={reportTab} onValueChange={setReportTab}>
+      {/* ── Tabs ── */}
+      <Tabs value={reportTab} onValueChange={handleTabChange} dir={isRTL ? "rtl" : "ltr"}>
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           <TabsList className="inline-flex w-auto min-w-max h-9">
             <TabsTrigger value="reports" className="text-xs gap-1.5 px-3">
