@@ -1,16 +1,17 @@
 /**
- * DashboardBuilder — replaces the default /dashboard home.
- * Provides drag-and-drop grid with RBAC-gated widgets.
+ * DashboardBuilder — redesigned clean dashboard home.
+ * Uses a static CSS grid layout for consistency, with optional
+ * react-grid-layout mode when editing.
  */
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveGridLayout, useContainerWidth, verticalCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Settings2, RotateCcw, Grip, X, Activity, Zap, BarChart3,
-  Save, CheckCircle2,
+  Settings2, RotateCcw, Grip, X, Zap, BarChart3,
+  Save, CheckCircle2, Plus, CalendarDays, Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,11 +33,9 @@ import {
 import { WIDGET_COMPONENTS } from "./WidgetRenderers";
 import WidgetCatalog from "./WidgetCatalog";
 
-
-
 const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
 
-// ─── Data fetcher (reuse from original) ───
+// ─── Data fetcher ───
 async function fetchStats(tenantId: string) {
   const [invoicesRes, contractsRes, customersRes, expensesRes, auditRes, tenantRes] = await Promise.all([
     timedCall("invoices.select", async () =>
@@ -109,7 +108,6 @@ const DashboardBuilder = () => {
   const { width, containerRef } = useContainerWidth();
   const isMobile = useIsMobile();
 
-  // Force exit edit mode on mobile
   useEffect(() => {
     if (isMobile && editMode) setEditMode(false);
   }, [isMobile, editMode]);
@@ -122,7 +120,6 @@ const DashboardBuilder = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Realtime refresh
   useEffect(() => {
     if (!tenantId) return;
     const ch = supabase
@@ -134,14 +131,10 @@ const DashboardBuilder = () => {
   }, [tenantId, refetch]);
 
   const hasPermission = useCallback(
-    (key: string | null) => {
-      if (!key) return true;
-      return can(key);
-    },
+    (key: string | null) => !key || can(key),
     [can]
   );
 
-  // Filter out widgets user doesn't have permission for
   const visibleLayout = useMemo(
     () => layout.filter((item) => {
       const def = WIDGET_REGISTRY.find((w) => w.id === item.i);
@@ -155,10 +148,7 @@ const DashboardBuilder = () => {
       const def = WIDGET_REGISTRY.find((w) => w.id === item.i);
       return {
         i: item.i,
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        h: item.h,
+        x: item.x, y: item.y, w: item.w, h: item.h,
         minW: def?.defaultSize.minW || 2,
         minH: def?.defaultSize.minH || 2,
         static: !editMode,
@@ -186,13 +176,7 @@ const DashboardBuilder = () => {
         const def = WIDGET_REGISTRY.find((w) => w.id === widgetId);
         if (!def) return;
         const maxY = layout.reduce((max, l) => Math.max(max, l.y + l.h), 0);
-        const newItem: LayoutItem = {
-          i: widgetId,
-          x: 0,
-          y: maxY,
-          w: def.defaultSize.w,
-          h: def.defaultSize.h,
-        };
+        const newItem: LayoutItem = { i: widgetId, x: 0, y: maxY, w: def.defaultSize.w, h: def.defaultSize.h };
         saveLayout([...layout, newItem]);
       } else {
         saveLayout(layout.filter((l) => l.i !== widgetId));
@@ -202,100 +186,125 @@ const DashboardBuilder = () => {
   );
 
   const handleRemoveWidget = useCallback(
-    (widgetId: string) => {
-      saveLayout(layout.filter((l) => l.i !== widgetId));
-    },
+    (widgetId: string) => saveLayout(layout.filter((l) => l.i !== widgetId)),
     [layout, saveLayout]
   );
 
   const firstName = data?.tenantName || profile?.full_name?.split(" ")[0] || "";
+  const hijriDate = new Date().toLocaleDateString("ar-SA-u-ca-islamic", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const gregDate = new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  // ─── Separate widget groups for static layout ───
+  const kpiIds = ["revenue", "expenses", "overdue", "vat"];
+  const secondaryIds = ["collection", "customers"];
+  const wideIds = ["alerts", "charts", "activity", "payroll"];
+
+  const kpiWidgets = kpiIds.filter(id => visibleLayout.some(l => l.i === id));
+  const secondaryWidgets = secondaryIds.filter(id => visibleLayout.some(l => l.i === id));
+  const wideWidgets = wideIds.filter(id => visibleLayout.some(l => l.i === id));
 
   return (
-    <div dir={dir} className="space-y-4 p-4 sm:p-6 max-w-[1400px] mx-auto">
-      {/* ═══ Header ═══ */}
+    <div dir={dir} className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
+      {/* ═══ Welcome Header ═══ */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+        transition={{ duration: 0.3 }}
+        className="rounded-2xl bg-gradient-to-l from-primary via-primary to-primary/90 p-6 sm:p-8 text-primary-foreground relative overflow-hidden"
       >
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            {t("dashboard.welcome", { name: firstName })}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
-            <Activity className="w-3 h-3" />
-            {new Date().toLocaleDateString("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            size="sm"
-            className="gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm"
-            onClick={() => setQuickInvoiceOpen(true)}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            فاتورة سريعة
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/dashboard/reports")}>
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">التقارير</span>
-          </Button>
-
-          {/* Builder controls — hidden on mobile */}
-          {!isMobile && (
-            <div className="border-s border-border/50 ps-2 ms-1 flex items-center gap-1.5">
-              <WidgetCatalog
-                layout={layout}
-                onToggleWidget={handleToggleWidget}
-                hasPermission={hasPermission}
-              />
-              <Button
-                variant={editMode ? "default" : "outline"}
-                size="sm"
-                className="gap-1.5"
-                onClick={() => setEditMode(!editMode)}
-              >
-                {editMode ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-                {editMode ? "تم" : "تخصيص"}
-              </Button>
-              {editMode && (
-                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={resetLayout}>
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  إعادة ضبط
-                </Button>
-              )}
-              {saving && (
-                <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
-                  <Save className="w-3 h-3 me-1" />
-                  حفظ...
-                </Badge>
-              )}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==')] opacity-50" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              👋 مرحباً، {firstName}
+            </h1>
+            <div className="flex items-center gap-2 mt-2 text-primary-foreground/70 text-xs sm:text-sm">
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>{hijriDate}</span>
+              <span className="text-primary-foreground/40">·</span>
+              <span className="text-primary-foreground/50 text-[11px]">{gregDate}</span>
             </div>
-          )}
+          </div>
         </div>
       </motion.div>
 
-      {/* Edit mode indicator */}
-      {editMode && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5 text-xs text-accent flex items-center gap-2"
+      {/* ═══ Quick Actions Bar ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex items-center gap-2 flex-wrap"
+      >
+        <Button
+          size="sm"
+          className="gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm rounded-lg h-9"
+          onClick={() => setQuickInvoiceOpen(true)}
         >
-          <Grip className="w-4 h-4" />
-          وضع التخصيص — اسحب وأفلِت لتغيير ترتيب العناصر، واسحب الزوايا لتغيير الحجم
-        </motion.div>
-      )}
+          <Zap className="w-3.5 h-3.5" />
+          فاتورة سريعة
+        </Button>
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-lg h-9" onClick={() => navigate("/dashboard/reports")}>
+          <BarChart3 className="w-3.5 h-3.5" />
+          التقارير
+        </Button>
 
-      {/* ═══ Grid ═══ */}
+        {/* Builder controls — desktop only */}
+        {!isMobile && (
+          <div className="border-s border-border/50 ps-2 ms-auto flex items-center gap-1.5">
+            <WidgetCatalog layout={layout} onToggleWidget={handleToggleWidget} hasPermission={hasPermission} />
+            <Button
+              variant={editMode ? "default" : "outline"}
+              size="sm"
+              className="gap-1.5 rounded-lg h-9"
+              onClick={() => setEditMode(!editMode)}
+            >
+              {editMode ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
+              {editMode ? "تم" : "تخصيص"}
+            </Button>
+            {editMode && (
+              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-9" onClick={resetLayout}>
+                <RotateCcw className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            {saving && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
+                <Save className="w-3 h-3 me-1" />حفظ...
+              </Badge>
+            )}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Edit mode banner */}
+      <AnimatePresence>
+        {editMode && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-2.5 text-xs text-accent flex items-center gap-2"
+          >
+            <Grip className="w-4 h-4" />
+            وضع التخصيص — اسحب وأفلِت لتغيير ترتيب العناصر، واسحب الزوايا لتغيير الحجم
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ Content ═══ */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[140px] rounded-xl" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Skeleton className="h-[200px] rounded-xl" />
+            <Skeleton className="h-[200px] rounded-xl" />
+          </div>
         </div>
-      ) : (
+      ) : editMode ? (
+        /* ── Editable Grid Mode ── */
         <div ref={containerRef as any}>
           <ResponsiveGridLayout
             className="layout"
@@ -315,28 +324,111 @@ const DashboardBuilder = () => {
               if (!Comp) return null;
               return (
                 <div key={item.i} className="relative group">
-                  {editMode && (
-                    <>
-                      <div className="widget-drag-handle absolute top-1 start-1 z-10 cursor-grab active:cursor-grabbing p-1 rounded bg-muted/80 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Grip className="w-3.5 h-3.5 text-muted-foreground" />
-                      </div>
-                      <button
-                        onClick={() => handleRemoveWidget(item.i)}
-                        className="absolute top-1 end-1 z-10 p-1 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
-                  <Comp
-                    stats={data?.stats || {}}
-                    activities={data?.activities}
-                    monthlyData={data?.monthlyData}
-                  />
+                  <div className="widget-drag-handle absolute top-1.5 start-1.5 z-10 cursor-grab active:cursor-grabbing p-1 rounded-md bg-muted/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Grip className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                  <button
+                    onClick={() => handleRemoveWidget(item.i)}
+                    className="absolute top-1.5 end-1.5 z-10 p-1 rounded-md bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
                 </div>
               );
             })}
           </ResponsiveGridLayout>
+        </div>
+      ) : (
+        /* ── Static Clean Layout ── */
+        <div className="space-y-5">
+          {/* KPI Row */}
+          {kpiWidgets.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+            >
+              {kpiWidgets.map((id, i) => {
+                const Comp = WIDGET_COMPONENTS[id];
+                if (!Comp) return null;
+                return (
+                  <motion.div
+                    key={id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.05 }}
+                  >
+                    <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {/* Alerts */}
+          {wideWidgets.includes("alerts") && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              {(() => {
+                const Comp = WIDGET_COMPONENTS["alerts"];
+                return Comp ? <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} /> : null;
+              })()}
+            </motion.div>
+          )}
+
+          {/* Secondary KPIs (Collection + Customers) */}
+          {secondaryWidgets.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+            >
+              {secondaryWidgets.map((id) => {
+                const Comp = WIDGET_COMPONENTS[id];
+                if (!Comp) return null;
+                return <Comp key={id} stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} />;
+              })}
+            </motion.div>
+          )}
+
+          {/* Charts */}
+          {wideWidgets.includes("charts") && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              {(() => {
+                const Comp = WIDGET_COMPONENTS["charts"];
+                return Comp ? <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} /> : null;
+              })()}
+            </motion.div>
+          )}
+
+          {/* Activity + Payroll row */}
+          {(wideWidgets.includes("activity") || wideWidgets.includes("payroll")) && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+            >
+              {wideWidgets.includes("activity") && (() => {
+                const Comp = WIDGET_COMPONENTS["activity"];
+                return Comp ? <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} /> : null;
+              })()}
+              {wideWidgets.includes("payroll") && (() => {
+                const Comp = WIDGET_COMPONENTS["payroll"];
+                return Comp ? <Comp stats={data?.stats || {}} activities={data?.activities} monthlyData={data?.monthlyData} /> : null;
+              })()}
+            </motion.div>
+          )}
         </div>
       )}
 
