@@ -3,8 +3,10 @@
  * Provides drag-and-drop grid with RBAC-gated widgets.
  */
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
-const RGL = require("react-grid-layout") as any;
-const { Responsive, WidthProvider } = RGL;
+// @ts-ignore — react-grid-layout uses CJS; named re-exports for ESM compat
+import ReactGridLayout from "react-grid-layout";
+const Responsive = (ReactGridLayout as any).Responsive ?? ReactGridLayout;
+const WidthProvider = (ReactGridLayout as any).WidthProvider;
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { motion } from "framer-motion";
