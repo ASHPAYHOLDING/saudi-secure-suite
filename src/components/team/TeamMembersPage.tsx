@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGranularPermissions } from "@/hooks/useGranularPermissions";
@@ -178,16 +179,7 @@ const TeamMembersPage = () => {
   return (
     <div className="p-6 md:p-8" dir="rtl">
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <Users size={28} className="text-accent" />
-            إدارة الفريق
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            إدارة أعضاء الفريق وتعيين الأدوار والصلاحيات
-          </p>
-        </div>
+      <PageHeader title="إدارة الفريق" description="إدارة أعضاء الفريق وتعيين الأدوار والصلاحيات">
 
         {perms.can("users.manage") && (
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
@@ -256,7 +248,7 @@ const TeamMembersPage = () => {
             </DialogContent>
           </Dialog>
         )}
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">

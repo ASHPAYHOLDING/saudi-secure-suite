@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Settings, User, Bell, Lock, Globe, Loader2, Palette, Moon, Sun, Sparkles } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,10 +135,7 @@ const SettingsPage = () => {
 
   return (
     <div dir="rtl" className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">الإعدادات</h1>
-        <p className="text-sm text-muted-foreground">إدارة حسابك الشخصي وتفضيلاتك</p>
-      </div>
+      <PageHeader title="الإعدادات" description="إدارة حسابك الشخصي وتفضيلاتك" />
 
       {sections.map((section, i) => (
         <motion.div

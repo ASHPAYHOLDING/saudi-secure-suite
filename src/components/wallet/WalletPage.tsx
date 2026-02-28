@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { fmtCurrency } from "@/lib/formatters";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -334,29 +335,16 @@ const WalletPage = () => {
     <div dir="rtl" className="space-y-6 p-4 sm:p-6">
 
       {/* ═══ HEADER ═══ */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[IBM_Plex_Sans_Arabic]">
-            المحفظة الرقمية
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5" />
-            كشف الحساب وإدارة الأرصدة
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCSV}>
-            <FileSpreadsheet className="w-4 h-4" />
-            <span className="hidden sm:inline">تصدير كشف</span>
-          </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => setShowTopup(true)}>
-            <Plus className="w-4 h-4" />
-            إضافة رصيد
-          </Button>
-        </div>
-      </motion.div>
+      <PageHeader title="المحفظة الرقمية" description="كشف الحساب وإدارة الأرصدة">
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={exportCSV}>
+          <FileSpreadsheet className="w-4 h-4" />
+          <span className="hidden sm:inline">تصدير كشف</span>
+        </Button>
+        <Button size="sm" className="gap-1.5" onClick={() => setShowTopup(true)}>
+          <Plus className="w-4 h-4" />
+          إضافة رصيد
+        </Button>
+      </PageHeader>
 
       {/* ═══ KPI CARDS ═══ */}
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">

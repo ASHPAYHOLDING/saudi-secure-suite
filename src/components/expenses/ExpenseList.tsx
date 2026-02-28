@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Receipt, Eye, Pencil, Trash2 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import SmartEmptyState from "@/components/ui/smart-empty-state";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDateShort } from "@/lib/invoice-utils";
@@ -83,15 +84,11 @@ const ExpenseList = ({ onCreateNew, onView, onEdit }: ExpenseListProps) => {
 
   return (
     <div className="p-4 sm:p-6 space-y-6" dir="rtl">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">المصروفات</h1>
-          <p className="text-sm text-muted-foreground mt-1">تتبع وإدارة المصروفات</p>
-        </div>
+      <PageHeader title="المصروفات" description="تتبع وإدارة المصروفات">
         <Button onClick={onCreateNew} className="gap-1.5">
           <Plus size={16} /> مصروف جديد
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

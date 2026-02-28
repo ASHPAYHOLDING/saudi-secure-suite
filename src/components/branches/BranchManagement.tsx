@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranch } from "@/contexts/BranchContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -268,19 +269,16 @@ const BranchManagement = () => {
 
   return (
     <div className="p-6 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Building className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">
-            {isRTL ? "إدارة الفروع" : "Branch Management"}
-          </h1>
-          {!isAdmin && (
-            <Badge variant="secondary" className="text-[10px]">
-              <Shield className="h-3 w-3 mr-1" />
-              {isRTL ? "عرض فقط" : "View Only"}
-            </Badge>
-          )}
-        </div>
+      <PageHeader
+        title={isRTL ? "إدارة الفروع" : "Branch Management"}
+        description={isRTL ? "إنشاء وإدارة فروع المنشأة" : "Create and manage company branches"}
+      >
+        {!isAdmin && (
+          <Badge variant="secondary" className="text-[10px]">
+            <Shield className="h-3 w-3 mr-1" />
+            {isRTL ? "عرض فقط" : "View Only"}
+          </Badge>
+        )}
         {isAdmin && (
           <Dialog open={showCreate} onOpenChange={setShowCreate}>
             <DialogTrigger asChild>
@@ -347,7 +345,7 @@ const BranchManagement = () => {
             </DialogContent>
           </Dialog>
         )}
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Branch list */}

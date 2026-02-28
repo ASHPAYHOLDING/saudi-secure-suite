@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Loader2, Search, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,13 +75,10 @@ const JournalEntriesPage = () => {
 
   return (
     <div dir={isRTL ? "rtl" : "ltr"} className="space-y-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <BookOpen size={24} />
-          {isRTL ? "قيود اليومية" : "Journal Entries"}
-        </h1>
-        <p className="text-sm text-muted-foreground">{isRTL ? "جميع القيود المحاسبية التلقائية واليدوية" : "All auto-generated and manual accounting entries"}</p>
-      </div>
+      <PageHeader
+        title={isRTL ? "قيود اليومية" : "Journal Entries"}
+        description={isRTL ? "جميع القيود المحاسبية التلقائية واليدوية" : "All auto-generated and manual accounting entries"}
+      />
 
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">

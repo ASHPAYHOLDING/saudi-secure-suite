@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Upload, Trash2, Save, Shield, Eye, Building2, Loader2, Check } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import DigitalStamp, { type StampData } from "./DigitalStamp";
 import { supabase } from "@/integrations/supabase/client";
@@ -141,23 +142,14 @@ const StampManagement = () => {
   return (
     <div dir="rtl" className="space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Shield size={24} className="text-accent" />
-            الختم الإلكتروني
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            إعداد وإدارة الختم الرقمي للشركة — يُطبّق تلقائياً على الفواتير والعقود
-          </p>
-        </div>
+      <PageHeader title="الختم الإلكتروني" description="إعداد وإدارة الختم الرقمي للشركة — يُطبّق تلقائياً على الفواتير والعقود">
         {isAuthorized && (
           <Button onClick={handleSave} disabled={saving} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             حفظ الإعدادات
           </Button>
         )}
-      </div>
+      </PageHeader>
 
       {/* Access Notice */}
       <motion.div

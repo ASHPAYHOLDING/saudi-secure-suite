@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { HelpCircle, Book, MessageCircle, Mail, ExternalLink, FileText, Shield, CreditCard } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 
 const helpSections = [
   {
@@ -47,10 +48,7 @@ const helpSections = [
 const HelpPage = () => {
   return (
     <div dir="rtl" className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">المساعدة والدعم</h1>
-        <p className="text-sm text-muted-foreground">دليل استخدام النظام والأسئلة الشائعة</p>
-      </div>
+      <PageHeader title="المساعدة والدعم" description="دليل استخدام النظام والأسئلة الشائعة" />
 
       <div className="grid gap-6 md:grid-cols-2">
         {helpSections.map((section, i) => (

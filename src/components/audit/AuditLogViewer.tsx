@@ -6,6 +6,7 @@ import {
   Wallet, Receipt, CreditCard, BarChart3, BookOpen, AlertTriangle,
   Eye, Download, RefreshCw, FileSpreadsheet, Printer, Database,
 } from "lucide-react";
+import PageHeader from "@/components/dashboard/PageHeader";
 import { exportAuditPDF, exportAuditExcel } from "@/lib/audit-export";
 import { exportAllTenantData } from "@/lib/data-export";
 import { useToast } from "@/hooks/use-toast";
@@ -283,96 +284,84 @@ const AuditLogViewer = () => {
   return (
     <div dir="rtl" className="space-y-4 p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            سجل التدقيق الداخلي
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            تتبع كامل لجميع العمليات المالية والإدارية — Audit-ready
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs gap-1">
-            <FileText className="h-3 w-3" />
-            {totalCount.toLocaleString("ar-SA")} سجل
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs"
-            disabled={exporting !== null || logs.length === 0}
-            onClick={async () => {
-              setExporting("pdf");
-              try {
-                // Fetch all logs for export (not just current page)
-                const { data: allLogs } = await supabase
-                  .from("audit_logs")
-                  .select("*")
-                  .eq("tenant_id", tenantId!)
-                  .gte("created_at", `${dateFrom}T00:00:00`)
-                  .lte("created_at", `${dateTo}T23:59:59`)
-                  .order("created_at", { ascending: false })
-                  .limit(5000);
-                exportAuditPDF(allLogs || [], profiles, `${dateFrom} — ${dateTo}`, profile?.full_name);
-                toast({ title: "تم فتح نافذة الطباعة" });
-              } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
-              setExporting(null);
-            }}
-          >
-            {exporting === "pdf" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
-            PDF
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs"
-            disabled={exporting !== null || logs.length === 0}
-            onClick={async () => {
-              setExporting("excel");
-              try {
-                const { data: allLogs } = await supabase
-                  .from("audit_logs")
-                  .select("*")
-                  .eq("tenant_id", tenantId!)
-                  .gte("created_at", `${dateFrom}T00:00:00`)
-                  .lte("created_at", `${dateTo}T23:59:59`)
-                  .order("created_at", { ascending: false })
-                  .limit(10000);
-                await exportAuditExcel(allLogs || [], profiles, `${dateFrom} — ${dateTo}`);
-                toast({ title: "تم تصدير الملف بنجاح" });
-              } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
-              setExporting(null);
-            }}
-          >
-            {exporting === "excel" ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileSpreadsheet className="h-3 w-3" />}
-            Excel
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs"
-            disabled={exporting !== null}
-            onClick={async () => {
-              setExporting("full");
-              try {
-                await exportAllTenantData(tenantId!, (table, done, total) => {
-                  console.log(`Exporting ${table} (${done}/${total})`);
-                });
-                toast({ title: "تم تصدير جميع البيانات بنجاح" });
-              } catch { toast({ title: "خطأ في تصدير البيانات", variant: "destructive" }); }
-              setExporting(null);
-            }}
-          >
-            {exporting === "full" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
-            تصدير شامل
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => { setPage(0); fetchLogs(); }}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <PageHeader title="سجل التدقيق الداخلي" description="تتبع كامل لجميع العمليات المالية والإدارية — Audit-ready">
+        <Badge variant="outline" className="text-xs gap-1">
+          <FileText className="h-3 w-3" />
+          {totalCount.toLocaleString("ar-SA")} سجل
+        </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs"
+          disabled={exporting !== null || logs.length === 0}
+          onClick={async () => {
+            setExporting("pdf");
+            try {
+              const { data: allLogs } = await supabase
+                .from("audit_logs")
+                .select("*")
+                .eq("tenant_id", tenantId!)
+                .gte("created_at", `${dateFrom}T00:00:00`)
+                .lte("created_at", `${dateTo}T23:59:59`)
+                .order("created_at", { ascending: false })
+                .limit(5000);
+              exportAuditPDF(allLogs || [], profiles, `${dateFrom} — ${dateTo}`, profile?.full_name);
+              toast({ title: "تم فتح نافذة الطباعة" });
+            } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
+            setExporting(null);
+          }}
+        >
+          {exporting === "pdf" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
+          PDF
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs"
+          disabled={exporting !== null || logs.length === 0}
+          onClick={async () => {
+            setExporting("excel");
+            try {
+              const { data: allLogs } = await supabase
+                .from("audit_logs")
+                .select("*")
+                .eq("tenant_id", tenantId!)
+                .gte("created_at", `${dateFrom}T00:00:00`)
+                .lte("created_at", `${dateTo}T23:59:59`)
+                .order("created_at", { ascending: false })
+                .limit(10000);
+              await exportAuditExcel(allLogs || [], profiles, `${dateFrom} — ${dateTo}`);
+              toast({ title: "تم تصدير الملف بنجاح" });
+            } catch { toast({ title: "خطأ في التصدير", variant: "destructive" }); }
+            setExporting(null);
+          }}
+        >
+          {exporting === "excel" ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileSpreadsheet className="h-3 w-3" />}
+          Excel
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs"
+          disabled={exporting !== null}
+          onClick={async () => {
+            setExporting("full");
+            try {
+              await exportAllTenantData(tenantId!, (table, done, total) => {
+                console.log(`Exporting ${table} (${done}/${total})`);
+              });
+              toast({ title: "تم تصدير جميع البيانات بنجاح" });
+            } catch { toast({ title: "خطأ في تصدير البيانات", variant: "destructive" }); }
+            setExporting(null);
+          }}
+        >
+          {exporting === "full" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3" />}
+          تصدير شامل
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => { setPage(0); fetchLogs(); }}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </PageHeader>
 
       {/* Filters */}
       <Card>
