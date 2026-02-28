@@ -26,6 +26,9 @@ import { cn } from "@/lib/utils";
 import { lazy, Suspense } from "react";
 const ChartsSection = lazy(() => import("./DashboardCharts"));
 const QuickInvoiceDialog = lazy(() => import("@/components/invoices/QuickInvoiceDialog"));
+const InvoicePipeline = lazy(() => import("./widgets/InvoicePipeline"));
+const FinancialHealthScore = lazy(() => import("./widgets/FinancialHealthScore"));
+const PerformanceInsights = lazy(() => import("./widgets/PerformanceInsights"));
 
 interface DashboardStats {
   totalInvoices: number;
@@ -620,6 +623,49 @@ const DashboardHome = () => {
           ))}
         </div>
       </motion.div>
+
+      {/* ═══ New Widgets: Pipeline + Health + Insights ═══ */}
+      {s && (
+        <Suspense fallback={null}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+              <InvoicePipeline
+                draft={s.draftInvoices}
+                pending={s.pendingInvoices}
+                paid={s.paidInvoices}
+                overdue={s.overdueInvoices}
+                cancelled={s.cancelledInvoices}
+                total={s.totalInvoices}
+              />
+              <FinancialHealthScore
+                collectionRate={collectionRate}
+                profitMargin={s.totalRevenue > 0 ? ((s.totalRevenue - s.totalExpenses) / s.totalRevenue) * 100 : 0}
+                overdueRatio={s.totalInvoices > 0 ? (s.overdueInvoices / s.totalInvoices) * 100 : 0}
+                expenseRatio={s.totalRevenue > 0 ? (s.totalExpenses / s.totalRevenue) * 100 : 0}
+              />
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <PerformanceInsights
+              revenue={s.totalRevenue}
+              expenses={s.totalExpenses}
+              paidInvoices={s.paidInvoices}
+              totalInvoices={s.totalInvoices}
+              overdueInvoices={s.overdueInvoices}
+              totalCustomers={s.totalCustomers}
+              activeContracts={s.activeContracts}
+            />
+          </motion.div>
+        </Suspense>
+      )}
 
       {/* ═══ Charts ═══ */}
       <Suspense fallback={
