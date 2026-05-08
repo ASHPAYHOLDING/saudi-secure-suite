@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { ShieldCheck, Loader2, ArrowLeft, KeyRound } from "lucide-react";
+import { ShieldCheck, Loader2, ArrowLeft, KeyRound, Smartphone, Info } from "lucide-react";
 
 interface MfaChallengeProps {
   factorId: string;
@@ -65,15 +65,28 @@ const MfaChallenge = ({ factorId, onSuccess, onBack }: MfaChallengeProps) => {
           </div>
         </div>
 
-        <div className="text-center space-y-1.5">
+        <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold text-foreground tracking-tight">
-            التحقق بخطوتين
+            رمز تطبيق المصادقة
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed px-2">
-            افتح تطبيق المصادقة وأدخل الرمز المكوّن من{" "}
-            <span className="font-semibold text-foreground">6 أرقام</span>
+            افتح تطبيق <span className="font-semibold text-foreground">Google Authenticator</span> أو <span className="font-semibold text-foreground">Authy</span> على جوالك،
+            وأدخل الرمز المكوّن من <span className="font-semibold text-foreground">6 أرقام</span> الظاهر بجانب حساب Numaxio.
           </p>
+          <div className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-medium">
+            <Smartphone className="h-3 w-3" />
+            رمز فوري — يُولَّد محلياً كل 30 ثانية
+          </div>
         </div>
+      </div>
+
+      {/* Clarification: not an email code */}
+      <div className="mb-5 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5">
+        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+          <span className="font-semibold">هذا الرمز لا يُرسل عبر البريد الإلكتروني.</span>{" "}
+          إذا لم يكن لديك تطبيق مصادقة، اضغط «العودة لتسجيل الدخول» وأعد إعداد التحقق بخطوتين من إعدادات الأمان.
+        </p>
       </div>
 
       {/* OTP Input */}
