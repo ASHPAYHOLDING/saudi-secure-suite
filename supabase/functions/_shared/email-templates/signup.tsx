@@ -1,18 +1,8 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Text,
-} from 'npm:@react-email/components@0.0.22'
+import { Button, Section, Text, Hr } from 'npm:@react-email/components@0.0.22'
+import { NumaxioLayout, styles } from './_layout.tsx'
 
 interface SignupEmailProps {
   siteName: string
@@ -21,66 +11,27 @@ interface SignupEmailProps {
   confirmationUrl: string
 }
 
-export const SignupEmail = ({
-  siteName,
-  siteUrl,
-  recipient,
-  confirmationUrl,
-}: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+export const SignupEmail = ({ recipient, confirmationUrl }: SignupEmailProps) => (
+  <NumaxioLayout preview="فعّل حسابك في Numaxio">
+    <Text style={styles.h1}>أهلاً بك في Numaxio 👋</Text>
+    <Text style={styles.text}>
+      شكراً لانضمامك إلى منصة <strong>Numaxio</strong> — منصة الأعمال والمحاسبة المتكاملة المتوافقة مع متطلبات هيئة الزكاة والضريبة (ZATCA).
+    </Text>
+    <Text style={styles.text}>
+      لتأكيد بريدك <strong>{recipient}</strong> وتفعيل حسابك، اضغط على الزر أدناه:
+    </Text>
+    <Section style={styles.buttonWrap}>
+      <Button style={styles.button} href={confirmationUrl}>تأكيد البريد وتفعيل الحساب</Button>
+    </Section>
+    <Text style={styles.muted}>
+      إذا لم يعمل الزر، انسخ الرابط التالي والصقه في المتصفح:
+    </Text>
+    <Text style={styles.fallbackBox}>{confirmationUrl}</Text>
+    <Hr style={styles.divider} />
+    <Text style={styles.muted}>
+      إذا لم تقم بإنشاء حساب لدى Numaxio، يمكنك تجاهل هذه الرسالة بأمان.
+    </Text>
+  </NumaxioLayout>
 )
 
 export default SignupEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
