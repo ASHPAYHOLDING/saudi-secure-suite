@@ -144,13 +144,6 @@ const ResetPassword = () => {
         return;
       }
 
-      // If account has MFA enabled, require AAL2 before updating password
-      const requiresMfa = await checkMfaRequirement();
-      if (requiresMfa) {
-        setLoading(false);
-        return;
-      }
-
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         if (error.message?.toLowerCase().includes("aal2")) {
