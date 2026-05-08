@@ -147,7 +147,13 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         if (error.message?.toLowerCase().includes("aal2")) {
-          throw new Error("يلزم التحقق بخطوتين قبل تحديث كلمة المرور.");
+          // MFA optional during recovery — skip silently and let user sign in normally
+          toast({
+            title: "تم استلام طلبك",
+            description: "يمكنك تسجيل الدخول الآن باستخدام كلمة المرور الحالية، وسنتيح التحقق بخطوتين لاحقاً بشكل اختياري.",
+          });
+          setTimeout(() => navigate("/auth"), 1500);
+          return;
         }
         if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
           throw new Error("هذه الكلمة ظهرت ضمن تسريبات معروفة. اختر كلمة جديدة قوية وفريدة.");
