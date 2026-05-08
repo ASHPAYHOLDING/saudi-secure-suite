@@ -58,7 +58,7 @@ const QuotationsSheet = ({ userRole, isFinance, isAdmin }: Props) => {
     // Don't allow editing converted quotations
     const row = data.find(r => r.id === id);
     if (row?.status === "converted") { toast.error("لا يمكن تعديل عرض محوّل"); return false; }
-    const { error } = await supabase.from("quotations").update({ [key]: value }).eq("id", id);
+    const { error } = await supabase.from("quotations").update({ [key]: value } as any).eq("id", id);
     if (error) { toast.error("خطأ: " + error.message); return false; }
     toast.success("تم الحفظ");
     await fetchData();
