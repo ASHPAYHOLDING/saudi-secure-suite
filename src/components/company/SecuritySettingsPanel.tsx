@@ -68,7 +68,7 @@ const SecuritySettingsPanel = () => {
       .maybeSingle() as any);
 
     if (data?.security_settings) {
-      setSettings({ ...DEFAULT_SETTINGS, ...data.security_settings });
+      setSettings({ ...DEFAULT_SETTINGS, ...data.security_settings, force_2fa: false });
     }
     setLoading(false);
   };
@@ -95,7 +95,7 @@ const SecuritySettingsPanel = () => {
       .from("tenant_settings" as any)
       .upsert({
         tenant_id: tenantId,
-        security_settings: settings,
+          security_settings: { ...settings, force_2fa: false },
       }, { onConflict: "tenant_id" }) as any);
 
     setSaving(false);
@@ -167,13 +167,13 @@ const SecuritySettingsPanel = () => {
               <KeyRound className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">إلزام المصادقة الثنائية (2FA)</p>
-              <p className="text-[11px] text-muted-foreground">جميع أعضاء الفريق ملزمون بتفعيل 2FA لتسجيل الدخول</p>
+              <p className="text-sm font-medium text-foreground">المصادقة الثنائية اختيارية</p>
+              <p className="text-[11px] text-muted-foreground">يمكن لكل مستخدم تفعيلها أو إيقافها من أمان الحساب</p>
             </div>
           </div>
           <Switch
-            checked={settings.force_2fa}
-            onCheckedChange={(checked) => updateSetting("force_2fa", checked)}
+            checked={false}
+            disabled
           />
         </div>
 

@@ -29,6 +29,8 @@ project_id = "izuyfgzwzszanjpenbmx"
     verify_jwt = false
   [functions.mispay-webhook]
     verify_jwt = false
+  [functions.mfa-admin-delete-factor]
+    verify_jwt = false
   [functions.moyasar-webhook]
     verify_jwt = false
   [functions.nl-query]
