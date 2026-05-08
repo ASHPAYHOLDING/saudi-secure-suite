@@ -14,7 +14,7 @@
  */
 
 import * as React from 'npm:react@18.3.1'
-import { render } from 'npm:@react-email/render@0.0.17'
+import { render } from 'npm:@react-email/components@0.0.22'
 import { assert, assertEquals, assertStringIncludes } from 'jsr:@std/assert@1'
 import { assertSnapshot } from 'jsr:@std/testing@1/snapshot'
 
