@@ -426,7 +426,7 @@ async function handlePaylinkCallback(
       existing_status: existingStatus,
     });
     // Still redirect user
-    const appOrigin = Deno.env.get("APP_ORIGIN") || "https://saudi-secure-suite.lovable.app";
+    const appOrigin = Deno.env.get("APP_ORIGIN") || "https://numaxio.com";
     return new Response(null, {
       status: 302,
       headers: { ...corsHeaders, Location: `${appOrigin}/dashboard/wallet?topup=already_processed` },
@@ -513,7 +513,7 @@ async function handlePaylinkCallback(
   }
 
   // Redirect user back to wallet page
-  const appOrigin = Deno.env.get("APP_ORIGIN") || "https://saudi-secure-suite.lovable.app";
+  const appOrigin = Deno.env.get("APP_ORIGIN") || "https://numaxio.com";
   const redirectUrl = `${appOrigin}/dashboard/wallet?topup=${processStatus === "completed" ? "success" : "failed"}`;
 
   return new Response(null, {
