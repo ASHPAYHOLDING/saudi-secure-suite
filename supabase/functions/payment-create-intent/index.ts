@@ -373,8 +373,8 @@ async function createStripeSession(creds: any, opts: any) {
   const secretKey = creds.secret_key || creds.api_key || "";
 
   // Determine success/cancel URLs — use a generic hosted page if not provided
-  const successUrl = opts.successUrl || `${opts.appUrl || "https://saudi-secure-suite.lovable.app"}/dashboard/invoices?payment=success&invoice_id=${opts.invoiceId}`;
-  const cancelUrl  = opts.cancelUrl  || `${opts.appUrl || "https://saudi-secure-suite.lovable.app"}/dashboard/invoices?payment=cancelled&invoice_id=${opts.invoiceId}`;
+  const successUrl = opts.successUrl || `${opts.appUrl || "https://numaxio.com"}/dashboard/invoices?payment=success&invoice_id=${opts.invoiceId}`;
+  const cancelUrl  = opts.cancelUrl  || `${opts.appUrl || "https://numaxio.com"}/dashboard/invoices?payment=cancelled&invoice_id=${opts.invoiceId}`;
 
   // Use Stripe Checkout Session — gives a hosted payment page URL
   const params = new URLSearchParams({

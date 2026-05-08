@@ -219,7 +219,7 @@ Deno.serve(async (req) => {
         .select("id, email, full_name")
         .in("id", members.map((m: any) => m.user_id));
 
-      const appUrl = "https://saudi-secure-suite.lovable.app";
+      const appUrl = "https://numaxio.com";
       const employeeLink = `${appUrl}/dashboard/hr/employees/${doc.employee_id}?tab=documents`;
 
       for (const profile of (profiles || [])) {
