@@ -1,7 +1,7 @@
 /**
  * SecurityHeaders — Centralised security-header reference & runtime checks.
  *
- * Because Lovable's hosting does not expose server-config files,
+ * Because the hosting layer does not expose server-config files,
  * most headers are applied via `<meta>` in index.html.
  *
  * This module:
