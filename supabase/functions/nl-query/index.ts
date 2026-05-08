@@ -78,8 +78,8 @@ serve(async (req) => {
     }
 
     const { query } = await req.json();
-    if (!query || typeof query !== "string") {
-      return new Response(JSON.stringify({ error: "الرجاء إدخال استعلام" }), {
+    if (!query || typeof query !== "string" || query.length > 500) {
+      return new Response(JSON.stringify({ error: "الرجاء إدخال استعلام صالح (حتى 500 حرف)" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
