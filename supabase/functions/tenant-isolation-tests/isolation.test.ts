@@ -6,7 +6,8 @@
  *     (including auto-created monthly partitions: audit_logs_*, webhook_events_*,
  *     production_metrics_*).
  *  2. Anonymous (unauthenticated) clients cannot read rows from current/next
- *     month partitions of audit_logs, webhook_events, production_metrics.
+ *     month partitions of those tables.
+ *  3. Anonymous clients cannot read core tenant tables.
  *
  * Run:
  *   deno test --allow-net --allow-env supabase/functions/tenant-isolation-tests/
@@ -31,81 +32,85 @@ function monthKey(offset: number): string {
 
 const PARTITION_BASES = ["audit_logs", "webhook_events", "production_metrics"];
 const CURRENT_PARTITIONS = [0, 1].flatMap((off) =>
-  PARTITION_BASES.map((b) => `${b}_${monthKey(off)}`)
+  PARTITION_BASES.map((b) => `${b}_${monthKey(off)}`),
 );
+
+// Common test options — disables Deno leak detection for realtime ws timers.
+const opts = { sanitizeOps: false, sanitizeResources: false };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST 1 — Structural: no tenant_id table without RLS + policies
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.test("ISO-1: every tenant_id table has RLS enabled + at least one policy", async () => {
-  if (!SERVICE_ROLE_KEY) {
-    console.warn("⚠️  SUPABASE_SERVICE_ROLE_KEY not set — skipping structural audit");
-    return;
-  }
-
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  });
-
-  const { data, error } = await admin.rpc("audit_tenant_isolation");
-  assertEquals(error, null, `RPC error: ${error?.message}`);
-
-  const offenders = (data as Array<{ table: string; rls_enabled: boolean; policy_count: number }>) ?? [];
-  if (offenders.length > 0) {
-    console.error("❌ Tables breaking tenant isolation:", JSON.stringify(offenders, null, 2));
-  }
-  assertEquals(
-    offenders.length,
-    0,
-    `Found ${offenders.length} table(s) with tenant_id but missing RLS or policies`,
-  );
-} as any);
+Deno.test({
+  name: "ISO-1: every tenant_id table has RLS enabled + at least one policy",
+  ...opts,
+  async fn() {
+    if (!SERVICE_ROLE_KEY) {
+      console.warn("⚠️  SUPABASE_SERVICE_ROLE_KEY not set — skipping structural audit");
+      return;
+    }
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data, error } = await admin.rpc("audit_tenant_isolation");
+    assertEquals(error, null, `RPC error: ${error?.message}`);
+    const offenders =
+      (data as Array<{ table: string; rls_enabled: boolean; policy_count: number }>) ?? [];
+    if (offenders.length > 0) {
+      console.error("❌ Tables breaking tenant isolation:", JSON.stringify(offenders, null, 2));
+    }
+    assertEquals(
+      offenders.length,
+      0,
+      `Found ${offenders.length} table(s) with tenant_id but missing RLS or policies`,
+    );
+  },
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST 2 — Runtime: anon cannot read current/next month partitions
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.test({ name: "ISO-2: anon client cannot read any row from current monthly partitions", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: false },
-  });
-
-  for (const table of CURRENT_PARTITIONS) {
-    const { data, error } = await anon.from(table).select("*").limit(5);
-
-    // Either an error (permission denied) OR an empty array is acceptable.
-    // What is NOT acceptable: rows returned to an unauthenticated caller.
-    const rowCount = Array.isArray(data) ? data.length : 0;
-    assertEquals(
-      rowCount,
-      0,
-      `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}. Error: ${error?.message ?? "none"}`,
-    );
-  }
-} as any);
+Deno.test({
+  name: "ISO-2: anon client cannot read any row from current monthly partitions",
+  ...opts,
+  async fn() {
+    const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+    for (const table of CURRENT_PARTITIONS) {
+      const { data, error } = await anon.from(table).select("*").limit(5);
+      const rowCount = Array.isArray(data) ? data.length : 0;
+      assertEquals(
+        rowCount,
+        0,
+        `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}. Error: ${error?.message ?? "none"}`,
+      );
+    }
+  },
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TEST 3 — Runtime: anon cannot read core tenant tables either (sanity)
+// TEST 3 — Runtime: anon cannot read core tenant tables (sanity)
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.test({ name: "ISO-3: anon client cannot read core tenant tables", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: false },
-  });
-
-  const coreTables = [
-    "customers",
-    "invoices",
-    "wallet_transactions",
-    "chart_of_accounts",
-    "branches",
-    "approval_requests",
-  ];
-
-  for (const table of coreTables) {
-    const { data } = await anon.from(table).select("*").limit(1);
-    const rowCount = Array.isArray(data) ? data.length : 0;
-    assert(
-      rowCount === 0,
-      `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}`,
-    );
-  }
-} as any);
+Deno.test({
+  name: "ISO-3: anon client cannot read core tenant tables",
+  ...opts,
+  async fn() {
+    const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+    const coreTables = [
+      "customers",
+      "invoices",
+      "wallet_transactions",
+      "chart_of_accounts",
+      "branches",
+      "approval_requests",
+    ];
+    for (const table of coreTables) {
+      const { data } = await anon.from(table).select("*").limit(1);
+      const rowCount = Array.isArray(data) ? data.length : 0;
+      assert(rowCount === 0, `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}`);
+    }
+  },
+});
