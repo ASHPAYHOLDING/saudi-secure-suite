@@ -165,17 +165,23 @@ Deno.test('html-safety/xss — props are escaped, not rendered as HTML', async (
 
   for (const tc of xssCases) {
     const html = await render(tc.el, { pretty: false })
-    // React escapes raw children, so payloads must NOT round-trip as live tags
-    assert(!/<script\b/i.test(html), `${tc.name}: <script> tag leaked from prop`)
-    assert(!/onerror\s*=/i.test(html), `${tc.name}: onerror handler leaked from prop`)
-    assert(!/onmouseover\s*=/i.test(html), `${tc.name}: onmouseover handler leaked from prop`)
-    // Re-parse and verify forbidden tags didn't sneak in
     const doc = new DOMParser().parseFromString(html, 'text/html')!
-    for (const tag of ['script', 'img']) {
-      // recovery/signup/etc do not use <img>; if any appears it must come from a payload
-      const tags = doc.querySelectorAll(tag)
-      if (tag === 'script') {
-        assertEquals(tags.length, 0, `${tc.name}: <script> survived XSS attempt`)
+
+    // No <script>/<img>/<iframe> elements should ever materialize from props
+    for (const tag of ['script', 'iframe', 'object', 'embed', 'svg']) {
+      assertEquals(
+        doc.querySelectorAll(tag).length, 0,
+        `${tc.name}: <${tag}> survived XSS attempt — props not escaped`,
+      )
+    }
+
+    // No element should carry an on* event handler attribute
+    for (const el of doc.querySelectorAll('*') as unknown as Iterable<Element>) {
+      for (const attr of el.getAttributeNames()) {
+        assert(
+          !attr.toLowerCase().startsWith('on'),
+          `${tc.name}: event handler "${attr}" on <${el.tagName.toLowerCase()}> from prop payload`,
+        )
       }
     }
   }
