@@ -203,6 +203,18 @@ const footerText = {
   margin: '0 0 10px',
   fontFamily: BRAND.font,
 }
+const securityNote = {
+  fontSize: '11.5px',
+  color: BRAND.body,
+  backgroundColor: BRAND.surface,
+  border: `1px solid ${BRAND.border}`,
+  borderRadius: '8px',
+  padding: '10px 14px',
+  margin: '0 0 14px',
+  lineHeight: 1.7,
+  fontFamily: BRAND.font,
+  textAlign: 'right' as const,
+}
 const footerLinks = {
   fontSize: '12px',
   color: BRAND.muted,
