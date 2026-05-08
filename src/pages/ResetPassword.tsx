@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Lock, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import MfaChallenge from "@/components/mfa/MfaChallenge";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -18,8 +19,29 @@ const ResetPassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [needsMfa, setNeedsMfa] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check if MFA challenge is required for this session
+  const checkMfaRequirement = async () => {
+    try {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const verified = factors?.totp?.find((f) => f.status === "verified");
+        if (verified) {
+          setMfaFactorId(verified.id);
+          setNeedsMfa(true);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn("[ResetPassword] MFA check failed", e);
+    }
+    return false;
+  };
 
   useEffect(() => {
     let cancelled = false;
