@@ -37,13 +37,18 @@ Deno.serve(async (req) => {
     const { data: userData, error: userError } = await userClient.auth.getUser();
     if (userError || !userData?.user) return json({ error: "invalid_session" }, 401);
 
-    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { error: deleteError } = await admin.auth.admin.mfa.deleteFactor({
-      userId: userData.user.id,
-      id: factorId,
+    const deleteResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userData.user.id}/factors/${factorId}`, {
+      method: "DELETE",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+      },
     });
 
-    if (deleteError) return json({ error: deleteError.message }, 400);
+    if (!deleteResponse.ok) {
+      const details = await deleteResponse.text();
+      return json({ error: details || "delete_failed" }, deleteResponse.status);
+    }
 
     return json({ ok: true });
   } catch (error) {
