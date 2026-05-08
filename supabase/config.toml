@@ -59,6 +59,8 @@ project_id = "izuyfgzwzszanjpenbmx"
     verify_jwt = false
   [functions.regenerate-zatca-credentials]
     verify_jwt = false
+  [functions.reset-password-admin]
+    verify_jwt = false
   [functions.schedule-trial-nudges]
     verify_jwt = false
   [functions.secrets-vault]
