@@ -50,12 +50,23 @@ const MfaSettingsSection = ({ embedded = false }: { embedded?: boolean }) => {
     setUnenrolling(true);
     try {
       const { error } = await supabase.auth.mfa.unenroll({ factorId });
-      if (error) throw error;
+      if (error) {
+        if (!error.message?.toLowerCase().includes("aal2")) throw error;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (!accessToken) throw error;
+
+        const { error: adminError } = await supabase.functions.invoke("mfa-admin-delete-factor", {
+          body: { factorId },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (adminError) throw adminError;
+      }
       toast.success("تم إيقاف التحقق بخطوتين");
       setShowUnenroll(false);
       checkMfaStatus();
     } catch (err: any) {
-      toast.error("فشل إيقاف MFA: " + err.message);
+      toast.error("تعذر إيقاف التحقق بخطوتين. حاول مرة أخرى.");
     } finally {
       setUnenrolling(false);
     }
