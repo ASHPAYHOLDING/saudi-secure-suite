@@ -161,13 +161,24 @@ const ResetPassword = () => {
     }
   };
 
+  if (checking) {
+    return (
+      <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
+        <div className="rounded-2xl border border-border/20 bg-card p-8 shadow-elevated text-center max-w-md">
+          <Loader2 size={32} className="text-accent mx-auto mb-3 animate-spin" />
+          <p className="text-sm text-muted-foreground">جارٍ التحقق من رابط إعادة التعيين...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isRecovery) {
     return (
       <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
         <div className="rounded-2xl border border-border/20 bg-card p-8 shadow-elevated text-center max-w-md">
           <ShieldCheck size={48} className="text-accent mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-foreground mb-2">رابط غير صالح</h2>
-          <p className="text-sm text-muted-foreground mb-4">يرجى طلب رابط إعادة تعيين كلمة المرور من صفحة تسجيل الدخول</p>
+          <h2 className="text-lg font-semibold text-foreground mb-2">رابط غير صالح أو منتهي الصلاحية</h2>
+          <p className="text-sm text-muted-foreground mb-4">قد يكون الرابط قد استُخدم مسبقاً أو انتهت صلاحيته. يرجى طلب رابط جديد من صفحة تسجيل الدخول.</p>
           <Button onClick={() => navigate("/auth")} className="bg-accent text-accent-foreground hover:bg-accent/90">
             العودة لتسجيل الدخول
           </Button>
