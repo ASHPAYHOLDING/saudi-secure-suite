@@ -18,6 +18,7 @@ const AdminFinance = lazy(() => import("@/components/admin/AdminFinance"));
 const AdminTemplates = lazy(() => import("@/components/admin/AdminTemplates"));
 const AdminEmailTemplates = lazy(() => import("@/components/admin/AdminEmailTemplates"));
 const AdminEmailCenter = lazy(() => import("@/components/admin/AdminEmailCenter"));
+const AdminEmailLog = lazy(() => import("@/components/admin/AdminEmailLog"));
 const AdminPlatformSmtp = lazy(() => import("@/components/admin/AdminPlatformSmtp"));
 const AdminAIAssistant = lazy(() => import("@/components/admin/AdminAIAssistant"));
 const AdminInfrastructure = lazy(() => import("@/components/admin/AdminInfrastructure"));
