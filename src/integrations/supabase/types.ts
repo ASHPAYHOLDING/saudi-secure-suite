@@ -1741,6 +1741,102 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs_y2026m05: {
+        Row: {
+          action: string
+          after_value: Json | null
+          before_value: Json | null
+          changes: Json | null
+          correlation_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          after_value?: Json | null
+          before_value?: Json | null
+          changes?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          after_value?: Json | null
+          before_value?: Json | null
+          changes?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs_y2026m06: {
+        Row: {
+          action: string
+          after_value: Json | null
+          before_value: Json | null
+          changes: Json | null
+          correlation_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          after_value?: Json | null
+          before_value?: Json | null
+          changes?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          after_value?: Json | null
+          before_value?: Json | null
+          changes?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       background_jobs: {
         Row: {
           attempts: number
@@ -10447,6 +10543,72 @@ export type Database = {
         }
         Relationships: []
       }
+      production_metrics_y2026m05: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_source: string
+          metric_value: number
+          recorded_at: string
+          tags: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_source: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_source?: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
+      production_metrics_y2026m06: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_source: string
+          metric_value: number
+          recorded_at: string
+          tags: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_source: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_source?: string
+          metric_value?: number
+          recorded_at?: string
+          tags?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string | null
@@ -14965,6 +15127,114 @@ export type Database = {
         Relationships: []
       }
       webhook_events_y2026m04: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          payload: Json | null
+          payload_hash: string | null
+          processed_at: string | null
+          processing_error: string | null
+          provider: string
+          provider_event_id: string | null
+          provider_response: Json | null
+          raw_headers: Json | null
+          received_at: string
+          signature_valid: boolean | null
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
+          provider: string
+          provider_event_id?: string | null
+          provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
+          provider?: string
+          provider_event_id?: string | null
+          provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
+      webhook_events_y2026m05: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          payload: Json | null
+          payload_hash: string | null
+          processed_at: string | null
+          processing_error: string | null
+          provider: string
+          provider_event_id: string | null
+          provider_response: Json | null
+          raw_headers: Json | null
+          received_at: string
+          signature_valid: boolean | null
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
+          provider: string
+          provider_event_id?: string | null
+          provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          processing_error?: string | null
+          provider?: string
+          provider_event_id?: string | null
+          provider_response?: Json | null
+          raw_headers?: Json | null
+          received_at?: string
+          signature_valid?: boolean | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
+      webhook_events_y2026m06: {
         Row: {
           created_at: string
           event_id: string
