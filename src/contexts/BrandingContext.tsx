@@ -195,7 +195,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
       if (partial.supportPhone !== undefined) configUpdate.support_phone = partial.supportPhone;
 
       if (Object.keys(tenantUpdates).length > 0) {
-        await supabase.from("tenants").update(tenantUpdates).eq("id", tenantId);
+        await supabase.from("tenants").update(tenantUpdates as any).eq("id", tenantId);
       }
 
       if (Object.keys(configUpdate).length > 0) {
