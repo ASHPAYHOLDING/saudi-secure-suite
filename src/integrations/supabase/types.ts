@@ -16597,6 +16597,7 @@ export type Database = {
           table_name: string
         }[]
       }
+      audit_tenant_isolation: { Args: never; Returns: Json }
       auto_activate_enterprise_integrations: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: undefined
