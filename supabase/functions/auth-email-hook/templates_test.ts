@@ -76,10 +76,14 @@ for (const tc of cases) {
           html.toLowerCase().includes('rgb(46,196,182)'),
         `${tc.name}: brand primary color missing`,
       )
-      // confirmation URL appears as href
-      assert(html.includes(`href="${URL}"`), `${tc.name}: CTA href not found`)
+      // confirmation URL appears as href (HTML-escapes & inside attributes)
+      const escapedUrl = URL.replace(/&/g, '&amp;')
+      assert(
+        html.includes(`href="${URL}"`) || html.includes(`href="${escapedUrl}"`),
+        `${tc.name}: CTA href not found`,
+      )
       // fallback URL appears as visible text in an LTR box
-      assert(html.includes(URL), `${tc.name}: visible fallback URL missing`)
+      assert(html.includes(URL) || html.includes(escapedUrl), `${tc.name}: visible fallback URL missing`)
       assert(/direction:\s*ltr/i.test(html), `${tc.name}: LTR fallback box missing`)
     }
 
