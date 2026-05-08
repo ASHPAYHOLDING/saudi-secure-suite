@@ -98,6 +98,7 @@ const Admin = () => {
     if (path === "/admin/templates") return <AdminTemplates />;
     if (path === "/admin/email-templates") return <AdminEmailTemplates />;
     if (path === "/admin/email-center") return <AdminEmailCenter />;
+    if (path === "/admin/email-log") return <AdminEmailLog />;
     if (path === "/admin/email-provider") return <AdminPlatformSmtp />;
     if (path === "/admin/ai") return <AdminAIAssistant />;
     if (path === "/admin/infrastructure") return <AdminInfrastructure />;
