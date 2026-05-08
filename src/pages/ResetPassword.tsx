@@ -164,24 +164,6 @@ const ResetPassword = () => {
     }
   };
 
-  const handleMfaSuccess = async () => {
-    setNeedsMfa(false);
-    setMfaFactorId(null);
-    // Retry password update now that session is AAL2
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-      setSuccess(true);
-      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
-      setTimeout(() => navigate("/dashboard"), 2000);
-    } catch (err: any) {
-      toast({ title: "خطأ", description: err.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (checking) {
     return (
       <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
