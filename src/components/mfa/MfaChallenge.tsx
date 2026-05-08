@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { ShieldCheck, Loader2, ArrowLeft, KeyRound } from "lucide-react";
+import { ShieldCheck, Loader2, ArrowLeft, KeyRound, Smartphone, Info } from "lucide-react";
 
 interface MfaChallengeProps {
   factorId: string;
