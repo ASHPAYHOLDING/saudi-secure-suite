@@ -182,11 +182,11 @@ const E2EChecklistTab = () => {
     pushResult({
       id: "C7", title: "Leaked password protection enabled", severity: "P0",
       status: "pass",
-      summary: "Client-side HIBP check active on signup + password reset. Server-side protection requires Lovable Cloud Auth Settings.",
+      summary: "Client-side HIBP check active on signup + password reset. Server-side protection requires backend Auth Settings.",
       details: [
         "✅ Client-side: isPasswordLeaked() checks HIBP API on signup and reset-password.",
         "✅ Error messages neutralized — no leak source details exposed to users.",
-        "⚠️ Server-side: Enable 'Leaked password protection' in Lovable Cloud → Auth Settings for double protection.",
+        "⚠️ Server-side: Enable 'Leaked password protection' in backend Auth Settings for double protection.",
       ],
     });
 
