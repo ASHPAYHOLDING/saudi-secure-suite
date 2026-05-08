@@ -33,7 +33,6 @@ import { useToast } from "@/hooks/use-toast";
 import type { TenantType } from "@/lib/tenant-modules";
 import NumaxioLogo from "@/components/landing/NumaxioLogo";
 import { SsoLoginButton } from "@/components/sso/SsoLoginButton";
-import MfaChallenge from "@/components/mfa/MfaChallenge";
 
 /* ───── Animation presets (≤150ms, no bounce) ───── */
 const fadeIn = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.15 } };
@@ -44,8 +43,7 @@ const slideUp = (delay = 0) => ({
 });
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp" | "mfa">("login");
-  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -319,21 +317,7 @@ const Auth = () => {
           <div className="w-full max-w-[420px]">
             <AnimatePresence mode="wait">
 
-              {/* ═══ MFA Challenge ═══ */}
-              {mode === "mfa" && mfaFactorId ? (
-                <motion.div key="mfa" {...fadeIn}>
-                  <MfaChallenge
-                    factorId={mfaFactorId}
-                    onSuccess={() => navigate("/dashboard")}
-                    onBack={() => {
-                      supabase.auth.signOut();
-                      setMfaFactorId(null);
-                      setMode("login");
-                    }}
-                  />
-                </motion.div>
-
-              ) : mode === "otp" ? (
+              {mode === "otp" ? (
                 <motion.div key="otp" {...fadeIn} className="text-center">
                   {/* [OTP-01] أيقونة 20px داخل دائرة h-10 w-10 */}
                   <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-5">
