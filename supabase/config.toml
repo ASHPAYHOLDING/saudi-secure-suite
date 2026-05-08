@@ -1,133 +1,93 @@
 project_id = "izuyfgzwzszanjpenbmx"
 
-[functions.invite-member]
-verify_jwt = false
-
-[functions.admin-ai-chat]
-verify_jwt = false
-
-[functions.zatca-phase2]
-verify_jwt = false
-
-[functions.send-invoice]
-verify_jwt = false
-
-[functions.nl-query]
-verify_jwt = false
-
-[functions.process-payouts]
-verify_jwt = false
-
-[functions.paylink-gateway]
-verify_jwt = false
-
-[functions.paid-gateway]
-verify_jwt = false
-
-[functions.wallet-purchase]
-verify_jwt = false
-
-[functions.upgrade-subscription]
-verify_jwt = false
-
-[functions.cancel-subscription]
-verify_jwt = false
-
-[functions.secure-rpc]
-verify_jwt = false
-
-[functions.subscription-webhook]
-verify_jwt = false
-
-[functions.public-api]
-verify_jwt = false
-
-[functions.regenerate-zatca-credentials]
-verify_jwt = false
-
-[functions.payment-webhook]
-verify_jwt = false
-
-[functions.tap-webhook]
-verify_jwt = false
-
-[functions.moyasar-webhook]
-verify_jwt = false
-
-[functions.hyperpay-webhook]
-verify_jwt = false
-
-[functions.provider-save]
-verify_jwt = false
-
-[functions.provider-test]
-verify_jwt = false
-
-[functions.payment-create-intent]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.geidea-webhook]
-verify_jwt = false
-
-[functions.mispay-webhook]
-verify_jwt = false
-
-[functions.job-worker]
-verify_jwt = false
-
-[functions.login-guard]
-verify_jwt = false
-
-[functions.process-scheduled-reports]
-verify_jwt = false
-
-[functions.sso-init]
-verify_jwt = false
-
-[functions.sso-callback]
-verify_jwt = false
-
-[functions.secrets-vault]
-verify_jwt = false
-
-[functions.integration-health-check]
-verify_jwt = false
-
-[functions.analytics-etl]
-verify_jwt = false
-
-[functions.ai-accountant]
-verify_jwt = false
-
-[functions.executive-intelligence]
-verify_jwt = false
-
-[functions.verify-whatsapp-connection]
-verify_jwt = false
-
-[functions.send-whatsapp-template]
-verify_jwt = false
-
-[functions.notify-dispatch]
-verify_jwt = false
-
-[functions.notify-worker]
-verify_jwt = false
-
-[functions.template-preview]
-verify_jwt = false
-
-[functions.whatsapp-webhook]
-verify_jwt = false
-
-[functions.csp-report]
-verify_jwt = false
-
-[functions.payment-link-public]
-verify_jwt = false
-
-[functions.schedule-trial-nudges]
-verify_jwt = false
+[functions]
+  [functions.admin-ai-chat]
+    verify_jwt = false
+  [functions.ai-accountant]
+    verify_jwt = false
+  [functions.analytics-etl]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.cancel-subscription]
+    verify_jwt = false
+  [functions.csp-report]
+    verify_jwt = false
+  [functions.executive-intelligence]
+    verify_jwt = false
+  [functions.geidea-webhook]
+    verify_jwt = false
+  [functions.hyperpay-webhook]
+    verify_jwt = false
+  [functions.integration-health-check]
+    verify_jwt = false
+  [functions.invite-member]
+    verify_jwt = false
+  [functions.job-worker]
+    verify_jwt = false
+  [functions.login-guard]
+    verify_jwt = false
+  [functions.mispay-webhook]
+    verify_jwt = false
+  [functions.moyasar-webhook]
+    verify_jwt = false
+  [functions.nl-query]
+    verify_jwt = false
+  [functions.notify-dispatch]
+    verify_jwt = false
+  [functions.notify-worker]
+    verify_jwt = false
+  [functions.paid-gateway]
+    verify_jwt = false
+  [functions.paylink-gateway]
+    verify_jwt = false
+  [functions.payment-create-intent]
+    verify_jwt = false
+  [functions.payment-link-public]
+    verify_jwt = false
+  [functions.payment-webhook]
+    verify_jwt = false
+  [functions.process-payouts]
+    verify_jwt = false
+  [functions.process-scheduled-reports]
+    verify_jwt = false
+  [functions.provider-save]
+    verify_jwt = false
+  [functions.provider-test]
+    verify_jwt = false
+  [functions.public-api]
+    verify_jwt = false
+  [functions.regenerate-zatca-credentials]
+    verify_jwt = false
+  [functions.schedule-trial-nudges]
+    verify_jwt = false
+  [functions.secrets-vault]
+    verify_jwt = false
+  [functions.secure-rpc]
+    verify_jwt = false
+  [functions.send-invoice]
+    verify_jwt = false
+  [functions.send-whatsapp-template]
+    verify_jwt = false
+  [functions.sso-callback]
+    verify_jwt = false
+  [functions.sso-init]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
+  [functions.subscription-webhook]
+    verify_jwt = false
+  [functions.tap-webhook]
+    verify_jwt = false
+  [functions.template-preview]
+    verify_jwt = false
+  [functions.upgrade-subscription]
+    verify_jwt = false
+  [functions.verify-whatsapp-connection]
+    verify_jwt = false
+  [functions.wallet-purchase]
+    verify_jwt = false
+  [functions.whatsapp-webhook]
+    verify_jwt = false
+  [functions.zatca-phase2]
+    verify_jwt = false
