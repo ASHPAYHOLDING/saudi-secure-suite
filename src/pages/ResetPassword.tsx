@@ -147,7 +147,6 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         if (error.message?.toLowerCase().includes("aal2")) {
-          await checkMfaRequirement();
           throw new Error("يلزم التحقق بخطوتين قبل تحديث كلمة المرور.");
         }
         if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
