@@ -4,15 +4,10 @@
  * Styled consistently with SettingsPage
  */
 import { motion } from "framer-motion";
-import { ShieldCheck, ShieldAlert, KeyRound, Fingerprint } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { ShieldCheck, KeyRound, Fingerprint } from "lucide-react";
 import MfaSettingsSection from "./MfaSettingsSection";
 
 const UserSecurityPage = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const mfaRequired = (location.state as any)?.mfaRequired === true;
-
   return (
     <div dir="rtl" className="space-y-6 p-6">
       {/* Page Header — matches SettingsPage style */}
@@ -20,22 +15,6 @@ const UserSecurityPage = () => {
         <h1 className="text-2xl font-bold text-foreground">أمان الحساب</h1>
         <p className="text-sm text-muted-foreground">إدارة إعدادات الأمان والتحقق بخطوتين</p>
       </div>
-
-      {/* MFA enforcement banner */}
-      {mfaRequired && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-card"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-            <ShieldAlert className="h-5 w-5 text-destructive" />
-          </div>
-          <p className="text-sm font-medium text-destructive">
-            لإكمال الدخول، فعّل المصادقة الثنائية (MFA). هذا مطلوب لدورك كمالك أو مدير.
-          </p>
-        </motion.div>
-      )}
 
       {/* MFA Section — wrapped in consistent card style */}
       <motion.div
