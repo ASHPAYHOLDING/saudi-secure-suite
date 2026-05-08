@@ -60,10 +60,16 @@ export const NumaxioLayout = ({ preview, children }: LayoutProps) => (
           <Text style={footerText}>
             هذه رسالة آلية من <strong style={{ color: BRAND.ink }}>Numaxio</strong> — يُرجى عدم الرد عليها.
           </Text>
+          <Text style={securityNote}>
+            🔒 هذه رسالة <strong>أمنية أساسية</strong> مرتبطة بحسابك ولا يمكن إيقافها للحفاظ على أمان الوصول.
+            يمكنك إدارة بقية إشعاراتك من إعدادات الحساب.
+          </Text>
           <Text style={footerLinks}>
-            <Link href="https://numaxio.com" style={footerLink}>الموقع الرسمي</Link>
+            <Link href="https://numaxio.com/settings/notifications" style={footerLink}>إدارة التفضيلات</Link>
             {'  ·  '}
-            <Link href="https://numaxio.com/privacy" style={footerLink}>سياسة الخصوصية</Link>
+            <Link href="https://numaxio.com/contact" style={footerLink}>تواصل معنا</Link>
+            {'  ·  '}
+            <Link href="https://numaxio.com/privacy" style={footerLink}>الخصوصية</Link>
             {'  ·  '}
             <Link href="https://numaxio.com/terms" style={footerLink}>الشروط</Link>
           </Text>
@@ -196,6 +202,18 @@ const footerText = {
   color: BRAND.muted,
   margin: '0 0 10px',
   fontFamily: BRAND.font,
+}
+const securityNote = {
+  fontSize: '11.5px',
+  color: BRAND.body,
+  backgroundColor: BRAND.surface,
+  border: `1px solid ${BRAND.border}`,
+  borderRadius: '8px',
+  padding: '10px 14px',
+  margin: '0 0 14px',
+  lineHeight: 1.7,
+  fontFamily: BRAND.font,
+  textAlign: 'right' as const,
 }
 const footerLinks = {
   fontSize: '12px',
