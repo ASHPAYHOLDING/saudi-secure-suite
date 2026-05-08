@@ -17,23 +17,87 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
-    }
+    let cancelled = false;
 
+    // Listen for the PASSWORD_RECOVERY event fired by Supabase after token exchange
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovery(true);
+        setChecking(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    const init = async () => {
+      try {
+        const hash = window.location.hash || "";
+        const search = window.location.search || "";
+        const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+        const queryParams = new URLSearchParams(search);
+
+        // Case 1: legacy implicit flow — tokens in URL hash
+        if (hashParams.get("type") === "recovery" || hashParams.get("access_token")) {
+          if (!cancelled) {
+            setIsRecovery(true);
+            setChecking(false);
+          }
+          return;
+        }
+
+        // Case 2: PKCE flow — ?code=... in query string (modern Supabase verify redirect)
+        const code = queryParams.get("code");
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!cancelled) {
+            if (!error) {
+              setIsRecovery(true);
+            }
+            setChecking(false);
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          return;
+        }
+
+        // Case 3: query has type=recovery (some configs)
+        if (queryParams.get("type") === "recovery") {
+          if (!cancelled) {
+            setIsRecovery(true);
+            setChecking(false);
+          }
+          return;
+        }
+
+        // Case 4: user already has a recovery session from /verify redirect.
+        // Wait briefly for PASSWORD_RECOVERY event before declaring invalid.
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Give Supabase a moment to dispatch PASSWORD_RECOVERY
+          setTimeout(() => {
+            if (!cancelled) {
+              setIsRecovery(true);
+              setChecking(false);
+            }
+          }, 800);
+          return;
+        }
+
+        if (!cancelled) setChecking(false);
+      } catch {
+        if (!cancelled) setChecking(false);
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const passwordStrength = (pwd: string) => {
