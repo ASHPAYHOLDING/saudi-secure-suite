@@ -46,7 +46,21 @@ const DebugRlsCheck = lazy(() => import("./pages/DebugRlsCheck"));
 const DebugSystemAudit = lazy(() => import("./pages/DebugSystemAudit"));
 
 
-const queryClient = new QueryClient();
+// Cost-optimised defaults: reduce duplicate fetches → fewer DB hits & lower Cloud spend.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,        // 5 min — most ERP data is not real-time
+      gcTime: 10 * 60 * 1000,          // 10 min cache retention
+      refetchOnWindowFocus: false,      // huge cost saver on tab switching
+      refetchOnReconnect: "always",
+      retry: 1,                          // avoid retry storms on errors
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
 /* ─── Page transition skeleton ─── */
 const PageSuspense = ({ children }: { children: React.ReactNode }) => (

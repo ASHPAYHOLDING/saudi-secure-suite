@@ -231,7 +231,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "google/gemini-2.5-flash-lite",
             messages: [
               { role: "system", content: "أنت مدير مالي تنفيذي خبير في السوق السعودي. ردودك مختصرة ومهنية بالعربية الفصحى." },
               { role: "user", content: prompt },
