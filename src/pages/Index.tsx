@@ -46,7 +46,7 @@ const Index = () => {
           name="description"
           content="نظام ERP سعودي مؤسسي متكامل: فواتير إلكترونية ZATCA Phase 2، ذكاء محاسبي مدمج، حوكمة مؤسسية. ابدأ تجربتك المجانية 14 يوم بدون بطاقة بنكية."
         />
-        <link rel="canonical" href="https://saudi-secure-suite.lovable.app/" />
+        <link rel="canonical" href="https://numaxio.com/" />
         <script type="application/ld+json">{JSON.stringify(softwareJsonLd)}</script>
       </Helmet>
       <div className="min-h-screen bg-background overflow-x-hidden">
