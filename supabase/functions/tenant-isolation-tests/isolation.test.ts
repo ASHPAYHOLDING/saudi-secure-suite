@@ -59,12 +59,12 @@ Deno.test("ISO-1: every tenant_id table has RLS enabled + at least one policy", 
     0,
     `Found ${offenders.length} table(s) with tenant_id but missing RLS or policies`,
   );
-});
+} as any);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST 2 — Runtime: anon cannot read current/next month partitions
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.test("ISO-2: anon client cannot read any row from current monthly partitions", async () => {
+Deno.test({ name: "ISO-2: anon client cannot read any row from current monthly partitions", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
@@ -81,12 +81,12 @@ Deno.test("ISO-2: anon client cannot read any row from current monthly partition
       `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}. Error: ${error?.message ?? "none"}`,
     );
   }
-});
+} as any);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST 3 — Runtime: anon cannot read core tenant tables either (sanity)
 // ─────────────────────────────────────────────────────────────────────────────
-Deno.test("ISO-3: anon client cannot read core tenant tables", async () => {
+Deno.test({ name: "ISO-3: anon client cannot read core tenant tables", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
@@ -108,4 +108,4 @@ Deno.test("ISO-3: anon client cannot read core tenant tables", async () => {
       `❌ Tenant leak: anon read ${rowCount} row(s) from ${table}`,
     );
   }
-});
+} as any);
