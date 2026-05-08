@@ -225,22 +225,32 @@ RULES:
       });
     }
 
-    // Build select with joins
+    // Forbid AI from manipulating sensitive system columns — RLS owns tenant_id scoping
+    const FORBIDDEN_COLS = new Set(["tenant_id", "user_id", "created_by", "owner_id"]);
+
+    // Build select with joins (max depth 3)
     let selectStr = parsed.select || "*";
     if (parsed.joins?.length) {
-      for (const join of parsed.joins) {
+      const safeJoins = parsed.joins.slice(0, 3);
+      for (const join of safeJoins) {
         if (ALLOWED_TABLES.includes(join.table)) {
-          selectStr += `, ${join.table}(${join.select})`;
+          const joinSelect = String(join.select || "*").replace(/[^a-zA-Z0-9_,\s*]/g, "");
+          selectStr += `, ${join.table}(${joinSelect})`;
         }
       }
     }
 
     let q = supabase.from(parsed.table).select(selectStr);
 
-    // Apply filters
+    // Apply filters (cap to 10, drop forbidden columns)
     if (parsed.filters?.length) {
-      for (const f of parsed.filters) {
+      const safeFilters = parsed.filters.slice(0, 10);
+      for (const f of safeFilters) {
         const col = String(f.column).replace(/[^a-zA-Z0-9_.]/g, "");
+        if (!col || FORBIDDEN_COLS.has(col.split(".")[0])) {
+          console.warn("[nl-query] dropped forbidden filter column:", f.column);
+          continue;
+        }
         switch (f.operator) {
           case "eq": q = q.eq(col, f.value); break;
           case "neq": q = q.neq(col, f.value); break;
@@ -250,8 +260,10 @@ RULES:
           case "lte": q = q.lte(col, f.value); break;
           case "like": q = q.like(col, `%${f.value}%`); break;
           case "ilike": q = q.ilike(col, `%${f.value}%`); break;
-          case "in": q = q.in(col, Array.isArray(f.value) ? f.value : [f.value]); break;
+          case "in": q = q.in(col, Array.isArray(f.value) ? f.value.slice(0, 100) : [f.value]); break;
           case "is": q = q.is(col, f.value); break;
+          default:
+            console.warn("[nl-query] unsupported operator:", f.operator);
         }
       }
     }
