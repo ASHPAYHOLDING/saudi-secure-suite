@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
       return new Response(`Failed to generate session: ${linkError?.message}`, { status: 500 });
     }
 
-    const appUrl = Deno.env.get("APP_URL") || req.headers.get("origin") || "https://saudi-secure-suite.lovable.app";
+    const appUrl = Deno.env.get("APP_URL") || req.headers.get("origin") || "https://numaxio.com";
     const redirectUrl = `${appUrl}/auth#access_token=${linkData.properties?.hashed_token}&type=magiclink`;
 
     return new Response(null, {
