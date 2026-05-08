@@ -238,6 +238,20 @@ const ResetPassword = () => {
     );
   }
 
+  if (needsMfa && mfaFactorId) {
+    return (
+      <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
+        <div className="rounded-2xl border border-border/20 bg-card p-8 shadow-elevated w-full max-w-md">
+          <MfaChallenge
+            factorId={mfaFactorId}
+            onSuccess={handleMfaSuccess}
+            onBack={() => { setNeedsMfa(false); setMfaFactorId(null); }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
