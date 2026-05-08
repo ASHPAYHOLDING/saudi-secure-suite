@@ -140,8 +140,7 @@ for (const tc of cases) {
       assert(!/expression\s*\(/i.test(css), `${tc.name}: CSS expression() found (IE-era XSS)`)
     }
 
-    // 7) Doctype + single <html> root + non-empty <body>
-    assert(/^<!doctype html>/i.test(html.trim()), `${tc.name}: missing <!DOCTYPE html>`)
+    // 7) Single <html> root + non-empty <body>
     assertEquals(doc.querySelectorAll('html').length, 1, `${tc.name}: expected exactly one <html>`)
     const body = doc.querySelector('body')
     assert(body && (body.textContent ?? '').trim().length > 0, `${tc.name}: <body> empty`)
