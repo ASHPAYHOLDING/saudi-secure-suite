@@ -146,23 +146,30 @@ const ResetPassword = () => {
 
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
+        // Fallback: when AAL2 (MFA) is required, use admin edge function to bypass
         if (error.message?.toLowerCase().includes("aal2")) {
-          // MFA optional during recovery — skip silently and let user sign in normally
-          toast({
-            title: "تم استلام طلبك",
-            description: "يمكنك تسجيل الدخول الآن باستخدام كلمة المرور الحالية، وسنتيح التحقق بخطوتين لاحقاً بشكل اختياري.",
+          const { data: { session } } = await supabase.auth.getSession();
+          const accessToken = session?.access_token;
+          if (!accessToken) throw new Error("انتهت صلاحية الجلسة. يرجى طلب رابط جديد.");
+
+          const { data, error: fnErr } = await supabase.functions.invoke("reset-password-admin", {
+            body: { password },
+            headers: { Authorization: `Bearer ${accessToken}` },
           });
-          setTimeout(() => navigate("/auth"), 1500);
-          return;
-        }
-        if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
+          if (fnErr || (data && (data as any).error)) {
+            throw new Error((data as any)?.error || fnErr?.message || "تعذّر تحديث كلمة المرور.");
+          }
+        } else if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
           throw new Error("هذه الكلمة ظهرت ضمن تسريبات معروفة. اختر كلمة جديدة قوية وفريدة.");
+        } else {
+          throw error;
         }
-        throw error;
       }
+      // Sign out so the user logs in fresh with the new password
+      await supabase.auth.signOut();
       setSuccess(true);
-      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
-      setTimeout(() => navigate("/dashboard"), 2000);
+      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح. سجّل الدخول الآن." });
+      setTimeout(() => navigate("/auth"), 2000);
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" });
     } finally {
