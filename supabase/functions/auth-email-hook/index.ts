@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'تأكيد البريد الإلكتروني — Numaxio',
+  invite: 'دعوة للانضمام إلى Numaxio',
+  magiclink: 'رابط تسجيل الدخول — Numaxio',
+  recovery: 'إعادة تعيين كلمة المرور — Numaxio',
+  email_change: 'تأكيد البريد الإلكتروني الجديد — Numaxio',
+  reauthentication: 'رمز التحقق — Numaxio',
 }
 
 // Template mapping
@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "saudi-secure-suite"
+const SITE_NAME = "Numaxio"
 const SENDER_DOMAIN = "notify.numaxio.com"
 const ROOT_DOMAIN = "numaxio.com"
 const FROM_DOMAIN = "numaxio.com" // Domain shown in From address (may be root or sender subdomain)
