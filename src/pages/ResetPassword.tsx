@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Lock, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import MfaChallenge from "@/components/mfa/MfaChallenge";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -18,8 +19,29 @@ const ResetPassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [needsMfa, setNeedsMfa] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check if MFA challenge is required for this session
+  const checkMfaRequirement = async () => {
+    try {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const verified = factors?.totp?.find((f) => f.status === "verified");
+        if (verified) {
+          setMfaFactorId(verified.id);
+          setNeedsMfa(true);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn("[ResetPassword] MFA check failed", e);
+    }
+    return false;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -144,13 +166,42 @@ const ResetPassword = () => {
         return;
       }
 
+      // If account has MFA enabled, require AAL2 before updating password
+      const requiresMfa = await checkMfaRequirement();
+      if (requiresMfa) {
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
+        if (error.message?.toLowerCase().includes("aal2")) {
+          await checkMfaRequirement();
+          throw new Error("يلزم التحقق بخطوتين قبل تحديث كلمة المرور.");
+        }
         if (error.message?.toLowerCase().includes("password") && (error.message?.toLowerCase().includes("leaked") || error.message?.toLowerCase().includes("pwned") || error.message?.toLowerCase().includes("breach"))) {
           throw new Error("هذه الكلمة ظهرت ضمن تسريبات معروفة. اختر كلمة جديدة قوية وفريدة.");
         }
         throw error;
       }
+      setSuccess(true);
+      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
+      setTimeout(() => navigate("/dashboard"), 2000);
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMfaSuccess = async () => {
+    setNeedsMfa(false);
+    setMfaFactorId(null);
+    // Retry password update now that session is AAL2
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
       setSuccess(true);
       toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
       setTimeout(() => navigate("/dashboard"), 2000);
@@ -182,6 +233,20 @@ const ResetPassword = () => {
           <Button onClick={() => navigate("/auth")} className="bg-accent text-accent-foreground hover:bg-accent/90">
             العودة لتسجيل الدخول
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsMfa && mfaFactorId) {
+    return (
+      <div dir="rtl" className="min-h-screen flex items-center justify-center gradient-hero p-4">
+        <div className="rounded-2xl border border-border/20 bg-card p-8 shadow-elevated w-full max-w-md">
+          <MfaChallenge
+            factorId={mfaFactorId}
+            onSuccess={handleMfaSuccess}
+            onBack={() => { setNeedsMfa(false); setMfaFactorId(null); }}
+          />
         </div>
       </div>
     );
