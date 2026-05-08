@@ -1,71 +1,34 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
-} from 'npm:@react-email/components@0.0.22'
+import { Button, Section, Text, Hr } from 'npm:@react-email/components@0.0.22'
+import { NumaxioLayout, styles } from './_layout.tsx'
 
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
 }
 
-export const RecoveryEmail = ({
-  siteName,
-  confirmationUrl,
-}: RecoveryEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Reset your password for {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Reset your password</Heading>
-        <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Reset Password
-        </Button>
-        <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
+  <NumaxioLayout preview="إعادة تعيين كلمة المرور — Numaxio">
+    <Text style={styles.h1}>طلب إعادة تعيين كلمة المرور</Text>
+    <Text style={styles.text}>
+      استلمنا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في <strong>Numaxio</strong>.
+      اضغط على الزر أدناه لإنشاء كلمة مرور جديدة:
+    </Text>
+    <Section style={styles.buttonWrap}>
+      <Button style={styles.button} href={confirmationUrl}>إعادة تعيين كلمة المرور</Button>
+    </Section>
+    <Text style={styles.muted}>
+      هذا الرابط صالح لفترة محدودة لأسباب أمنية. إذا لم يعمل الزر، انسخ الرابط التالي:
+    </Text>
+    <Text style={styles.fallbackBox}>{confirmationUrl}</Text>
+    <Hr style={styles.divider} />
+    <Text style={styles.muted}>
+      🔒 إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة وستبقى كلمة المرور الحالية كما هي.
+      ننصحك بمراجعة سجلات الدخول من إعدادات الأمان.
+    </Text>
+  </NumaxioLayout>
 )
 
 export default RecoveryEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
