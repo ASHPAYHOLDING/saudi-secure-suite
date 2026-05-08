@@ -241,14 +241,8 @@ const Auth = () => {
         }
         await supabase.functions.invoke("login-guard", { body: { email, success: true, ip_address: null, user_agent: navigator.userAgent } });
 
-        // Check for MFA factors
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        const verifiedFactor = factors?.totp?.find((f) => f.status === "verified");
-        if (verifiedFactor) {
-          setMfaFactorId(verifiedFactor.id);
-          setMode("mfa");
-          return;
-        }
+        // MFA is optional — proceed directly to dashboard even if a TOTP factor is enrolled.
+        // Users can enable strict MFA enforcement later from security settings.
 
         navigate("/dashboard");
       }
